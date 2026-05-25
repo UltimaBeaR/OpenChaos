@@ -22,6 +22,26 @@
 // uc_orig: CAM_MORE_IN (fallen/Source/fc.cpp)
 #define CAM_MORE_IN (0.75F)
 
+// Mouse-driven camera orbit sensitivity (OpenChaos -- no original).
+//
+// MOUSE_YAW_SCALE: per-pixel angle delta in game-angle units
+//   (2048 = full circle). At scale=3, a 100px flick rotates ~53 degrees.
+// MOUSE_HEIGHT_SCALE: per-pixel height delta. Same magnitude as the
+//   right-stick height path at typical mouse-flick speeds.
+// MOUSE_ORBIT_LAG: residual yaw lag (game-angle units) retained for the
+//   "rubber band" smoothing tail. Capped here because mouse input is
+//   unbounded -- values above ~60 start to expose chord shrinkage in
+//   the position smoothing for sustained fast flicks.
+// STICK_ORBIT_LAG: same idea for the right stick. Stick input is
+//   bounded to ~61 game-angle units per tick at full deflection, so
+//   setting this to 61 means the rotation path is identical to the
+//   legacy gamepad feel (no sync, full smoothing tail) while still
+//   using exact rotation math (no distance inflation).
+#define MOUSE_YAW_SCALE    3
+#define MOUSE_HEIGHT_SCALE 0x400
+#define MOUSE_ORBIT_LAG    50
+#define STICK_ORBIT_LAG    61
+
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
 // uc_orig: CAM_AT_WORLD_POS (fallen/Source/fc.cpp)
@@ -41,6 +61,7 @@
 
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
+
 
 // uc_orig: person_has_gun_out (fallen/Source/fc.cpp)
 extern SLONG person_has_gun_out(Thing* p_person);
@@ -839,40 +860,73 @@ void FC_process()
             //      right now". Capture engages on click in the window
             //      during active gameplay; see engine/input/mouse_capture.h.
             //
-            // TODO (next-agent work):
-            //   - Tune MOUSE_YAW_SCALE / MOUSE_HEIGHT_SCALE by feel.
-            //     Initial values are guesses; they should match the
-            //     feel of a fast stick-flick at typical desktop mouse
-            //     sensitivity (~5-10 px/frame for casual motion,
-            //     ~30-50 for a sharp flick).
-            //   - Sensitivity option in the menu (post-1.0 maybe, or
-            //     part of stage12 controls config).
+            // Tunables (top of file): MOUSE_YAW_SCALE, MOUSE_HEIGHT_SCALE,
+            // MOUSE_ORBIT_LAG. See those for what each knob does.
+            //
+            // TODO (post-1.0):
+            //   - Sensitivity option in the menu.
             //   - Y-axis inversion option.
-            //   - Mouse-driven aim mode (post-1.0).
-            //   - Per-axis dead zone (probably unnecessary — mice don't
-            //     drift like sticks — but might want a 1-pixel ignore to
-            //     suppress micro-tremor).
+            //   - Mouse-driven aim mode.
+            //   - Per-axis dead zone if micro-tremor turns out to matter.
             if (!entering_vehicle && mouse_capture_is_active()) {
-                // Sensitivity constants. mdx/mdy are window-pixel deltas
-                // per tick. rot_speed and height_delta then go into the
-                // same orbital / height math as the stick path. Picked
-                // by analogy with the stick magnitudes (right-stick max
-                // = 0x600 / 0x3100); a casual 5px mouse move maps to
-                // roughly a half-stick deflection.
-                constexpr SLONG MOUSE_YAW_SCALE    = 0x80;  // 128: ~1.5x stick max at 50px/tick
-                constexpr SLONG MOUSE_HEIGHT_SCALE = 0x400; // 1024: ~1.6x stick max at 50px/tick
-
                 SLONG mdx = 0, mdy = 0;
                 input_mouse_consume_rel(&mdx, &mdy);
 
                 if (mdx != 0) {
-                    SLONG rot_speed = mdx * MOUSE_YAW_SCALE;
+                    // True rotation around focus, with a constant
+                    // angular residual lag for the "rubber band" feel.
+                    //
+                    // want_x/z always rotates by the full input angle
+                    // (it's the target). fc->x/z and fc->yaw sync to
+                    // angle MINUS a fixed residual (MOUSE_ORBIT_LAG
+                    // game units). The leftover lag is closed by the
+                    // standard position + angle smoothing blocks
+                    // (25%/tick), giving the keep-rotating-after-
+                    // release effect at all speeds.
+                    //
+                    // Behaviour by input magnitude:
+                    //   - Slow (|angle| <= LAG): sync_angle stays 0 --
+                    //     identical to legacy lag for that tick.
+                    //   - Medium: partial sync, the residual being LAG.
+                    //   - Fast flick: nearly all synced, leaving only
+                    //     LAG as residual -- so no chord dive through
+                    //     Darci, but rubber band feel is preserved.
+                    SLONG angle = mdx * MOUSE_YAW_SCALE;
+                    SLONG sync_angle;
+                    if (angle >  MOUSE_ORBIT_LAG)  sync_angle = angle - MOUSE_ORBIT_LAG;
+                    else if (angle < -MOUSE_ORBIT_LAG) sync_angle = angle + MOUSE_ORBIT_LAG;
+                    else                           sync_angle = 0;
 
-                    dx = fc->focus_x - fc->want_x >> 3;
-                    dz = fc->focus_z - fc->want_z >> 3;
+                    // CCW rotation (matches the original Euler-step
+                    // direction for positive mdx): new_rx = rx*c - rz*s,
+                    // new_rz = rx*s + rz*c. 64-bit math to avoid overflow
+                    // at large camera offsets.
+                    SLONG s_full = SIN(angle & 2047);
+                    SLONG c_full = COS(angle & 2047);
+                    int64_t rx, rz;
+#define ORBIT_PT(px, pz, s, c) \
+    rx = (int64_t)(px) - fc->focus_x; \
+    rz = (int64_t)(pz) - fc->focus_z; \
+    (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
+    (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
 
-                    fc->want_x += dz * (rot_speed >> 4) >> 6;
-                    fc->want_z -= dx * (rot_speed >> 4) >> 6;
+                    ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
+
+                    if (sync_angle != 0) {
+                        // Yaw sign: Arctan in this engine measures CW
+                        // from -Y, so for our CCW position rotation by
+                        // +sync_angle, want_yaw as recomputed by
+                        // FC_look_at_focus DECREASES by sync_angle --
+                        // so subtract here to keep position and look
+                        // direction in step.
+                        SLONG s_sync = SIN(sync_angle & 2047);
+                        SLONG c_sync = COS(sync_angle & 2047);
+                        ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
+                        SLONG yaw_mask = (2048 << 8) - 1;
+                        fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                        fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
+                    }
+#undef ORBIT_PT
 
                     fc->nobehind = 0x2000;
                     fc->last_manual_cam_turn = (SLONG)GAME_TURN;
@@ -901,13 +955,40 @@ void FC_process()
                 SLONG stick_y = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
 
                 if (abs(stick_x) > 8000) {
-                    SLONG rot_speed = (stick_x * 0x600) / 32767;
+                    // True rotation with constant-residual lag -- see
+                    // the comment in the mouse block for the full
+                    // rationale. Scale: original Euler effective theta
+                    // at full deflection ~ 0.187 rad = ~61 game units;
+                    // we preserve that magnitude. TICK_RATIO scaling
+                    // kept so per-tick angle is framerate-independent.
+                    SLONG angle = (stick_x * 61) / 32767;
+                    angle = angle * TICK_RATIO >> TICK_SHIFT;
 
-                    dx = fc->focus_x - fc->want_x >> 3;
-                    dz = fc->focus_z - fc->want_z >> 3;
+                    SLONG sync_angle;
+                    if (angle >  STICK_ORBIT_LAG)  sync_angle = angle - STICK_ORBIT_LAG;
+                    else if (angle < -STICK_ORBIT_LAG) sync_angle = angle + STICK_ORBIT_LAG;
+                    else                           sync_angle = 0;
 
-                    fc->want_x += dz * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
-                    fc->want_z -= dx * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
+                    SLONG s_full = SIN(angle & 2047);
+                    SLONG c_full = COS(angle & 2047);
+                    int64_t rx, rz;
+#define ORBIT_PT(px, pz, s, c) \
+    rx = (int64_t)(px) - fc->focus_x; \
+    rz = (int64_t)(pz) - fc->focus_z; \
+    (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
+    (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
+
+                    ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
+
+                    if (sync_angle != 0) {
+                        SLONG s_sync = SIN(sync_angle & 2047);
+                        SLONG c_sync = COS(sync_angle & 2047);
+                        ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
+                        SLONG yaw_mask = (2048 << 8) - 1;
+                        fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                        fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
+                    }
+#undef ORBIT_PT
 
                     fc->nobehind = 0x2000;
                     fc->last_manual_cam_turn = (SLONG)GAME_TURN; // hand rotate -> lock fight trigger
