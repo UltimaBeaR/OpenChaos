@@ -24,10 +24,15 @@
 
 // Mouse-driven camera orbit sensitivity (OpenChaos -- no original).
 //
-// MOUSE_YAW_SCALE: per-pixel angle delta in game-angle units
-//   (2048 = full circle). At scale=3, a 100px flick rotates ~53 degrees.
+// MOUSE_YAW_SCALE_NUM / MOUSE_YAW_SCALE_DEN: per-pixel angle delta
+//   in game-angle units (2048 = full circle), as a fraction so we can
+//   tune below 1.0 per pixel. Effective scale = NUM/DEN. At 3/5 (=0.6)
+//   a 100px flick rotates ~10.5 degrees.
 // MOUSE_HEIGHT_SCALE: per-pixel height delta. Same magnitude as the
 //   right-stick height path at typical mouse-flick speeds.
+// MOUSE_INVERT_Y: 1 = mouse-up lowers the camera (FPS-style "inverted
+//   look"), 0 = mouse-up raises the camera. Mouse only -- the right
+//   stick keeps its own convention.
 // MOUSE_ORBIT_LAG: residual yaw lag (game-angle units) retained for the
 //   "rubber band" smoothing tail. Capped here because mouse input is
 //   unbounded -- values above ~60 start to expose chord shrinkage in
@@ -37,10 +42,12 @@
 //   setting this to 61 means the rotation path is identical to the
 //   legacy gamepad feel (no sync, full smoothing tail) while still
 //   using exact rotation math (no distance inflation).
-#define MOUSE_YAW_SCALE    3
-#define MOUSE_HEIGHT_SCALE 0x400
-#define MOUSE_ORBIT_LAG    50
-#define STICK_ORBIT_LAG    61
+#define MOUSE_YAW_SCALE_NUM 3
+#define MOUSE_YAW_SCALE_DEN 5
+#define MOUSE_HEIGHT_SCALE  0x400
+#define MOUSE_INVERT_Y      1
+#define MOUSE_ORBIT_LAG     50
+#define STICK_ORBIT_LAG     61
 
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
@@ -891,7 +898,7 @@ void FC_process()
                     //   - Fast flick: nearly all synced, leaving only
                     //     LAG as residual -- so no chord dive through
                     //     Darci, but rubber band feel is preserved.
-                    SLONG angle = mdx * MOUSE_YAW_SCALE;
+                    SLONG angle = mdx * MOUSE_YAW_SCALE_NUM / MOUSE_YAW_SCALE_DEN;
                     SLONG sync_angle;
                     if (angle >  MOUSE_ORBIT_LAG)  sync_angle = angle - MOUSE_ORBIT_LAG;
                     else if (angle < -MOUSE_ORBIT_LAG) sync_angle = angle + MOUSE_ORBIT_LAG;
@@ -933,10 +940,12 @@ void FC_process()
                 }
 
                 if (mdy != 0) {
-                    // Mouse up (mdy negative) = raise camera, matching
-                    // the right-stick convention where stick up =
-                    // higher camera. Same min/max clamps.
-                    SLONG height_delta = -mdy * MOUSE_HEIGHT_SCALE;
+                    // Direction governed by MOUSE_INVERT_Y (top of
+                    // file). 1 = mouse-up lowers camera (FPS-style
+                    // inverted look), 0 = mouse-up raises camera.
+                    // mdy is positive when mouse moves down (SDL
+                    // convention).
+                    SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
                     fc->want_y += height_delta;
 
                     SLONG min_y = fc->focus_y + 0x2000;
