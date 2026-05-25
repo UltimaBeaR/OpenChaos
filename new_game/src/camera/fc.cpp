@@ -52,7 +52,13 @@
 #define MOUSE_SENS_MAX_Q8   768    // ~3.0 game-units/px
 #define MOUSE_SENSITIVITY   22     // 0..100, see comment above.
 #define MOUSE_INVERT_Y      1
-#define MOUSE_ORBIT_LAG     50
+// Residual angular lag the rotation path leaves unsynced each tick,
+// closed afterwards by the standard position+angle smoothing (25%/tick).
+// Higher = more "rubber band" tail; lower = snappier 1:1 input→camera.
+// Mouse wants snappy (5 = effectively immediate). Gamepad stick wants
+// the full legacy tail (61 = no sync, all smoothing) — stick deflection
+// caps at ~61 angle units per tick at full deflection anyway.
+#define MOUSE_ORBIT_LAG     5
 #define STICK_ORBIT_LAG     61
 
 // Camera Y range, relative to focus_y (the character's vertical position).
