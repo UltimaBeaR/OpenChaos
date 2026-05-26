@@ -135,4 +135,47 @@ constexpr int ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY = KKEY_TAB;
 // + ACT_MENU_CONFIRM_KKEY_1) — the semantic is the same as in any other menu;
 // no separate panel-nav constants needed.
 
+// ---- WARE debug overlay (level-hold T) -------------------------------------
+// T held draws the WARE (warehouse / interest-point) debug overlay each frame.
+// NOTE: this read in ware.cpp is NOT gated by allow_debug_keys (it ships in
+// every build). Effectively a developer-only feature anyway — T is unlikely
+// to be pressed by a regular player, and the overlay is harmless if it is.
+// Listed here for action-map completeness; if review wants the gate, add
+// `if (allow_debug_keys)` to ware.cpp::WARE_debug.
+
+constexpr int ACT_BANG_WARE_DEBUG_KKEY = KKEY_T;
+
+// ---- On-screen message buffer scroll (debug-mode-only) ---------------------
+// Inside MSG_draw (engine/console/message.cpp), gated by allow_debug_keys.
+// Numpad +/-/Enter scroll the debug message history; Shift modifier multiplies
+// scroll step by 20 (read separately via ShiftFlag).
+
+constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_PPLUS;
+constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_PMINUS;
+constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_PENTER;
+
+// ---- Misc gameplay-side dev hotkeys (gated by allow_debug_keys) ------------
+
+// D: prints "There is room behind Darci" on the HUD if the behind-check
+// passes — gameplay-area room test for AI debugging. game_tick.cpp.
+constexpr int ACT_BANG_ROOM_BEHIND_CHECK_KKEY = KKEY_D;
+
+// `[` (left brace): cycle secondary camera through Thing slots in REVERSE
+// order. Symmetric to ACT_BANG_CYCLE_CAMERA_PERSON_KKEY (`]`).
+constexpr int ACT_BANG_CYCLE_CAMERA_PERSON_REV_KKEY = KKEY_LBRACE;
+
+// P: toggle the secondary camera's focus on / off (camera-target null vs
+// current cycle slot). game_tick.cpp.
+constexpr int ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY = KKEY_P;
+
+// Combat-testing harness — `-` fewer enemies, `=` more, `\` cycle armament
+// tier. update() keeps the wave topped up. game_tick.cpp.
+constexpr int ACT_BANG_COMBAT_TEST_INC_KKEY              = KKEY_PLUS;
+constexpr int ACT_BANG_COMBAT_TEST_DEC_KKEY              = KKEY_MINUS;
+constexpr int ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY   = KKEY_BACKSLASH;
+
+// F3: save whole-game snapshot. Gated behind bangunsnotgames so regular
+// players don't trigger debug-save by accident. game_tick.cpp.
+constexpr int ACT_BANG_SAVE_GAME_KKEY = KKEY_F3;
+
 #endif // GAME_ACTION_MAP_ACT_BANGUNSNOTGAMES_H

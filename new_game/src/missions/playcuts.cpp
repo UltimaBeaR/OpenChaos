@@ -510,7 +510,7 @@ void PLAYCUTS_Play(CPData* cutscene)
     // would already not trigger — but consume() here is still useful: it
     // resets press_pending too, which is needed if any consumer of pending
     // raced ahead.
-    input_key_consume(KKEY_SPACE);
+    input_key_consume(ACT_CINE_PLAYCUT_SKIP_KKEY);
     input_last_key_consume();
     no_more_packets = 0;
 

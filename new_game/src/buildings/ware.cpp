@@ -11,6 +11,7 @@
 #include "buildings/ware_globals.h"
 #include "map/pap.h"
 #include "engine/input/input_frame.h"
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_WARE_DEBUG_KKEY
 
 // uc_orig: WARE_OFFSET_TO_ROOFTEXTURES (fallen/Source/ware.cpp)
 // Byte offset into the .map file where the rooftop texture table begins.
@@ -586,7 +587,7 @@ void WARE_debug(void)
     WARE_Ware* ww;
 
     // Continuous level read: WARE_debug overlay drawn every frame T is held.
-    if (!input_key_held(KKEY_T))
+    if (!input_key_held(ACT_BANG_WARE_DEBUG_KKEY))
         return;
 
     for (i = 1; i < WARE_ware_upto; i++) {

@@ -51,6 +51,7 @@
 #include "game/action_map/act_dev_console.h" // ACT_CONS_*
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
 #include "game/action_map/act_foot.h" // ACT_FOOT_*
+#include "game/action_map/act_car.h" // ACT_CAR_*
 #include "engine/input/input_frame.h"
 #include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
@@ -1388,7 +1389,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KKEY_D)) {
+    if (input_key_just_pressed(ACT_BANG_ROOM_BEHIND_CHECK_KKEY)) {
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
@@ -1540,7 +1541,7 @@ void process_controls(void)
                 }
             }
         }
-        if (input_key_just_pressed(KKEY_LBRACE)) {
+        if (input_key_just_pressed(ACT_BANG_CYCLE_CAMERA_PERSON_REV_KKEY)) {
             while (1) {
                 index_cam--;
                 if (index_cam < 0)
@@ -1554,7 +1555,7 @@ void process_controls(void)
             }
         }
 
-        if (input_key_just_pressed(KKEY_P)) {
+        if (input_key_just_pressed(ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY)) {
             if (FC_cam[1].focus) {
                 FC_cam[1].focus = NULL;
             } else {
@@ -1647,10 +1648,11 @@ void process_controls(void)
         }
         return;
     } else {
-        // F9 opens the dev console from gameplay. Same key in both foot and
-        // car contexts — read both ACT names. ACT_CAR_OPEN_DEV_CONSOLE_KKEY
-        // will be added alongside ACT_FOOT_* in step 3c.6.
-        if (input_key_just_pressed(ACT_FOOT_OPEN_DEV_CONSOLE_KKEY))
+        // F9 opens the dev console from gameplay. Same scancode in both foot
+        // and car contexts — read both ACT names so the constant change in
+        // either context would be picked up correctly.
+        if (input_key_just_pressed(ACT_FOOT_OPEN_DEV_CONSOLE_KKEY)
+            || input_key_just_pressed(ACT_CAR_OPEN_DEV_CONSOLE_KKEY))
             is_inputing = 1;
     }
 
@@ -1805,15 +1807,15 @@ void process_controls(void)
 
     // Combat-testing harness (OpenChaos). '-' fewer enemies, '=' more,
     // '\' cycle armament tier. update() keeps the wave topped up.
-    if (input_key_just_pressed(KKEY_PLUS))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_INC_KKEY))
         combat_test_inc();
-    if (input_key_just_pressed(KKEY_MINUS))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_DEC_KKEY))
         combat_test_dec();
-    if (input_key_just_pressed(KKEY_BACKSLASH))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY))
         combat_test_cycle_armament();
     combat_test_update();
 
-    if (input_key_just_pressed(KKEY_F3)) {
+    if (input_key_just_pressed(ACT_BANG_SAVE_GAME_KKEY)) {
         void save_whole_game(CBYTE * gamename);
         void load_whole_game(CBYTE * gamename);
 

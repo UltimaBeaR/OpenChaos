@@ -18,6 +18,7 @@
 #include "game/input_actions.h"
 #include "game/action_map/act_cinematic.h" // ACT_CINE_GENERIC_SKIP_*
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
+#include "game/action_map/act_menu.h" // ACT_MENU_TOGGLE_PAUSE_KKEY
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
 #include "map/ob.h"
@@ -849,10 +850,11 @@ round_again:;
         form_leave_map = NULL;
         form_left_map = 0;
         input_last_key_consume();
-        // Drain a stale KKEY_ESC press_pending carried over from the frontend so
-        // GAMEMENU_process can't open the pause menu on the very first tick of
-        // the level just because the user closed a frontend dialog with ESC.
-        input_key_force_release(KKEY_ESC);
+        // Drain a stale pause-toggle press_pending carried over from the
+        // frontend so GAMEMENU_process can't open the pause menu on the very
+        // first tick of the level just because the user closed a frontend
+        // dialog with ESC.
+        input_key_force_release(ACT_MENU_TOGGLE_PAUSE_KKEY);
         last_fudge_message = 0;
         last_fudge_camera = 0;
 

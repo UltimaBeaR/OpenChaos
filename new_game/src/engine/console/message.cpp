@@ -5,6 +5,7 @@
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
 #include "engine/graphics/text/font.h"
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_MSG_SCROLL_*
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
@@ -63,11 +64,11 @@ void MSG_draw(void)
     if (ShiftFlag)
         size = 20;
     // Continuous level reads: scrolling speed = while-held rate.
-    if (input_key_held(KKEY_PPLUS))
+    if (input_key_held(ACT_BANG_MSG_SCROLL_UP_KKEY))
         draw_message_offset += size;
-    if (input_key_held(KKEY_PMINUS))
+    if (input_key_held(ACT_BANG_MSG_SCROLL_DOWN_KKEY))
         draw_message_offset -= size;
-    if (input_key_held(KKEY_PENTER))
+    if (input_key_held(ACT_BANG_MSG_SCROLL_RESET_KKEY))
         draw_message_offset = 0;
 
     for (i = 0; i < SCREEN_SIZE; i++) {

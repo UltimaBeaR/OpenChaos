@@ -4,6 +4,7 @@
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
 #include "game/action_map/act_foot.h" // ACT_FOOT_*
+#include "game/action_map/act_car.h" // ACT_CAR_*
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
@@ -3658,8 +3659,8 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
         // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
         // crosses ~half-deflection inside the gamepad layer); btn_held below
         // reads exactly those bits, not the analog uint8_t triggers.
-        bool r2 = input_btn_held(16);
-        bool l2 = input_btn_held(15);
+        bool r2 = input_btn_held(ACT_CAR_ACCEL_GBTN);
+        bool l2 = input_btn_held(ACT_CAR_BRAKE_GBTN);
 
         if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
             veh->DControl |= VEH_ACCEL;
@@ -3688,12 +3689,10 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
     // into the first car-entry tick as a spurious toggle.
     {
-        const SLONG kb_siren_key  = KKEY_SPACE;
-        constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
-        const bool kb_siren  = input_key_press_pending(kb_siren_key);
-        const bool pad_siren = input_btn_press_pending(pad_siren_btn);
-        input_key_consume(kb_siren_key);
-        input_btn_consume(pad_siren_btn);
+        const bool kb_siren  = input_key_press_pending(ACT_CAR_SIREN_KKEY);
+        const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
+        input_key_consume(ACT_CAR_SIREN_KKEY);
+        input_btn_consume(ACT_CAR_SIREN_GBTN);
         if (kb_siren || pad_siren) {
             veh->DControl |= VEH_SIREN;
         }
@@ -3983,7 +3982,12 @@ ULONG get_hardware_input(UWORD type)
                 // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
                 // the triangle press must also emit INPUT_MASK_KICK to flip
                 // the siren / lights.
-                if (input_btn_held(3)) {
+                // Triangle is ACT_MENU_CANCEL_GBTN on foot AND ACT_CAR_SIREN_GBTN
+                // while driving — same scancode, two contexts. Read once, emit
+                // INPUT_MASK_CANCEL always plus INPUT_MASK_KICK (which feeds
+                // INPUT_CAR_PAD_SIREN inside apply_button_input_car) when
+                // driving.
+                if (input_btn_held(ACT_CAR_SIREN_GBTN)) {
                     input |= INPUT_MASK_CANCEL;
                     {
                         Thing* p_darci = NET_PERSON(0);
@@ -4719,8 +4723,8 @@ void process_hardware_level_input_for_player(Thing* p_player)
                 // sources are dual-use, and apply_button_input_car is the only
                 // consumer of their press_pending flag — without this drain,
                 // the flag would sit set indefinitely from any outside press.
-                input_key_consume(KKEY_SPACE);
-                input_btn_consume(3); // Triangle/Y
+                input_key_consume(ACT_CAR_SIREN_KKEY);
+                input_btn_consume(ACT_CAR_SIREN_GBTN);
             }
             {
                 // Main input dispatcher: fight mode vs normal run mode.

@@ -9,6 +9,8 @@
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"
 #include "engine/input/input_frame.h"
+#include "game/action_map/act_foot.h" // ACT_FOOT_* — drain gameplay keys on level load
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_SHOW_VERSION_KKEY
 
 #include "missions/eway.h"
 #include "missions/mission.h"
@@ -1967,17 +1969,17 @@ SLONG ELEV_game_init(
 
     // Force-release any keys held across the level transition so the first
     // frame of gameplay doesn't see a stale press from the loading screen.
-    input_key_force_release(KKEY_SPACE);
-    input_key_force_release(KKEY_ENTER);
-    input_key_force_release(KKEY_A);
-    input_key_force_release(KKEY_Z);
-    input_key_force_release(KKEY_X);
-    input_key_force_release(KKEY_C);
-    input_key_force_release(KKEY_V);
-    input_key_force_release(KKEY_LEFT);
-    input_key_force_release(KKEY_RIGHT);
-    input_key_force_release(KKEY_UP);
-    input_key_force_release(KKEY_DOWN);
+    input_key_force_release(ACT_FOOT_JUMP_KKEY);
+    input_key_force_release(ACT_FOOT_INVENTORY_KKEY);
+    input_key_force_release(ACT_FOOT_AIM_KKEY);
+    input_key_force_release(ACT_FOOT_PUNCH_KKEY);
+    input_key_force_release(ACT_FOOT_KICK_KKEY);
+    input_key_force_release(ACT_FOOT_ACTION_KKEY);
+    input_key_force_release(ACT_BANG_SHOW_VERSION_KKEY);
+    input_key_force_release(ACT_FOOT_MOVE_LEFT_KKEY);
+    input_key_force_release(ACT_FOOT_MOVE_RIGHT_KKEY);
+    input_key_force_release(ACT_FOOT_MOVE_FORWARD_KKEY);
+    input_key_force_release(ACT_FOOT_MOVE_BACKWARD_KKEY);
 
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 
