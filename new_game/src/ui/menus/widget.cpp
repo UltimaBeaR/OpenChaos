@@ -95,7 +95,7 @@ SLONG FORM_Process(Form* form)
     const UBYTE last_key = input_last_key();
     if (last_key) {
         // ShiftFlag is the level-state Shift modifier mirrored from
-        // input_frame's event-tracked state (KKEY_LSHIFT || KKEY_RSHIFT).
+        // input_frame's event-tracked state (KKEY_LEFT_SHIFT || KKEY_RIGHT_SHIFT).
         key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
         if (key == 8)
             key = 127;
@@ -113,16 +113,16 @@ SLONG FORM_Process(Form* form)
             case KKEY_DOWN:
                 key = 10;
                 break;
-            case KKEY_ESC:
+            case KKEY_ESCAPE:
                 key = 27;
                 break;
             case KKEY_ENTER:
                 key = 13;
                 break;
-            case KKEY_PGUP:
+            case KKEY_PAGE_UP:
                 key = 1;
                 break;
-            case KKEY_PGDN:
+            case KKEY_PAGE_DOWN:
                 key = 2;
                 break;
             case KKEY_HOME:
@@ -131,7 +131,7 @@ SLONG FORM_Process(Form* form)
             case KKEY_END:
                 key = 4;
                 break;
-            case KKEY_DEL:
+            case KKEY_DELETE:
                 key = 5;
                 break;
             }

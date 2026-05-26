@@ -1629,7 +1629,7 @@ void process_controls(void)
                 UWORD len = strlen(input_text);
                 CBYTE key;
                 // ShiftFlag is the level-state Shift modifier mirrored from
-                // input_frame's event-tracked KKEY_LSHIFT || KKEY_RSHIFT.
+                // input_frame's event-tracked KKEY_LEFT_SHIFT || KKEY_RIGHT_SHIFT.
                 key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
                 if (key == 8) {
                     if (len > 2)
@@ -2171,7 +2171,7 @@ void process_controls(void)
             CONSOLE_text("STEALTH DEBUG MODE OFF");
     }
 
-    // KKEY_POINT: continuous smoke spawn while held — no consume in original
+    // KKEY_PERIOD: continuous smoke spawn while held — no consume in original
     // (level read fires every frame). input_key_held preserves that.
     if (input_key_held(ACT_BANG_SPAWN_SMOKE_KKEY)) {
         PARTICLE_Add(

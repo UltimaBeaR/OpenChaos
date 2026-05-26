@@ -111,7 +111,7 @@ bool input_btn_just_pressed_or_repeat(SLONG btn_idx);
 // ---- Stick virtual directions ----------------------------------------------
 //
 // Stick id and direction are passed as `int` — values come from the
-// GAXIS_LEFT / GAXIS_RIGHT and GDIR_DIR_UP / DOWN / LEFT / RIGHT constants in
+// GAXIS_LEFT / GAXIS_RIGHT and GDIR_UP / DOWN / LEFT / RIGHT constants in
 // game/action_map/input_codes.h. Was an `enum InputStickId / InputStickDir`
 // pair; replaced with a typedef because the #defines in input_codes.h now own
 // the names (which keeps the action-map device-code list authoritative).
@@ -220,7 +220,7 @@ int input_trigger_raw(SLONG trigger_idx);
 //   static InputAutoRepeat ar_down;
 //   bool nav_down = ar_down.tick_combined(
 //       input_key_held(KKEY_DOWN)
-//    || input_stick_held(GAXIS_LEFT, GDIR_DIR_DOWN));
+//    || input_stick_held(GAXIS_LEFT, GDIR_DOWN));
 struct InputAutoRepeat {
     bool     was_held  = false;
     bool     armed     = false;

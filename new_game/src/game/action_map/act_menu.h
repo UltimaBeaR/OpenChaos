@@ -15,7 +15,7 @@
 //   new_game/src/game/action_map/input_codes.h
 //
 // Note on sticks: gamepad stick discrete directions for menu navigation are
-// read via the two-arg API `input_stick_held(GAXIS_LEFT, GDIR_DIR_UP)` —
+// read via the two-arg API `input_stick_held(GAXIS_LEFT, GDIR_UP)` —
 // the GAXIS_* / GDIR_DIR_* values come from input_codes.h. Used directly at
 // call sites inside menu-nav OR-chains alongside the ACT_MENU_NAV_*_GBTN /
 // ACT_MENU_NAV_*_KKEY constants below.
@@ -45,7 +45,7 @@ constexpr int ACT_MENU_NAV_RIGHT_GBTN = GBTN_DPAD_RIGHT;
 
 constexpr int ACT_MENU_CONFIRM_KKEY_1 = KKEY_ENTER;
 constexpr int ACT_MENU_CONFIRM_KKEY_2 = KKEY_SPACE;
-constexpr int ACT_MENU_CONFIRM_KKEY_3 = KKEY_PENTER;
+constexpr int ACT_MENU_CONFIRM_KKEY_3 = KKEY_NUMPAD_ENTER;
 constexpr int ACT_MENU_CONFIRM_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
 
 // ---- Cancel / back ---------------------------------------------------------
@@ -53,7 +53,7 @@ constexpr int ACT_MENU_CONFIRM_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
 // doubles as "open pause" from gameplay (see ACT_MENU_TOGGLE_PAUSE_*) — same
 // key, different context.
 
-constexpr int ACT_MENU_CANCEL_KKEY = KKEY_ESC;
+constexpr int ACT_MENU_CANCEL_KKEY = KKEY_ESCAPE;
 constexpr int ACT_MENU_CANCEL_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
 
 // ---- Pause toggle (from gameplay) ------------------------------------------
@@ -61,9 +61,9 @@ constexpr int ACT_MENU_CANCEL_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
 // channel reads press_pending separately and consumes via input_key_force_release
 // to avoid the press leaking into gameplay (JUMP / SELECT) on the same frame.
 // GBTN_START is bound directly so the gamepad Start button opens / closes
-// the pause menu; it's read in parallel with KKEY_ESC at the call site.
+// the pause menu; it's read in parallel with KKEY_ESCAPE at the call site.
 
-constexpr int ACT_MENU_TOGGLE_PAUSE_KKEY = KKEY_ESC;
+constexpr int ACT_MENU_TOGGLE_PAUSE_KKEY = KKEY_ESCAPE;
 constexpr int ACT_MENU_TOGGLE_PAUSE_GBTN = GBTN_START; // DS: Options, Xbox: Start
 
 // ---- Page jump (frontend list nav) -----------------------------------------
@@ -95,8 +95,8 @@ constexpr int ACT_MENU_ATTRACT_QUIT_KKEY = KKEY_Q;
 // side-channels at the call site. NOT gated by allow_debug_keys — these are
 // frontend-only cheats with their own Ctrl+Shift guard.
 
-constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_PPLUS;
-constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_ASTERISK;
+constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_NUMPAD_PLUS;
+constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_NUMPAD_ASTERISK;
 
 // ---- Modal dialog acknowledge ----------------------------------------------
 // "Press anything sensible to continue" modal screens during gameplay (e.g.
@@ -104,10 +104,10 @@ constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_ASTERISK;
 // cancel — distinct ACT names so the modal context can be retargeted
 // independently if needed. Read in game.cpp::game_loop deadcivs branch.
 
-constexpr int ACT_MENU_MODAL_ACK_KKEY_1 = KKEY_ESC;
+constexpr int ACT_MENU_MODAL_ACK_KKEY_1 = KKEY_ESCAPE;
 constexpr int ACT_MENU_MODAL_ACK_KKEY_2 = KKEY_SPACE;
 constexpr int ACT_MENU_MODAL_ACK_KKEY_3 = KKEY_ENTER;
-constexpr int ACT_MENU_MODAL_ACK_KKEY_4 = KKEY_PENTER;
+constexpr int ACT_MENU_MODAL_ACK_KKEY_4 = KKEY_NUMPAD_ENTER;
 
 // ---- "Any button" confirm probe (used in attract / "press start") ----------
 // Frontend attract mode and similar "press start" screens want a single

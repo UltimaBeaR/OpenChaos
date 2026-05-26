@@ -10,7 +10,7 @@
 #include "outro/core/outro_os_globals.h"
 
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
-#include "engine/input/keyboard.h" // KKEY_ESC / KKEY_ENTER / KKEY_SPACE
+#include "engine/input/keyboard.h" // KKEY_ESCAPE / KKEY_ENTER / KKEY_SPACE
 #include "game/action_map/act_cinematic.h" // ACT_CINE_OUTRO_SKIP_*
 
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)

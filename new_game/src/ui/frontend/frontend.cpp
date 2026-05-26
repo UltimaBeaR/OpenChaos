@@ -2291,10 +2291,10 @@ static UBYTE FRONTEND_input(void)
         const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY);
         const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY);
 
-        bool st_up = input_stick_held(GAXIS_LEFT, GDIR_DIR_UP);
-        bool st_dn = input_stick_held(GAXIS_LEFT, GDIR_DIR_DOWN);
-        bool st_lt = input_stick_held(GAXIS_LEFT, GDIR_DIR_LEFT);
-        bool st_rt = input_stick_held(GAXIS_LEFT, GDIR_DIR_RIGHT);
+        bool st_up = input_stick_held(GAXIS_LEFT, GDIR_UP);
+        bool st_dn = input_stick_held(GAXIS_LEFT, GDIR_DOWN);
+        bool st_lt = input_stick_held(GAXIS_LEFT, GDIR_LEFT);
+        bool st_rt = input_stick_held(GAXIS_LEFT, GDIR_RIGHT);
 
         const bool dp_up = input_btn_held(ACT_MENU_NAV_UP_GBTN);
         const bool dp_dn = input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
@@ -2333,16 +2333,16 @@ static UBYTE FRONTEND_input(void)
         const bool any_rt_held = kb_rt || st_rt || dp_rt;
 
         const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_UP)
+            || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
             || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
         const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_DOWN)
+            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
             || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
         const bool any_lt_jp = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_LEFT)
+            || input_stick_just_pressed(GAXIS_LEFT, GDIR_LEFT)
             || input_btn_just_pressed(ACT_MENU_NAV_LEFT_GBTN);
         const bool any_rt_jp = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_RIGHT)
+            || input_stick_just_pressed(GAXIS_LEFT, GDIR_RIGHT)
             || input_btn_just_pressed(ACT_MENU_NAV_RIGHT_GBTN);
 
         static InputAutoRepeat ar_up;

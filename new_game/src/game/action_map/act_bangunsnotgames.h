@@ -37,7 +37,7 @@ constexpr int ACT_BANG_SHOW_LEGEND_KKEY = KKEY_F1;
 // F2: toggle CRT scanline post-process shader. Read in game.cpp::special_keys.
 constexpr int ACT_BANG_TOGGLE_CRT_KKEY = KKEY_F2;
 
-// F8: toggle single-step physics mode. Pair with KKEY_INS (step one tick).
+// F8: toggle single-step physics mode. Pair with KKEY_INSERT (step one tick).
 // Read in game.cpp::special_keys.
 constexpr int ACT_BANG_TOGGLE_SINGLE_STEP_KKEY = KKEY_F8;
 
@@ -56,13 +56,13 @@ constexpr int ACT_BANG_TOGGLE_CHEAT_OVERLAY_KKEY = KKEY_F12;
 
 // Insert: step one physics tick while single-step mode is active. Read in
 // game.cpp::special_keys (gated by `single_step` flag).
-constexpr int ACT_BANG_STEP_ONE_TICK_KKEY = KKEY_INS;
+constexpr int ACT_BANG_STEP_ONE_TICK_KKEY = KKEY_INSERT;
 
 // LCtrl: rising-edge toggle of the debug-overlay lock (debug_overlay_locked_on).
 // This is the LCtrl KEY itself, not a modifier read — ControlFlag is the
 // separate held-state mirror used as modifier in other binds. Read in
 // game.cpp::game_loop.
-constexpr int ACT_BANG_TOGGLE_DEBUG_OVERLAY_LOCK_KKEY = KKEY_LCONTROL;
+constexpr int ACT_BANG_TOGGLE_DEBUG_OVERLAY_LOCK_KKEY = KKEY_LEFT_CONTROL;
 
 // ---- Modifier + key combos -------------------------------------------------
 // Ctrl/Shift state checked separately via ControlFlag / ShiftFlag at the call
@@ -97,10 +97,10 @@ constexpr int ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY = KKEY_B;
 
 // `]` (right brace): cycle the secondary camera through Thing slots, looking
 // at the next non-civilian PERSON. Read in game_tick.cpp::process_controls.
-constexpr int ACT_BANG_CYCLE_CAMERA_PERSON_KKEY = KKEY_RBRACE;
+constexpr int ACT_BANG_CYCLE_CAMERA_PERSON_KKEY = KKEY_RIGHT_BRACKET;
 
-// `;` (semicolon — KKEY_COLON): toggle slow-motion. Read in thing.cpp.
-constexpr int ACT_BANG_TOGGLE_SLOW_MO_KKEY = KKEY_COLON;
+// `;` (semicolon — KKEY_SEMICOLON): toggle slow-motion. Read in thing.cpp.
+constexpr int ACT_BANG_TOGGLE_SLOW_MO_KKEY = KKEY_SEMICOLON;
 
 // V (held): show version-number overlay on the HUD. Read in panel.cpp.
 constexpr int ACT_BANG_SHOW_VERSION_KKEY = KKEY_V;
@@ -120,7 +120,7 @@ constexpr int ACT_BANG_MENU_THEME_4_KKEY = KKEY_4;
 
 // ESC: close the panel. Same scancode as ACT_MENU_CANCEL_KKEY but different
 // semantic (panel-close vs. menu-back).
-constexpr int ACT_BANG_PANEL_CLOSE_KKEY = KKEY_ESC;
+constexpr int ACT_BANG_PANEL_CLOSE_KKEY = KKEY_ESCAPE;
 
 // 1 / 2 / 3 — switch to keyboard / gamepad / DualSense page.
 constexpr int ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY  = KKEY_1;
@@ -150,9 +150,9 @@ constexpr int ACT_BANG_WARE_DEBUG_KKEY = KKEY_T;
 // Numpad +/-/Enter scroll the debug message history; Shift modifier multiplies
 // scroll step by 20 (read separately via ShiftFlag).
 
-constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_PPLUS;
-constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_PMINUS;
-constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_PENTER;
+constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_NUMPAD_PLUS;
+constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_NUMPAD_MINUS;
+constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_NUMPAD_ENTER;
 
 // ---- Misc gameplay-side dev hotkeys (gated by allow_debug_keys) ------------
 
@@ -162,7 +162,7 @@ constexpr int ACT_BANG_ROOM_BEHIND_CHECK_KKEY = KKEY_D;
 
 // `[` (left brace): cycle secondary camera through Thing slots in REVERSE
 // order. Symmetric to ACT_BANG_CYCLE_CAMERA_PERSON_KKEY (`]`).
-constexpr int ACT_BANG_CYCLE_CAMERA_PERSON_REV_KKEY = KKEY_LBRACE;
+constexpr int ACT_BANG_CYCLE_CAMERA_PERSON_REV_KKEY = KKEY_LEFT_BRACKET;
 
 // P: toggle the secondary camera's focus on / off (camera-target null vs
 // current cycle slot). game_tick.cpp.
@@ -170,7 +170,7 @@ constexpr int ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY = KKEY_P;
 
 // Combat-testing harness — `-` fewer enemies, `=` more, `\` cycle armament
 // tier. update() keeps the wave topped up. game_tick.cpp.
-constexpr int ACT_BANG_COMBAT_TEST_INC_KKEY              = KKEY_PLUS;
+constexpr int ACT_BANG_COMBAT_TEST_INC_KKEY              = KKEY_EQUALS;
 constexpr int ACT_BANG_COMBAT_TEST_DEC_KKEY              = KKEY_MINUS;
 constexpr int ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY   = KKEY_BACKSLASH;
 
@@ -188,7 +188,7 @@ constexpr int ACT_BANG_SAVE_GAME_KKEY = KKEY_F3;
 constexpr int ACT_BANG_TOGGLE_CLOUDS_KKEY = KKEY_F4;
 
 // `~` (tilde): toggle DETAIL_LEVEL between 0 and 0xffff.
-constexpr int ACT_BANG_TOGGLE_DETAIL_LEVEL_KKEY = KKEY_TILD;
+constexpr int ACT_BANG_TOGGLE_DETAIL_LEVEL_KKEY = KKEY_GRAVE;
 
 // P (no Shift): quick-save game to "save.me". Distinct from the dev console
 // save (F3) and from ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY (also P) — all three
@@ -208,26 +208,26 @@ constexpr int ACT_BANG_SPAWN_VEHICLE_KKEY = KKEY_E;
 constexpr int ACT_BANG_SPAWN_WATER_KKEY = KKEY_W;
 
 // Numpad 7: cycle the pyro-test "which_pyro" selector.
-constexpr int ACT_BANG_PYRO_CYCLE_TYPE_KKEY = KKEY_P7;
+constexpr int ACT_BANG_PYRO_CYCLE_TYPE_KKEY = KKEY_NUMPAD_7;
 
 // Numpad 5: spawn the currently-selected pyro effect at the player.
-constexpr int ACT_BANG_PYRO_SPAWN_KKEY = KKEY_P5;
+constexpr int ACT_BANG_PYRO_SPAWN_KKEY = KKEY_NUMPAD_5;
 
 // L: toggle a directional debug light following the player.
 constexpr int ACT_BANG_TOGGLE_DIRECTIONAL_LIGHT_KKEY = KKEY_L;
 
 // Numpad 2: immolate the test chopper.
-constexpr int ACT_BANG_IMMOLATE_CHOPPER_KKEY = KKEY_P2;
+constexpr int ACT_BANG_IMMOLATE_CHOPPER_KKEY = KKEY_NUMPAD_2;
 
 // Numpad 3: spawn a firepool line (2-press sequence: anchor / target).
-constexpr int ACT_BANG_SPAWN_FIREPOOL_KKEY = KKEY_P3;
+constexpr int ACT_BANG_SPAWN_FIREPOOL_KKEY = KKEY_NUMPAD_3;
 
 // `/` (forward slash): toggle stealth_debug overlay.
-constexpr int ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY = KKEY_FORESLASH;
+constexpr int ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY = KKEY_SLASH;
 
-// `.` (period, KKEY_POINT) held: continuously spawn smoke particles above
+// `.` (period, KKEY_PERIOD) held: continuously spawn smoke particles above
 // the player.
-constexpr int ACT_BANG_SPAWN_SMOKE_KKEY = KKEY_POINT;
+constexpr int ACT_BANG_SPAWN_SMOKE_KKEY = KKEY_PERIOD;
 
 // O (no Shift): create an OB (object) at the player's position.
 constexpr int ACT_BANG_CREATE_OB_KKEY = KKEY_O;

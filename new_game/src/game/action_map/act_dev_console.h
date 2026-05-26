@@ -28,14 +28,14 @@ constexpr int ACT_CONS_SUBMIT_KKEY = KKEY_ENTER;
 
 // Cancel — close the console without running the typed command. Read in
 // game_tick.cpp::process_controls (is_inputing branch).
-constexpr int ACT_CONS_CANCEL_KKEY = KKEY_ESC;
+constexpr int ACT_CONS_CANCEL_KKEY = KKEY_ESCAPE;
 
 // Text input (letter keys, digits, space, backspace) is read in the same
 // branch via input_last_key() — a wildcard read of "any scancode" translated
 // through InkeyToAscii[]. No ACT_* constant for this wildcard; the
 // input_last_key() / input_last_key_consume() API stays as-is.
 //
-// Backspace handling lives inside that wildcard path (InkeyToAscii[KKEY_BS]
+// Backspace handling lives inside that wildcard path (InkeyToAscii[KKEY_BACKSPACE]
 // returns 8); not bound to a dedicated constant.
 
 #endif // GAME_ACTION_MAP_ACT_DEV_CONSOLE_H

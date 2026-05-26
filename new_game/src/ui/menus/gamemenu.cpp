@@ -253,16 +253,16 @@ SLONG GAMEMENU_process()
             static InputAutoRepeat ar_down;
 
             const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
-                || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_UP)
+                || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
                 || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
             const bool any_up_held = input_key_held(ACT_MENU_NAV_UP_KKEY)
-                || input_stick_held(GAXIS_LEFT, GDIR_DIR_UP)
+                || input_stick_held(GAXIS_LEFT, GDIR_UP)
                 || input_btn_held(ACT_MENU_NAV_UP_GBTN);
             const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
-                || input_stick_just_pressed(GAXIS_LEFT, GDIR_DIR_DOWN)
+                || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
                 || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
             const bool any_dn_held = input_key_held(ACT_MENU_NAV_DOWN_KKEY)
-                || input_stick_held(GAXIS_LEFT, GDIR_DIR_DOWN)
+                || input_stick_held(GAXIS_LEFT, GDIR_DOWN)
                 || input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
 
             bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);

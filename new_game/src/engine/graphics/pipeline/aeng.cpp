@@ -4851,7 +4851,7 @@ void AENG_draw_city()
         AENG_draw_sparks();
     //	ANEG_draw_messages();
 
-    //	if (Keys[KKEY_RBRACE] && !ShiftFlag) {Keys[KKEY_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
+    //	if (Keys[KKEY_RIGHT_BRACKET] && !ShiftFlag) {Keys[KKEY_RIGHT_BRACKET] = 0; AENG_torch_on ^= UC_TRUE;}
 
     //
     // Draw a torch out of darci...

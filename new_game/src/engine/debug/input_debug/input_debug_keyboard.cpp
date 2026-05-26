@@ -24,7 +24,7 @@ constexpr int MAX_ROWS = 20;
 const char* key_name(UBYTE sc)
 {
     switch (sc) {
-    case KKEY_ESC:
+    case KKEY_ESCAPE:
         return "Esc";
     case KKEY_1:
         return "1";
@@ -48,9 +48,9 @@ const char* key_name(UBYTE sc)
         return "0";
     case KKEY_MINUS:
         return "-";
-    case KKEY_PLUS:
+    case KKEY_EQUALS:
         return "=";
-    case KKEY_BS:
+    case KKEY_BACKSPACE:
         return "Bksp";
 
     case KKEY_TAB:
@@ -75,14 +75,14 @@ const char* key_name(UBYTE sc)
         return "O";
     case KKEY_P:
         return "P";
-    case KKEY_LBRACE:
+    case KKEY_LEFT_BRACKET:
         return "[";
-    case KKEY_RBRACE:
+    case KKEY_RIGHT_BRACKET:
         return "]";
     case KKEY_ENTER:
         return "Enter";
 
-    case KKEY_LCONTROL:
+    case KKEY_LEFT_CONTROL:
         return "L-Ctrl";
     case KKEY_A:
         return "A";
@@ -102,14 +102,14 @@ const char* key_name(UBYTE sc)
         return "K";
     case KKEY_L:
         return "L";
-    case KKEY_COLON:
+    case KKEY_SEMICOLON:
         return ";";
-    case KKEY_QUOTE:
+    case KKEY_APOSTROPHE:
         return "'";
-    case KKEY_TILD:
+    case KKEY_GRAVE:
         return "`";
 
-    case KKEY_LSHIFT:
+    case KKEY_LEFT_SHIFT:
         return "L-Shift";
     case KKEY_BACKSLASH:
         return "\\";
@@ -129,19 +129,19 @@ const char* key_name(UBYTE sc)
         return "M";
     case KKEY_COMMA:
         return ",";
-    case KKEY_POINT:
+    case KKEY_PERIOD:
         return ".";
-    case KKEY_FORESLASH:
+    case KKEY_SLASH:
         return "/";
-    case KKEY_RSHIFT:
+    case KKEY_RIGHT_SHIFT:
         return "R-Shift";
-    case KKEY_ASTERISK:
+    case KKEY_NUMPAD_ASTERISK:
         return "P*";
-    case KKEY_LALT:
+    case KKEY_LEFT_ALT:
         return "L-Alt";
     case KKEY_SPACE:
         return "Space";
-    case KKEY_CAPSLOCK:
+    case KKEY_CAPS_LOCK:
         return "Caps";
 
     case KKEY_F1:
@@ -169,61 +169,61 @@ const char* key_name(UBYTE sc)
     case KKEY_F12:
         return "F12";
 
-    case KKEY_NUMLOCK:
+    case KKEY_NUM_LOCK:
         return "NumLk";
-    case KKEY_SCROLLLOCK:
+    case KKEY_SCROLL_LOCK:
         return "ScrLk";
 
-    case KKEY_P7:
+    case KKEY_NUMPAD_7:
         return "P7";
-    case KKEY_P8:
+    case KKEY_NUMPAD_8:
         return "P8";
-    case KKEY_P9:
+    case KKEY_NUMPAD_9:
         return "P9";
-    case KKEY_PMINUS:
+    case KKEY_NUMPAD_MINUS:
         return "P-";
-    case KKEY_P4:
+    case KKEY_NUMPAD_4:
         return "P4";
-    case KKEY_P5:
+    case KKEY_NUMPAD_5:
         return "P5";
-    case KKEY_P6:
+    case KKEY_NUMPAD_6:
         return "P6";
-    case KKEY_PPLUS:
+    case KKEY_NUMPAD_PLUS:
         return "P+";
-    case KKEY_P1:
+    case KKEY_NUMPAD_1:
         return "P1";
-    case KKEY_P2:
+    case KKEY_NUMPAD_2:
         return "P2";
-    case KKEY_P3:
+    case KKEY_NUMPAD_3:
         return "P3";
-    case KKEY_P0:
+    case KKEY_NUMPAD_0:
         return "P0";
-    case KKEY_PPOINT:
+    case KKEY_NUMPAD_PERIOD:
         return "P.";
 
     // Extended keys (scancode + 0x80).
-    case KKEY_RCONTROL:
+    case KKEY_RIGHT_CONTROL:
         return "R-Ctrl";
-    case KKEY_RALT:
+    case KKEY_RIGHT_ALT:
         return "R-Alt";
-    case KKEY_PRTSC:
+    case KKEY_PRINT_SCREEN:
         return "PrtSc";
-    case KKEY_PSLASH:
+    case KKEY_NUMPAD_SLASH:
         return "P/";
-    case KKEY_PENTER:
+    case KKEY_NUMPAD_ENTER:
         return "P-Enter";
 
-    case KKEY_INS:
+    case KKEY_INSERT:
         return "Ins";
     case KKEY_HOME:
         return "Home";
-    case KKEY_PGUP:
+    case KKEY_PAGE_UP:
         return "PgUp";
-    case KKEY_DEL:
+    case KKEY_DELETE:
         return "Del";
     case KKEY_END:
         return "End";
-    case KKEY_PGDN:
+    case KKEY_PAGE_DOWN:
         return "PgDn";
 
     case KKEY_LEFT:

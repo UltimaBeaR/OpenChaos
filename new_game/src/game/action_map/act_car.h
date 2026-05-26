@@ -40,8 +40,8 @@
 // at the foot level (KKEY_Z / KKEY_X — see ACT_FOOT_PUNCH_KKEY / KICK_KKEY)
 // then go through the input-mask layer — these constants are semantic tags.
 
-constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_BTN; // DS: R2, Xbox: RT (digital bit)
-constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_BTN; // DS: L2, Xbox: LT (digital bit)
+constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
+constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital bit)
 
 // Analog versions of the trigger axes — drives proportional accel / brake
 // scaling in vehicle.cpp::do_car_input. Read via input_trigger_raw(...) for

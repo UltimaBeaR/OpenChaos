@@ -26,7 +26,7 @@
 // loop over rgbButtons[0..16] in video_player.cpp, not a single binding.
 // No GBTN constant defined for that wildcard; the loop stays as-is.
 
-constexpr int ACT_CINE_VIDEO_SKIP_KKEY_1 = KKEY_ESC;
+constexpr int ACT_CINE_VIDEO_SKIP_KKEY_1 = KKEY_ESCAPE;
 constexpr int ACT_CINE_VIDEO_SKIP_KKEY_2 = KKEY_ENTER;
 constexpr int ACT_CINE_VIDEO_SKIP_KKEY_3 = KKEY_SPACE;
 
@@ -34,7 +34,7 @@ constexpr int ACT_CINE_VIDEO_SKIP_KKEY_3 = KKEY_SPACE;
 // Read in outro_main.cpp::outro_main (top-level outro skip check). Skips the
 // entire outro sequence and returns to the menu.
 
-constexpr int ACT_CINE_OUTRO_SKIP_KKEY_1 = KKEY_ESC;
+constexpr int ACT_CINE_OUTRO_SKIP_KKEY_1 = KKEY_ESCAPE;
 constexpr int ACT_CINE_OUTRO_SKIP_KKEY_2 = KKEY_ENTER;
 constexpr int ACT_CINE_OUTRO_SKIP_KKEY_3 = KKEY_SPACE;
 constexpr int ACT_CINE_OUTRO_SKIP_GBTN_1 = GBTN_SOUTH; // DS: Cross, Xbox: A
@@ -47,9 +47,9 @@ constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
 // signal used by various outro animation routines.
 //
 // GBTN_START is bound directly so the gamepad Start button closes the outro;
-// it's read in parallel with KKEY_ESC at the call site.
+// it's read in parallel with KKEY_ESCAPE at the call site.
 
-constexpr int ACT_CINE_OUTRO_QUIT_KKEY = KKEY_ESC;
+constexpr int ACT_CINE_OUTRO_QUIT_KKEY = KKEY_ESCAPE;
 constexpr int ACT_CINE_OUTRO_QUIT_GBTN = GBTN_START; // DS: Options, Xbox: Start
 
 // ---- In-mission cutscene (playcut) skip -------------------------------------
@@ -67,7 +67,7 @@ constexpr int ACT_CINE_PLAYCUT_SKIP_KKEY = KKEY_SPACE;
 
 constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_1 = KKEY_SPACE;
 constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_2 = KKEY_ENTER;
-constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_PENTER;
+constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_NUMPAD_ENTER;
 // Gamepad: loop over buttons 0..9 (face buttons + L1/R1 etc.) — any rising
 // edge exits playback. Same "any button wildcard" pattern as video skip in
 // video_player.cpp; no single GBTN constant.
@@ -81,7 +81,7 @@ constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_PENTER;
 // function and need no separate GBTN constants here.
 
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_1 = KKEY_SPACE;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_2 = KKEY_ESC;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_2 = KKEY_ESCAPE;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_3 = KKEY_Z;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_4 = KKEY_X;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_5 = KKEY_C;

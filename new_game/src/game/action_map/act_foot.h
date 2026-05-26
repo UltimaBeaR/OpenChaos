@@ -105,8 +105,8 @@ constexpr int ACT_FOOT_CAM_MODE_1_KKEY = KKEY_F5;
 constexpr int ACT_FOOT_CAM_MODE_2_KKEY = KKEY_F6;
 constexpr int ACT_FOOT_CAM_MODE_3_KKEY = KKEY_F7;
 constexpr int ACT_FOOT_CAM_BEHIND_KKEY = KKEY_END;
-constexpr int ACT_FOOT_CAM_LEFT_KKEY   = KKEY_DEL;
-constexpr int ACT_FOOT_CAM_RIGHT_KKEY  = KKEY_PGDN;
+constexpr int ACT_FOOT_CAM_LEFT_KKEY   = KKEY_DELETE;
+constexpr int ACT_FOOT_CAM_RIGHT_KKEY  = KKEY_PAGE_DOWN;
 constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 
 // ---- Camera look: right stick + mouse (analog) -----------------------------
@@ -162,7 +162,7 @@ constexpr int ACT_FOOT_OPEN_DEV_CONSOLE_KKEY = KKEY_F9;
 
 constexpr int ACT_FOOT_CHEAT_MOD_SELECT_GBTN = GBTN_SELECT;
 constexpr int ACT_FOOT_CHEAT_MOD_L1_GBTN     = GBTN_L1;
-constexpr int ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN = GBTN_L2_BTN;
+constexpr int ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN = GBTN_L2_DIGITAL;
 
 // Cheats (held with modifier gate above):
 constexpr int ACT_FOOT_CHEAT_IMMORTAL_GBTN       = GBTN_DPAD_UP;

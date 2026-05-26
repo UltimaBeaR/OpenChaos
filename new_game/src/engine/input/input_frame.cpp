@@ -5,7 +5,7 @@
 #include "engine/input/gamepad.h" // gamepad_poll
 #include "engine/input/mouse_globals.h" // MouseX/MouseY for input_mouse_x/y
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
-#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_DIR_*
+#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_*
 
 #include <string.h>
 
@@ -59,7 +59,7 @@ UBYTE s_btns_press_pending[INPUT_BTN_COUNT];
 // doesn't flicker pressed/released. Mutual exclusion: simultaneous up+down
 // or left+right cancel each other (no clear input intent).
 //   [0] = GAXIS_LEFT, [1] = GAXIS_RIGHT
-//   [0..3] = GDIR_DIR_UP/DOWN/LEFT/RIGHT
+//   [0..3] = GDIR_UP/DOWN/LEFT/RIGHT
 constexpr SLONG INPUT_STICK_COUNT = 2;
 constexpr SLONG INPUT_DIR_COUNT   = 4;
 UBYTE s_stick_dir_curr[INPUT_STICK_COUNT][INPUT_DIR_COUNT];
@@ -203,10 +203,10 @@ void input_frame_update()
         int raw_x = (s == GAXIS_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
         int raw_y = (s == GAXIS_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
 
-        bool was_up    = s_stick_dir_curr[s][GDIR_DIR_UP];
-        bool was_down  = s_stick_dir_curr[s][GDIR_DIR_DOWN];
-        bool was_left  = s_stick_dir_curr[s][GDIR_DIR_LEFT];
-        bool was_right = s_stick_dir_curr[s][GDIR_DIR_RIGHT];
+        bool was_up    = s_stick_dir_curr[s][GDIR_UP];
+        bool was_down  = s_stick_dir_curr[s][GDIR_DOWN];
+        bool was_left  = s_stick_dir_curr[s][GDIR_LEFT];
+        bool was_right = s_stick_dir_curr[s][GDIR_RIGHT];
 
         bool up    = compute_dir(was_up,    raw_y, /*positive_dir=*/false);
         bool down  = compute_dir(was_down,  raw_y, /*positive_dir=*/true);
@@ -217,10 +217,10 @@ void input_frame_update()
         if (up && down)    { up = false; down = false; }
         if (left && right) { left = false; right = false; }
 
-        s_stick_dir_curr[s][GDIR_DIR_UP]    = up    ? 1 : 0;
-        s_stick_dir_curr[s][GDIR_DIR_DOWN]  = down  ? 1 : 0;
-        s_stick_dir_curr[s][GDIR_DIR_LEFT]  = left  ? 1 : 0;
-        s_stick_dir_curr[s][GDIR_DIR_RIGHT] = right ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_UP]    = up    ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_DOWN]  = down  ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_LEFT]  = left  ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_RIGHT] = right ? 1 : 0;
     }
 }
 
