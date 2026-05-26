@@ -974,30 +974,79 @@ round_again:;
             }
 
             // While a tutorial string is displayed, the game is frozen.
-            // Input before the message finishes (counter < 64*40) speeds it up;
-            // input after closes it.
+            // Input before the message finishes speeds it up; input after
+            // closes it.
+            //
+            // Close-input handling has two layers:
+            //
+            //   1. Wall-clock grace period (EWAY_TUT_INPUT_GRACE_MS) — the
+            //      dialog ignores close input for the first ~1 s after it
+            //      appears. The original code measured this in
+            //      EWAY_tutorial_counter units, which advances per render
+            //      frame; on our unlocked render rate (200+ FPS) that
+            //      "~1 s" actually expired in ~75 ms wall-clock and the
+            //      dialog flashed away before the player could read it.
+            //      Using sdl3_get_ticks() keeps the grace deterministic in
+            //      real time regardless of FPS.
+            //
+            //   2. Rising-edge detection on close input — hardware_input_continue()
+            //      is a mixed signal: keyboard is edge-triggered (last_key
+            //      consume drains the event), but the gamepad branch is
+            //      level-triggered, so a held PUNCH/JUMP/SELECT button
+            //      reads as 1 every render frame. Without edge detection
+            //      the grace timer alone is useless: a button held since
+            //      before the dialog appeared registers as a close press
+            //      as soon as the grace expires. We track `continue_pressed`
+            //      from the previous frame and only count 0→1 transitions
+            //      as a real close press. On dialog appearance we force
+            //      prev := true, so a button already held at that moment
+            //      reads as edge=0 — the player has to release and press
+            //      again deliberately for the dialog to close.
+            static const char* s_prev_tut_string = NULL;
+            static bool s_prev_continue = false;
+            static uint64_t s_tut_appear_ms = 0;
+
+            if (EWAY_tutorial_string != s_prev_tut_string) {
+                if (EWAY_tutorial_string != NULL) {
+                    // New dialog. Force prev=1 so a held button doesn't
+                    // produce a rising edge on the first tick.
+                    s_prev_continue = true;
+                    s_tut_appear_ms = sdl3_get_ticks();
+                }
+                s_prev_tut_string = EWAY_tutorial_string;
+            }
+
             if (EWAY_tutorial_string) {
                 EWAY_tutorial_counter += 64 * TICK_RATIO >> TICK_SHIFT;
 
-                // Minimum display time (~1s; counter ticks at 960/s) before
-                // close/skip input is accepted — prevents instant dismissal
-                // when a button is already held as the dialog appears.
-                // hardware_input_continue() is called unconditionally to
-                // drain LastKey so a stale press from before the dialog
-                // doesn't leak into the post-grace close check.
-                const SLONG EWAY_TUT_INPUT_GRACE = 960;
+                const uint64_t EWAY_TUT_INPUT_GRACE_MS = 1000;
+                const uint64_t elapsed_ms = sdl3_get_ticks() - s_tut_appear_ms;
                 SLONG continue_pressed = hardware_input_continue();
 
-                if (EWAY_tutorial_counter >= EWAY_TUT_INPUT_GRACE) {
+                bool close_edge = (continue_pressed != 0) && !s_prev_continue;
+                s_prev_continue = (continue_pressed != 0);
+
+                if (elapsed_ms >= EWAY_TUT_INPUT_GRACE_MS) {
                     if (EWAY_tutorial_counter > 64 * 20 * 2) {
-                        if (continue_pressed) {
+                        if (close_edge) {
                             EWAY_tutorial_string = NULL;
 
                             NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_JUMP);
-                            NET_PLAYER(0)->Genus.Player->InputDone = -1;
+                            // Original code set InputDone = -1 (mask ALL 18
+                            // input bits as already-processed) to prevent
+                            // the close button itself (× / punch / select)
+                            // from immediately firing as a gameplay action.
+                            // But -1 also masks movement bits (LEFT/RIGHT/
+                            // FORWARDS/BACKWARDS), so a player holding the
+                            // stick at close moment has movement frozen
+                            // until they wiggle the stick. Mask only the 3
+                            // close-button bits — minimum needed to block
+                            // the close press from leaking through.
+                            NET_PLAYER(0)->Genus.Player->InputDone
+                                = INPUT_MASK_PUNCH | INPUT_MASK_JUMP | INPUT_MASK_SELECT;
                         }
                     } else {
-                        if (continue_pressed) {
+                        if (close_edge) {
                             EWAY_tutorial_counter = 64 * 20 * 2;
                         }
                     }
