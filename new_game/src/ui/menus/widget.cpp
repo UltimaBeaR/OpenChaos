@@ -153,7 +153,7 @@ SLONG FORM_Process(Form* form)
         // form-level navigation reads the gamepad directly — no synthesis
         // through the input_frame message bus needed.
         if (input & INPUT_MASK_JUMP)      key = 13;  // confirm — Cross/A
-        if (input & INPUT_MASK_CANCEL)    key = 27;  // cancel — Triangle/Y
+        if (input & INPUT_MASK_CANCEL)    key = 27;  // cancel — Circle/B
         if (input & INPUT_MASK_FORWARDS)  key = 11;  // nav up — DPad / stick
         if (input & INPUT_MASK_BACKWARDS) key = 10;  // nav down
         if (input & INPUT_MASK_LEFT)      key = 8;   // nav left

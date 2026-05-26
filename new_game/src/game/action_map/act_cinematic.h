@@ -38,7 +38,7 @@ constexpr int ACT_CINE_OUTRO_SKIP_KKEY_1 = KKEY_ESCAPE;
 constexpr int ACT_CINE_OUTRO_SKIP_KKEY_2 = KKEY_ENTER;
 constexpr int ACT_CINE_OUTRO_SKIP_KKEY_3 = KKEY_SPACE;
 constexpr int ACT_CINE_OUTRO_SKIP_GBTN_1 = GBTN_SOUTH; // DS: Cross, Xbox: A
-constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
+constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_EAST;  // DS: Circle, Xbox: B
 
 // ---- Outro framework quit ---------------------------------------------------
 // Read in outro_os.cpp::OS_process_messages — sets KEY_on[KEY_ESCAPE] which
@@ -87,6 +87,6 @@ constexpr int ACT_CINE_GENERIC_SKIP_KKEY_4 = KKEY_X;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_5 = KKEY_C;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_6 = KKEY_ENTER;
 constexpr int ACT_CINE_GENERIC_SKIP_GBTN_1 = GBTN_START; // DS: Options, Xbox: Start
-constexpr int ACT_CINE_GENERIC_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
+constexpr int ACT_CINE_GENERIC_SKIP_GBTN_2 = GBTN_EAST;  // DS: Circle, Xbox: B
 
 #endif // GAME_ACTION_MAP_ACT_CINEMATIC_H

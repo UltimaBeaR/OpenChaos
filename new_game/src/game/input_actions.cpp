@@ -3686,8 +3686,10 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     //
     // Drain rule: the call site (`do_packets` else-branch when not driving)
     // also consumes both pendings every physics tick to prevent stale flags
-    // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
-    // into the first car-entry tick as a spurious toggle.
+    // from outside-car presses (Triangle pressed on foot, SPACE = jump)
+    // leaking into the first car-entry tick as a spurious toggle. Triangle
+    // on foot is currently unbound, but the press_pending flag is still set
+    // by the input layer whenever it's physically pressed.
     {
         const bool kb_siren  = input_key_press_pending(ACT_CAR_SIREN_KKEY);
         const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
@@ -3976,26 +3978,20 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // Triangle / Y — menu CANCEL + driving siren toggle. Read by raw
-                // index 3 (constant across PS / Xbox layouts) because the kick
-                // action lives on R1 (button 10) and no longer fires from Triangle.
-                // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
-                // the triangle press must also emit INPUT_MASK_KICK to flip
-                // the siren / lights.
-                // Triangle is ACT_MENU_CANCEL_GBTN on foot AND ACT_CAR_SIREN_GBTN
-                // while driving — same scancode, two contexts. Read once, emit
-                // INPUT_MASK_CANCEL always plus INPUT_MASK_KICK (which feeds
-                // INPUT_CAR_PAD_SIREN inside apply_button_input_car) when
-                // driving.
+                // Triangle / Y — driving siren toggle (in-car only). The kick
+                // action lives on R1 (button 10) and no longer fires from
+                // Triangle. INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while
+                // driving the triangle press emits INPUT_MASK_KICK to flip
+                // the siren / lights. INPUT_MASK_CANCEL (widget-UI back-out)
+                // now comes from Circle (see ACT_FOOT_ACTION_GBTN block below)
+                // — modern PlayStation convention: Cross confirms, Circle cancels.
                 if (input_btn_held(ACT_CAR_SIREN_GBTN)) {
-                    input |= INPUT_MASK_CANCEL;
-                    {
-                        Thing* p_darci = NET_PERSON(0);
-                        const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
-                        if (driving)
-                            input |= INPUT_MASK_KICK;
+                    Thing* p_darci = NET_PERSON(0);
+                    const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (driving) {
+                        input |= INPUT_MASK_KICK;
+                        g_dwLastInputChangeTime = dwCurrentTime;
                     }
-                    g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
                 // R1 / RB — on-foot kick (button 10). Suppressed
@@ -4110,13 +4106,18 @@ ULONG get_hardware_input(UWORD type)
                 }
 
                 // Circle / B — ACTION (interact / get-in-or-out of car / pick
-                // up items). Fires both on foot and while driving (the get-
-                // out-of-car flow consumes ACTION). No `!driving` gate here:
-                // an L2-bound ACTION couldn't coexist with the in-car brake
-                // (every brake tap would fire ACTION mid-drive), but Circle
-                // doesn't double as a vehicle control, so it can fire freely.
+                // up items) AND widget-UI CANCEL (back-out of in-game dialogs
+                // like the form_leave_map "Leave area?" prompt). Fires both on
+                // foot and while driving (the get-out-of-car flow consumes
+                // ACTION). No `!driving` gate here: an L2-bound ACTION couldn't
+                // coexist with the in-car brake (every brake tap would fire
+                // ACTION mid-drive), but Circle doesn't double as a vehicle
+                // control, so it can fire freely. INPUT_MASK_CANCEL is read
+                // by widget.cpp::FORM_Process to dismiss in-game forms; on
+                // foot it harmlessly coexists with ACTION (no widget dialog
+                // → mask is ignored).
                 if (input_btn_held(ACT_FOOT_ACTION_GBTN)) {
-                    input |= INPUT_MASK_ACTION;
+                    input |= INPUT_MASK_ACTION | INPUT_MASK_CANCEL;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
@@ -4718,11 +4719,13 @@ void process_hardware_level_input_for_player(Thing* p_player)
             } else {
                 // Not driving — drain the car-siren press_pending flags every
                 // physics tick so that a press of these buttons outside the
-                // car (Triangle = menu cancel, SPACE = jump) doesn't leak into
-                // the first car-entry tick as a spurious siren toggle. Both
-                // sources are dual-use, and apply_button_input_car is the only
-                // consumer of their press_pending flag — without this drain,
-                // the flag would sit set indefinitely from any outside press.
+                // car (Triangle on foot, SPACE = jump) doesn't leak into the
+                // first car-entry tick as a spurious siren toggle. SPACE is
+                // dual-use (jump on foot), Triangle on foot is currently
+                // unbound but the input layer still sets press_pending on
+                // every physical press. apply_button_input_car is the only
+                // consumer of these flags — without this drain, the flag
+                // would sit set indefinitely from any outside press.
                 input_key_consume(ACT_CAR_SIREN_KKEY);
                 input_btn_consume(ACT_CAR_SIREN_GBTN);
             }

@@ -49,12 +49,13 @@ constexpr int ACT_MENU_CONFIRM_KKEY_3 = KKEY_NUMPAD_ENTER;
 constexpr int ACT_MENU_CONFIRM_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
 
 // ---- Cancel / back ---------------------------------------------------------
-// Cancel-current-screen / back-out. Gamepad: Triangle / Y. ESC on keyboard
+// Cancel-current-screen / back-out. Gamepad: Circle / B (modern PlayStation
+// convention since 2020 — Cross confirms, Circle cancels). ESC on keyboard
 // doubles as "open pause" from gameplay (see ACT_MENU_TOGGLE_PAUSE_*) — same
 // key, different context.
 
 constexpr int ACT_MENU_CANCEL_KKEY = KKEY_ESCAPE;
-constexpr int ACT_MENU_CANCEL_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
+constexpr int ACT_MENU_CANCEL_GBTN = GBTN_EAST; // DS: Circle, Xbox: B
 
 // ---- Pause toggle (from gameplay) ------------------------------------------
 // Open or close the pause menu. Same key as menu cancel (ESC) — pause-toggle
