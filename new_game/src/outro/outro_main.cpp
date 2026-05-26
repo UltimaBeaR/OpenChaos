@@ -11,6 +11,7 @@
 
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
 #include "engine/input/keyboard.h" // KKEY_ESC / KKEY_ENTER / KKEY_SPACE
+#include "game/action_map/act_cinematic.h" // ACT_CINE_OUTRO_SKIP_*
 
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()
@@ -81,11 +82,11 @@ void MAIN_main()
         // Triangle/Y (button 3). (Original PS1 was Cross only; we accept
         // a wider set so the player can always close the outro with what
         // their hand is on.)
-        if (input_key_just_pressed(KKEY_ESC)
-            || input_key_just_pressed(KKEY_ENTER)
-            || input_key_just_pressed(KKEY_SPACE)
-            || input_btn_just_pressed(0)
-            || input_btn_just_pressed(3)) {
+        if (input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_1)
+            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_2)
+            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_3)
+            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_GBTN_1)
+            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_GBTN_2)) {
             return;
         }
 

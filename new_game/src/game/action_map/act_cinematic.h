@@ -17,6 +17,66 @@
 
 #include "game/action_map/input_codes.h"
 
-// (Constants will be filled here in step 3c.1 — cinematic.)
+// ---- Video player (FMV) skip ------------------------------------------------
+// Pressing any of these keys skips the currently playing video. Multiple
+// bindings for the same logical "skip video" action. Read in
+// video_player.cpp::video_play (skip-on-input loop).
+//
+// Gamepad: video skip also fires on ANY gamepad button — implemented as a
+// loop over rgbButtons[0..16] in video_player.cpp, not a single binding.
+// No GBTN constant defined for that wildcard; the loop stays as-is.
+
+constexpr int ACT_CINE_VIDEO_SKIP_KKEY_1 = KKEY_ESC;
+constexpr int ACT_CINE_VIDEO_SKIP_KKEY_2 = KKEY_ENTER;
+constexpr int ACT_CINE_VIDEO_SKIP_KKEY_3 = KKEY_SPACE;
+
+// ---- Outro (credits / end sequence) skip ------------------------------------
+// Read in outro_main.cpp::outro_main (top-level outro skip check). Skips the
+// entire outro sequence and returns to the menu.
+
+constexpr int ACT_CINE_OUTRO_SKIP_KKEY_1 = KKEY_ESC;
+constexpr int ACT_CINE_OUTRO_SKIP_KKEY_2 = KKEY_ENTER;
+constexpr int ACT_CINE_OUTRO_SKIP_KKEY_3 = KKEY_SPACE;
+constexpr int ACT_CINE_OUTRO_SKIP_GBTN_1 = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
+
+// ---- Outro framework quit ---------------------------------------------------
+// Read in outro_os.cpp::OS_process_messages — sets KEY_on[KEY_ESCAPE] which
+// downstream code interprets as "leave outro". Distinct from OUTRO_SKIP above:
+// SKIP is the top-level "user wants the credits over"; QUIT is the OS-layer
+// signal used by various outro animation routines.
+//
+// GBTN binding is added here so that after the bridge gamepad→keyboard is
+// removed (step 2), the gamepad Start button still closes the outro. Bridge
+// previously synthesised KKEY_ESC on Start press.
+
+constexpr int ACT_CINE_OUTRO_QUIT_KKEY = KKEY_ESC;
+constexpr int ACT_CINE_OUTRO_QUIT_GBTN = GBTN_START; // DS: Options, Xbox: Start
+
+// ---- In-mission cutscene (playcut) skip -------------------------------------
+// Read in playcuts.cpp::play_cutscene as an extra rising-edge break out of the
+// playcut loop. The playcut loop also calls hardware_input_continue() (see
+// ACT_CINE_GENERIC_SKIP_* below), so this SPACE check is effectively an
+// additional early-exit channel using the same edge-detect semantics.
+
+constexpr int ACT_CINE_PLAYCUT_SKIP_KKEY = KKEY_SPACE;
+
+// ---- Generic "press anything to continue" -----------------------------------
+// Read in game.cpp::hardware_input_continue. Used by playcuts and any other
+// blocking screen that wants "press anything sensible to continue". Includes
+// keyboard skip + gamepad Start/Triangle (which previously reached this code
+// path through the gamepad→keyboard bridge synthesising KKEY_ESC). Cross/A
+// for confirm and R3 for select are already covered through the gameplay
+// INPUT_MASK_JUMP / INPUT_MASK_SELECT branch in the same function and need
+// no separate GBTN constants here.
+
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_1 = KKEY_SPACE;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_2 = KKEY_ESC;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_3 = KKEY_Z;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_4 = KKEY_X;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_5 = KKEY_C;
+constexpr int ACT_CINE_GENERIC_SKIP_KKEY_6 = KKEY_ENTER;
+constexpr int ACT_CINE_GENERIC_SKIP_GBTN_1 = GBTN_START; // DS: Options, Xbox: Start
+constexpr int ACT_CINE_GENERIC_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
 
 #endif // GAME_ACTION_MAP_ACT_CINEMATIC_H

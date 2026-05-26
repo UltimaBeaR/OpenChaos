@@ -13,6 +13,7 @@
 #include "engine/platform/ds_bridge.h"
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
 #include "engine/input/mouse_capture.h" // mouse_capture_set_suppressed
+#include "game/action_map/act_cinematic.h" // ACT_CINE_VIDEO_SKIP_*
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
@@ -307,15 +308,14 @@ bool video_play(const char* filename, bool allow_skip)
 
         // --- Skip on any user input ---
         if (allow_skip) {
-            if (input_key_just_pressed(KKEY_ESC)
-                || input_key_just_pressed(KKEY_ENTER)
-                || input_key_just_pressed(KKEY_SPACE)) {
+            if (input_key_just_pressed(ACT_CINE_VIDEO_SKIP_KKEY_1)
+                || input_key_just_pressed(ACT_CINE_VIDEO_SKIP_KKEY_2)
+                || input_key_just_pressed(ACT_CINE_VIDEO_SKIP_KKEY_3)) {
                 done = true;
             }
-            // Any gamepad / DualSense button rising edge = skip. Cross,
-            // Circle, Start are at indices 0/1/6 (rgbButtons mirror).
-            // Loop covers the standard 0..16 button range to catch any
-            // controller layout.
+            // Any gamepad / DualSense button rising edge = skip — special
+            // "any button" wildcard, not a single binding. No ACT_*_GBTN
+            // constant for this case (see act_cinematic.h).
             if (!done) {
                 for (int i = 0; i < 17; i++) {
                     if (input_btn_just_pressed(i)) {

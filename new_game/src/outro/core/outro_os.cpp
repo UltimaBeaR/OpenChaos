@@ -19,6 +19,7 @@
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/input_frame.h"
+#include "game/action_map/act_cinematic.h" // ACT_CINE_OUTRO_QUIT_*
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
@@ -140,7 +141,8 @@ SLONG OS_process_messages()
     gamepad_poll();
     OS_joy_poll();
 
-    if (input_key_just_pressed(KKEY_ESC)) {
+    if (input_key_just_pressed(ACT_CINE_OUTRO_QUIT_KKEY)
+        || input_btn_just_pressed(ACT_CINE_OUTRO_QUIT_GBTN)) {
         KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 

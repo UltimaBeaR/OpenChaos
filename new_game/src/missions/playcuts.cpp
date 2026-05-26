@@ -80,6 +80,8 @@
 // Forward declarations for functions still in old/ code.
 // uc_orig: hardware_input_continue (fallen/Source/Game.cpp)
 extern SLONG hardware_input_continue(void);
+
+#include "game/action_map/act_cinematic.h" // ACT_CINE_PLAYCUT_SKIP_KKEY
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 extern void lock_frame_rate(SLONG fps);
 // uc_orig: person_normal_animate (fallen/Source/playcuts.cpp)
@@ -521,7 +523,7 @@ void PLAYCUTS_Play(CPData* cutscene)
     // generic skip-cutscene input fires (hardware_input_continue). SHELL_ACTIVE
     // (= LibShellActive) refreshes the input_frame snapshot each iteration,
     // so input_key_just_pressed reflects this iteration's events.
-    while (SHELL_ACTIVE && !input_key_just_pressed(KKEY_SPACE) && !no_more_packets && !hardware_input_continue()) {
+    while (SHELL_ACTIVE && !input_key_just_pressed(ACT_CINE_PLAYCUT_SKIP_KKEY) && !no_more_packets && !hardware_input_continue()) {
         uint64_t cut_now_ms = sdl3_get_ticks();
         float cut_dt_ms = float(cut_now_ms - cut_prev_ms);
         if (cut_dt_ms > 200.0f) cut_dt_ms = 200.0f;

@@ -16,6 +16,7 @@
 // These modules are not yet fully migrated:
 #include "assets/formats/level_loader.h"
 #include "game/input_actions.h"
+#include "game/action_map/act_cinematic.h" // ACT_CINE_GENERIC_SKIP_*
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
 #include "map/ob.h"
@@ -810,7 +811,15 @@ SLONG hardware_input_continue(void)
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
         const UBYTE last_key = input_last_key();
-        if (last_key == KKEY_SPACE || last_key == KKEY_ESC || last_key == KKEY_Z || last_key == KKEY_X || last_key == KKEY_C || last_key == KKEY_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
+        if (last_key == ACT_CINE_GENERIC_SKIP_KKEY_1
+            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_2
+            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_3
+            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_4
+            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_5
+            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_6
+            || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_GBTN_1)
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_GBTN_2)) {
             input_last_key_consume();
 
             return (1);
