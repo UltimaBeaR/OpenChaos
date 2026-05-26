@@ -36,10 +36,8 @@ UBYTE s_keys_press_pending[INPUT_KEY_COUNT];
 
 // Most recent keyboard scancode pressed since last consume. Used by
 // text-input consumers (rebind UI, debug console, skip detection) that
-// need the exact scancode of the latest keydown. Hardware events update
-// this; synthetic presses (input_frame_inject_key_press) intentionally
-// do not, so a gamepad-bridged synth press doesn't masquerade as a real
-// keyboard event for text input.
+// need the exact scancode of the latest keydown. Only hardware events
+// update it.
 UBYTE s_last_key = 0;
 
 // Gamepad button snapshots — derived from gamepad_state.rgbButtons[] each
@@ -236,15 +234,6 @@ void input_frame_on_key_down(UBYTE scancode)
 void input_frame_on_key_up(UBYTE scancode)
 {
     s_keys_event_held[scancode] = 0;
-}
-
-void input_frame_inject_key_press(SLONG kb_code)
-{
-    if (!key_in_range(kb_code)) return;
-    s_keys_event_held[kb_code] = 1;
-    s_keys_pressed_during_frame[kb_code] = 1;
-    s_keys_press_pending[kb_code] = 1;
-    s_keys_curr[kb_code] = 1;
 }
 
 // ---- Keyboard ---------------------------------------------------------------

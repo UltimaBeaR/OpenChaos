@@ -46,9 +46,8 @@ constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_NORTH; // DS: Triangle, Xbox: Y
 // SKIP is the top-level "user wants the credits over"; QUIT is the OS-layer
 // signal used by various outro animation routines.
 //
-// GBTN binding is added here so that after the bridge gamepad→keyboard is
-// removed (step 2), the gamepad Start button still closes the outro. Bridge
-// previously synthesised KKEY_ESC on Start press.
+// GBTN_START is bound directly so the gamepad Start button closes the outro;
+// it's read in parallel with KKEY_ESC at the call site.
 
 constexpr int ACT_CINE_OUTRO_QUIT_KKEY = KKEY_ESC;
 constexpr int ACT_CINE_OUTRO_QUIT_GBTN = GBTN_START; // DS: Options, Xbox: Start
@@ -64,11 +63,10 @@ constexpr int ACT_CINE_PLAYCUT_SKIP_KKEY = KKEY_SPACE;
 // ---- Generic "press anything to continue" -----------------------------------
 // Read in game.cpp::hardware_input_continue. Used by playcuts and any other
 // blocking screen that wants "press anything sensible to continue". Includes
-// keyboard skip + gamepad Start/Triangle (which previously reached this code
-// path through the gamepad→keyboard bridge synthesising KKEY_ESC). Cross/A
-// for confirm and R3 for select are already covered through the gameplay
-// INPUT_MASK_JUMP / INPUT_MASK_SELECT branch in the same function and need
-// no separate GBTN constants here.
+// keyboard skip + gamepad Start/Triangle (read in parallel with the KKEY
+// channel). Cross/A for confirm and R3 for select are already covered through
+// the gameplay INPUT_MASK_JUMP / INPUT_MASK_SELECT branch in the same
+// function and need no separate GBTN constants here.
 
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_1 = KKEY_SPACE;
 constexpr int ACT_CINE_GENERIC_SKIP_KKEY_2 = KKEY_ESC;

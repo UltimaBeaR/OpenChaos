@@ -78,22 +78,6 @@ void input_key_force_release(SLONG kb_code);
 UBYTE input_last_key();
 void input_last_key_consume();
 
-// Synthesise a key-press event for the current frame from non-hardware
-// sources. Sets curr / event_held / pressed_during_frame / press_pending
-// for the given scancode immediately so subsequent reads in the SAME frame
-// see the press (just_pressed/held/press_pending all return true).
-//
-// Use ONLY for internal synthetic-input channels — currently the
-// gamepad→keyboard bridge in widget.cpp::FORM_KeyProc and
-// gamemenu.cpp's ESC bridge, where a controller button must drive a
-// keyboard handler that reads via input_key_just_pressed.
-//
-// Does NOT update input_last_key (synthetic presses must not look like
-// real keyboard presses for text-input consumers).
-//
-// Hardware events go through input_frame_on_key_down, NOT this function.
-void input_frame_inject_key_press(SLONG kb_code);
-
 // ---- Gamepad buttons --------------------------------------------------------
 // btn_idx = index into gamepad_state.rgbButtons[] (0..31).
 // Common indices: 0=Cross/A, 1=Circle/B, 2=Square/X, 3=Triangle/Y, 6=Start,

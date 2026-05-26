@@ -163,10 +163,6 @@ SLONG GAMEMENU_process()
     // Triangle presses (menu cancel + car siren) don't trigger a spurious
     // open-pause when no menu is up.
     //
-    // The old gamepad→keyboard bridge (input_frame_inject_key_press here)
-    // was removed in action_map step 3c.4 / 2 — see plan.md. Direct GBTN
-    // reads below replace it.
-    //
     // Triangle consume drains its press_pending so the press doesn't leak
     // into car siren toggle (which reads input_btn_press_pending(3)) when
     // the menu closes — physics doesn't run during pause, so the car-siren

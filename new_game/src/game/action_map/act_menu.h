@@ -61,8 +61,8 @@ constexpr int ACT_MENU_CANCEL_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
 // Open or close the pause menu. Same key as menu cancel (ESC) — pause-toggle
 // channel reads press_pending separately and consumes via input_key_force_release
 // to avoid the press leaking into gameplay (JUMP / SELECT) on the same frame.
-// GBTN binding added so that after the bridge gamepad→keyboard is removed
-// (step 2 / 3c.4), Start on the gamepad still opens / closes the pause menu.
+// GBTN_START is bound directly so the gamepad Start button opens / closes
+// the pause menu; it's read in parallel with KKEY_ESC at the call site.
 
 constexpr int ACT_MENU_TOGGLE_PAUSE_KKEY = KKEY_ESC;
 constexpr int ACT_MENU_TOGGLE_PAUSE_GBTN = GBTN_START; // DS: Options, Xbox: Start

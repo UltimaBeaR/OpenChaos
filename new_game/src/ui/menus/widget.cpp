@@ -61,8 +61,7 @@ void WIDGET_snd(SLONG snd)
 // Form-level keyboard / gamepad press consumer. Returns 1 (and consumes) on
 // either a sticky keyboard press_pending of kb_code OR — when gp_btn_idx is
 // non-negative — a sticky gamepad press_pending of that button. Symmetric
-// keyboard / gamepad channel so menus don't need the old gamepad-to-keyboard
-// bridge (removed in action_map step 3c.4).
+// keyboard / gamepad channel — no synthesis / bridging needed.
 static BOOL FORM_KeyProc(SLONG kb_code, SLONG gp_btn_idx = -1)
 {
     const bool kb = input_key_press_pending(kb_code);
@@ -150,11 +149,9 @@ SLONG FORM_Process(Form* form)
         // table above, so a keyboard arrow and a D-Pad press both deliver the
         // same form-ASCII to widget Char handlers.
         //
-        // The old gamepad→keyboard bridge (input_frame_inject_key_press) used
-        // to live here so FORM_KeyProc(KKEY_*) below would also see the
-        // gamepad press through the input_frame message bus. FORM_KeyProc now
-        // accepts an explicit gp_btn_idx parameter (see action_map step 3c.4),
-        // so the bridge is gone — the calls below pass GBTN parallel to KKEY.
+        // FORM_KeyProc below takes both a KKEY scancode and a GBTN index, so
+        // form-level navigation reads the gamepad directly — no synthesis
+        // through the input_frame message bus needed.
         if (input & INPUT_MASK_JUMP)      key = 13;  // confirm — Cross/A
         if (input & INPUT_MASK_CANCEL)    key = 27;  // cancel — Triangle/Y
         if (input & INPUT_MASK_FORWARDS)  key = 11;  // nav up — DPad / stick
