@@ -17,7 +17,6 @@
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
-#include "engine/input/gamepad.h"
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
@@ -46,12 +45,30 @@
 // uc_orig: GAMEMENU_initialise (fallen/Source/gamemenu.cpp)
 void GAMEMENU_initialise(SLONG menu)
 {
-    // When closing the menu, consume held gamepad buttons so they don't leak
-    // to gameplay (e.g. Triangle=KICK, Cross=JUMP, Start would re-trigger).
-    if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE) {
-        gamepad_consume_until_released(0); // Cross/A
-        gamepad_consume_until_released(3); // Triangle/Y
-        gamepad_consume_until_released(6); // Start
+    const bool entering_menu = GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE && menu != GAMEMENU_MENU_TYPE_NONE;
+    const bool leaving_menu  = GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE;
+
+    // Gameplay → menu: drain sticky press_pending only. Held inputs
+    // (stick deflection, held buttons, held triggers, mouse motion) are
+    // LEFT UNTOUCHED so the gameplay tick during the slowdown ramp
+    // continues to read the player's current input and the character
+    // animates out of its current motion (run / jump / fall) naturally
+    // instead of snapping to a freeze. Without this open-side drain a
+    // gameplay press_pending (e.g. Cross for jump, Triangle for siren,
+    // F5/F6/F7/END/DEL/PGDN for camera mode) would carry through to the
+    // menu and mis-fire Resume / Cancel on the first menu-active frame.
+    if (entering_menu) {
+        input_drain_all_press_pending();
+    }
+
+    // Menu → gameplay: full wait-for-release on every held input plus
+    // press_pending drain. Anything held during the menu (R2 trigger,
+    // R1 kick, stick deflection, accumulated mouse motion, etc.) is
+    // suppressed in gameplay reads until physically released and
+    // pressed again — see input_consume_all_held_until_released for
+    // the full list.
+    if (leaving_menu) {
+        input_consume_all_held_until_released();
         // Clear the cutscene voice-tail timestamp. Wall-clock kept advancing
         // through the pause while the EWAY tick that updates it didn't, so
         // the stored timestamp would now read as "voice ended just now" and
@@ -168,9 +185,24 @@ SLONG GAMEMENU_process()
     // the menu closes — physics doesn't run during pause, so the car-siren
     // consumer can't drain the pending itself, and a stale flag would fire
     // on the first tick after resume.
-    const bool toggle_pause_kb       = input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
-    const bool toggle_pause_gp_start = input_btn_press_pending(ACT_MENU_TOGGLE_PAUSE_GBTN);
-    const bool cancel_in_open_menu   = (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE)
+    //
+    // can_react gates all three sources while the slowdown ramp is in
+    // flight (menu open but not yet fully paused). During the ramp the
+    // gameplay tick is still running with a scaled TICK_RATIO and the
+    // character is finishing its current motion — accepting Start /
+    // Triangle / ESC mid-ramp would cancel the menu (or re-toggle it)
+    // before the player has had a chance to see what they opened, and
+    // would also snap the character out of its in-progress decel. When
+    // menu is closed (NONE), can_react is true so Start/ESC always
+    // open the menu without delay. Press_pending lingers across the
+    // ramp and is dropped by the slowdown→0 transition drain in
+    // GAMEMENU_process so the player has to press fresh after the
+    // menu becomes reactive.
+    const bool menu_open = (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE);
+    const bool can_react = !menu_open || GAMEMENU_is_paused();
+    const bool toggle_pause_kb       = can_react && input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
+    const bool toggle_pause_gp_start = can_react && input_btn_press_pending(ACT_MENU_TOGGLE_PAUSE_GBTN);
+    const bool cancel_in_open_menu   = can_react && menu_open
                                        && input_btn_press_pending(ACT_MENU_CANCEL_GBTN);
     if (toggle_pause_kb || toggle_pause_gp_start || cancel_in_open_menu) {
         // Force-release in input_frame's CURRENT snapshot so same-frame
@@ -228,7 +260,37 @@ SLONG GAMEMENU_process()
         SATURATE(GAMEMENU_slowdown, 0, 0x10000);
         SATURATE(GAMEMENU_fadein_x, 0, 800 << 8);
 
-        if (GAMEMENU_background > 200) {
+        // Detect the slowdown ramp finishing (slowdown crossing to 0 from
+        // a non-zero value) — that's the frame the menu transitions from
+        // "fading in while gameplay decelerates" to "fully active and
+        // reading input". Drain press_pending here so any press the
+        // player made DURING the ramp (Cross for jump, Triangle for
+        // siren, etc.) doesn't surface to the menu's first reactive
+        // frame and mis-fire Resume / Cancel. The open-side drain in
+        // GAMEMENU_initialise covers pre-pause presses; this covers
+        // ramp-time presses that landed after the open-side drain.
+        {
+            static SLONG s_prev_slowdown = -1;
+            if (s_prev_slowdown != 0 && GAMEMENU_slowdown == 0) {
+                input_drain_all_press_pending();
+            }
+            s_prev_slowdown = GAMEMENU_slowdown;
+        }
+
+        // Menu input is gated by GAMEMENU_is_paused() — i.e. wait until the
+        // gameplay slowdown ramp has finished (slowdown decays from 0x10000
+        // to 0 over ~1 s after the menu opens). During the ramp the
+        // physics tick keeps running with a scaled TICK_RATIO so the
+        // character eases out of running / jumping / falling animations
+        // naturally. If the menu accepted nav / confirm while the ramp
+        // was still in flight, the player would hit Resume mid-deceleration
+        // and snap the character to whatever pose the animation was on,
+        // making the pause-resume feel jerky.
+        //
+        // is_paused is strictly stronger than the previous "background > 200"
+        // gate (~200 ms after open vs ~1 s) — once is_paused becomes true,
+        // GAMEMENU_background has long since saturated to its cap.
+        if (GAMEMENU_is_paused()) {
             // Unified up/down navigation: all sources treated as one logical
             // input. InputAutoRepeat applies a SINGLE auto-repeat throttle on
             // the OR of source held-states — combined doesn't fire faster

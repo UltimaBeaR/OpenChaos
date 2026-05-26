@@ -23,6 +23,33 @@ static SDL3_GamepadHandle s_gamepad = nullptr;
 static bool s_is_dualsense = false;
 static uint32_t s_consume_mask = 0; // bitmask of button indices to consume until released
 
+// Trigger consume gate. Bit 0 = L2 (trigger_left + rgbButtons[15]),
+// bit 1 = R2 (trigger_right + rgbButtons[16]). Set by
+// gamepad_consume_held_triggers_until_released, cleared per-trigger on
+// the first poll that observes the analog value back below
+// TRIGGER_REST_THRESHOLD_BYTE.
+static uint8_t s_trigger_consume_mask = 0;
+
+// Stick consume gate. Bit 0 = left stick (lX/lY/lX_raw/lY_raw),
+// bit 1 = right stick. Set by gamepad_consume_held_sticks_until_rest,
+// cleared per-stick on the first poll that observes both axes back
+// within STICK_REST_TOLERANCE_RAW of center.
+static uint8_t s_stick_consume_mask = 0;
+
+// Trigger byte threshold for "back to rest" — narrow enough that hardware
+// noise on a fully released trigger doesn't hold the gate open, wide
+// enough that the user doesn't have to slam the trigger to 0 to clear it.
+// ~6% of 255. Independent of the digital-press threshold (8000 / 32767 in
+// SDL units ≈ byte 62) because release-detection only needs to confirm
+// the user genuinely let go, not full deflection.
+static constexpr uint8_t TRIGGER_REST_THRESHOLD_BYTE = 16;
+
+// Stick raw tolerance around center (32768) for "back to rest" — matches
+// the gameplay NOISE_TOLERANCE in get_hardware_input (input_actions.cpp)
+// so the gate releases at the same slop level gameplay already ignores.
+static constexpr int STICK_REST_TOLERANCE_RAW = 8192;
+static constexpr int STICK_RAW_CENTER         = 32768;
+
 // PS1-style motor state (maximum tracking + per-tick decay).
 // uc_orig: psx_motor[2] (fallen/psxlib/Source/GDisplay.cpp)
 static int s_motor_fast = 0; // small motor: 0 or 1 (decays >>= 1)
@@ -477,6 +504,57 @@ void gamepad_poll()
         }
     }
 
+    // Consume triggers marked by gamepad_consume_held_triggers_until_released.
+    // While armed, zero both the analog value AND the digital-threshold
+    // flag (rgbButtons[15/16]) so input_trigger / input_trigger_raw /
+    // input_btn_held(GBTN_L2_DIGITAL / GBTN_R2_DIGITAL) all read 0.
+    if (s_trigger_consume_mask & 0x01) {
+        if (gamepad_state.trigger_left > TRIGGER_REST_THRESHOLD_BYTE) {
+            gamepad_state.trigger_left = 0;
+            gamepad_state.rgbButtons[15] = 0;
+        } else {
+            s_trigger_consume_mask &= ~0x01;
+        }
+    }
+    if (s_trigger_consume_mask & 0x02) {
+        if (gamepad_state.trigger_right > TRIGGER_REST_THRESHOLD_BYTE) {
+            gamepad_state.trigger_right = 0;
+            gamepad_state.rgbButtons[16] = 0;
+        } else {
+            s_trigger_consume_mask &= ~0x02;
+        }
+    }
+
+    // Consume sticks marked by gamepad_consume_held_sticks_until_rest.
+    // While armed, scrub both processed (lX/lY/rX/rY) and raw
+    // (lX_raw/lY_raw/rX_raw/rY_raw) values to center so every reader sees
+    // a centered stick. Clear the gate as soon as both axes are observed
+    // within the rest tolerance.
+    auto axis_at_rest = [](int raw) {
+        const int delta = raw - STICK_RAW_CENTER;
+        return delta >= -STICK_REST_TOLERANCE_RAW && delta <= STICK_REST_TOLERANCE_RAW;
+    };
+    if (s_stick_consume_mask & 0x01) {
+        if (axis_at_rest(gamepad_state.lX_raw) && axis_at_rest(gamepad_state.lY_raw)) {
+            s_stick_consume_mask &= ~0x01;
+        } else {
+            gamepad_state.lX = STICK_RAW_CENTER;
+            gamepad_state.lY = STICK_RAW_CENTER;
+            gamepad_state.lX_raw = STICK_RAW_CENTER;
+            gamepad_state.lY_raw = STICK_RAW_CENTER;
+        }
+    }
+    if (s_stick_consume_mask & 0x02) {
+        if (axis_at_rest(gamepad_state.rX_raw) && axis_at_rest(gamepad_state.rY_raw)) {
+            s_stick_consume_mask &= ~0x02;
+        } else {
+            gamepad_state.rX = STICK_RAW_CENTER;
+            gamepad_state.rY = STICK_RAW_CENTER;
+            gamepad_state.rX_raw = STICK_RAW_CENTER;
+            gamepad_state.rY_raw = STICK_RAW_CENTER;
+        }
+    }
+
     // Raw snapshot kept up to date for the input debug panel. Captured
     // before the scrub below so the panel can display live input even
     // while the gate zeroes gamepad_state for everyone else. Always
@@ -928,5 +1006,38 @@ void gamepad_consume_until_released(uint8_t button_index)
 {
     if (button_index < 32) {
         s_consume_mask |= (1u << button_index);
+    }
+}
+
+void gamepad_consume_all_held_buttons_until_released()
+{
+    for (int i = 0; i < 32; i++) {
+        if (gamepad_state.rgbButtons[i]) {
+            s_consume_mask |= (1u << i);
+        }
+    }
+}
+
+void gamepad_consume_held_triggers_until_released()
+{
+    if (gamepad_state.trigger_left > TRIGGER_REST_THRESHOLD_BYTE) {
+        s_trigger_consume_mask |= 0x01;
+    }
+    if (gamepad_state.trigger_right > TRIGGER_REST_THRESHOLD_BYTE) {
+        s_trigger_consume_mask |= 0x02;
+    }
+}
+
+void gamepad_consume_held_sticks_until_rest()
+{
+    auto axis_at_rest = [](int raw) {
+        const int delta = raw - STICK_RAW_CENTER;
+        return delta >= -STICK_REST_TOLERANCE_RAW && delta <= STICK_REST_TOLERANCE_RAW;
+    };
+    if (!axis_at_rest(gamepad_state.lX_raw) || !axis_at_rest(gamepad_state.lY_raw)) {
+        s_stick_consume_mask |= 0x01;
+    }
+    if (!axis_at_rest(gamepad_state.rX_raw) || !axis_at_rest(gamepad_state.rY_raw)) {
+        s_stick_consume_mask |= 0x02;
     }
 }

@@ -35,6 +35,16 @@ UBYTE s_keys_pressed_during_frame[INPUT_KEY_COUNT];
 // run every frame (e.g. physics tick).
 UBYTE s_keys_press_pending[INPUT_KEY_COUNT];
 
+// Wait-for-release gate. While 1, the key is treated as not pressed by
+// every public reader — snapshot curr is forced to 0 and press_pending
+// is suppressed. Cleared on the first snapshot that observes the
+// matching event_held flag back at 0 (SDL key-up arrived). Set by
+// input_keyboard_consume_all_held_until_released for every key that
+// is event-held at call time. Use case: UI overlay closes back to
+// gameplay; a key the user was holding when the overlay opened must
+// NOT register as a fresh press the moment gameplay resumes.
+UBYTE s_keys_consume_until_released[INPUT_KEY_COUNT];
+
 // Most recent keyboard scancode pressed since last consume. Used by
 // text-input consumers (rebind UI, debug console, skip detection) that
 // need the exact scancode of the latest keydown. Only hardware events
@@ -149,6 +159,7 @@ void input_frame_init()
     memset(s_keys_event_held, 0, sizeof(s_keys_event_held));
     memset(s_keys_pressed_during_frame, 0, sizeof(s_keys_pressed_during_frame));
     memset(s_keys_press_pending, 0, sizeof(s_keys_press_pending));
+    memset(s_keys_consume_until_released, 0, sizeof(s_keys_consume_until_released));
     memset(s_btns_curr, 0, sizeof(s_btns_curr));
     memset(s_btns_prev, 0, sizeof(s_btns_prev));
     memset(s_btns_press_pending, 0, sizeof(s_btns_press_pending));
@@ -177,6 +188,20 @@ void input_frame_update()
         // back to held-only.
         s_keys_curr[i] = (s_keys_event_held[i] || s_keys_pressed_during_frame[i]) ? 1 : 0;
         s_keys_pressed_during_frame[i] = 0;
+
+        // Wait-for-release: clear the gate as soon as the user has
+        // physically released the key (event_held back to 0). Otherwise
+        // mask the snapshot so the held key reads as not pressed AND
+        // drain any sticky press_pending that fired since the gate was
+        // armed. The gate is armed by input_keyboard_consume_all_held_until_released.
+        if (s_keys_consume_until_released[i]) {
+            if (!s_keys_event_held[i]) {
+                s_keys_consume_until_released[i] = 0;
+            } else {
+                s_keys_curr[i] = 0;
+                s_keys_press_pending[i] = 0;
+            }
+        }
     }
 
     memcpy(s_btns_prev, s_btns_curr, sizeof(s_btns_curr));
@@ -278,6 +303,19 @@ void input_key_force_release(SLONG kb_code)
         s_keys_event_held[kb_code] = 0;
         s_keys_pressed_during_frame[kb_code] = 0;
         s_keys_press_pending[kb_code] = 0;
+    }
+}
+
+void input_keyboard_consume_all_held_until_released()
+{
+    // Arm every key that's currently event-held. The next
+    // input_frame_update applies the gate (forces curr to 0 and drains
+    // press_pending) and clears the gate per-key when event_held has
+    // fallen back to 0.
+    for (SLONG i = 0; i < INPUT_KEY_COUNT; i++) {
+        if (s_keys_event_held[i]) {
+            s_keys_consume_until_released[i] = 1;
+        }
     }
 }
 
@@ -487,6 +525,38 @@ void input_mouse_consume_rel(SLONG* out_dx, SLONG* out_dy)
         *out_dy = MouseRelDY;
     MouseRelDX = 0;
     MouseRelDY = 0;
+}
+
+void input_mouse_drain_rel()
+{
+    MouseRelDX = 0;
+    MouseRelDY = 0;
+}
+
+void input_drain_all_press_pending()
+{
+    memset(s_keys_press_pending, 0, sizeof(s_keys_press_pending));
+    memset(s_btns_press_pending, 0, sizeof(s_btns_press_pending));
+}
+
+// ---- Bulk consume after UI overlay close ------------------------------------
+
+void input_consume_all_held_until_released()
+{
+    input_keyboard_consume_all_held_until_released();
+    gamepad_consume_all_held_buttons_until_released();
+    gamepad_consume_held_triggers_until_released();
+    gamepad_consume_held_sticks_until_rest();
+    input_mouse_drain_rel();
+
+    // Also drop sticky press_pending. The wait-for-release gates above only
+    // suppress reads while a button stays physically held; a press that was
+    // already released by the time the helper runs (event_held back to 0)
+    // would still surface as press_pending to the next consumer. Concrete
+    // case this closes: player tapped a camera-mode key (F5..F7 / END / DEL
+    // / PGDN) just before opening pause, didn't touch it again in the menu,
+    // and on the first gameplay tick after resume the camera mode re-fires.
+    input_drain_all_press_pending();
 }
 
 // ---- InputAutoRepeat --------------------------------------------------------

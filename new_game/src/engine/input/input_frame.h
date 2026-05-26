@@ -68,6 +68,15 @@ void input_key_consume(SLONG kb_code);
 // normally — synthesis only suppresses CURRENT held-state, not future presses.
 void input_key_force_release(SLONG kb_code);
 
+// Mark all keys currently event-held (i.e. pressed by SDL key-down with
+// no matching key-up yet) to be ignored until they physically release.
+// While armed, input_key_held / input_key_just_pressed / input_key_press_pending
+// all return false for the key, and the underlying snapshot is forced to 0.
+// Auto-clears on the next snapshot where event_held has fallen back to 0
+// (SDL key-up arrived). Use when closing a UI overlay so a key held into
+// gameplay doesn't fire as a fresh press in the first gameplay tick.
+void input_keyboard_consume_all_held_until_released();
+
 // Returns the scancode of the most recent SDL key-down event since the
 // last input_last_key_consume(). Returns 0 if no press is pending.
 //
@@ -152,6 +161,13 @@ SLONG input_mouse_y();
 // mouse_capture_is_active() — when capture is off the delta is OS
 // cursor motion, not gameplay input.
 void input_mouse_consume_rel(SLONG* out_dx, SLONG* out_dy);
+
+// Drop the accumulated mouse relative-motion delta on the floor. Same as
+// input_mouse_consume_rel but discards the value. Use when closing a UI
+// overlay so motion that accumulated while mouse capture was off
+// (overlay open) doesn't fire as one big camera swing on the first
+// gameplay tick after capture re-engages.
+void input_mouse_drain_rel();
 
 // ---- Raw axis / trigger / connection accessors -----------------------------
 // Lower-level wrappers around gamepad_state for callers that need integer /
@@ -245,6 +261,36 @@ struct InputAutoRepeat {
     // false because no rising edge happened in this frame's snapshot).
     bool tick_combined(bool any_just_pressed, bool any_held);
 };
+
+// Drop every sticky press_pending flag (keyboard + gamepad) at once. Use
+// at a transition where stale press_pending from before the transition
+// must not leak into post-transition consumers — e.g. on pause-menu open
+// (so a Cross press the player made to jump just before opening pause
+// doesn't immediately surface to the menu as Resume) and at the moment
+// the pause slowdown ramp completes (so any press the player made during
+// the ramp doesn't carry into the now-active menu).
+//
+// Unlike input_consume_all_held_until_released this does NOT scrub
+// gamepad_state — held buttons / triggers / sticks pass through to
+// gameplay as normal, so the slowdown ramp animation is not interrupted.
+void input_drain_all_press_pending();
+
+// ---- Bulk consume after UI overlay close -----------------------------------
+// One-shot helper that arms wait-for-release / wait-for-rest on every
+// currently active input source AND drains the mouse delta:
+//
+//   - keyboard keys held when called (input_keyboard_consume_all_held_until_released)
+//   - gamepad buttons currently down (gamepad_consume_all_held_buttons_until_released)
+//   - gamepad triggers above the rest threshold (gamepad_consume_held_triggers_until_released)
+//   - gamepad sticks deflected beyond the rest tolerance (gamepad_consume_held_sticks_until_rest)
+//   - accumulated mouse relative motion (input_mouse_drain_rel)
+//
+// Call when a UI overlay (pause menu, mission won/lost, "are you sure?")
+// closes back to gameplay so nothing held into the overlay leaks into
+// the first gameplay tick. Each gated source clears its own gate when
+// the hardware reports it back to rest — the user has to physically
+// release and re-press to fire a fresh gameplay action.
+void input_consume_all_held_until_released();
 
 // ---- Internal: SDL event hooks ---------------------------------------------
 // Called from keyboard event handlers. Maintain an independent held-state

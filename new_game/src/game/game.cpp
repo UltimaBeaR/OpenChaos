@@ -1074,8 +1074,19 @@ round_again:;
             if (special_keys())
                 return (1);
 
+            // process_controls handles gameplay-level inputs (weapon select,
+            // inventory wheel, dev console open, cheat combos, debug keys).
+            // Gated by !GAMEMENU_is_paused() so once the pause slowdown ramp
+            // has finished and the menu is fully active, gameplay inputs
+            // stop firing — pressing R3 / D-pad / F9 etc. while the pause
+            // menu is up no longer opens the inventory wheel, switches the
+            // weapon, or pops the dev console behind the menu. During the
+            // slowdown ramp (menu open but not yet paused) gameplay inputs
+            // STILL fire, matching get_hardware_input / camera which also
+            // keep reading input through the ramp so the character animates
+            // out of its current motion naturally.
             if (!(GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) && !EWAY_tutorial_string
-                && !input_debug_is_active()) {
+                && !input_debug_is_active() && !GAMEMENU_is_paused()) {
                 process_controls();
             }
             void check_pows(void);

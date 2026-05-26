@@ -107,6 +107,28 @@ void gamepad_triggers_lockout(int reserved);
 // Use when exiting a menu to prevent the button from triggering a gameplay action.
 void gamepad_consume_until_released(uint8_t button_index);
 
+// Mark every currently-held gamepad button to be consumed until released.
+// Convenience wrapper around gamepad_consume_until_released that walks
+// rgbButtons[] and arms each held button. Use when closing a UI overlay
+// (pause menu, mission won/lost dialog, "are you sure?") so no button
+// that was held during the overlay leaks into the first gameplay tick
+// as a fresh press.
+void gamepad_consume_all_held_buttons_until_released();
+
+// Mark gamepad triggers (L2 / R2) currently above the rest threshold to
+// be consumed until physically released. While armed, both the analog
+// value (trigger_left / trigger_right) and the digital threshold flag
+// (rgbButtons[15] / rgbButtons[16]) read as 0. Auto-clears when the
+// hardware reports the trigger back below the rest threshold.
+void gamepad_consume_held_triggers_until_released();
+
+// Mark gamepad sticks currently deflected beyond the rest tolerance to
+// be consumed until physically returned to center. While armed, lX/lY
+// (left stick) or rX/rY (right stick) plus their _raw counterparts all
+// read as the center value 32768. Auto-clears per stick when the
+// hardware reports it back within the rest tolerance.
+void gamepad_consume_held_sticks_until_rest();
+
 // Adaptive trigger feedback status — reported by the controller for the
 // currently active effect. State value: 0 = before effect zone, 1 = inside,
 // 2 = past. Effect active = controller signals the effect is engaged.
