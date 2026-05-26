@@ -430,7 +430,6 @@ void FRONTEND_stop_xition()
         break;
     case FE_CONFIG:
     case FE_CONFIG_AUDIO:
-    case FE_CONFIG_INPUT_KB:
     case FE_LOADSCREEN:
     case FE_SAVESCREEN:
         ge_set_background_override(screenfull_config);
@@ -646,26 +645,6 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
     } else {
         rgb = FRONTEND_fix_rgb(fade_rgb, 1);
         FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE + 64, POLY_PAGE_FONT2D);
-    }
-}
-
-// uc_orig: FRONTEND_DrawKey (fallen/Source/frontend.cpp)
-// Draws the name of the keyboard key assigned to a menu action.
-// Draws the name of the keyboard key assigned to a menu action.
-void FRONTEND_DrawKey(MenuData* md)
-{
-    SLONG x, y, dy, rgb;
-    CBYTE str[25];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_key && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
-    dy = md->Y + menu_state.base - menu_state.scroll;
-
-    sdl3_get_key_name(md->Data, str, 25);
-
-    if (IsEnglish) {
-        MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
-        MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
-    } else {
-        FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D);
     }
 }
 
@@ -1208,7 +1187,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
         case FE_CONFIG:
         case FE_CONFIG_AUDIO:
         case FE_CONFIG_OPTIONS:
-        case FE_CONFIG_INPUT_KB:
         case FE_LOADSCREEN:
         case FE_SAVESCREEN:
             ge_set_background_override(screenfull_config);
@@ -1928,26 +1906,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
         menu_data[1].Data = amb << 1;
         menu_data[2].Data = mus << 1;
     } break;
-    case FE_CONFIG_INPUT_KB:
-        if (bDoTransition) {
-            FRONTEND_init_xition();
-        }
-        FRONTEND_easy(mode);
-        menu_data[0].Data = ENV_get_value_number("left", 203, "Keyboard");
-        menu_data[1].Data = ENV_get_value_number("right", 205, "Keyboard");
-        menu_data[2].Data = ENV_get_value_number("forward", 200, "Keyboard");
-        menu_data[3].Data = ENV_get_value_number("back", 208, "Keyboard");
-        menu_data[4].Data = ENV_get_value_number("punch", 44, "Keyboard");
-        menu_data[5].Data = ENV_get_value_number("kick", 45, "Keyboard");
-        menu_data[6].Data = ENV_get_value_number("action", 46, "Keyboard");
-        menu_data[7].Data = ENV_get_value_number("jump", 57, "Keyboard");
-        menu_data[8].Data = ENV_get_value_number("start", 15, "Keyboard");
-        menu_data[9].Data = ENV_get_value_number("select", 28, "Keyboard");
-        menu_data[11].Data = ENV_get_value_number("camera", 207, "Keyboard");
-        menu_data[12].Data = ENV_get_value_number("cam_left", 211, "Keyboard");
-        menu_data[13].Data = ENV_get_value_number("cam_right", 209, "Keyboard");
-        menu_data[14].Data = ENV_get_value_number("1stperson", 30, "Keyboard");
-        break;
     case FE_CONFIG_OPTIONS:
         if (bDoTransition) {
             FRONTEND_init_xition();
@@ -2213,9 +2171,6 @@ void FRONTEND_display_overlay()
             case OT_MULTI:
                 FRONTEND_DrawMulti(md, rgb);
                 break;
-            case OT_KEYPRESS:
-                FRONTEND_DrawKey(md);
-                break;
             case OT_PADPRESS:
                 FRONTEND_DrawPad(md);
                 break;
@@ -2317,24 +2272,6 @@ static void FRONTEND_storedata(void)
         ENV_set_value_number("fx_volume", menu_data[0].Data >> 1, "Audio");
         ENV_set_value_number("ambient_volume", menu_data[1].Data >> 1, "Audio");
         ENV_set_value_number("music_volume", menu_data[2].Data >> 1, "Audio");
-        break;
-
-    case FE_CONFIG_INPUT_KB:
-        ENV_set_value_number("left", menu_data[0].Data, "Keyboard");
-        ENV_set_value_number("right", menu_data[1].Data, "Keyboard");
-        ENV_set_value_number("forward", menu_data[2].Data, "Keyboard");
-        ENV_set_value_number("back", menu_data[3].Data, "Keyboard");
-        ENV_set_value_number("punch", menu_data[4].Data, "Keyboard");
-        ENV_set_value_number("kick", menu_data[5].Data, "Keyboard");
-        ENV_set_value_number("action", menu_data[6].Data, "Keyboard");
-        ENV_set_value_number("jump", menu_data[7].Data, "Keyboard");
-        ENV_set_value_number("start", menu_data[8].Data, "Keyboard");
-        ENV_set_value_number("select", menu_data[9].Data, "Keyboard");
-        // gap for label
-        ENV_set_value_number("camera", menu_data[11].Data, "Keyboard");
-        ENV_set_value_number("cam_left", menu_data[12].Data, "Keyboard");
-        ENV_set_value_number("cam_right", menu_data[13].Data, "Keyboard");
-        ENV_set_value_number("1stperson", menu_data[14].Data, "Keyboard");
         break;
 
     case FE_CONFIG_OPTIONS:
@@ -2517,23 +2454,6 @@ static UBYTE FRONTEND_input(void)
         last_input = input;
     }
 
-    if (grabbing_key) {
-        const UBYTE last_key = input_last_key();
-        if (last_key) {
-            MenuData* item = menu_data + menu_state.selected;
-            if (last_key != KB_ESC) {
-                UBYTE j;
-                for (j = 0; j < menu_state.items; j++)
-                    if (menu_data[j].Data == last_key)
-                        menu_data[j].Data = 0;
-                item->Data = last_key;
-            }
-            input_key_force_release(last_key);
-            input_last_key_consume();
-            grabbing_key = 0;
-            return 0;
-        }
-    }
     if (allow_debug_keys) {
         const bool theme1 = input_key_just_pressed(KB_1);
         const bool theme2 = input_key_just_pressed(KB_2);
@@ -2686,10 +2606,6 @@ static UBYTE FRONTEND_input(void)
                 item->Data &= ~0xff;
             }
             break;
-        case OT_KEYPRESS:
-            grabbing_key = 1;
-            input_last_key_consume();
-            break;
         case OT_PADPRESS:
             if (bCanChangeJoypadButtons) {
                 grabbing_pad = 1;
@@ -2722,27 +2638,6 @@ static UBYTE FRONTEND_input(void)
 
             menu_mode_queued = item->Data;
             fade_mode = 2 | ((item->Data == FE_BACK) ? 4 : 0);
-            break;
-        case OT_RESET:
-            switch (menu_state.mode) {
-            case FE_CONFIG_INPUT_KB:
-                menu_data[0].Data = 203;
-                menu_data[1].Data = 205;
-                menu_data[2].Data = 200;
-                menu_data[3].Data = 208;
-                menu_data[4].Data = 44;
-                menu_data[5].Data = 45;
-                menu_data[6].Data = 46;
-                menu_data[7].Data = 57;
-                menu_data[8].Data = 15;
-                menu_data[9].Data = 28;
-                // gap for label
-                menu_data[11].Data = 207;
-                menu_data[12].Data = 211;
-                menu_data[13].Data = 209;
-                menu_data[14].Data = 30;
-                break;
-            }
             break;
         }
     }

@@ -50,8 +50,6 @@ extern MenuState menu_state;
 // uc_orig: menu_buffer (fallen/Source/frontend.cpp)
 extern CBYTE menu_buffer[2048];
 
-// uc_orig: grabbing_key (fallen/Source/frontend.cpp)
-extern BOOL grabbing_key;
 // uc_orig: grabbing_pad (fallen/Source/frontend.cpp)
 extern BOOL grabbing_pad;
 // uc_orig: m_bMovingPanel (fallen/Source/frontend.cpp)
