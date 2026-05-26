@@ -37,6 +37,7 @@ extern SLONG ScreenHeight;
 #include "map/supermap_globals.h" // DONT_load
 #include "game/game_tick_globals.h" // allow_debug_keys
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_MENU_THEME_*
+#include "game/action_map/act_menu.h" // ACT_MENU_*
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 #include "game/game_types.h"
@@ -2285,20 +2286,20 @@ static UBYTE FRONTEND_input(void)
         // from a previous screen produces no rising edge in the snapshot, so
         // a stale press cannot leak into the menu.
 
-        const bool kb_up = input_key_held(KKEY_UP);
-        const bool kb_dn = input_key_held(KKEY_DOWN);
-        const bool kb_lt = input_key_held(KKEY_LEFT);
-        const bool kb_rt = input_key_held(KKEY_RIGHT);
+        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY);
+        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY);
+        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY);
+        const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY);
 
         bool st_up = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
         bool st_dn = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
         bool st_lt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT);
         bool st_rt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT);
 
-        const bool dp_up = input_btn_held(11);
-        const bool dp_dn = input_btn_held(12);
-        const bool dp_lt = input_btn_held(13);
-        const bool dp_rt = input_btn_held(14);
+        const bool dp_up = input_btn_held(ACT_MENU_NAV_UP_GBTN);
+        const bool dp_dn = input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
+        const bool dp_lt = input_btn_held(ACT_MENU_NAV_LEFT_GBTN);
+        const bool dp_rt = input_btn_held(ACT_MENU_NAV_RIGHT_GBTN);
 
         // Stick-only diagonal: pick the dominant axis by raw distance from
         // centre so a small Y wobble doesn't override an intended X flick.
@@ -2331,18 +2332,18 @@ static UBYTE FRONTEND_input(void)
         const bool any_lt_held = kb_lt || st_lt || dp_lt;
         const bool any_rt_held = kb_rt || st_rt || dp_rt;
 
-        const bool any_up_jp = input_key_just_pressed(KKEY_UP)
+        const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
-            || input_btn_just_pressed(11);
-        const bool any_dn_jp = input_key_just_pressed(KKEY_DOWN)
+            || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
+        const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
-            || input_btn_just_pressed(12);
-        const bool any_lt_jp = input_key_just_pressed(KKEY_LEFT)
+            || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
+        const bool any_lt_jp = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT)
-            || input_btn_just_pressed(13);
-        const bool any_rt_jp = input_key_just_pressed(KKEY_RIGHT)
+            || input_btn_just_pressed(ACT_MENU_NAV_LEFT_GBTN);
+        const bool any_rt_jp = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT)
-            || input_btn_just_pressed(14);
+            || input_btn_just_pressed(ACT_MENU_NAV_RIGHT_GBTN);
 
         static InputAutoRepeat ar_up;
         static InputAutoRepeat ar_dn;
@@ -2377,10 +2378,10 @@ static UBYTE FRONTEND_input(void)
         // an intro skip and still held when entering a menu) and post-bind
         // protection (Cross held to bind a slot, then released): no rising
         // edge until release + re-press.
-        if (input_btn_just_pressed(0)) {
+        if (input_btn_just_pressed(ACT_MENU_ANY_BUTTON_GBTN)) {
             any_button = 1;
         }
-        if (input_btn_just_pressed(3)) {
+        if (input_btn_just_pressed(ACT_MENU_CANCEL_GBTN)) {
             input |= INPUT_MASK_CANCEL;
         }
     }
@@ -2400,7 +2401,7 @@ static UBYTE FRONTEND_input(void)
         }
     }
 
-    if (input_key_just_pressed(KKEY_END)) {
+    if (input_key_just_pressed(ACT_MENU_PAGE_LAST_KKEY)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = menu_state.items - 1;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2408,7 +2409,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected--;
     }
-    if (input_key_just_pressed(KKEY_HOME)) {
+    if (input_key_just_pressed(ACT_MENU_PAGE_FIRST_KKEY)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = 0;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2447,7 +2448,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_SPACE) || input_key_just_pressed(KKEY_PENTER) || any_button) {
+    if (input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_1) || input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_2) || input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_3) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)
@@ -2617,7 +2618,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (input_key_just_pressed(KKEY_ESC) || (input & INPUT_MASK_CANCEL)) {
+    if (input_key_just_pressed(ACT_MENU_CANCEL_KKEY) || (input & INPUT_MASK_CANCEL)) {
         if (fade_mode != 6)
             MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
         if (fade_mode == 2) // cancel a transition
@@ -3038,12 +3039,12 @@ SBYTE FRONTEND_loop()
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {
-        if (input_key_just_pressed(KKEY_PPLUS)) {
+        if (input_key_just_pressed(ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY)) {
             complete_point++;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;
         }
-        if (input_key_just_pressed(KKEY_ASTERISK)) {
+        if (input_key_just_pressed(ACT_MENU_FE_CHEAT_MAX_POINT_KKEY)) {
             complete_point = 40;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;

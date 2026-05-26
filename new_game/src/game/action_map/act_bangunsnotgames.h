@@ -114,4 +114,25 @@ constexpr int ACT_BANG_MENU_THEME_2_KKEY = KKEY_2;
 constexpr int ACT_BANG_MENU_THEME_3_KKEY = KKEY_3;
 constexpr int ACT_BANG_MENU_THEME_4_KKEY = KKEY_4;
 
+// ---- Input debug panel (opened by F11) -------------------------------------
+// Once the panel is open it owns keyboard input until ESC closes it. Read in
+// input_debug.cpp::input_debug_tick.
+
+// ESC: close the panel. Same scancode as ACT_MENU_CANCEL_KKEY but different
+// semantic (panel-close vs. menu-back).
+constexpr int ACT_BANG_PANEL_CLOSE_KKEY = KKEY_ESC;
+
+// 1 / 2 / 3 — switch to keyboard / gamepad / DualSense page.
+constexpr int ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY  = KKEY_1;
+constexpr int ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY   = KKEY_2;
+constexpr int ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY = KKEY_3;
+
+// TAB: cycle the current page through its sub-views (controller viz → tests
+// → back). Only pages that define sub-views react.
+constexpr int ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY = KKEY_TAB;
+
+// Navigation within the panel re-uses menu-nav constants (ACT_MENU_NAV_*_KKEY
+// + ACT_MENU_CONFIRM_KKEY_1) — the semantic is the same as in any other menu;
+// no separate panel-nav constants needed.
+
 #endif // GAME_ACTION_MAP_ACT_BANGUNSNOTGAMES_H

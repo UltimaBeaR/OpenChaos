@@ -12,6 +12,8 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/input_frame.h"
 #include "engine/platform/ds_bridge.h"
+#include "game/action_map/act_menu.h" // ACT_MENU_NAV_*_KKEY, ACT_MENU_CONFIRM_KKEY_1
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_PANEL_*
 #include "engine/platform/uc_common.h" // DisplayWidth, DisplayHeight
 #include "ui/hud/panel.h"
 
@@ -72,11 +74,11 @@ void refresh_nav()
     // Per-frame edge detection — input_frame's just_pressed gives ровно the
     // same "rising edge in this snapshot" semantic as the previous static-
     // prev pattern.
-    s_nav.up    = input_key_just_pressed(KKEY_UP);
-    s_nav.down  = input_key_just_pressed(KKEY_DOWN);
-    s_nav.left  = input_key_just_pressed(KKEY_LEFT);
-    s_nav.right = input_key_just_pressed(KKEY_RIGHT);
-    s_nav.enter = input_key_just_pressed(KKEY_ENTER);
+    s_nav.up    = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY);
+    s_nav.down  = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY);
+    s_nav.left  = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY);
+    s_nav.right = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY);
+    s_nav.enter = input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_1);
 }
 
 // Rumble test state. Motor amplitudes are shared across gamepad +
@@ -195,21 +197,21 @@ void input_debug_tick()
     // pause-menu ESC handler (FORM_KeyProc / GAMEMENU_process) doesn't also
     // fire and immediately re-open / open a different menu after the panel
     // closes.
-    if (input_key_just_pressed(KKEY_ESC)) {
-        input_key_force_release(KKEY_ESC);
+    if (input_key_just_pressed(ACT_BANG_PANEL_CLOSE_KKEY)) {
+        input_key_force_release(ACT_BANG_PANEL_CLOSE_KKEY);
         input_debug_close();
         return;
     }
 
     // 1 / 2 / 3 — switch page.
-    if (input_key_just_pressed(KKEY_1)) s_page = INPUT_DEBUG_PAGE_KEYBOARD;
-    if (input_key_just_pressed(KKEY_2)) s_page = INPUT_DEBUG_PAGE_GAMEPAD;
-    if (input_key_just_pressed(KKEY_3)) s_page = INPUT_DEBUG_PAGE_DUALSENSE;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY))  s_page = INPUT_DEBUG_PAGE_KEYBOARD;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY))   s_page = INPUT_DEBUG_PAGE_GAMEPAD;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY)) s_page = INPUT_DEBUG_PAGE_DUALSENSE;
 
     // TAB cycles the current page through its sub-views (controller
     // viz → tests / triggers → back). Only pages that define sub-views
     // react — keyboard page has none.
-    if (input_key_just_pressed(KKEY_TAB)) {
+    if (input_key_just_pressed(ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY)) {
         if (s_page == INPUT_DEBUG_PAGE_DUALSENSE) {
             input_debug_dualsense_toggle_sub();
         } else if (s_page == INPUT_DEBUG_PAGE_GAMEPAD) {

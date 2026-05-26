@@ -21,6 +21,7 @@
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
+#include "game/action_map/act_menu.h" // ACT_MENU_*
 
 // Stick navigation thresholds and auto-repeat live in input_frame
 // (STICK_DIR_PRESS_RAW / RELEASE_RAW + INPUT_REPEAT_INITIAL_MS / PERIOD_MS).
@@ -155,63 +156,36 @@ SLONG GAMEMENU_process()
         GAME_cut_scene = UC_FALSE;
     }
 
-    // Gamepad → keyboard event bridge for the existing menu handler below.
-    // Edge-detect (just_pressed) and auto-repeat (just_pressed_or_repeat) are
-    // managed centrally in input_frame — set in LibShellActive each render
-    // frame, identical cadence across menus.
+    // Pause-toggle channel: combined read of three sources — keyboard ESC
+    // (event hook sets press_pending), gamepad Start (always active, opens
+    // menu from gameplay), and gamepad Triangle (only while a menu is open
+    // — back / cancel). The Triangle source is gated so gameplay-time
+    // Triangle presses (menu cancel + car siren) don't trigger a spurious
+    // open-pause when no menu is up.
     //
-    // Start (button 6) is always active to open the menu from gameplay; the
-    // rest fire only while a menu is shown so gameplay buttons (Triangle =
-    // KICK, Cross = JUMP) don't leak into menu actions when no menu is up.
+    // The old gamepad→keyboard bridge (input_frame_inject_key_press here)
+    // was removed in action_map step 3c.4 / 2 — see plan.md. Direct GBTN
+    // reads below replace it.
     //
-    // No prev-state reset on menu open is needed: input_frame's just_pressed
-    // requires a rising edge in the snapshot, so a button held across the
-    // menu transition won't fire until released and re-pressed.
-    {
-        // Start → ESC (toggle pause).
-        if (input_btn_just_pressed(6))
-            input_frame_inject_key_press(KKEY_ESC);
-
-        if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
-            // Triangle/Y (button 3) → ESC (back/cancel). Drain press_pending
-            // so the press doesn't leak into car siren toggle (which reads
-            // input_btn_press_pending(3)) when the menu closes — physics
-            // doesn't run during pause, so apply_button_input_car can't drain
-            // the pending itself, and a stale flag would fire on the first
-            // tick after resume.
-            if (input_btn_just_pressed(3)) {
-                input_btn_consume(3);
-                input_frame_inject_key_press(KKEY_ESC);
-            }
-
-            // Cross/A (button 0) → Enter (confirm). No current consumer of
-            // input_btn_press_pending(0), but consume defensively for symmetry
-            // with Triangle — any future physics-tick consumer of that flag
-            // would otherwise see the menu-confirm press as a pending input.
-            if (input_btn_just_pressed(0)) {
-                input_btn_consume(0);
-                input_frame_inject_key_press(KKEY_ENTER);
-            }
-
-            // Up/Down nav (keyboard and stick) is handled below inside the
-            // GAMEMENU_background > 200 gate — single unified auto-repeat
-            // for both sources, no double-throttle.
-        }
-    }
-
-    // Pause-toggle channel: real keyboard ESC presses (event hook sets
-    // press_pending) and synthesised gamepad presses (Start / Triangle
-    // bridge above calls input_frame_inject_key_press(KKEY_ESC)) both land
-    // on the same input_frame slot. Single read picks up either source.
-    if (input_key_press_pending(KKEY_ESC)) {
-        // Force a synthesised release in input_frame's CURRENT snapshot so
-        // same-frame downstream consumers (e.g. weapon switch reading
+    // Triangle consume drains its press_pending so the press doesn't leak
+    // into car siren toggle (which reads input_btn_press_pending(3)) when
+    // the menu closes — physics doesn't run during pause, so the car-siren
+    // consumer can't drain the pending itself, and a stale flag would fire
+    // on the first tick after resume.
+    const bool toggle_pause_kb       = input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
+    const bool toggle_pause_gp_start = input_btn_press_pending(ACT_MENU_TOGGLE_PAUSE_GBTN);
+    const bool cancel_in_open_menu   = (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE)
+                                       && input_btn_press_pending(ACT_MENU_CANCEL_GBTN);
+    if (toggle_pause_kb || toggle_pause_gp_start || cancel_in_open_menu) {
+        // Force-release in input_frame's CURRENT snapshot so same-frame
+        // downstream consumers (e.g. weapon switch reading
         // input_key_just_pressed(KKEY_ENTER) in process_controls, or JUMP
         // level read in get_hardware_input) don't see the menu-consumed
         // press leak into gameplay. force_release clears
-        // curr/event_held/pressed_during_frame/press_pending all at once
-        // — subsumes input_key_consume.
-        input_key_force_release(KKEY_ESC);
+        // curr/event_held/pressed_during_frame/press_pending all at once.
+        if (toggle_pause_kb)       input_key_force_release(ACT_MENU_TOGGLE_PAUSE_KKEY);
+        if (toggle_pause_gp_start) input_btn_consume(ACT_MENU_TOGGLE_PAUSE_GBTN);
+        if (cancel_in_open_menu)   input_btn_consume(ACT_MENU_CANCEL_GBTN);
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -282,18 +256,18 @@ SLONG GAMEMENU_process()
             static InputAutoRepeat ar_up;
             static InputAutoRepeat ar_down;
 
-            const bool any_up_jp = input_key_just_pressed(KKEY_UP)
+            const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
                 || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
-                || input_btn_just_pressed(11);
-            const bool any_up_held = input_key_held(KKEY_UP)
+                || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
+            const bool any_up_held = input_key_held(ACT_MENU_NAV_UP_KKEY)
                 || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
-                || input_btn_held(11);
-            const bool any_dn_jp = input_key_just_pressed(KKEY_DOWN)
+                || input_btn_held(ACT_MENU_NAV_UP_GBTN);
+            const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
                 || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
-                || input_btn_just_pressed(12);
-            const bool any_dn_held = input_key_held(KKEY_DOWN)
+                || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
+            const bool any_dn_held = input_key_held(ACT_MENU_NAV_DOWN_KKEY)
                 || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
-                || input_btn_held(12);
+                || input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
 
             bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);
             bool nav_down = ar_down.tick_combined(any_dn_jp, any_dn_held);
@@ -341,14 +315,19 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            if (input_key_press_pending(KKEY_ENTER) || input_key_press_pending(KKEY_SPACE) || input_key_press_pending(KKEY_PENTER)) {
+            const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_1);
+            const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_2);
+            const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_3);
+            const bool confirm_gp  = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
+            if (confirm_kb1 || confirm_kb2 || confirm_kb3 || confirm_gp) {
                 // Force-release in input_frame's CURRENT snapshot — see
                 // comment in the ESC handler above. Otherwise SPACE held for
                 // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
                 // INPUT_MASK_SELECT (weapon switch popup opens), etc.
-                input_key_force_release(KKEY_ENTER);
-                input_key_force_release(KKEY_SPACE);
-                input_key_force_release(KKEY_PENTER);
+                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_KKEY_1);
+                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_KKEY_2);
+                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_KKEY_3);
+                if (confirm_gp)  input_btn_consume(ACT_MENU_CONFIRM_GBTN);
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
 
