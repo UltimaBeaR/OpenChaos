@@ -247,6 +247,15 @@ extern SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* do
 extern SLONG find_best_action_from_tree(SLONG action, ULONG input, ULONG* input_used);
 // uc_orig: get_camera_angle (fallen/Source/interfac.cpp)
 extern SLONG get_camera_angle(void);
+
+// OpenChaos: returns true while the gamepad L2 trigger is held past the
+// engagement hysteresis (~10 % press, ~5 % release — see get_hardware_input).
+// Read by external systems that need to suppress auto behaviour while the
+// player is in the L2 "tactical" modifier mode — currently the camera
+// get-behind block in fc.cpp uses this to freeze auto-positioning so the
+// player's stick frame stays stable while they line up a roll / backflip
+// or character-relative move.
+extern bool input_l2_is_held(void);
 // uc_orig: player_stop_move (fallen/Source/interfac.cpp)
 extern void player_stop_move(Thing* p_thing, ULONG input);
 // uc_orig: player_interface_move (fallen/Source/interfac.cpp)

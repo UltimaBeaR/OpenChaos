@@ -14,6 +14,7 @@
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
 #include "engine/input/mouse_capture.h" // mouse_capture_is_active
+#include "game/input_actions.h" // input_l2_is_held (suppress get-behind while L2 held)
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 #include "navigation/wmove.h" // WMOVE_face for rigid platform inheritance
 
@@ -1186,7 +1187,23 @@ void FC_process()
             s_prev_focus_z[cam] = fc->focus_z;
         }
 
-        if (!fc->toonear) {
+        // L2-held suppression: while the player holds L2 on the gamepad,
+        // freeze the auto-get-behind logic completely so the camera doesn't
+        // follow the character into a new orientation mid-tap. This keeps
+        // the player's reference frame stable while they line up a roll /
+        // backflip or commit to a slow-walk in a character-relative
+        // direction. The get-behind math has no accumulator — every tick
+        // it recomputes from focus_x/focus_yaw — so skipping it while L2
+        // is held has no lingering state; the next tick after L2 release
+        // resumes auto-positioning immediately.
+        //
+        // fc->nobehind is left untouched here on purpose: it's the
+        // *manual cam input* suppression mechanism (mouse / right-stick
+        // orbit / L1 zoom rotate refresh it on demand), and we don't want
+        // L2 release to wipe an active mouse-orbit lock-out. The two
+        // suppressions are independent.
+        const bool l2_freeze_get_behind = input_l2_is_held();
+        if (!fc->toonear && !l2_freeze_get_behind) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
