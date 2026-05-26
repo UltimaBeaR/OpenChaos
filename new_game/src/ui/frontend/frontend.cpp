@@ -648,22 +648,6 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
     }
 }
 
-// uc_orig: FRONTEND_DrawPad (fallen/Source/frontend.cpp)
-// Draws the name of the joypad button assigned to a menu action.
-void FRONTEND_DrawPad(MenuData* md)
-{
-    SLONG x, y, dy, rgb;
-    CBYTE str[20];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_pad && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
-    dy = md->Y + menu_state.base - menu_state.scroll;
-    if (md->Data < 31)
-        sprintf(str, "%s %d", XLAT_str(X_BUTTON), md->Data);
-    else
-        strcpy(str, "Unused");
-    MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
-    MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
-}
-
 // ---- Kibble particle system ------------------------------------------------
 
 // uc_orig: FRONTEND_kibble_init_one (fallen/Source/frontend.cpp)
@@ -2171,9 +2155,6 @@ void FRONTEND_display_overlay()
             case OT_MULTI:
                 FRONTEND_DrawMulti(md, rgb);
                 break;
-            case OT_PADPRESS:
-                FRONTEND_DrawPad(md);
-                break;
             }
         } else {
             if (i == menu_state.selected) { // better do some scrolling
@@ -2233,33 +2214,11 @@ void FRONTEND_display_overlay()
         FONT2D_DrawStringWrapTo(menu_buffer, 20, 100, fade_rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, 255 - (fade_state << 2), 400);
     }
 
-    if (m_bMovingPanel) {
-        // Display the panel at the current position.
-        // REMEMBER THAT THESE NUMBERS ARE DIVIDED BY 4!
-        int iXPos = ENV_get_value_number("panel_x", 32 / 4, "");
-        int iYPos = ENV_get_value_number("panel_y", (480 - 32) / 4, "");
-
-        extern void PANEL_draw_quad(float left, float top, float right, float bottom, SLONG page, ULONG colour,
-            float u1, float v1, float u2, float v2);
-
-        PANEL_draw_quad(
-            (float)(iXPos * 4 + 0),
-            (float)(iYPos * 4 - 165),
-            (float)(iXPos * 4 + 212),
-            (float)(iYPos * 4 - 0),
-            POLY_PAGE_LASTPANEL_ALPHA,
-            0xffffffff,
-            0.0F,
-            90.0F / 256.0F,
-            212.0F / 256.0F,
-            1.0F);
-    }
-
     POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
 
 // uc_orig: FRONTEND_storedata (fallen/Source/frontend.cpp)
-// Saves current menu screen's settings back to ENV (video, audio, keyboard, joypad, options).
+// Saves current menu screen's settings back to ENV (video, audio, options).
 static void FRONTEND_storedata(void)
 {
     switch (menu_state.mode) {
@@ -2298,41 +2257,14 @@ static BOOL FRONTEND_ValidMission(SWORD sel)
 
 // uc_orig: FRONTEND_input (fallen/Source/frontend.cpp)
 // Polls keyboard and joypad state, processes navigation keys (up/down/left/right/enter/esc),
-// handles key/pad rebinding modes, and returns 0 normally or a FE_* exit code.
+// and returns 0 normally or a FE_* exit code.
 static UBYTE FRONTEND_input(void)
 {
     UBYTE scan, any_button = 0;
-    // Tracks the previous frame's resolved input mask. Used as a one-frame
-    // settle gate for grabbing_pad so a confirm press doesn't immediately
-    // re-trigger a bind on the same frame.
-    static SLONG last_input = 0;
 
     SLONG input = 0;
 
-    if (grabbing_pad && !last_input) {
-        UBYTE i, j;
-        MenuData* item = menu_data + menu_state.selected;
-        if (input_key_just_pressed(KB_ESC)) {
-            // Consume so the regular-nav ESC handler below doesn't also fire
-            // FE_BACK / FE_QUIT on a subsequent frame while ESC stays held.
-            input_key_force_release(KB_ESC);
-            grabbing_pad = 0;
-        } else {
-            for (i = 0; i < 32; i++) {
-                if (input_btn_held(i)) {
-                    for (j = 0; j < menu_state.items; j++) {
-                        if (menu_data[j].Data == i) {
-                            menu_data[j].Data = 31;
-                        }
-                    }
-                    item->Data = i;
-                    grabbing_pad = 0;
-                    break;
-                }
-            }
-        }
-        return 0;
-    } else {
+    {
         // Unified menu navigation through input_frame. Three independent
         // input sources per direction: keyboard arrows, left-stick virtual
         // directions, D-Pad buttons. They are merged into one combined "any
@@ -2450,8 +2382,6 @@ static UBYTE FRONTEND_input(void)
         if (input_btn_just_pressed(3)) {
             input |= INPUT_MASK_CANCEL;
         }
-
-        last_input = input;
     }
 
     if (allow_debug_keys) {
@@ -2605,19 +2535,6 @@ static UBYTE FRONTEND_input(void)
             if ((item->Data & 0xff) >= (item->Data >> 8)) {
                 item->Data &= ~0xff;
             }
-            break;
-        case OT_PADPRESS:
-            if (bCanChangeJoypadButtons) {
-                grabbing_pad = 1;
-                last_input = 0;
-            } else {
-                // Can't change button - using a predefined setup.
-                MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
-            }
-            break;
-        case OT_PADMOVE:
-            // Enter pad-move mode.
-            m_bMovingPanel = UC_TRUE;
             break;
         case OT_BUTTON:
         case OT_BUTTON_L:

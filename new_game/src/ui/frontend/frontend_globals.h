@@ -50,10 +50,6 @@ extern MenuState menu_state;
 // uc_orig: menu_buffer (fallen/Source/frontend.cpp)
 extern CBYTE menu_buffer[2048];
 
-// uc_orig: grabbing_pad (fallen/Source/frontend.cpp)
-extern BOOL grabbing_pad;
-// uc_orig: m_bMovingPanel (fallen/Source/frontend.cpp)
-extern BOOL m_bMovingPanel;
 
 // uc_orig: kibble (fallen/Source/frontend.cpp)
 extern Kibble kibble[512];
@@ -139,9 +135,6 @@ extern SLONG GammaIndex;
 
 // uc_orig: m_bGoIntoSaveScreen (fallen/Source/frontend.cpp)
 extern bool m_bGoIntoSaveScreen;
-
-// uc_orig: bCanChangeJoypadButtons (fallen/Source/frontend.cpp)
-extern BOOL bCanChangeJoypadButtons;
 
 // ---- Background screen surfaces ----------------------------------------
 

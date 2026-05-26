@@ -153,10 +153,6 @@ MenuState menu_state;
 // uc_orig: menu_buffer (fallen/Source/frontend.cpp)
 CBYTE menu_buffer[2048];
 
-// uc_orig: grabbing_pad (fallen/Source/frontend.cpp)
-BOOL grabbing_pad = 0;
-// uc_orig: m_bMovingPanel (fallen/Source/frontend.cpp)
-BOOL m_bMovingPanel = UC_FALSE;
 
 // uc_orig: kibble (fallen/Source/frontend.cpp)
 Kibble kibble[512];
@@ -239,9 +235,6 @@ SLONG GammaIndex = 0;
 
 // uc_orig: m_bGoIntoSaveScreen (fallen/Source/frontend.cpp)
 bool m_bGoIntoSaveScreen = UC_FALSE;
-
-// uc_orig: bCanChangeJoypadButtons (fallen/Source/frontend.cpp)
-BOOL bCanChangeJoypadButtons = UC_FALSE;
 
 // ---- DirectDraw background surfaces ----------------------------------------
 
