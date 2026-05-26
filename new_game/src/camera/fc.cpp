@@ -18,6 +18,15 @@
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 #include "navigation/wmove.h" // WMOVE_face for rigid platform inheritance
 
+// Cutscene gates — these globals live in other subsystems and we only read
+// them. Local extern declarations avoid pulling EWAY / PLAYCUTS headers
+// into the camera layer for two flags. Used by FC_process to freeze the
+// camera state at the script-set position while a cut-scene is playing,
+// so EWAY's separate framing (EWAY_cam_*) owns the visible camera and
+// FC_cam is restored unchanged when gameplay resumes.
+extern SLONG EWAY_cam_active;
+extern BOOL PLAYCUTS_playing;
+
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.
 // uc_orig: CAM_MORE_IN (fallen/Source/fc.cpp)
@@ -769,6 +778,18 @@ void FC_process()
 
     FC_Cam* fc;
 
+    // Previous-tick focus snapshot used by the XZ translation-tracking
+    // block and the Y delta-tracking block. Lifted here (out of those
+    // blocks) so the cut-scene short-circuit below can keep them in sync
+    // with the current focus while we skip the trackers — otherwise the
+    // first post-cutscene tick would see a stale delta and jolt the
+    // camera. Per-cam to support split-screen.
+    static SLONG s_prev_focus_x[FC_MAX_CAMS] = {};
+    static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
+    static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
+
+    const bool cutscene_active = (EWAY_cam_active != 0) || PLAYCUTS_playing;
+
     for (cam = 0; cam < FC_MAX_CAMS; cam++) {
         fc = &FC_cam[cam];
 
@@ -855,6 +876,51 @@ void FC_process()
             }
         } else {
             fc->lookabove = 0xa000;
+        }
+
+        // Cut-scene freeze.
+        //
+        // While EWAY / PLAYCUTS plays a cinematic, the visible camera
+        // is driven from EWAY_cam_* (see vis_cam.cpp: VC_state is set
+        // to OFF and render-interp pulls EWAY_cam_*). FC_cam is hidden
+        // for the duration. We must NOT keep mutating fc->want_* /
+        // fc->yaw / pitch / shake here — otherwise auto-corrections
+        // (get-behind, Y-convergence, translation tracking, mouse /
+        // stick orbit if the player nudges input during a cinematic)
+        // accumulate while the cinematic plays, and when it ends the
+        // gameplay camera snaps to whatever auto-corrected state we
+        // built up instead of the script-set position. Symptom: the
+        // first frame of gameplay shows the camera in a different
+        // place each time depending on cut-scene length / mouse
+        // motion / focus-character motion during the cinematic.
+        //
+        // Things still done here:
+        //   • Drain the mouse-relative accumulator so any cursor
+        //     motion during the cinematic doesn't bleed into the
+        //     first gameplay tick.
+        //   • Sync the previous-focus snapshots used by the XZ /
+        //     Y delta trackers so they compute zero delta on the
+        //     first post-cinematic tick (focus may have moved a
+        //     lot during the cinematic — e.g. character respawn,
+        //     warehouse transition).
+        //
+        // Things deliberately NOT done here: cut-scene skip (a
+        // button press routed through input_actions / EWAY), pause
+        // menu entry (GAMEMENU layer), shake decay (cut-scene runs
+        // briefly enough that residual shake is invisible anyway and
+        // FC_cam is hidden during the cinematic regardless).
+        //
+        // Platform inheritance and warehouse-transition snap above
+        // ARE allowed to run — they keep fc anchored to the right
+        // reference frame if the focus character is on a moving
+        // vehicle or crosses a warehouse boundary mid-cinematic.
+        if (cutscene_active) {
+            SLONG drain_x = 0, drain_y = 0;
+            input_mouse_consume_rel(&drain_x, &drain_y);
+            s_prev_focus_x[cam] = fc->focus_x;
+            s_prev_focus_y[cam] = fc->focus_y;
+            s_prev_focus_z[cam] = fc->focus_z;
+            continue;
         }
 
         if (!fc->toonear) {
@@ -1165,8 +1231,8 @@ void FC_process()
         //
         // Guard against huge deltas (focus teleport on level load /
         // mission start) so we don't launch want across the map.
-        static SLONG s_prev_focus_x[FC_MAX_CAMS] = {};
-        static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
+        // (s_prev_focus_x/z lifted to FC_process scope for the
+        // cut-scene short-circuit at the top of the loop.)
         {
             SLONG focus_dx = fc->focus_x - s_prev_focus_x[cam];
             SLONG focus_dz = fc->focus_z - s_prev_focus_z[cam];
@@ -1266,7 +1332,8 @@ void FC_process()
             //     get left behind, so we apply only the focus_y
             //     DELTA from the previous tick, not absolute
             //     convergence.
-            static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
+            // (s_prev_focus_y lifted to FC_process scope for the
+            // cut-scene short-circuit at the top of the loop.)
             SLONG focus_y_delta = fc->focus_y - s_prev_focus_y[cam];
 
             // Detect actively-deflected stick Y (same threshold the
