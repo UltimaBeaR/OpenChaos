@@ -3,6 +3,7 @@
 
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "game/action_map/act_foot.h" // ACT_FOOT_*
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
@@ -3971,7 +3972,7 @@ ULONG get_hardware_input(UWORD type)
                     }
                 }
 
-                if (input_btn_held(0 /* Cross/A */)) {
+                if (input_btn_held(ACT_FOOT_JUMP_GBTN)) {
                     input |= INPUT_MASK_JUMP;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3999,7 +4000,7 @@ ULONG get_hardware_input(UWORD type)
                 // by the Triangle path above; firing it again from R1 would
                 // toggle siren on every R1 press, which the player does not
                 // expect in-car).
-                if (input_btn_held(10 /* R1/RB */)) {
+                if (input_btn_held(ACT_FOOT_KICK_GBTN)) {
                     Thing* p_darci = NET_PERSON(0);
                     const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
@@ -4012,7 +4013,7 @@ ULONG get_hardware_input(UWORD type)
                 // punch & shoot live only on R2. Keep the button unbound in
                 // gameplay — nothing to do here.
 
-                if (input_btn_held(6 /* Start */)) {
+                if (input_btn_held(ACT_FOOT_START_GBTN)) {
                     input |= INPUT_MASK_START;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -4020,12 +4021,12 @@ ULONG get_hardware_input(UWORD type)
                 // Weapon cycle / inventory rotation moved from Share/Back
                 // (button 4) to R3 (right stick click). Index 8 in rgbButtons
                 // matches SDL3_BTN_RIGHT_STICK and the DualSense R3 mapping.
-                if (input_btn_held(8)) {
+                if (input_btn_held(ACT_FOOT_INVENTORY_GBTN)) {
                     input |= INPUT_MASK_SELECT;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (input_btn_held(9 /* L1/LB */)) {
+                if (input_btn_held(ACT_FOOT_CAM_TOGGLE_GBTN)) {
                     input |= INPUT_MASK_CAMERA;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -4091,8 +4092,8 @@ ULONG get_hardware_input(UWORD type)
                                 mag_empty = true;
                         }
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
-                            current_weapon, input_trigger_raw(16),
-                            input_trigger_raw(15), weapon_drawn, mag_empty);
+                            current_weapon, input_trigger_raw(ACT_FOOT_PUNCH_GTRIG),
+                            input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG), weapon_drawn, mag_empty);
                         if (fd.shoot) {
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
@@ -4110,7 +4111,7 @@ ULONG get_hardware_input(UWORD type)
                 // an L2-bound ACTION couldn't coexist with the in-car brake
                 // (every brake tap would fire ACTION mid-drive), but Circle
                 // doesn't double as a vehicle control, so it can fire freely.
-                if (input_btn_held(1 /* Circle/B */)) {
+                if (input_btn_held(ACT_FOOT_ACTION_GBTN)) {
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -4120,12 +4121,12 @@ ULONG get_hardware_input(UWORD type)
                 // Works on DualSense (Share+L1+L2) and Xbox (Back+LB+LT).
                 {
                     static bool bCheatLastFrame = false;
-                    bool cheat_combo = input_btn_held(4)  // Select/Back
-                        && input_btn_held(9)              // L1/LB
-                        && input_btn_held(15);            // L2/LT (digital)
+                    bool cheat_combo = input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
+                        && input_btn_held(ACT_FOOT_CHEAT_MOD_L1_GBTN)
+                        && input_btn_held(ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN);
 
                     if (cheat_combo) {
-                        if (input_btn_held(11)) {
+                        if (input_btn_held(ACT_FOOT_CHEAT_IMMORTAL_GBTN)) {
                             // D-pad Up: toggle immortality (invulnerability flag on player).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -4135,14 +4136,14 @@ ULONG get_hardware_input(UWORD type)
                                 else
                                     CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
                             }
-                        } else if (input_btn_held(12)) {
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_FULL_HEALTH_GBTN)) {
                             // D-pad Down: full health.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
                                 NET_PERSON(0)->Genus.Person->Health = 1000;
                                 CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
                             }
-                        } else if (input_btn_held(13)) {
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN)) {
                             // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -4156,7 +4157,7 @@ ULONG get_hardware_input(UWORD type)
 #undef CHEAT_RING_SIZE
                                 CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
                             }
-                        } else if (input_btn_held(14)) {
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_MAX_AMMO_GBTN)) {
                             // D-pad Right: max ammo for all weapon types.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -4196,10 +4197,10 @@ ULONG get_hardware_input(UWORD type)
         // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
         // toggles → just_pressed (edge-detect via input_frame).
 
-        const bool kb_fwd   = input_key_held(KKEY_UP);
-        const bool kb_back  = input_key_held(KKEY_DOWN);
-        const bool kb_left  = input_key_held(KKEY_LEFT);
-        const bool kb_right = input_key_held(KKEY_RIGHT);
+        const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
+        const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
+        const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
+        const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
 
         // If any movement key is pressed, switch to digital mode
         // (analog mode only makes sense with a stick).
@@ -4231,7 +4232,7 @@ ULONG get_hardware_input(UWORD type)
                 input |= INPUT_MASK_RIGHT;
         }
 
-        if (input_key_held(KKEY_ENTER))
+        if (input_key_held(ACT_FOOT_INVENTORY_KKEY))
             input |= INPUT_MASK_SELECT;
 
         // Edge-triggered camera actions: use press_pending + consume.
@@ -4240,50 +4241,50 @@ ULONG get_hardware_input(UWORD type)
         // physics tick — edges latched in skipped-physics frames vanish before
         // they're read). press_pending latches the edge until explicit consume,
         // so it survives across frames regardless of tick cadence.
-        if (input_key_press_pending(KKEY_F5)) {
-            input_key_consume(KKEY_F5);
+        if (input_key_press_pending(ACT_FOOT_CAM_MODE_1_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_MODE_1_KKEY);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM1;
         }
-        if (input_key_press_pending(KKEY_F6)) {
-            input_key_consume(KKEY_F6);
+        if (input_key_press_pending(ACT_FOOT_CAM_MODE_2_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_MODE_2_KKEY);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM2;
         }
-        if (input_key_press_pending(KKEY_F7)) {
-            input_key_consume(KKEY_F7);
+        if (input_key_press_pending(ACT_FOOT_CAM_MODE_3_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_MODE_3_KKEY);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM3;
         }
 
-        if (input_key_press_pending(KKEY_END)) {
-            input_key_consume(KKEY_END);
+        if (input_key_press_pending(ACT_FOOT_CAM_BEHIND_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_BEHIND_KKEY);
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        if (input_key_press_pending(KKEY_DEL)) {
-            input_key_consume(KKEY_DEL);
+        if (input_key_press_pending(ACT_FOOT_CAM_LEFT_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_LEFT_KKEY);
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (input_key_press_pending(KKEY_PGDN)) {
-            input_key_consume(KKEY_PGDN);
+        if (input_key_press_pending(ACT_FOOT_CAM_RIGHT_KKEY)) {
+            input_key_consume(ACT_FOOT_CAM_RIGHT_KKEY);
             input |= INPUT_MASK_CAM_RIGHT;
         }
 
-        if (input_key_held(KKEY_SPACE))
+        if (input_key_held(ACT_FOOT_JUMP_KKEY))
             input |= INPUT_MASK_JUMP;
 
-        if (input_key_held(KKEY_Z))
+        if (input_key_held(ACT_FOOT_PUNCH_KKEY))
             input |= INPUT_MASK_PUNCH;
-        if (input_key_held(KKEY_X)) {
+        if (input_key_held(ACT_FOOT_KICK_KKEY)) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
         }
 
-        if (input_key_held(KKEY_C)) {
+        if (input_key_held(ACT_FOOT_ACTION_KKEY)) {
             input |= INPUT_MASK_ACTION;
         }
 
@@ -4326,8 +4327,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    if (input_key_held(KKEY_A)
-        || input_btn_held(9 /* L1/LB (held = aim) */)) {
+    if (input_key_held(ACT_FOOT_AIM_KKEY)
+        || input_btn_held(ACT_FOOT_AIM_GBTN)) {
         fpm = UC_TRUE;
     }
 
@@ -4410,17 +4411,17 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (input_key_held(KKEY_UP)) {
+            if (input_key_held(ACT_FOOT_AIM_LOOK_UP_KKEY)) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (input_key_held(KKEY_DOWN)) {
+            if (input_key_held(ACT_FOOT_AIM_LOOK_DOWN_KKEY)) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (input_key_held(KKEY_LEFT)) {
+                if (input_key_held(ACT_FOOT_AIM_LOOK_LEFT_KKEY)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (input_key_held(KKEY_RIGHT)) {
+                if (input_key_held(ACT_FOOT_AIM_LOOK_RIGHT_KKEY)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
@@ -4662,13 +4663,13 @@ void process_hardware_level_input_for_player(Thing* p_player)
             // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
             // — single press = single switch, regardless of FPS.
             if (can_darci_change_weapon(p_person)) {
-                if (input_key_just_pressed(KKEY_1)) {
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_HOLSTER_KKEY)) {
                     if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
                         set_person_gun_away(p_person);
                     }
                 }
 
-                if (input_key_just_pressed(KKEY_2)) {
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_PISTOL_KKEY)) {
                     if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
                         if (p_person->Flags & FLAGS_HAS_GUN) {
                             if (p_person->Genus.Person->SpecialUse) {
@@ -4683,12 +4684,12 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 SLONG special_type = SPECIAL_NONE;
 
-                if (input_key_just_pressed(KKEY_3)) special_type = SPECIAL_SHOTGUN;
-                if (input_key_just_pressed(KKEY_4)) special_type = SPECIAL_AK47;
-                if (input_key_just_pressed(KKEY_5)) special_type = SPECIAL_GRENADE;
-                if (input_key_just_pressed(KKEY_6)) special_type = SPECIAL_EXPLOSIVES;
-                if (input_key_just_pressed(KKEY_7)) special_type = SPECIAL_KNIFE;
-                if (input_key_just_pressed(KKEY_8)) special_type = SPECIAL_BASEBALLBAT;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_KKEY))    special_type = SPECIAL_SHOTGUN;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_AK47_KKEY))       special_type = SPECIAL_AK47;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_GRENADE_KKEY))    special_type = SPECIAL_GRENADE;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY)) special_type = SPECIAL_EXPLOSIVES;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_KNIFE_KKEY))      special_type = SPECIAL_KNIFE;
+                if (input_key_just_pressed(ACT_FOOT_WEAPON_BAT_KKEY))        special_type = SPECIAL_BASEBALLBAT;
 
                 if (special_type) {
                     if (person_has_special(p_person, special_type)) {

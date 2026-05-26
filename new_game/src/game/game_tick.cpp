@@ -50,6 +50,7 @@
 #include "game/input_actions_globals.h"
 #include "game/action_map/act_dev_console.h" // ACT_CONS_*
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
+#include "game/action_map/act_foot.h" // ACT_FOOT_*
 #include "engine/input/input_frame.h"
 #include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
@@ -1646,7 +1647,10 @@ void process_controls(void)
         }
         return;
     } else {
-        if (input_key_just_pressed(KKEY_F9))
+        // F9 opens the dev console from gameplay. Same key in both foot and
+        // car contexts — read both ACT names. ACT_CAR_OPEN_DEV_CONSOLE_KKEY
+        // will be added alongside ACT_FOOT_* in step 3c.6.
+        if (input_key_just_pressed(ACT_FOOT_OPEN_DEV_CONSOLE_KKEY))
             is_inputing = 1;
     }
 
@@ -1678,8 +1682,7 @@ void process_controls(void)
             //   gamepad : rgbButtons[8] (R3 / right-stick click; the select
             //             action was rebound from Share/Back to R3 — see the
             //             matching comment in get_hardware_input).
-            constexpr SLONG pad_select_btn = 8;
-            if (input_key_just_pressed(KKEY_ENTER) || input_btn_just_pressed(pad_select_btn)) {
+            if (input_key_just_pressed(ACT_FOOT_INVENTORY_KKEY) || input_btn_just_pressed(ACT_FOOT_INVENTORY_GBTN)) {
                 CONTROLS_new_inventory(darci, the_player);
 
                 if (CONTROLS_inventory_mode == 0 && darci->Genus.Person->SpecialUse == 0 && !(darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) && the_player->Genus.Player->ItemFocus == 0) {
@@ -1708,26 +1711,19 @@ void process_controls(void)
             // the weapon. The R3 cycle path above is intentionally left
             // unmodified.
             {
-                constexpr SLONG pad_dpad_up    = 11;
-                constexpr SLONG pad_dpad_down  = 12;
-                constexpr SLONG pad_dpad_left  = 13;
-                constexpr SLONG pad_dpad_right = 14;
-                constexpr SLONG pad_select     = 4;  // Back / Share
-                constexpr SLONG pad_l1         = 9;  // LB / L1
-                constexpr SLONG pad_l2_digital = 15; // LT / L2 digital
                 const bool cheat_combo_active =
-                    input_btn_held(pad_select)
-                    && input_btn_held(pad_l1)
-                    && input_btn_held(pad_l2_digital);
+                    input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
+                    && input_btn_held(ACT_FOOT_CHEAT_MOD_L1_GBTN)
+                    && input_btn_held(ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN);
 
                 if (!cheat_combo_active) {
-                    if (input_btn_just_pressed(pad_dpad_up))
+                    if (input_btn_just_pressed(ACT_FOOT_WEAPON_PISTOL_GBTN))
                         controls_dpad_select_weapon(darci, the_player, SPECIAL_GUN);
-                    else if (input_btn_just_pressed(pad_dpad_left))
+                    else if (input_btn_just_pressed(ACT_FOOT_WEAPON_AK47_GBTN))
                         controls_dpad_select_weapon(darci, the_player, SPECIAL_AK47);
-                    else if (input_btn_just_pressed(pad_dpad_right))
+                    else if (input_btn_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_GBTN))
                         controls_dpad_select_weapon(darci, the_player, SPECIAL_SHOTGUN);
-                    else if (input_btn_just_pressed(pad_dpad_down))
+                    else if (input_btn_just_pressed(ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN))
                         controls_dpad_select_melee(darci, the_player);
                 }
             }
