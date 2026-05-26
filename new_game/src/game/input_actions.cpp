@@ -2565,8 +2565,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
     // through unchanged (when stick is centred, dx_c/dy_c are ~0 and the
     // dominance check would mis-classify centred-stick as side-ish).
     if (p_person->State == STATE_DANGLING && input_gamepad_connected()) {
-        const SLONG axis_x = input_stick_x_axis_raw(INPUT_STICK_LEFT);
-        const SLONG axis_y = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+        const SLONG axis_x = input_stick_x_axis_raw(GAXIS_LEFT);
+        const SLONG axis_y = input_stick_y_axis_raw(GAXIS_LEFT);
         const SLONG dx_c = axis_x - 32768;
         const SLONG dy_c = axis_y - 32768;
         const bool stick_active = (abs(dx_c) > 8192) || (abs(dy_c) > 8192);
@@ -3752,8 +3752,8 @@ ULONG get_hardware_input(UWORD type)
                 // no character movement here. D-Pad buttons themselves are
                 // still readable via input_btn_held(11..14) for menu nav and
                 // any other consumer that wants them.
-                const SLONG axis_x = input_stick_x_axis_raw(INPUT_STICK_LEFT);
-                const SLONG axis_y = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+                const SLONG axis_x = input_stick_x_axis_raw(GAXIS_LEFT);
+                const SLONG axis_y = input_stick_y_axis_raw(GAXIS_LEFT);
 
                 if (input_gamepad_connected()) {
                     // Analog stick mode: pack position into bits 18-31.
@@ -3855,7 +3855,7 @@ ULONG get_hardware_input(UWORD type)
                     // handler can read it for walk_back force-keep in
                     // BACKWARD regime.
 
-                    const SLONG l2_raw = input_trigger_raw(15); // L2 / LT, 0..255
+                    const SLONG l2_raw = input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG);
                     const bool l2_was_engaged = l2_engaged;
                     // Engage as early as possible — the L2+✕ combo gets
                     // tapped quickly and the player expects L2 to register
@@ -4390,10 +4390,10 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // fight keyboard input. Left stick uses _raw to skip the D-Pad
             // override (D-Pad doesn't drive on-foot movement in OpenChaos).
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                const SLONG sx_r = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
-                const SLONG sy_r = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
-                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(INPUT_STICK_LEFT) - 32768;
-                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(INPUT_STICK_LEFT) - 32768;
+                const SLONG sx_r = (SLONG)input_stick_x_axis(GAXIS_RIGHT) - 32768;
+                const SLONG sy_r = (SLONG)input_stick_y_axis(GAXIS_RIGHT) - 32768;
+                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(GAXIS_LEFT) - 32768;
+                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(GAXIS_LEFT) - 32768;
 
                 const SLONG sx = (abs(sx_r) > STICK_DEAD) ? sx_r : sx_l;
                 const SLONG sy = (abs(sy_r) > STICK_DEAD) ? sy_r : sy_l;

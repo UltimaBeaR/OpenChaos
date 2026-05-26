@@ -1074,8 +1074,8 @@ void FC_process()
             }
 
             if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                SLONG stick_x = input_stick_x_axis(INPUT_STICK_RIGHT) - 32768; // signed, -32768..+32767
-                SLONG stick_y = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                SLONG stick_x = input_stick_x_axis(GAXIS_RIGHT) - 32768; // signed, -32768..+32767
+                SLONG stick_y = input_stick_y_axis(GAXIS_RIGHT) - 32768;
 
                 if (abs(stick_x) > 8000) {
                     // True rotation with constant-residual lag -- see
@@ -1341,7 +1341,7 @@ void FC_process()
             bool stick_y_active = false;
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE
                 && input_gamepad_connected()) {
-                SLONG sy = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                SLONG sy = input_stick_y_axis(GAXIS_RIGHT) - 32768;
                 if (abs(sy) > 8000) stick_y_active = true;
             }
 

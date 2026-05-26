@@ -15,10 +15,9 @@
 //   new_game/src/game/action_map/input_codes.h
 //
 // Note on sticks: gamepad stick discrete directions for menu navigation are
-// read via the two-arg API `input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)`
-// (enum values from input_frame.h). We don't define GDIR_* wrappers — the
-// existing INPUT_STICK_* / INPUT_STICK_DIR_* enums are already symbolic and
-// only used inside menu nav OR-chains alongside the ACT_MENU_NAV_*_GBTN /
+// read via the two-arg API `input_stick_held(GAXIS_LEFT, GDIR_DIR_UP)` —
+// the GAXIS_* / GDIR_DIR_* values come from input_codes.h. Used directly at
+// call sites inside menu-nav OR-chains alongside the ACT_MENU_NAV_*_GBTN /
 // ACT_MENU_NAV_*_KKEY constants below.
 // =============================================================================
 

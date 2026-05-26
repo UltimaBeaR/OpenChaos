@@ -43,6 +43,12 @@
 constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_BTN; // DS: R2, Xbox: RT (digital bit)
 constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_BTN; // DS: L2, Xbox: LT (digital bit)
 
+// Analog versions of the trigger axes — drives proportional accel / brake
+// scaling in vehicle.cpp::do_car_input. Read via input_trigger_raw(...) for
+// byte resolution (0..255).
+constexpr int ACT_CAR_ACCEL_GTRIG = GTRIG_R2;
+constexpr int ACT_CAR_BRAKE_GTRIG = GTRIG_L2;
+
 constexpr int ACT_CAR_ACCEL_KKEY = KKEY_Z; // semantic tag — see header comment
 constexpr int ACT_CAR_BRAKE_KKEY = KKEY_X; // semantic tag — see header comment
 

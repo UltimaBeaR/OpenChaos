@@ -30,7 +30,7 @@
 
 // ---- Movement (keyboard digital; gamepad is analog left stick) -------------
 // Arrow keys for movement on foot. Gamepad movement comes from the left stick
-// (input_stick_x_axis(INPUT_STICK_LEFT) / _y_axis(...)), packed into the
+// (input_stick_x_axis(GAXIS_LEFT) / _y_axis(...)), packed into the
 // input_mask analog bits — no GBTN constants for that path.
 
 constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_UP;
@@ -111,7 +111,7 @@ constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 
 // ---- Camera look: right stick + mouse (analog) -----------------------------
 // Right stick X / Y and mouse relative motion drive free camera yaw / pitch.
-// Read via input_stick_x_axis(INPUT_STICK_RIGHT) and input_mouse_consume_rel.
+// Read via input_stick_x_axis(GAXIS_RIGHT) and input_mouse_consume_rel.
 // Constants here are SEMANTIC TAGS — no API uses them directly; they document
 // which physical axis maps to which camera axis.
 

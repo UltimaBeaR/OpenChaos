@@ -28,6 +28,7 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "game/input_actions.h"
+#include "game/action_map/act_car.h" // ACT_CAR_ACCEL_GTRIG / ACT_CAR_BRAKE_GTRIG
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_trigger_raw
@@ -2392,7 +2393,7 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
             // Analog throttle: scale accel by R2 trigger position (gamepad only).
             // Full press = full accel, partial press = proportional.
             // Cross button always gives full accel (digital).
-            const int r2 = input_trigger_raw(16);
+            const int r2 = input_trigger_raw(ACT_CAR_ACCEL_GTRIG);
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
                 accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
             }
@@ -2411,7 +2412,7 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
 
             // Analog brake: scale braking force by L2 trigger position (gamepad only).
             // Square button always gives full brake (digital).
-            const int l2 = input_trigger_raw(15);
+            const int l2 = input_trigger_raw(ACT_CAR_BRAKE_GTRIG);
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && l2 > 0 && l2 < 240) {
                 accel = static_cast<SWORD>((static_cast<SLONG>(accel) * l2) / 255);
             }

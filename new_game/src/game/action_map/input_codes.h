@@ -12,10 +12,9 @@
 // new_game/src/game/action_map/act_*.h and reference these device codes as
 // their values.
 //
-// GDIR_* (discrete stick directions for menu) and GAXIS_* (analog stick axes)
-// are not defined here yet — they need pair (stick, dir) / (stick, axis)
-// semantics that the current input_frame API exposes only via two-arg calls.
-// Resolved in step 3c when first action consumer needs them.
+// GAXIS_* and GDIR_DIR_* mirror the InputStickId / InputStickDir enums in
+// engine/input/input_frame.h so they can be passed directly to the two-arg
+// input_stick_*() API via implicit int → enum conversion.
 // =============================================================================
 
 // =============================================================================
@@ -299,6 +298,26 @@
 #define DBTN_TOUCHPAD 17
 // DualSense mute button.
 #define DBTN_MUTE     18
+
+// =============================================================================
+// GAXIS_* — Gamepad stick analog axis ID. First arg to input_stick_x_axis() /
+// input_stick_y_axis() (the X-or-Y choice is in the function name itself).
+// Values mirror InputStickId in input_frame.h (implicit int → enum cast).
+// =============================================================================
+
+#define GAXIS_LEFT  0
+#define GAXIS_RIGHT 1
+
+// =============================================================================
+// GDIR_DIR_* — Gamepad stick discrete direction. Second arg to
+// input_stick_held() / input_stick_just_pressed() / etc. (first arg is a
+// GAXIS_* stick id). Values mirror InputStickDir in input_frame.h.
+// =============================================================================
+
+#define GDIR_DIR_UP    0
+#define GDIR_DIR_DOWN  1
+#define GDIR_DIR_LEFT  2
+#define GDIR_DIR_RIGHT 3
 
 // =============================================================================
 // GTRIG_* — Gamepad triggers analog (float 0.0 .. 1.0 via input_trigger(),
