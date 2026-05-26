@@ -1504,6 +1504,33 @@ SLONG get_camera_angle(void)
     return (ca);
 }
 
+// OpenChaos: returns true if the movement input points in the character's
+// own forward direction. Used by sit-stand transitions so the stand-up
+// trigger respects character orientation rather than camera/screen
+// orientation — e.g. if the character is facing the camera after backing
+// into a bench, stick UP on the controller is char-back (don't stand up),
+// and stick DOWN is char-forward (stand up).
+//
+// Analog stick: rotate raw stick (dx, dy) into the character frame and
+// check the Y component. Digital input (stick in deadzone, e.g. keyboard
+// W) falls back to INPUT_MASK_FORWARDS — keyboard WASD will get its own
+// char-rel translation in the keyboard scheme work.
+static bool input_is_char_rel_forward(Thing* p_person, ULONG input)
+{
+    const SLONG raw_dx = GET_JOYX(input);
+    const SLONG raw_dy = GET_JOYY(input);
+    if ((raw_dx != 0 || raw_dy != 0) && p_person->Draw.Tweened) {
+        SLONG dx_p, dy_p;
+        stick_camera_to_char_frame(raw_dx, raw_dy,
+            get_camera_angle(),
+            p_person->Draw.Tweened->Angle,
+            &dx_p, &dy_p);
+        constexpr SLONG kPackedThreshold = 16;
+        return dy_p < -kPackedThreshold;
+    }
+    return (input & INPUT_MASK_FORWARDS) != 0;
+}
+
 // uc_orig: player_stop_move (fallen/Source/interfac.cpp)
 // Transitions the player from a moving state into the stopping sub-state.
 // Has no effect when already in non-moving states (fighting, grappling, etc.).
@@ -1723,7 +1750,16 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
              || p_thing->State == STATE_MOVEING
              || p_thing->State == STATE_GUN
              || p_thing->State == STATE_HIT_RECOIL)
-            && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS) {
+            && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS
+            && p_thing->Genus.Person->Action != ACTION_SIT_BENCH) {
+            // Don't yank the character out of the sit-down animation:
+            // set_person_sit_down sets Action=ACTION_SIT_BENCH and
+            // SubState=SIMPLE_ANIM, but L2 is still held in regime
+            // BACKWARD, and SIMPLE_ANIM ≠ WALKING_BACKWARDS, so without
+            // this gate the next tick would call set_person_walk_backwards
+            // again, cancelling the sit. The result was a rapid sit→
+            // walk-back→sit loop visible to the player as "stuck next
+            // to the bench, never sitting."
             set_person_walk_backwards(p_thing);
             return (0);
         }
@@ -2635,6 +2671,29 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
         new_action = find_best_action_from_tree(p_person->Genus.Person->Action, input, &input_used);
 
+        // OpenChaos: char-relative stand-up override. While sitting,
+        // the player's stand-up intent is "stick in the direction the
+        // character is facing", not "stick UP in camera frame". When
+        // L2 is held the entire stand-up path is blocked (explicit
+        // tactical mode). Otherwise:
+        //   - char-rel forward + raw FORWARDS not set (e.g. char faces
+        //     camera so player pushes stick DOWN = char-forward):
+        //     action_sit table didn't return UNSIT, so force it here.
+        //   - char-rel not-forward but action tree returned UNSIT
+        //     (raw FORWARDS held but stick is actually char-back):
+        //     suppress the unsit.
+        if (p_person->Genus.Person->Action == ACTION_SIT_BENCH
+            && !input_l2_is_held()) {
+            const bool char_fwd = input_is_char_rel_forward(p_person, input);
+            if (char_fwd) {
+                new_action = ACTION_UNSIT;
+                input_used = INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
+            } else if (new_action == ACTION_UNSIT) {
+                new_action = 0;
+                input_used = 0;
+            }
+        }
+
         switch (new_action) {
         case ACTION_KICK_FLAG:
             p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
@@ -2659,6 +2718,16 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             input_used = 0;
             break;
         case ACTION_UNSIT:
+            // OpenChaos: while L2 is held the player is in "tactical"
+            // walk mode — the same stick they used to back into the
+            // chair is typically still held, which the action_sit
+            // table would otherwise read as a stand-up command. Just
+            // block unsit until L2 is released; nothing else is
+            // affected because L2 isn't held during normal play.
+            if (input_l2_is_held()) {
+                input_used = 0;
+                break;
+            }
             void set_person_unsit(Thing * p_person);
             set_person_unsit(p_person);
             break;
@@ -3040,7 +3109,16 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             }
         } else {
             if (p_person->Genus.Person->Action == ACTION_SIT_BENCH) {
-                if (input & (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)) {
+                // OpenChaos: stand-up via this path uses the same gates
+                // as the action_sit / ACTION_UNSIT dispatch above —
+                // L2 hold blocks stand-up entirely; otherwise the input
+                // must be CHAR-RELATIVE forward, not raw camera-frame
+                // forward. Without char-rel the raw stick UP held to
+                // back into the bench (= char-back when char faces the
+                // camera) would yank her out of the sit animation one
+                // tick after set_person_sit_down.
+                if (!input_l2_is_held()
+                    && input_is_char_rel_forward(p_person, input)) {
                     input_used |= INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
 
                     set_person_idle(p_person);
