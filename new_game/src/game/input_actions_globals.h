@@ -20,13 +20,6 @@ extern SLONG analogue;
 extern bool g_bEngineVibrations;
 // uc_orig: m_bForceWalk (fallen/Source/interfac.cpp)
 extern bool m_bForceWalk;
-// Maps logical button functions (JOYPAD_BUTTON_*) to physical DirectInput button indices.
-// uc_orig: joypad_button_use (fallen/Source/interfac.cpp)
-extern UBYTE joypad_button_use[16];
-// Maps logical button functions (KEYBRD_BUTTON_*) to keyboard scan codes.
-// uc_orig: keybrd_button_use (fallen/Source/interfac.cpp)
-extern UBYTE keybrd_button_use[16];
-
 // Current pitch angle for first-person look mode (0..2047).
 // uc_orig: look_pitch (fallen/Source/interfac.cpp)
 extern SLONG look_pitch;

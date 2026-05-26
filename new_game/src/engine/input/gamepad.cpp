@@ -186,8 +186,9 @@ static bool poll_dualsense()
             gamepad_state.lY = 65535;
     }
 
-    // Map to rgbButtons[] — same indices as SDL3 path for compatibility with
-    // joypad_button_use[] mapping in input_actions.cpp.
+    // Map to rgbButtons[] — same indices as SDL3 path. Consumers read these
+    // button indices directly (see hardcoded indices in input_actions.cpp and
+    // input_frame_*).
     memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
     if (ds.cross)
         gamepad_state.rgbButtons[0] = 0x80; // SDL3_BTN_SOUTH

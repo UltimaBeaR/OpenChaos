@@ -127,9 +127,6 @@ reinit_because_of_language_change:
                     ATTRACT_loadscreen_init();
 
                     stop_all_fx_and_music();
-
-                    extern void init_joypad_config(void);
-                    init_joypad_config();
                 } break;
                 case STARTS_PLAYBACK:
                     GAME_STATE &= ~GS_ATTRACT_MODE;

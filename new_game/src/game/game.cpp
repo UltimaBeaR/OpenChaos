@@ -238,8 +238,6 @@ void game_startup(void)
 
     ATTRACT_loadscreen_draw(160);
 
-    void init_joypad_config(void);
-    init_joypad_config();
     ANIM_init();
 
     gamepad_init();

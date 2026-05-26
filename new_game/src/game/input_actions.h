@@ -148,39 +148,6 @@ struct ActionInfo {
 // uc_orig: action_tree (fallen/Source/interfac.cpp)
 extern struct ActionInfo* action_tree[];
 
-// Logical button index into joypad_button_use[]/keybrd_button_use[].
-// uc_orig: JOYPAD_BUTTON_KICK (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_KICK 0
-// uc_orig: JOYPAD_BUTTON_PUNCH (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_PUNCH 1
-// uc_orig: JOYPAD_BUTTON_JUMP (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_JUMP 2
-// uc_orig: JOYPAD_BUTTON_ACTION (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_ACTION 3
-// uc_orig: JOYPAD_BUTTON_MOVE (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_MOVE 4
-// uc_orig: JOYPAD_BUTTON_START (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_START 5
-// uc_orig: JOYPAD_BUTTON_SELECT (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_SELECT 6
-// uc_orig: JOYPAD_BUTTON_CAMERA (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_CAMERA 7
-// uc_orig: JOYPAD_BUTTON_CAM_LEFT (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_CAM_LEFT 8
-// uc_orig: JOYPAD_BUTTON_CAM_RIGHT (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_CAM_RIGHT 9
-// uc_orig: JOYPAD_BUTTON_1STPERSON (fallen/Headers/interfac.h)
-#define JOYPAD_BUTTON_1STPERSON 10
-
-// uc_orig: KEYBRD_BUTTON_LEFT (fallen/Headers/interfac.h)
-#define KEYBRD_BUTTON_LEFT 11
-// uc_orig: KEYBRD_BUTTON_RIGHT (fallen/Headers/interfac.h)
-#define KEYBRD_BUTTON_RIGHT 12
-// uc_orig: KEYBRD_BUTTON_FORWARDS (fallen/Headers/interfac.h)
-#define KEYBRD_BUTTON_FORWARDS 13
-// uc_orig: KEYBRD_BUTTON_BACK (fallen/Headers/interfac.h)
-#define KEYBRD_BUTTON_BACK 14
-
 // Input type flags for get_hardware_input().
 // uc_orig: INPUT_TYPE_KEY (fallen/Headers/interfac.h)
 #define INPUT_TYPE_KEY (1 << 0)
@@ -223,8 +190,6 @@ extern SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle);
 // uc_orig: get_hardware_input (fallen/Headers/interfac.h)
 extern ULONG get_hardware_input(UWORD type);
 // Functions declared/used in interfac.cpp chunk 1 (migrated to new/ui/interfac.cpp).
-// uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
-extern void init_joypad_config(void);
 // uc_orig: do_an_action (fallen/Source/interfac.cpp)
 extern ULONG do_an_action(Thing* p_thing, ULONG input);
 // uc_orig: player_activate_in_hand (fallen/Source/interfac.cpp)

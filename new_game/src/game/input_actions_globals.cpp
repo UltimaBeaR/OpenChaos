@@ -27,12 +27,6 @@ bool g_bEngineVibrations = UC_TRUE;
 // uc_orig: m_bForceWalk (fallen/Source/interfac.cpp)
 bool m_bForceWalk = UC_FALSE;
 
-// uc_orig: joypad_button_use (fallen/Source/interfac.cpp)
-UBYTE joypad_button_use[16];
-
-// uc_orig: keybrd_button_use (fallen/Source/interfac.cpp)
-UBYTE keybrd_button_use[16];
-
 // Current pitch angle for first-person look mode (0..2047).
 // uc_orig: look_pitch (fallen/Source/interfac.cpp)
 SLONG look_pitch = 0;

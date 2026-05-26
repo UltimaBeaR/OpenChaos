@@ -399,64 +399,6 @@ struct ActionInfo* action_tree[] = {
     0,
 };
 
-// Fills joypad_button_use[] and keybrd_button_use[] with physical button indices
-// for each logical function (JOYPAD_BUTTON_*). Joypad bindings are hardcoded
-// (gamepad Joypad config menu was removed); keyboard bindings come from config.json.
-// uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
-void init_joypad_config(void)
-{
-    // PS1 Config 0 (Classic) adapted for Xbox/DualSense layout.
-    // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
-    // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
-    // 15=LT/L2(digital), 16=RT/R2(digital).
-    //
-    // Live mapping (post 2026-04-25 rework):
-    //   Cross / A           : jump
-    //   Circle / B          : action (interact — doors / vehicles / pickups /
-    //                         get out of car). Stays on Circle because L2 is
-    //                         the brake while driving and an L2-bound ACTION
-    //                         couldn't be triggered without also braking;
-    //                         Circle has no in-car conflict.
-    //   Square / X          : (unbound — punch lives on R2 trigger only)
-    //   Triangle / Y        : menu cancel; toggles siren while driving (read
-    //                         directly from button index 3 — see get_hardware_input)
-    //   L1 / LB             : aim mode (held); also alias for camera-toggle press
-    //   R1 / RB             : kick (on foot; suppressed while driving)
-    //   L2 / LT (digital)   : on-foot unbound; in-car brake (read directly in
-    //                         apply_button_input_car)
-    //   R2 / RT (digital)   : punch / shoot (analog trigger via weapon_feel)
-    //   Walk-mode toggle    : removed — partial left-stick deflection produces
-    //                         walking speed, no dedicated button needed
-    joypad_button_use[JOYPAD_BUTTON_JUMP] = 0; // A / Cross
-    joypad_button_use[JOYPAD_BUTTON_ACTION] = 1; // B / Circle
-    joypad_button_use[JOYPAD_BUTTON_PUNCH] = 2; // X / Square (gameplay-unbound; index kept for legacy code paths)
-    joypad_button_use[JOYPAD_BUTTON_KICK] = 10; // RB / R1
-    joypad_button_use[JOYPAD_BUTTON_SELECT] = 4; // Back / Select
-    joypad_button_use[JOYPAD_BUTTON_START] = 6; // Start
-    joypad_button_use[JOYPAD_BUTTON_CAMERA] = 9; // LB / L1
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON] = 9; // LB / L1 (held = aim)
-    joypad_button_use[JOYPAD_BUTTON_MOVE] = 31; // unbound (walk mode removed; stub index, never read in gameplay)
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT] = 15; // LT / L2 (legacy alias; in-car brake only)
-    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT] = 16; // RT / R2
-
-    keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("left", 203, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("right", 205, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_FORWARDS] = ENV_get_value_number("forward", 200, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_BACK] = ENV_get_value_number("back", 208, "Keyboard");
-
-    keybrd_button_use[JOYPAD_BUTTON_PUNCH] = ENV_get_value_number("punch", 44, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_KICK] = ENV_get_value_number("kick", 45, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_ACTION] = ENV_get_value_number("action", 46, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_MOVE] = ENV_get_value_number("run", 47, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_JUMP] = ENV_get_value_number("jump", 57, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_START] = ENV_get_value_number("start", 15, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_SELECT] = ENV_get_value_number("select", 28, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAMERA] = ENV_get_value_number("camera", 207, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT] = ENV_get_value_number("cam_left", 211, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("cam_right", 209, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("1stperson", 30, "Keyboard");
-}
-
 // If the player is holding a grenade or explosives, activates/primes it.
 // Returns 1 if any in-hand item action was performed.
 // uc_orig: player_activate_in_hand (fallen/Source/interfac.cpp)
@@ -3745,7 +3687,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
     // into the first car-entry tick as a spurious toggle.
     {
-        const SLONG kb_siren_key  = keybrd_button_use[JOYPAD_BUTTON_JUMP];
+        const SLONG kb_siren_key  = KB_SPACE;
         constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
         const bool kb_siren  = input_key_press_pending(kb_siren_key);
         const bool pad_siren = input_btn_press_pending(pad_siren_btn);
@@ -4029,15 +3971,14 @@ ULONG get_hardware_input(UWORD type)
                     }
                 }
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_JUMP])) {
+                if (input_btn_held(0 /* Cross/A */)) {
                     input |= INPUT_MASK_JUMP;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
                 // Triangle / Y — menu CANCEL + driving siren toggle. Read by raw
-                // index 3 (constant across PS / Xbox layouts) because the
-                // JOYPAD_BUTTON_KICK alias has been rebound to R1 for the
-                // on-foot kick action and no longer points here.
+                // index 3 (constant across PS / Xbox layouts) because the kick
+                // action lives on R1 (button 10) and no longer fires from Triangle.
                 // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
                 // the triangle press must also emit INPUT_MASK_KICK to flip
                 // the siren / lights.
@@ -4052,13 +3993,13 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // R1 / RB — on-foot kick (JOYPAD_BUTTON_KICK = 10). Suppressed
+                // R1 / RB — on-foot kick (button 10). Suppressed
                 // while driving because the player has no kick action in a
                 // vehicle (and the in-car CAN_PAD_SIREN bit is already covered
                 // by the Triangle path above; firing it again from R1 would
                 // toggle siren on every R1 press, which the player does not
                 // expect in-car).
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_KICK])) {
+                if (input_btn_held(10 /* R1/RB */)) {
                     Thing* p_darci = NET_PERSON(0);
                     const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
@@ -4071,21 +4012,20 @@ ULONG get_hardware_input(UWORD type)
                 // punch & shoot live only on R2. Keep the button unbound in
                 // gameplay — nothing to do here.
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_START])) {
+                if (input_btn_held(6 /* Start */)) {
                     input |= INPUT_MASK_START;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
                 // Weapon cycle / inventory rotation moved from Share/Back
-                // (JOYPAD_BUTTON_SELECT) to R3 (right stick click). Index 8
-                // in rgbButtons matches SDL3_BTN_RIGHT_STICK and the DualSense
-                // R3 mapping.
+                // (button 4) to R3 (right stick click). Index 8 in rgbButtons
+                // matches SDL3_BTN_RIGHT_STICK and the DualSense R3 mapping.
                 if (input_btn_held(8)) {
                     input |= INPUT_MASK_SELECT;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_CAMERA])) {
+                if (input_btn_held(9 /* L1/LB */)) {
                     input |= INPUT_MASK_CAMERA;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -4170,7 +4110,7 @@ ULONG get_hardware_input(UWORD type)
                 // an L2-bound ACTION couldn't coexist with the in-car brake
                 // (every brake tap would fire ACTION mid-drive), but Circle
                 // doesn't double as a vehicle control, so it can fire freely.
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_ACTION])) {
+                if (input_btn_held(1 /* Circle/B */)) {
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -4256,10 +4196,10 @@ ULONG get_hardware_input(UWORD type)
         // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
         // toggles → just_pressed (edge-detect via input_frame).
 
-        const bool kb_fwd   = input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS]);
-        const bool kb_back  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK]);
-        const bool kb_left  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT]);
-        const bool kb_right = input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT]);
+        const bool kb_fwd   = input_key_held(KB_UP);
+        const bool kb_back  = input_key_held(KB_DOWN);
+        const bool kb_left  = input_key_held(KB_LEFT);
+        const bool kb_right = input_key_held(KB_RIGHT);
 
         // If any movement key is pressed, switch to digital mode
         // (analog mode only makes sense with a stick).
@@ -4291,7 +4231,7 @@ ULONG get_hardware_input(UWORD type)
                 input |= INPUT_MASK_RIGHT;
         }
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_SELECT]))
+        if (input_key_held(KB_ENTER))
             input |= INPUT_MASK_SELECT;
 
         // Edge-triggered camera actions: use press_pending + consume.
@@ -4319,31 +4259,31 @@ ULONG get_hardware_input(UWORD type)
             input |= INPUT_MASKM_CAM3;
         }
 
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAMERA]);
+        if (input_key_press_pending(KB_END)) {
+            input_key_consume(KB_END);
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]);
+        if (input_key_press_pending(KB_DEL)) {
+            input_key_consume(KB_DEL);
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]);
+        if (input_key_press_pending(KB_PGDN)) {
+            input_key_consume(KB_PGDN);
             input |= INPUT_MASK_CAM_RIGHT;
         }
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_JUMP]))
+        if (input_key_held(KB_SPACE))
             input |= INPUT_MASK_JUMP;
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_PUNCH]))
+        if (input_key_held(KB_Z))
             input |= INPUT_MASK_PUNCH;
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_KICK])) {
+        if (input_key_held(KB_X)) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
         }
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_ACTION])) {
+        if (input_key_held(KB_C)) {
             input |= INPUT_MASK_ACTION;
         }
 
@@ -4375,7 +4315,8 @@ ULONG pre_process_input(SLONG mode, ULONG input)
 }
 
 // uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
-// Handles first-person look-around mode when JOYPAD_BUTTON_1STPERSON is held.
+// Handles first-person look-around mode when the 1st-person hotkey is held
+// (KB_A on keyboard / L1 on gamepad).
 // Rotates the camera pitch and character angle without consuming movement input.
 // Returns non-zero if first-person mode is active this frame.
 ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed)
@@ -4385,8 +4326,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_1STPERSON])
-        || input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])) {
+    if (input_key_held(KB_A)
+        || input_btn_held(9 /* L1/LB (held = aim) */)) {
         fpm = UC_TRUE;
     }
 
@@ -4469,17 +4410,17 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS])) {
+            if (input_key_held(KB_UP)) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK])) {
+            if (input_key_held(KB_DOWN)) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT])) {
+                if (input_key_held(KB_LEFT)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT])) {
+                if (input_key_held(KB_RIGHT)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
@@ -4777,7 +4718,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
                 // sources are dual-use, and apply_button_input_car is the only
                 // consumer of their press_pending flag — without this drain,
                 // the flag would sit set indefinitely from any outside press.
-                input_key_consume(keybrd_button_use[JOYPAD_BUTTON_JUMP]);
+                input_key_consume(KB_SPACE);
                 input_btn_consume(3); // Triangle/Y
             }
             {

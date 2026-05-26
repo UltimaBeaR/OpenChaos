@@ -1672,13 +1672,12 @@ void process_controls(void)
             // multiple times per single press (issue #20 in fps_unlock).
             //
             // Mapping (mirrors get_hardware_input):
-            //   keyboard: keybrd_button_use[JOYPAD_BUTTON_SELECT]
-            //   gamepad : rgbButtons[8] (R3 / right-stick click; the SELECT
-            //             alias was rebound from Share/Back to R3 — see the
+            //   keyboard: KB_ENTER (was the "select" rebind slot — Enter by default)
+            //   gamepad : rgbButtons[8] (R3 / right-stick click; the select
+            //             action was rebound from Share/Back to R3 — see the
             //             matching comment in get_hardware_input).
-            const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
             constexpr SLONG pad_select_btn = 8;
-            if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
+            if (input_key_just_pressed(KB_ENTER) || input_btn_just_pressed(pad_select_btn)) {
                 CONTROLS_new_inventory(darci, the_player);
 
                 if (CONTROLS_inventory_mode == 0 && darci->Genus.Person->SpecialUse == 0 && !(darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) && the_player->Genus.Player->ItemFocus == 0) {
