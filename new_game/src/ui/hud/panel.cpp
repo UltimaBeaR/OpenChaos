@@ -13,6 +13,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "game/game_types.h" // UC_VISUAL_CADENCE_HZ — original render-tied calibration rate
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_SHOW_VERSION_KKEY
 
 // Scene FBO dimensions (defined in d3d/display_globals.cpp).
 extern SLONG ScreenWidth;
@@ -2290,7 +2291,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (input_key_held(KKEY_V) && allow_debug_keys) {
+        if (input_key_held(ACT_BANG_SHOW_VERSION_KKEY) && allow_debug_keys) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

@@ -100,6 +100,7 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/geometry/oval.h"
 #include "game/input_actions_globals.h"
 #include "game/game_tick_globals.h"
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
 #include "things/characters/anim_ids.h"
 #include "assets/formats/anim_tmap.h"
 #include "things/core/statedef.h"
@@ -2394,7 +2395,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (input_key_just_pressed(KKEY_L) && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_OUTSIDE_CAM_KKEY) && ControlFlag && allow_debug_keys) {
         outside ^= 1;
     }
 
@@ -5832,7 +5833,7 @@ void AENG_draw_warehouse()
 void AENG_screen_shot(void)
 {
     if (allow_debug_keys)
-        if (input_key_just_pressed(KKEY_S) || record_video) {
+        if (input_key_just_pressed(ACT_BANG_SCREENSHOT_KKEY) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;
             }

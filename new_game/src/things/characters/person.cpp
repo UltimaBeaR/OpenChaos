@@ -4,6 +4,7 @@
 // (lines ~1-1757 of original Person.cpp)
 
 #include "game/game_types.h" // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_SPEED_BOOST_KKEY
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/input/input_frame.h"
 #include "things/characters/cop.h"
@@ -2799,7 +2800,7 @@ void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz)
     dz = dz * ratio >> TICK_SHIFT;
 
     if (allow_debug_keys)
-        if (ShiftFlag && input_key_held(KKEY_Q)) {
+        if (ShiftFlag && input_key_held(ACT_BANG_SPEED_BOOST_KKEY)) {
             dx <<= 2;
             dz <<= 2;
         }

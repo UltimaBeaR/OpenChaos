@@ -49,6 +49,7 @@
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
 #include "game/action_map/act_dev_console.h" // ACT_CONS_*
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
 #include "engine/input/input_frame.h"
 #include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
@@ -1457,7 +1458,7 @@ void process_controls(void)
     };
     static int s_model_cycle_type     = PERSON_DARCI;
     static int s_model_cycle_variant  = 0;
-    if (allow_debug_keys && input_key_just_pressed(KKEY_N)) {
+    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_CYCLE_PLAYER_MODEL_KKEY)) {
         Thing* darci_thing = NET_PERSON(0);
         if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
             // Advance variant within type; wrap to next type when out.
@@ -1487,7 +1488,7 @@ void process_controls(void)
     // (top-down map TGA dump) in the allow_debug_keys block below —
     // pressing H would fire both handlers. B avoids that and reads as
     // "Bones".
-    if (allow_debug_keys && input_key_just_pressed(KKEY_B)) {
+    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY)) {
         g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
         CONSOLE_status(g_skin_debug_draw_skeleton
             ? (CBYTE*)"Skeleton overlay: ON"
@@ -1525,7 +1526,7 @@ void process_controls(void)
         static SLONG index_cam = 0;
         Thing* p_thing;
 
-        if (input_key_just_pressed(KKEY_RBRACE)) {
+        if (input_key_just_pressed(ACT_BANG_CYCLE_CAMERA_PERSON_KKEY)) {
             while (1) {
                 index_cam++;
                 if (index_cam >= MAX_THINGS)
@@ -1796,7 +1797,7 @@ void process_controls(void)
 
     // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).
     // Gated along with the rest of the debug keys.
-    if (input_key_just_pressed(KKEY_F12) && ShiftFlag) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_CHEAT_OVERLAY_KKEY) && ShiftFlag) {
         extern UBYTE cheat;
 
         if (cheat) {

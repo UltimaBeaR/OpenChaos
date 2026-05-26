@@ -36,6 +36,7 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/startscr.h" // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "map/supermap_globals.h" // DONT_load
 #include "game/game_tick_globals.h" // allow_debug_keys
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_MENU_THEME_*
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 #include "game/game_types.h"
@@ -2385,10 +2386,10 @@ static UBYTE FRONTEND_input(void)
     }
 
     if (allow_debug_keys) {
-        const bool theme1 = input_key_just_pressed(KKEY_1);
-        const bool theme2 = input_key_just_pressed(KKEY_2);
-        const bool theme3 = input_key_just_pressed(KKEY_3);
-        const bool theme4 = input_key_just_pressed(KKEY_4);
+        const bool theme1 = input_key_just_pressed(ACT_BANG_MENU_THEME_1_KKEY);
+        const bool theme2 = input_key_just_pressed(ACT_BANG_MENU_THEME_2_KKEY);
+        const bool theme3 = input_key_just_pressed(ACT_BANG_MENU_THEME_3_KKEY);
+        const bool theme4 = input_key_just_pressed(ACT_BANG_MENU_THEME_4_KKEY);
         if (theme1 || theme2 || theme3 || theme4) {
             if (theme1) menu_theme = 0;
             if (theme2) menu_theme = 1;
