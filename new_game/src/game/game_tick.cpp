@@ -48,6 +48,7 @@
 #include "things/characters/anim_ids.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "game/action_map/act_dev_console.h" // ACT_CONS_*
 #include "engine/input/input_frame.h"
 #include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
@@ -1608,8 +1609,8 @@ void process_controls(void)
     if (is_inputing) {
         static CBYTE input_text[MAX_PATH] = "] ";
 
-        const bool console_esc   = input_key_just_pressed(KKEY_ESC);
-        const bool console_enter = input_key_just_pressed(KKEY_ENTER);
+        const bool console_esc   = input_key_just_pressed(ACT_CONS_CANCEL_KKEY);
+        const bool console_enter = input_key_just_pressed(ACT_CONS_SUBMIT_KKEY);
         if (console_esc || console_enter) {
             if (console_enter)
                 parse_console(input_text + 2); // +2 to skip the "] "
