@@ -15,7 +15,7 @@ constexpr SLONG INPUT_BTN_COUNT = 32;
 
 // Keyboard snapshots — derived from input_frame's OWN event-tracked held
 // state, NOT from Keys[]. Decoupled from Keys[] because consumers (menu
-// handlers etc.) clear Keys[KB_X] = 0 after consume, which would otherwise
+// handlers etc.) clear Keys[KKEY_X] = 0 after consume, which would otherwise
 // leak into the next frame's snapshot and break auto-repeat for held keys.
 UBYTE s_keys_curr[INPUT_KEY_COUNT];
 UBYTE s_keys_prev[INPUT_KEY_COUNT];

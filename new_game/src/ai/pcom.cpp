@@ -7210,7 +7210,7 @@ void PCOM_process_state_change(Thing* p_person)
 
     case PCOM_AI_BULLY:
 
-        //			if(Keys[KB_B])
+        //			if(Keys[KKEY_B])
         //				FC_cam[0].focus	= p_person;
 
         PCOM_process_default(p_person);

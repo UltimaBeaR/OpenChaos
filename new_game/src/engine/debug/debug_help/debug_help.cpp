@@ -3,7 +3,7 @@
 #include "engine/debug/debug_help/debug_help.h"
 
 #include "engine/graphics/text/font.h"
-#include "engine/input/keyboard.h" // KB_F1
+#include "engine/input/keyboard.h" // KKEY_F1
 #include "engine/input/input_frame.h"
 
 #include <chrono>
@@ -102,7 +102,7 @@ void debug_help_tick()
     // F1 is the universal "remind me what keys exist" binding. Gated
     // behind allow_debug_keys so the legend — and therefore the
     // existence of the debug mode — stays hidden from regular players.
-    if (allow_debug_keys && input_key_just_pressed(KB_F1)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_F1)) {
         debug_help_show(5.0f);
     }
 

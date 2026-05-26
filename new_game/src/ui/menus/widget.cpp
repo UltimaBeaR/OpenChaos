@@ -59,7 +59,7 @@ void WIDGET_snd(SLONG snd)
 //
 // Internal bridge consumer for the gamepad-to-keyboard channel: the
 // gamepad-to-keyboard bridge below synthesizes virtual key presses via
-// input_frame_inject_key_press(KB_ENTER) etc., and FORM_KeyProc consumes
+// input_frame_inject_key_press(KKEY_ENTER) etc., and FORM_KeyProc consumes
 // them via input_key_press_pending + input_key_consume. Same pattern as
 // hardware key consumers — input_frame is the single message bus.
 static BOOL FORM_KeyProc(SLONG key)
@@ -92,43 +92,43 @@ SLONG FORM_Process(Form* form)
     const UBYTE last_key = input_last_key();
     if (last_key) {
         // ShiftFlag is the level-state Shift modifier mirrored from
-        // input_frame's event-tracked state (KB_LSHIFT || KB_RSHIFT).
+        // input_frame's event-tracked state (KKEY_LSHIFT || KKEY_RSHIFT).
         key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
         if (key == 8)
             key = 127;
         if (!key)
             switch (last_key) {
-            case KB_UP:
+            case KKEY_UP:
                 key = 11;
                 break;
-            case KB_RIGHT:
+            case KKEY_RIGHT:
                 key = 9;
                 break;
-            case KB_LEFT:
+            case KKEY_LEFT:
                 key = 8;
                 break;
-            case KB_DOWN:
+            case KKEY_DOWN:
                 key = 10;
                 break;
-            case KB_ESC:
+            case KKEY_ESC:
                 key = 27;
                 break;
-            case KB_ENTER:
+            case KKEY_ENTER:
                 key = 13;
                 break;
-            case KB_PGUP:
+            case KKEY_PGUP:
                 key = 1;
                 break;
-            case KB_PGDN:
+            case KKEY_PGDN:
                 key = 2;
                 break;
-            case KB_HOME:
+            case KKEY_HOME:
                 key = 3;
                 break;
-            case KB_END:
+            case KKEY_END:
                 key = 4;
                 break;
-            case KB_DEL:
+            case KKEY_DEL:
                 key = 5;
                 break;
             }
@@ -147,28 +147,28 @@ SLONG FORM_Process(Form* form)
         // Cross/A = confirm (JUMP maps to Cross in PS1 Config 0).
         if (input & INPUT_MASK_JUMP) {
             key = 13;
-            input_frame_inject_key_press(KB_ENTER);
+            input_frame_inject_key_press(KKEY_ENTER);
         }
         // Triangle/Y = cancel/back (KICK+CANCEL maps to Triangle).
         if (input & INPUT_MASK_CANCEL) {
             key = 27;
-            input_frame_inject_key_press(KB_ESC);
+            input_frame_inject_key_press(KKEY_ESC);
         }
         if (input & INPUT_MASK_FORWARDS) {
             key = 11;
-            input_frame_inject_key_press(KB_UP);
+            input_frame_inject_key_press(KKEY_UP);
         }
         if (input & INPUT_MASK_BACKWARDS) {
             key = 10;
-            input_frame_inject_key_press(KB_DOWN);
+            input_frame_inject_key_press(KKEY_DOWN);
         }
         if (input & INPUT_MASK_LEFT) {
             key = 8;
-            input_frame_inject_key_press(KB_LEFT);
+            input_frame_inject_key_press(KKEY_LEFT);
         }
         if (input & INPUT_MASK_RIGHT) {
             key = 9;
-            input_frame_inject_key_press(KB_RIGHT);
+            input_frame_inject_key_press(KKEY_RIGHT);
         }
         if (input & INPUT_MASK_START) {
             form->returncode = -69;
@@ -183,26 +183,26 @@ SLONG FORM_Process(Form* form)
         else {
             EatenKey = 0;
             lastfocus = form->focus;
-            if (FORM_KeyProc(KB_UP)) {
+            if (FORM_KeyProc(KKEY_UP)) {
                 FORM_Focus(form, 0, -1);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(KB_DOWN)) {
+            if (FORM_KeyProc(KKEY_DOWN)) {
                 FORM_Focus(form, 0, 1);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(KB_HOME)) {
+            if (FORM_KeyProc(KKEY_HOME)) {
                 FORM_Focus(form, form->children, 0);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(KB_END)) {
+            if (FORM_KeyProc(KKEY_END)) {
                 FORM_Focus(form, form->children, -1);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(KB_ENTER))
+            if (FORM_KeyProc(KKEY_ENTER))
                 if (form->focus && form->focus->methods->Push)
                     form->focus->methods->Push(form->focus);
-            if (FORM_KeyProc(KB_TAB) && form->focus) {
+            if (FORM_KeyProc(KKEY_TAB) && form->focus) {
                 if (form->focus->methods->Char)
                     form->focus->methods->Char(form->focus, 27);
                 FORM_Focus(form, 0, ShiftFlag ? -1 : 1);

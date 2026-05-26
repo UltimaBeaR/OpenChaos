@@ -586,7 +586,7 @@ void screen_flip(void)
     // FONT_buffer flush moved to ui_render_post_composition — they draw
     // text that must land on the default FB at native resolution, after
     // composition, so FXAA / bilinear upscale don't soften the glyphs.
-    if (allow_debug_keys && input_key_just_pressed(KB_LCONTROL)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_LCONTROL)) {
         debug_overlay_locked_on = !debug_overlay_locked_on;
     }
 
@@ -601,7 +601,7 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
+    if (input_key_just_pressed(KKEY_SPACE) || input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_PENTER)) {
         GAME_STATE = 0;
     }
 
@@ -627,7 +627,7 @@ void check_debug_timing_keys(void)
     // 30 is the meaningful value here.
     constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
 
-    if (input_key_just_pressed(KB_1)) {
+    if (input_key_just_pressed(KKEY_1)) {
         g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
             ? PHYS_HZ_TOGGLE_LOW
             : UC_PHYSICS_DESIGN_HZ;
@@ -637,22 +637,22 @@ void check_debug_timing_keys(void)
     // reaching for the keyboard during gamepad debugging. The DS gamepad path
     // mirrors touchpad_click into rgbButtons[17], so input_btn_just_pressed
     // gives the rising-edge directly with no local edge-detect needed.
-    if (input_key_just_pressed(KB_2) || input_btn_just_pressed(17)) {
+    if (input_key_just_pressed(KKEY_2) || input_btn_just_pressed(17)) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
 
-    if (input_key_just_pressed(KB_3)) {
+    if (input_key_just_pressed(KKEY_3)) {
         g_render_interp_enabled = !g_render_interp_enabled;
     }
 
-    if (input_key_just_pressed(KB_9)) {
+    if (input_key_just_pressed(KKEY_9)) {
         g_physics_hz -= 1;
         if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
     }
 
-    if (input_key_just_pressed(KB_0)) {
+    if (input_key_just_pressed(KKEY_0)) {
         g_physics_hz += 1;
         if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
     }
@@ -672,12 +672,12 @@ SLONG special_keys(void)
     // identical in practice). ControlFlag stays as the modifier source —
     // it's a separate level-state Ctrl tracker, out of scope for this
     // discrete-event migration.
-    if (allow_debug_keys && ControlFlag && input_key_just_pressed(KB_Q)) {
+    if (allow_debug_keys && ControlFlag && input_key_just_pressed(KKEY_Q)) {
         return 1;
     }
 
     // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
-    if (allow_debug_keys && input_key_just_pressed(KB_F2)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_F2)) {
         g_crt_enabled ^= 1;
         if (g_crt_enabled)
             CONSOLE_text((CBYTE*)"CRT shader on", 3000);
@@ -689,14 +689,14 @@ SLONG special_keys(void)
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger
     // "pause/continue" key, which matches intent.
-    if (allow_debug_keys && input_key_just_pressed(KB_F8)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_F8)) {
         single_step ^= 1;
     }
 
     // F10: toggle far-facet debug mode (skip level geometry + shader
     // debug-split colours on far-facets). Only active after bangunsnotgames
     // cheat. See stage12_farfacets.md.
-    if (allow_debug_keys && input_key_just_pressed(KB_F10)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_F10)) {
         g_farfacet_debug ^= 1;
         if (g_farfacet_debug)
             CONSOLE_text("farfacet debug on", 3000);
@@ -707,7 +707,7 @@ SLONG special_keys(void)
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames
     // so only developers hit it — regular players never see the panel
     // even by accident.
-    if (allow_debug_keys && input_key_just_pressed(KB_F11)) {
+    if (allow_debug_keys && input_key_just_pressed(KKEY_F11)) {
         input_debug_toggle();
     }
 
@@ -725,7 +725,7 @@ SLONG special_keys(void)
 
     // Step once while in single-step mode. Was comma (`,`) — rebound to
     // Insert for the same legend-readability reason as the F8 toggle.
-    if (allow_debug_keys && single_step && input_key_just_pressed(KB_INS)) {
+    if (allow_debug_keys && single_step && input_key_just_pressed(KKEY_INS)) {
         process_things(0);
     }
 
@@ -810,7 +810,7 @@ SLONG hardware_input_continue(void)
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
         const UBYTE last_key = input_last_key();
-        if (last_key == KB_SPACE || last_key == KB_ESC || last_key == KB_Z || last_key == KB_X || last_key == KB_C || last_key == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
+        if (last_key == KKEY_SPACE || last_key == KKEY_ESC || last_key == KKEY_Z || last_key == KKEY_X || last_key == KKEY_C || last_key == KKEY_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
             input_last_key_consume();
 
             return (1);
@@ -839,10 +839,10 @@ round_again:;
         form_leave_map = NULL;
         form_left_map = 0;
         input_last_key_consume();
-        // Drain a stale KB_ESC press_pending carried over from the frontend so
+        // Drain a stale KKEY_ESC press_pending carried over from the frontend so
         // GAMEMENU_process can't open the pause menu on the very first tick of
         // the level just because the user closed a frontend dialog with ESC.
-        input_key_force_release(KB_ESC);
+        input_key_force_release(KKEY_ESC);
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
@@ -1494,10 +1494,10 @@ round_again:;
 
                         // Clear any pending press carried in from the previous
                         // screen so the warning loop doesn't dismiss instantly.
-                        input_key_force_release(KB_ESC);
-                        input_key_force_release(KB_SPACE);
-                        input_key_force_release(KB_ENTER);
-                        input_key_force_release(KB_PENTER);
+                        input_key_force_release(KKEY_ESC);
+                        input_key_force_release(KKEY_SPACE);
+                        input_key_force_release(KKEY_ENTER);
+                        input_key_force_release(KKEY_PENTER);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1536,18 +1536,18 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (input_key_just_pressed(KB_ESC) || input_key_just_pressed(KB_SPACE)
-                                || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
+                            if (input_key_just_pressed(KKEY_ESC) || input_key_just_pressed(KKEY_SPACE)
+                                || input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_PENTER)) {
                                 break;
                             }
                         }
 
                         ge_reset_back_image();
 
-                        input_key_force_release(KB_ESC);
-                        input_key_force_release(KB_SPACE);
-                        input_key_force_release(KB_ENTER);
-                        input_key_force_release(KB_PENTER);
+                        input_key_force_release(KKEY_ESC);
+                        input_key_force_release(KKEY_SPACE);
+                        input_key_force_release(KKEY_ENTER);
+                        input_key_force_release(KKEY_PENTER);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

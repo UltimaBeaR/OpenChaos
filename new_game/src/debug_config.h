@@ -54,7 +54,7 @@
 // bottom of its group; each row underlined to tie the far-apart name and
 // value together. The value column shows % of frame time, colour-graded
 // white→red (nonlinear) by that %. Hotkeys (gameplay, no
-// bangunsnotgames): KB_4 toggle panel, KB_5 cycle averaging window, KB_6
+// bangunsnotgames): KKEY_4 toggle panel, KKEY_5 cycle averaging window, KKEY_6
 // reset history. The MASTER switch for the perf-diag panel and
 // instrumentation. A dev-only build flag; keep false in shipping builds.
 //

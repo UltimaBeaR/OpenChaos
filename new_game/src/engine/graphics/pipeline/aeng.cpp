@@ -2394,7 +2394,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (input_key_just_pressed(KB_L) && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(KKEY_L) && ControlFlag && allow_debug_keys) {
         outside ^= 1;
     }
 
@@ -4850,7 +4850,7 @@ void AENG_draw_city()
         AENG_draw_sparks();
     //	ANEG_draw_messages();
 
-    //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
+    //	if (Keys[KKEY_RBRACE] && !ShiftFlag) {Keys[KKEY_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
 
     //
     // Draw a torch out of darci...
@@ -5828,11 +5828,11 @@ void AENG_draw_warehouse()
 }
 
 // uc_orig: AENG_screen_shot (fallen/DDEngine/Source/aeng.cpp)
-// Dumps the screen to a TGA file when KB_S is pressed (debug only).
+// Dumps the screen to a TGA file when KKEY_S is pressed (debug only).
 void AENG_screen_shot(void)
 {
     if (allow_debug_keys)
-        if (input_key_just_pressed(KB_S) || record_video) {
+        if (input_key_just_pressed(KKEY_S) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;
             }

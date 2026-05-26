@@ -10,7 +10,7 @@
 #include "outro/core/outro_os_globals.h"
 
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
-#include "engine/input/keyboard.h" // KB_ESC / KB_ENTER / KB_SPACE
+#include "engine/input/keyboard.h" // KKEY_ESC / KKEY_ENTER / KKEY_SPACE
 
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()
@@ -81,9 +81,9 @@ void MAIN_main()
         // Triangle/Y (button 3). (Original PS1 was Cross only; we accept
         // a wider set so the player can always close the outro with what
         // their hand is on.)
-        if (input_key_just_pressed(KB_ESC)
-            || input_key_just_pressed(KB_ENTER)
-            || input_key_just_pressed(KB_SPACE)
+        if (input_key_just_pressed(KKEY_ESC)
+            || input_key_just_pressed(KKEY_ENTER)
+            || input_key_just_pressed(KKEY_SPACE)
             || input_btn_just_pressed(0)
             || input_btn_just_pressed(3)) {
             return;

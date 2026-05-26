@@ -1967,17 +1967,17 @@ SLONG ELEV_game_init(
 
     // Force-release any keys held across the level transition so the first
     // frame of gameplay doesn't see a stale press from the loading screen.
-    input_key_force_release(KB_SPACE);
-    input_key_force_release(KB_ENTER);
-    input_key_force_release(KB_A);
-    input_key_force_release(KB_Z);
-    input_key_force_release(KB_X);
-    input_key_force_release(KB_C);
-    input_key_force_release(KB_V);
-    input_key_force_release(KB_LEFT);
-    input_key_force_release(KB_RIGHT);
-    input_key_force_release(KB_UP);
-    input_key_force_release(KB_DOWN);
+    input_key_force_release(KKEY_SPACE);
+    input_key_force_release(KKEY_ENTER);
+    input_key_force_release(KKEY_A);
+    input_key_force_release(KKEY_Z);
+    input_key_force_release(KKEY_X);
+    input_key_force_release(KKEY_C);
+    input_key_force_release(KKEY_V);
+    input_key_force_release(KKEY_LEFT);
+    input_key_force_release(KKEY_RIGHT);
+    input_key_force_release(KKEY_UP);
+    input_key_force_release(KKEY_DOWN);
 
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 

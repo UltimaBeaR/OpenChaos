@@ -307,9 +307,9 @@ bool video_play(const char* filename, bool allow_skip)
 
         // --- Skip on any user input ---
         if (allow_skip) {
-            if (input_key_just_pressed(KB_ESC)
-                || input_key_just_pressed(KB_ENTER)
-                || input_key_just_pressed(KB_SPACE)) {
+            if (input_key_just_pressed(KKEY_ESC)
+                || input_key_just_pressed(KKEY_ENTER)
+                || input_key_just_pressed(KKEY_SPACE)) {
                 done = true;
             }
             // Any gamepad / DualSense button rising edge = skip. Cross,

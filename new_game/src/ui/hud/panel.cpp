@@ -50,7 +50,7 @@ extern SLONG ScreenHeight;
 // XLAT_str, X_COMPLETE, X_SEARCHING for search-mode text
 #include "assets/xlat_str.h"
 
-// KB_V for version number display
+// KKEY_V for version number display
 #include "engine/input/keyboard.h"
 #include "engine/input/input_frame.h"
 
@@ -2290,7 +2290,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (input_key_held(KB_V) && allow_debug_keys) {
+        if (input_key_held(KKEY_V) && allow_debug_keys) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

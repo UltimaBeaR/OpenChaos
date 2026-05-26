@@ -14,9 +14,9 @@
 // input_frame_update).
 static void update_modifier_flags()
 {
-    AltFlag = input_key_event_held(KB_LALT) || input_key_event_held(KB_RALT);
-    ControlFlag = input_key_event_held(KB_LCONTROL) || debug_overlay_locked_on;
-    ShiftFlag = input_key_event_held(KB_LSHIFT) || input_key_event_held(KB_RSHIFT);
+    AltFlag = input_key_event_held(KKEY_LALT) || input_key_event_held(KKEY_RALT);
+    ControlFlag = input_key_event_held(KKEY_LCONTROL) || debug_overlay_locked_on;
+    ShiftFlag = input_key_event_held(KKEY_LSHIFT) || input_key_event_held(KKEY_RSHIFT);
 }
 
 // uc_orig: SetupKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)

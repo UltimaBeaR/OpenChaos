@@ -3687,7 +3687,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
     // into the first car-entry tick as a spurious toggle.
     {
-        const SLONG kb_siren_key  = KB_SPACE;
+        const SLONG kb_siren_key  = KKEY_SPACE;
         constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
         const bool kb_siren  = input_key_press_pending(kb_siren_key);
         const bool pad_siren = input_btn_press_pending(pad_siren_btn);
@@ -4196,10 +4196,10 @@ ULONG get_hardware_input(UWORD type)
         // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
         // toggles → just_pressed (edge-detect via input_frame).
 
-        const bool kb_fwd   = input_key_held(KB_UP);
-        const bool kb_back  = input_key_held(KB_DOWN);
-        const bool kb_left  = input_key_held(KB_LEFT);
-        const bool kb_right = input_key_held(KB_RIGHT);
+        const bool kb_fwd   = input_key_held(KKEY_UP);
+        const bool kb_back  = input_key_held(KKEY_DOWN);
+        const bool kb_left  = input_key_held(KKEY_LEFT);
+        const bool kb_right = input_key_held(KKEY_RIGHT);
 
         // If any movement key is pressed, switch to digital mode
         // (analog mode only makes sense with a stick).
@@ -4231,7 +4231,7 @@ ULONG get_hardware_input(UWORD type)
                 input |= INPUT_MASK_RIGHT;
         }
 
-        if (input_key_held(KB_ENTER))
+        if (input_key_held(KKEY_ENTER))
             input |= INPUT_MASK_SELECT;
 
         // Edge-triggered camera actions: use press_pending + consume.
@@ -4240,50 +4240,50 @@ ULONG get_hardware_input(UWORD type)
         // physics tick — edges latched in skipped-physics frames vanish before
         // they're read). press_pending latches the edge until explicit consume,
         // so it survives across frames regardless of tick cadence.
-        if (input_key_press_pending(KB_F5)) {
-            input_key_consume(KB_F5);
+        if (input_key_press_pending(KKEY_F5)) {
+            input_key_consume(KKEY_F5);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM1;
         }
-        if (input_key_press_pending(KB_F6)) {
-            input_key_consume(KB_F6);
+        if (input_key_press_pending(KKEY_F6)) {
+            input_key_consume(KKEY_F6);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM2;
         }
-        if (input_key_press_pending(KB_F7)) {
-            input_key_consume(KB_F7);
+        if (input_key_press_pending(KKEY_F7)) {
+            input_key_consume(KKEY_F7);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM3;
         }
 
-        if (input_key_press_pending(KB_END)) {
-            input_key_consume(KB_END);
+        if (input_key_press_pending(KKEY_END)) {
+            input_key_consume(KKEY_END);
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        if (input_key_press_pending(KB_DEL)) {
-            input_key_consume(KB_DEL);
+        if (input_key_press_pending(KKEY_DEL)) {
+            input_key_consume(KKEY_DEL);
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (input_key_press_pending(KB_PGDN)) {
-            input_key_consume(KB_PGDN);
+        if (input_key_press_pending(KKEY_PGDN)) {
+            input_key_consume(KKEY_PGDN);
             input |= INPUT_MASK_CAM_RIGHT;
         }
 
-        if (input_key_held(KB_SPACE))
+        if (input_key_held(KKEY_SPACE))
             input |= INPUT_MASK_JUMP;
 
-        if (input_key_held(KB_Z))
+        if (input_key_held(KKEY_Z))
             input |= INPUT_MASK_PUNCH;
-        if (input_key_held(KB_X)) {
+        if (input_key_held(KKEY_X)) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
         }
 
-        if (input_key_held(KB_C)) {
+        if (input_key_held(KKEY_C)) {
             input |= INPUT_MASK_ACTION;
         }
 
@@ -4316,7 +4316,7 @@ ULONG pre_process_input(SLONG mode, ULONG input)
 
 // uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
 // Handles first-person look-around mode when the 1st-person hotkey is held
-// (KB_A on keyboard / L1 on gamepad).
+// (KKEY_A on keyboard / L1 on gamepad).
 // Rotates the camera pitch and character angle without consuming movement input.
 // Returns non-zero if first-person mode is active this frame.
 ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed)
@@ -4326,7 +4326,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    if (input_key_held(KB_A)
+    if (input_key_held(KKEY_A)
         || input_btn_held(9 /* L1/LB (held = aim) */)) {
         fpm = UC_TRUE;
     }
@@ -4410,17 +4410,17 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (input_key_held(KB_UP)) {
+            if (input_key_held(KKEY_UP)) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (input_key_held(KB_DOWN)) {
+            if (input_key_held(KKEY_DOWN)) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (input_key_held(KB_LEFT)) {
+                if (input_key_held(KKEY_LEFT)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (input_key_held(KB_RIGHT)) {
+                if (input_key_held(KKEY_RIGHT)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
@@ -4662,13 +4662,13 @@ void process_hardware_level_input_for_player(Thing* p_player)
             // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
             // — single press = single switch, regardless of FPS.
             if (can_darci_change_weapon(p_person)) {
-                if (input_key_just_pressed(KB_1)) {
+                if (input_key_just_pressed(KKEY_1)) {
                     if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
                         set_person_gun_away(p_person);
                     }
                 }
 
-                if (input_key_just_pressed(KB_2)) {
+                if (input_key_just_pressed(KKEY_2)) {
                     if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
                         if (p_person->Flags & FLAGS_HAS_GUN) {
                             if (p_person->Genus.Person->SpecialUse) {
@@ -4683,12 +4683,12 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 SLONG special_type = SPECIAL_NONE;
 
-                if (input_key_just_pressed(KB_3)) special_type = SPECIAL_SHOTGUN;
-                if (input_key_just_pressed(KB_4)) special_type = SPECIAL_AK47;
-                if (input_key_just_pressed(KB_5)) special_type = SPECIAL_GRENADE;
-                if (input_key_just_pressed(KB_6)) special_type = SPECIAL_EXPLOSIVES;
-                if (input_key_just_pressed(KB_7)) special_type = SPECIAL_KNIFE;
-                if (input_key_just_pressed(KB_8)) special_type = SPECIAL_BASEBALLBAT;
+                if (input_key_just_pressed(KKEY_3)) special_type = SPECIAL_SHOTGUN;
+                if (input_key_just_pressed(KKEY_4)) special_type = SPECIAL_AK47;
+                if (input_key_just_pressed(KKEY_5)) special_type = SPECIAL_GRENADE;
+                if (input_key_just_pressed(KKEY_6)) special_type = SPECIAL_EXPLOSIVES;
+                if (input_key_just_pressed(KKEY_7)) special_type = SPECIAL_KNIFE;
+                if (input_key_just_pressed(KKEY_8)) special_type = SPECIAL_BASEBALLBAT;
 
                 if (special_type) {
                     if (person_has_special(p_person, special_type)) {
@@ -4718,7 +4718,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
                 // sources are dual-use, and apply_button_input_car is the only
                 // consumer of their press_pending flag — without this drain,
                 // the flag would sit set indefinitely from any outside press.
-                input_key_consume(KB_SPACE);
+                input_key_consume(KKEY_SPACE);
                 input_btn_consume(3); // Triangle/Y
             }
             {

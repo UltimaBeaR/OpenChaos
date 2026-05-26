@@ -130,7 +130,7 @@ void pre_swap_gpu_drain();
 void frame_begin();
 void frame_end();
 
-// Hotkey handling (OC_DEBUG_PERF only): KB_4 toggle panel, KB_5 cycle
+// Hotkey handling (OC_DEBUG_PERF only): KKEY_4 toggle panel, KKEY_5 cycle
 // averaging window. No-op when only the log flag is set.
 void handle_keys();
 

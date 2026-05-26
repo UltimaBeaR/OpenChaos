@@ -15,7 +15,7 @@
 #include "engine/graphics/text/font_atlas.h"      // FONT_atlas_fill_* (literal-px rects)
 #include "engine/debug/debug_panel_text_scale.h"  // DBG_PANEL_TEXT_SCALE
 #include "engine/input/input_frame.h"             // input_key_just_pressed
-#include "engine/input/keyboard.h"                // KB_4 / KB_5
+#include "engine/input/keyboard.h"                // KKEY_4 / KKEY_5
 #endif
 
 namespace perf {
@@ -35,7 +35,7 @@ static constexpr int RING = 256;
 // to be a "what's normal here" reference without manual calibration.
 static constexpr int LONG_W = 240;
 
-// Short averaging window options (frames) cycled by KB_5. Short = reacts
+// Short averaging window options (frames) cycled by KKEY_5. Short = reacts
 // fast / jitters; long = smooth / inert.
 static const int SHORT_W_OPTS[] = { 10, 30, 60, 120 };
 static constexpr int SHORT_W_OPT_COUNT =
@@ -494,10 +494,10 @@ void frame_end()
 void handle_keys()
 {
 #if OC_DEBUG_PERF
-    if (input_key_just_pressed(KB_4))
+    if (input_key_just_pressed(KKEY_4))
         s_panel_visible = !s_panel_visible;
 
-    if (input_key_just_pressed(KB_5)) {
+    if (input_key_just_pressed(KKEY_5)) {
         s_short_w_idx = (s_short_w_idx + 1) % SHORT_W_OPT_COUNT;
     }
 #endif

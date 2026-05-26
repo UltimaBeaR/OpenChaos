@@ -63,11 +63,11 @@ void MSG_draw(void)
     if (ShiftFlag)
         size = 20;
     // Continuous level reads: scrolling speed = while-held rate.
-    if (input_key_held(KB_PPLUS))
+    if (input_key_held(KKEY_PPLUS))
         draw_message_offset += size;
-    if (input_key_held(KB_PMINUS))
+    if (input_key_held(KKEY_PMINUS))
         draw_message_offset -= size;
-    if (input_key_held(KB_PENTER))
+    if (input_key_held(KKEY_PENTER))
         draw_message_offset = 0;
 
     for (i = 0; i < SCREEN_SIZE; i++) {

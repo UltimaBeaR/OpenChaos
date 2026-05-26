@@ -586,7 +586,7 @@ void WARE_debug(void)
     WARE_Ware* ww;
 
     // Continuous level read: WARE_debug overlay drawn every frame T is held.
-    if (!input_key_held(KB_T))
+    if (!input_key_held(KKEY_T))
         return;
 
     for (i = 1; i < WARE_ware_upto; i++) {

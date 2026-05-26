@@ -170,7 +170,7 @@ SLONG GAMEMENU_process()
     {
         // Start → ESC (toggle pause).
         if (input_btn_just_pressed(6))
-            input_frame_inject_key_press(KB_ESC);
+            input_frame_inject_key_press(KKEY_ESC);
 
         if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
             // Triangle/Y (button 3) → ESC (back/cancel). Drain press_pending
@@ -181,7 +181,7 @@ SLONG GAMEMENU_process()
             // tick after resume.
             if (input_btn_just_pressed(3)) {
                 input_btn_consume(3);
-                input_frame_inject_key_press(KB_ESC);
+                input_frame_inject_key_press(KKEY_ESC);
             }
 
             // Cross/A (button 0) → Enter (confirm). No current consumer of
@@ -190,7 +190,7 @@ SLONG GAMEMENU_process()
             // would otherwise see the menu-confirm press as a pending input.
             if (input_btn_just_pressed(0)) {
                 input_btn_consume(0);
-                input_frame_inject_key_press(KB_ENTER);
+                input_frame_inject_key_press(KKEY_ENTER);
             }
 
             // Up/Down nav (keyboard and stick) is handled below inside the
@@ -201,17 +201,17 @@ SLONG GAMEMENU_process()
 
     // Pause-toggle channel: real keyboard ESC presses (event hook sets
     // press_pending) and synthesised gamepad presses (Start / Triangle
-    // bridge above calls input_frame_inject_key_press(KB_ESC)) both land
+    // bridge above calls input_frame_inject_key_press(KKEY_ESC)) both land
     // on the same input_frame slot. Single read picks up either source.
-    if (input_key_press_pending(KB_ESC)) {
+    if (input_key_press_pending(KKEY_ESC)) {
         // Force a synthesised release in input_frame's CURRENT snapshot so
         // same-frame downstream consumers (e.g. weapon switch reading
-        // input_key_just_pressed(KB_ENTER) in process_controls, or JUMP
+        // input_key_just_pressed(KKEY_ENTER) in process_controls, or JUMP
         // level read in get_hardware_input) don't see the menu-consumed
         // press leak into gameplay. force_release clears
         // curr/event_held/pressed_during_frame/press_pending all at once
         // — subsumes input_key_consume.
-        input_key_force_release(KB_ESC);
+        input_key_force_release(KKEY_ESC);
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -282,16 +282,16 @@ SLONG GAMEMENU_process()
             static InputAutoRepeat ar_up;
             static InputAutoRepeat ar_down;
 
-            const bool any_up_jp = input_key_just_pressed(KB_UP)
+            const bool any_up_jp = input_key_just_pressed(KKEY_UP)
                 || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
                 || input_btn_just_pressed(11);
-            const bool any_up_held = input_key_held(KB_UP)
+            const bool any_up_held = input_key_held(KKEY_UP)
                 || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
                 || input_btn_held(11);
-            const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
+            const bool any_dn_jp = input_key_just_pressed(KKEY_DOWN)
                 || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
                 || input_btn_just_pressed(12);
-            const bool any_dn_held = input_key_held(KB_DOWN)
+            const bool any_dn_held = input_key_held(KKEY_DOWN)
                 || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
                 || input_btn_held(12);
 
@@ -341,14 +341,14 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            if (input_key_press_pending(KB_ENTER) || input_key_press_pending(KB_SPACE) || input_key_press_pending(KB_PENTER)) {
+            if (input_key_press_pending(KKEY_ENTER) || input_key_press_pending(KKEY_SPACE) || input_key_press_pending(KKEY_PENTER)) {
                 // Force-release in input_frame's CURRENT snapshot — see
                 // comment in the ESC handler above. Otherwise SPACE held for
                 // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
                 // INPUT_MASK_SELECT (weapon switch popup opens), etc.
-                input_key_force_release(KB_ENTER);
-                input_key_force_release(KB_SPACE);
-                input_key_force_release(KB_PENTER);
+                input_key_force_release(KKEY_ENTER);
+                input_key_force_release(KKEY_SPACE);
+                input_key_force_release(KKEY_PENTER);
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
 

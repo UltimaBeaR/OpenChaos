@@ -238,7 +238,7 @@ int input_trigger_raw(SLONG trigger_idx);
 //
 //   static InputAutoRepeat ar_down;
 //   bool nav_down = ar_down.tick_combined(
-//       input_key_held(KB_DOWN)
+//       input_key_held(KKEY_DOWN)
 //    || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN));
 struct InputAutoRepeat {
     bool     was_held  = false;
@@ -268,7 +268,7 @@ struct InputAutoRepeat {
 // ---- Internal: SDL event hooks ---------------------------------------------
 // Called from keyboard event handlers. Maintain an independent held-state
 // array driven only by these events, decoupled from the public Keys[] array
-// which consumers may mutate (e.g. menu handlers clearing Keys[KB_X] = 0
+// which consumers may mutate (e.g. menu handlers clearing Keys[KKEY_X] = 0
 // after consume). Without that decoupling, a consumer's clear leaks into
 // the next frame's snapshot and breaks auto-repeat for held keys.
 

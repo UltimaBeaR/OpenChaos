@@ -91,7 +91,7 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-        if (ControlFlag && input_key_just_pressed(KB_Q)) {
+        if (ControlFlag && input_key_just_pressed(KKEY_Q)) {
             GAME_STATE = 0;
             input_last_key_consume();
         }
@@ -105,9 +105,9 @@ reinit_because_of_language_change:
         // Any nav/confirm key held — wake the attract screen (reset y so
         // the menu stays visible). Level-state read (input_key_held), not
         // edge: as long as user is interacting we keep the screen alive.
-        if (input_key_held(KB_LEFT) || input_key_held(KB_RIGHT)
-            || input_key_held(KB_UP) || input_key_held(KB_DOWN)
-            || input_key_held(KB_SPACE) || input_key_held(KB_ENTER))
+        if (input_key_held(KKEY_LEFT) || input_key_held(KKEY_RIGHT)
+            || input_key_held(KKEY_UP) || input_key_held(KKEY_DOWN)
+            || input_key_held(KKEY_SPACE) || input_key_held(KKEY_ENTER))
             y = 500;
 
         {

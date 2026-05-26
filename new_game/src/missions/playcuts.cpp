@@ -508,7 +508,7 @@ void PLAYCUTS_Play(CPData* cutscene)
     // would already not trigger — but consume() here is still useful: it
     // resets press_pending too, which is needed if any consumer of pending
     // raced ahead.
-    input_key_consume(KB_SPACE);
+    input_key_consume(KKEY_SPACE);
     input_last_key_consume();
     no_more_packets = 0;
 
@@ -521,7 +521,7 @@ void PLAYCUTS_Play(CPData* cutscene)
     // generic skip-cutscene input fires (hardware_input_continue). SHELL_ACTIVE
     // (= LibShellActive) refreshes the input_frame snapshot each iteration,
     // so input_key_just_pressed reflects this iteration's events.
-    while (SHELL_ACTIVE && !input_key_just_pressed(KB_SPACE) && !no_more_packets && !hardware_input_continue()) {
+    while (SHELL_ACTIVE && !input_key_just_pressed(KKEY_SPACE) && !no_more_packets && !hardware_input_continue()) {
         uint64_t cut_now_ms = sdl3_get_ticks();
         float cut_dt_ms = float(cut_now_ms - cut_prev_ms);
         if (cut_dt_ms > 200.0f) cut_dt_ms = 200.0f;

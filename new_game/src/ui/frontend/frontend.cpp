@@ -2284,10 +2284,10 @@ static UBYTE FRONTEND_input(void)
         // from a previous screen produces no rising edge in the snapshot, so
         // a stale press cannot leak into the menu.
 
-        const bool kb_up = input_key_held(KB_UP);
-        const bool kb_dn = input_key_held(KB_DOWN);
-        const bool kb_lt = input_key_held(KB_LEFT);
-        const bool kb_rt = input_key_held(KB_RIGHT);
+        const bool kb_up = input_key_held(KKEY_UP);
+        const bool kb_dn = input_key_held(KKEY_DOWN);
+        const bool kb_lt = input_key_held(KKEY_LEFT);
+        const bool kb_rt = input_key_held(KKEY_RIGHT);
 
         bool st_up = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
         bool st_dn = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
@@ -2330,16 +2330,16 @@ static UBYTE FRONTEND_input(void)
         const bool any_lt_held = kb_lt || st_lt || dp_lt;
         const bool any_rt_held = kb_rt || st_rt || dp_rt;
 
-        const bool any_up_jp = input_key_just_pressed(KB_UP)
+        const bool any_up_jp = input_key_just_pressed(KKEY_UP)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
             || input_btn_just_pressed(11);
-        const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
+        const bool any_dn_jp = input_key_just_pressed(KKEY_DOWN)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
             || input_btn_just_pressed(12);
-        const bool any_lt_jp = input_key_just_pressed(KB_LEFT)
+        const bool any_lt_jp = input_key_just_pressed(KKEY_LEFT)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT)
             || input_btn_just_pressed(13);
-        const bool any_rt_jp = input_key_just_pressed(KB_RIGHT)
+        const bool any_rt_jp = input_key_just_pressed(KKEY_RIGHT)
             || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT)
             || input_btn_just_pressed(14);
 
@@ -2385,10 +2385,10 @@ static UBYTE FRONTEND_input(void)
     }
 
     if (allow_debug_keys) {
-        const bool theme1 = input_key_just_pressed(KB_1);
-        const bool theme2 = input_key_just_pressed(KB_2);
-        const bool theme3 = input_key_just_pressed(KB_3);
-        const bool theme4 = input_key_just_pressed(KB_4);
+        const bool theme1 = input_key_just_pressed(KKEY_1);
+        const bool theme2 = input_key_just_pressed(KKEY_2);
+        const bool theme3 = input_key_just_pressed(KKEY_3);
+        const bool theme4 = input_key_just_pressed(KKEY_4);
         if (theme1 || theme2 || theme3 || theme4) {
             if (theme1) menu_theme = 0;
             if (theme2) menu_theme = 1;
@@ -2399,7 +2399,7 @@ static UBYTE FRONTEND_input(void)
         }
     }
 
-    if (input_key_just_pressed(KB_END)) {
+    if (input_key_just_pressed(KKEY_END)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = menu_state.items - 1;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2407,7 +2407,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected--;
     }
-    if (input_key_just_pressed(KB_HOME)) {
+    if (input_key_just_pressed(KKEY_HOME)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = 0;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2446,7 +2446,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_PENTER) || any_button) {
+    if (input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_SPACE) || input_key_just_pressed(KKEY_PENTER) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)
@@ -2616,7 +2616,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (input_key_just_pressed(KB_ESC) || (input & INPUT_MASK_CANCEL)) {
+    if (input_key_just_pressed(KKEY_ESC) || (input & INPUT_MASK_CANCEL)) {
         if (fade_mode != 6)
             MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
         if (fade_mode == 2) // cancel a transition
@@ -3037,12 +3037,12 @@ SBYTE FRONTEND_loop()
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {
-        if (input_key_just_pressed(KB_PPLUS)) {
+        if (input_key_just_pressed(KKEY_PPLUS)) {
             complete_point++;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;
         }
-        if (input_key_just_pressed(KB_ASTERISK)) {
+        if (input_key_just_pressed(KKEY_ASTERISK)) {
             complete_point = 40;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;

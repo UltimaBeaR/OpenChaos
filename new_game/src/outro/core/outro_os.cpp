@@ -140,7 +140,7 @@ SLONG OS_process_messages()
     gamepad_poll();
     OS_joy_poll();
 
-    if (input_key_just_pressed(KB_ESC)) {
+    if (input_key_just_pressed(KKEY_ESC)) {
         KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 
