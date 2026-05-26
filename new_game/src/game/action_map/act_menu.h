@@ -99,6 +99,17 @@ constexpr int ACT_MENU_ATTRACT_QUIT_KKEY = KKEY_Q;
 constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_PPLUS;
 constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_ASTERISK;
 
+// ---- Modal dialog acknowledge ----------------------------------------------
+// "Press anything sensible to continue" modal screens during gameplay (e.g.
+// the dead-civilians warning in game.cpp). Same bindings as menu confirm /
+// cancel — distinct ACT names so the modal context can be retargeted
+// independently if needed. Read in game.cpp::game_loop deadcivs branch.
+
+constexpr int ACT_MENU_MODAL_ACK_KKEY_1 = KKEY_ESC;
+constexpr int ACT_MENU_MODAL_ACK_KKEY_2 = KKEY_SPACE;
+constexpr int ACT_MENU_MODAL_ACK_KKEY_3 = KKEY_ENTER;
+constexpr int ACT_MENU_MODAL_ACK_KKEY_4 = KKEY_PENTER;
+
 // ---- "Any button" confirm probe (used in attract / "press start") ----------
 // Frontend attract mode and similar "press start" screens want a single
 // "any face button" trigger. Implemented as a Cross / A press at the call

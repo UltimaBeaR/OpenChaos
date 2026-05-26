@@ -60,6 +60,18 @@ constexpr int ACT_CINE_OUTRO_QUIT_GBTN = GBTN_START; // DS: Options, Xbox: Start
 
 constexpr int ACT_CINE_PLAYCUT_SKIP_KKEY = KKEY_SPACE;
 
+// ---- Replay playback exit --------------------------------------------------
+// In GS_PLAYBACK mode (watching a recorded replay), pressing any of these
+// keys / any gamepad face button exits playback (sets GAME_STATE = 0). Read
+// in game.cpp::playback_game_keys.
+
+constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_1 = KKEY_SPACE;
+constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_2 = KKEY_ENTER;
+constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_PENTER;
+// Gamepad: loop over buttons 0..9 (face buttons + L1/R1 etc.) — any rising
+// edge exits playback. Same "any button wildcard" pattern as video skip in
+// video_player.cpp; no single GBTN constant.
+
 // ---- Generic "press anything to continue" -----------------------------------
 // Read in game.cpp::hardware_input_continue. Used by playcuts and any other
 // blocking screen that wants "press anything sensible to continue". Includes

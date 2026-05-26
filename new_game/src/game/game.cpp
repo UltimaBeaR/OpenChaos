@@ -18,7 +18,8 @@
 #include "game/input_actions.h"
 #include "game/action_map/act_cinematic.h" // ACT_CINE_GENERIC_SKIP_*
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
-#include "game/action_map/act_menu.h" // ACT_MENU_TOGGLE_PAUSE_KKEY
+#include "game/action_map/act_menu.h" // ACT_MENU_TOGGLE_PAUSE_KKEY, ACT_MENU_MODAL_ACK_*
+#include "game/action_map/act_dev_perf.h" // ACT_DEV_PERF_*
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
 #include "map/ob.h"
@@ -604,10 +605,14 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (input_key_just_pressed(KKEY_SPACE) || input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_PENTER)) {
+    if (input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_1)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_2)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_3)) {
         GAME_STATE = 0;
     }
 
+    // Any gamepad button 0..9 held = exit playback. "Any button" wildcard
+    // (see act_cinematic.h ACT_CINE_PLAYBACK_EXIT_* comment).
     if (input_gamepad_connected()) {
         for (SLONG i = 0; i <= 9; i++) {
             if (input_btn_held(i)) {
@@ -630,7 +635,7 @@ void check_debug_timing_keys(void)
     // 30 is the meaningful value here.
     constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
 
-    if (input_key_just_pressed(KKEY_1)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_PHYS_HZ_KKEY)) {
         g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
             ? PHYS_HZ_TOGGLE_LOW
             : UC_PHYSICS_DESIGN_HZ;
@@ -640,22 +645,23 @@ void check_debug_timing_keys(void)
     // reaching for the keyboard during gamepad debugging. The DS gamepad path
     // mirrors touchpad_click into rgbButtons[17], so input_btn_just_pressed
     // gives the rising-edge directly with no local edge-detect needed.
-    if (input_key_just_pressed(KKEY_2) || input_btn_just_pressed(17)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_RENDER_FPS_KKEY)
+        || input_btn_just_pressed(ACT_DEV_PERF_TOGGLE_RENDER_FPS_DBTN)) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
 
-    if (input_key_just_pressed(KKEY_3)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_INTERP_KKEY)) {
         g_render_interp_enabled = !g_render_interp_enabled;
     }
 
-    if (input_key_just_pressed(KKEY_9)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_DEC_KKEY)) {
         g_physics_hz -= 1;
         if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
     }
 
-    if (input_key_just_pressed(KKEY_0)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_INC_KKEY)) {
         g_physics_hz += 1;
         if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
     }
@@ -1506,10 +1512,10 @@ round_again:;
 
                         // Clear any pending press carried in from the previous
                         // screen so the warning loop doesn't dismiss instantly.
-                        input_key_force_release(KKEY_ESC);
-                        input_key_force_release(KKEY_SPACE);
-                        input_key_force_release(KKEY_ENTER);
-                        input_key_force_release(KKEY_PENTER);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_1);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_2);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_3);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_4);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1548,18 +1554,20 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (input_key_just_pressed(KKEY_ESC) || input_key_just_pressed(KKEY_SPACE)
-                                || input_key_just_pressed(KKEY_ENTER) || input_key_just_pressed(KKEY_PENTER)) {
+                            if (input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_1)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_2)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_3)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_4)) {
                                 break;
                             }
                         }
 
                         ge_reset_back_image();
 
-                        input_key_force_release(KKEY_ESC);
-                        input_key_force_release(KKEY_SPACE);
-                        input_key_force_release(KKEY_ENTER);
-                        input_key_force_release(KKEY_PENTER);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_1);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_2);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_3);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_4);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

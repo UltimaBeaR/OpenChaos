@@ -1,4 +1,5 @@
 #include "engine/debug/perf_diag/perf_diag.h"
+#include "game/action_map/act_dev_perf.h" // ACT_DEV_PERF_*
 
 #if OC_PERF_ACTIVE
 
@@ -494,10 +495,10 @@ void frame_end()
 void handle_keys()
 {
 #if OC_DEBUG_PERF
-    if (input_key_just_pressed(KKEY_4))
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_PANEL_KKEY))
         s_panel_visible = !s_panel_visible;
 
-    if (input_key_just_pressed(KKEY_5)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_CYCLE_SHORT_WINDOW_KKEY)) {
         s_short_w_idx = (s_short_w_idx + 1) % SHORT_W_OPT_COUNT;
     }
 #endif

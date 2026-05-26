@@ -178,4 +178,109 @@ constexpr int ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY   = KKEY_BACKSLASH;
 // players don't trigger debug-save by accident. game_tick.cpp.
 constexpr int ACT_BANG_SAVE_GAME_KKEY = KKEY_F3;
 
+// ---- Misc gameplay dev hotkeys (game_tick.cpp, gated by allow_debug_keys) --
+// Each ACT name describes a single semantic action. Several KKEYs (D, G, I, J,
+// O, P, Q) are reused across multiple actions distinguished by ShiftFlag /
+// ControlFlag / held-vs-edge — each variant gets its own ACT name per
+// rules.md. Same physical scancode appears in multiple constants on purpose.
+
+// F4: toggle cloud drawing in aeng.
+constexpr int ACT_BANG_TOGGLE_CLOUDS_KKEY = KKEY_F4;
+
+// `~` (tilde): toggle DETAIL_LEVEL between 0 and 0xffff.
+constexpr int ACT_BANG_TOGGLE_DETAIL_LEVEL_KKEY = KKEY_TILD;
+
+// P (no Shift): quick-save game to "save.me". Distinct from the dev console
+// save (F3) and from ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY (also P) — all three
+// fire on the same scancode when allow_debug_keys is on.
+constexpr int ACT_BANG_QUICK_SAVE_GAME_KKEY = KKEY_P;
+
+// J (no Shift, held): draw MAV navigation overlay around the player.
+constexpr int ACT_BANG_DRAW_MAV_OVERLAY_KKEY = KKEY_J;
+
+// I (no Shift, held): draw WAND debug overlay around the player.
+constexpr int ACT_BANG_DRAW_WAND_OVERLAY_KKEY = KKEY_I;
+
+// E: spawn a vehicle ahead of the player, cycling through vehicle types.
+constexpr int ACT_BANG_SPAWN_VEHICLE_KKEY = KKEY_E;
+
+// W (held): continuously spawn water particles around the player.
+constexpr int ACT_BANG_SPAWN_WATER_KKEY = KKEY_W;
+
+// Numpad 7: cycle the pyro-test "which_pyro" selector.
+constexpr int ACT_BANG_PYRO_CYCLE_TYPE_KKEY = KKEY_P7;
+
+// Numpad 5: spawn the currently-selected pyro effect at the player.
+constexpr int ACT_BANG_PYRO_SPAWN_KKEY = KKEY_P5;
+
+// L: toggle a directional debug light following the player.
+constexpr int ACT_BANG_TOGGLE_DIRECTIONAL_LIGHT_KKEY = KKEY_L;
+
+// Numpad 2: immolate the test chopper.
+constexpr int ACT_BANG_IMMOLATE_CHOPPER_KKEY = KKEY_P2;
+
+// Numpad 3: spawn a firepool line (2-press sequence: anchor / target).
+constexpr int ACT_BANG_SPAWN_FIREPOOL_KKEY = KKEY_P3;
+
+// `/` (forward slash): toggle stealth_debug overlay.
+constexpr int ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY = KKEY_FORESLASH;
+
+// `.` (period, KKEY_POINT) held: continuously spawn smoke particles above
+// the player.
+constexpr int ACT_BANG_SPAWN_SMOKE_KKEY = KKEY_POINT;
+
+// O (no Shift): create an OB (object) at the player's position.
+constexpr int ACT_BANG_CREATE_OB_KKEY = KKEY_O;
+
+// Shift + A: spawn a fight-test thug near the player. Gated by ShiftFlag at
+// the call site.
+constexpr int ACT_BANG_SPAWN_FIGHT_THUG_KKEY = KKEY_A;
+
+// Shift + I: spawn a bodyguard following the player. Distinct from
+// ACT_BANG_DRAW_WAND_OVERLAY_KKEY (also I) by ShiftFlag at the call site.
+constexpr int ACT_BANG_SPAWN_BODYGUARD_KKEY = KKEY_I;
+
+// Shift + J: make Darci perform a random dance animation.
+constexpr int ACT_BANG_DARCI_DANCE_KKEY = KKEY_J;
+
+// Y (Shift block, held): draw fastnav collision-debug overlay.
+constexpr int ACT_BANG_DRAW_FASTNAV_KKEY = KKEY_Y;
+
+// D inside Shift block, also reads as `!ShiftFlag` — dead code in current
+// source. Create a NIGHT_slight (debug light). Listed for completeness.
+constexpr int ACT_BANG_CREATE_NIGHT_SLIGHT_KKEY = KKEY_D;
+
+// Shift + D: ASSERT(false) to break into the debugger. Distinct from
+// ACT_BANG_ROOM_BEHIND_CHECK_KKEY (also D) by ShiftFlag.
+constexpr int ACT_BANG_DEBUGGER_BREAK_KKEY = KKEY_D;
+
+// Shift + G: give Darci a gun (FLAGS_HAS_GUN). Distinct from
+// ACT_BANG_TELEPORT_TO_MOUSE_KKEY (also G) by ShiftFlag.
+constexpr int ACT_BANG_GIVE_GUN_KKEY = KKEY_G;
+
+// Shift + H: dump a top-down plan-view shot of the level as TGA.
+constexpr int ACT_BANG_PLAN_VIEW_SHOT_KKEY = KKEY_H;
+
+// Shift + O: spawn a civilian chopper above the player. Distinct from
+// ACT_BANG_CREATE_OB_KKEY (also O) by ShiftFlag.
+constexpr int ACT_BANG_SPAWN_CHOPPER_KKEY = KKEY_O;
+
+// Shift + M: spawn a mine at the mouse cursor world position.
+constexpr int ACT_BANG_SPAWN_MINE_AT_MOUSE_KKEY = KKEY_M;
+
+// F12 (no Shift): spawn a ring of weapons + health pickup around the player.
+// Distinct from ACT_BANG_TOGGLE_CHEAT_OVERLAY_KKEY (also F12) — that requires
+// ShiftFlag, this one fires when ShiftFlag is off.
+constexpr int ACT_BANG_SPAWN_ALL_WEAPONS_KKEY = KKEY_F12;
+
+// G (no Shift): teleport Darci to the mouse-cursor world position.
+constexpr int ACT_BANG_TELEPORT_TO_MOUSE_KKEY = KKEY_G;
+
+// U (held): repeatedly hit any nearby barrels with a sphere impact.
+constexpr int ACT_BANG_HIT_BARREL_KKEY = KKEY_U;
+
+// Q (held, no Shift, no Ctrl): draw road navigation debug. Distinct from
+// ACT_BANG_QUIT_GAME_KKEY (Q + Ctrl) and ACT_BANG_SPEED_BOOST_KKEY (Q + Shift).
+constexpr int ACT_BANG_DRAW_ROAD_DEBUG_KKEY = KKEY_Q;
+
 #endif // GAME_ACTION_MAP_ACT_BANGUNSNOTGAMES_H

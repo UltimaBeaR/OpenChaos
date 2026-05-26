@@ -182,56 +182,24 @@ constexpr int DBTN_MUTE     = 18;
 ### GTRIG_* (gamepad triggers analog)
 - `GTRIG_L2`, `GTRIG_R2`
 
-## 8. Known exceptions — места без ACT-обёрток (по итогу шага 3c)
+## 8. Покрытие — 100%
 
-После полного прохода 3c.1–3c.6 в коде остались несколько мест с сырыми
-`KKEY_*` / `btn-index` чтениями, **сознательно** не вынесенных в ACT-константы.
-Перечислены здесь для прозрачности.
+После полного прохода 3c + finishing-pass все обращения к `input_key_*` /
+`input_btn_*` / `input_stick_*` / `input_trigger*` в `new_game/src/` идут
+через `ACT_*` константы. Оставшиеся 4 совпадения по grep — комментарии
+(описание API в `input_frame.h`, пояснения в `gamemenu.cpp` / `input_actions.cpp`),
+не код.
 
-### Engine-level utilities (не binding'и)
-- **`engine/input/keyboard.cpp:17-19`** — `input_key_event_held(KKEY_LALT/RALT/LCONTROL/LSHIFT/RSHIFT)`.
-  Синхронизация модификаторов `ShiftFlag` / `ControlFlag` / `AltFlag` —
-  это не biniding-чтения, а engine-уровень синхронизации side-channel'ов
-  модификаторов. Сами модификаторы используются другими местами как side
-  channel при call site, не входят в action.
-
-### Compile-time gated debug features
-- **`game/game.cpp:618-660`** — `check_debug_timing_keys` (gated `#if OC_DEBUG_PHYSICS_TIMING`).
-  KKEY_1/2/3/9/0 + `input_btn_just_pressed(17)` для tweak'а physics Hz и render FPS.
-- **`engine/debug/perf_diag/perf_diag.cpp:497-500`** — KKEY_4/5 perf overlays.
-  Developer-only, не shipping.
-
-Оба гейтятся compile-flag'ом, не runtime — их binding'и видны только разработчикам.
-
-### Отдельные узкие контексты, не покрытые отдельным `act_*.h`
-- **`game/game.cpp:602-616` `playback_game_keys`** — `GS_PLAYBACK` режим
-  (просмотр replay). KKEY_SPACE/ENTER/PENTER + любая gamepad-кнопка 0..9.
-  Контекст "replay viewer" не выделен в отдельный `act_*.h`; ближе всего по
-  смыслу к `act_cinematic.h` (skip-style), но не интегрирован сейчас.
-- **`game/game.cpp:1497-1562` deadcivs warning modal** — модальный диалог
-  во время gameplay ("You killed too many civilians — press anything"). Не
-  cinematic, не menu, не foot/car. Пограничный контекст; не покрыт.
-
-### Большой блок остающихся `bangunsnotgames` debug-клавиш
-- **`game/game_tick.cpp:1833-2508`** — ~30 KKEY-чтений (KKEY_F4 / KKEY_TILD /
-  KKEY_P / KKEY_J / KKEY_I / KKEY_E / KKEY_W / KKEY_P7 / KKEY_P5 / KKEY_L /
-  KKEY_P2 / KKEY_P3 / KKEY_FORESLASH / KKEY_POINT / KKEY_O / KKEY_A / KKEY_J /
-  KKEY_Y / KKEY_D / KKEY_G / KKEY_H / KKEY_M / KKEY_F12 / KKEY_U / KKEY_Q),
-  все внутри блока `if (!allow_debug_keys) return;` (line 1794). Это
-  легаси-debug-keys из оригинального кода (model cycle, person spawn, vehicle
-  spawn, и т.п.). Семантика большинства — узко-специфичные dev-тесты.
-  
-  По правилу 3c.3 эти должны быть в `act_bangunsnotgames.h`. Отложены как
-  батч-доготка: ~30 ACT-имён + ~30 правок, каждое требует прочтения для
-  понимания семантики. Можно покрыть в отдельной мини-итерации.
-
-### Известные принципы для будущей доготки
-1. Если место gated by `allow_debug_keys` — кандидат в `act_bangunsnotgames.h`.
-2. Если место gated by compile-flag (`#if OC_DEBUG_*`) — оставлять с
-   raw KKEY/btn indices и пометить комментом «compile-time dev feature», не
-   создавать ACT для каждого.
-3. Если место — engine-уровневая утилита (например модификаторы) — оставлять
-   как есть, документировать в этом разделе.
+Файлы action-map:
+- `input_codes.h` — device-level: `KKEY_*`, `MBTN_*`, `MAXIS_*`, `GBTN_*`, `DBTN_*`, `GTRIG_*`
+- `act_menu.h` — frontend / pause / won/lost / attract / input-debug-panel nav / modal-acknowledge
+- `act_foot.h` — gameplay на ногах
+- `act_car.h` — в машине
+- `act_cinematic.h` — outro / playcuts / video skip / generic skip / replay-exit
+- `act_bangunsnotgames.h` — runtime debug-keys (после `bangunsnotgames` cheat)
+- `act_dev_console.h` — text-input в открытой консоли
+- `act_dev_perf.h` — compile-time-gated perf-diag (OC_DEBUG_PERF, OC_DEBUG_PHYSICS_TIMING)
+- `act_modifiers.h` — modifier keys (LAlt/RAlt/LCtrl/LShift/RShift → ShiftFlag/AltFlag/ControlFlag)
 
 ## 9. Как добавлять новую константу
 

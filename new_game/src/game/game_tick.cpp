@@ -1830,7 +1830,7 @@ void process_controls(void)
     // debug panel (F11 → panel opens, covers the screen, making it
     // impossible to actually see whether clouds disappeared). Moved to
     // F4 — previously unbound.
-    if (input_key_just_pressed(KKEY_F4)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_CLOUDS_KKEY)) {
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
             CONSOLE_text("clouds off");
@@ -1858,7 +1858,7 @@ void process_controls(void)
         return;
     }
 
-    if (input_key_just_pressed(KKEY_TILD)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_DETAIL_LEVEL_KKEY)) {
         if (DETAIL_LEVEL)
             DETAIL_LEVEL = 0;
         else
@@ -1873,7 +1873,7 @@ void process_controls(void)
 
     void set_person_idle(Thing * p_person);
 
-    if (input_key_just_pressed(KKEY_P)) {
+    if (input_key_just_pressed(ACT_BANG_QUICK_SAVE_GAME_KKEY)) {
         void save_whole_game(CBYTE * gamename);
         save_whole_game("save.me");
     }
@@ -1883,7 +1883,7 @@ void process_controls(void)
     if (!ShiftFlag) {
         // J / I — debug overlay draws (MAV, WAND). Drawn every frame the key
         // is held (continuous overlay), so input_key_held — not just_pressed.
-        if (input_key_held(KKEY_J)) {
+        if (input_key_held(ACT_BANG_DRAW_MAV_OVERLAY_KKEY)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1892,7 +1892,7 @@ void process_controls(void)
                 mx + 5, mz + 5);
         }
 
-        if (input_key_held(KKEY_I)) {
+        if (input_key_held(ACT_BANG_DRAW_WAND_OVERLAY_KKEY)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1900,7 +1900,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KKEY_E)) {
+    if (input_key_just_pressed(ACT_BANG_SPAWN_VEHICLE_KKEY)) {
         SLONG y;
         SLONG index;
 
@@ -1926,7 +1926,7 @@ void process_controls(void)
 
     // KKEY_W: continuous water particle spawn while held (no consume in
     // original) — input_key_held, not just_pressed.
-    if (input_key_held(KKEY_W)) {
+    if (input_key_held(ACT_BANG_SPAWN_WATER_KKEY)) {
         SLONG px = darci->WorldPos.X >> 8;
         SLONG py = darci->WorldPos.Y >> 8;
         SLONG pz = darci->WorldPos.Z >> 8;
@@ -1964,7 +1964,7 @@ void process_controls(void)
         static UBYTE which_pyro = 0;
         GameCoord posn;
 
-        if (input_key_just_pressed(KKEY_P7)) {
+        if (input_key_just_pressed(ACT_BANG_PYRO_CYCLE_TYPE_KKEY)) {
             CBYTE* names[] = { "flicker", "ribbon", "explosion", "sparklies", "bonfire", "immolate", "testrib", "firewall", "new sploje", "new dome", "whoomph" };
             which_pyro++;
             if (which_pyro == (sizeof(names) / sizeof(names[0])))
@@ -1972,7 +1972,7 @@ void process_controls(void)
             CONSOLE_text(names[which_pyro], 1500);
         }
 
-        if (input_key_just_pressed(KKEY_P5)) {
+        if (input_key_just_pressed(ACT_BANG_PYRO_SPAWN_KKEY)) {
             static UBYTE line = 0;
             static GameCoord oldposn = { 0, 0, 0 };
             Thing* pyro;
@@ -2086,7 +2086,7 @@ void process_controls(void)
     {
         static UBYTE dlight = NULL;
 
-        if (input_key_just_pressed(KKEY_L)) {
+        if (input_key_just_pressed(ACT_BANG_TOGGLE_DIRECTIONAL_LIGHT_KKEY)) {
             if (dlight) {
                 NIGHT_dlight_destroy(dlight);
 
@@ -2122,7 +2122,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KKEY_P2)) {
+    if (input_key_just_pressed(ACT_BANG_IMMOLATE_CHOPPER_KKEY)) {
         // this is to test immolation of a thing
         if (TO_CHOPPER(1)->ChopperType != CHOPPER_NONE) {
             Thing* pyro;
@@ -2134,7 +2134,7 @@ void process_controls(void)
             pyro->Genus.Pyro->Flags = PYRO_FLAGS_FLICKER;
         }
     }
-    if (input_key_just_pressed(KKEY_P3)) {
+    if (input_key_just_pressed(ACT_BANG_SPAWN_FIREPOOL_KKEY)) {
         static UBYTE line = 0;
         static GameCoord oldposn = { 0, 0, 0 };
         Thing* pyro;
@@ -2163,7 +2163,7 @@ void process_controls(void)
         }
     }
     static UBYTE smokin = 0;
-    if (input_key_just_pressed(KKEY_FORESLASH)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY)) {
         stealth_debug = !stealth_debug;
         if (stealth_debug)
             CONSOLE_text("STEALTH DEBUG MODE ON");
@@ -2173,7 +2173,7 @@ void process_controls(void)
 
     // KKEY_POINT: continuous smoke spawn while held — no consume in original
     // (level read fires every frame). input_key_held preserves that.
-    if (input_key_held(KKEY_POINT)) {
+    if (input_key_held(ACT_BANG_SPAWN_SMOKE_KKEY)) {
         PARTICLE_Add(
             darci->WorldPos.X,
             darci->WorldPos.Y + 0x4000,
@@ -2220,7 +2220,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KKEY_O) && !ShiftFlag) {
+    if (input_key_just_pressed(ACT_BANG_CREATE_OB_KKEY) && !ShiftFlag) {
         OB_create(
             darci->WorldPos.X >> 8,
             darci->WorldPos.Y >> 8,
@@ -2233,7 +2233,7 @@ void process_controls(void)
 
     if (ShiftFlag) {
         static int skill = 0;
-        if (input_key_just_pressed(KKEY_A)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_FIGHT_THUG_KKEY)) {
             UWORD index;
 
             //
@@ -2264,7 +2264,7 @@ void process_controls(void)
             skill += 2;
         }
 
-        if (input_key_just_pressed(KKEY_I)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_BODYGUARD_KKEY)) {
             //
             // Create a bodyguard. First we must create a DUD waypoint that
             // pretends it created Darci!
@@ -2294,7 +2294,7 @@ void process_controls(void)
             // remove_thing_from_map(darci);
         }
 
-        if (input_key_just_pressed(KKEY_J)) {
+        if (input_key_just_pressed(ACT_BANG_DARCI_DANCE_KKEY)) {
             MAV_precalculate();
 
             switch (Random() % 3) {
@@ -2315,7 +2315,7 @@ void process_controls(void)
 
         // KKEY_Y: continuous fastnav debug overlay while held — no consume in
         // original (level read fires every frame). input_key_held preserves.
-        if (input_key_held(KKEY_Y)) {
+        if (input_key_held(ACT_BANG_DRAW_FASTNAV_KKEY)) {
             COLLIDE_debug_fastnav(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Z >> 8);
@@ -2324,7 +2324,7 @@ void process_controls(void)
         // Note: this block is gated by `if (ShiftFlag)` above, so the
         // `&& !ShiftFlag` here is dead code (always false). Pre-existing
         // bug, preserved verbatim — not addressed by input migration.
-        if (input_key_just_pressed(KKEY_D) && !ShiftFlag) {
+        if (input_key_just_pressed(ACT_BANG_CREATE_NIGHT_SLIGHT_KKEY) && !ShiftFlag) {
             NIGHT_slight_create(
                 (darci->WorldPos.X >> 8),
                 (darci->WorldPos.Y >> 8) + 0x80,
@@ -2339,22 +2339,22 @@ void process_controls(void)
             NIGHT_generate_walkable_lighting();
         }
 
-        if (input_key_just_pressed(KKEY_D) && ShiftFlag) {
+        if (input_key_just_pressed(ACT_BANG_DEBUGGER_BREAK_KKEY) && ShiftFlag) {
             //
             // shift D to leap into the debugger
             //
             ASSERT(2 + 2 == 5);
         }
 
-        if (input_key_just_pressed(KKEY_G)) {
+        if (input_key_just_pressed(ACT_BANG_GIVE_GUN_KKEY)) {
             darci->Flags |= FLAGS_HAS_GUN;
         }
 
-        if (input_key_just_pressed(KKEY_H)) {
+        if (input_key_just_pressed(ACT_BANG_PLAN_VIEW_SHOT_KKEY)) {
             plan_view_shot();
         }
 
-        if (input_key_just_pressed(KKEY_O)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_CHOPPER_KKEY)) {
             Thing* chopper;
             GameCoord posn;
 
@@ -2366,7 +2366,7 @@ void process_controls(void)
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
         }
 
-        if (input_key_just_pressed(KKEY_M)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_MINE_AT_MOUSE_KKEY)) {
             //
             // Create a mine at the mouse.
             //
@@ -2408,7 +2408,7 @@ void process_controls(void)
         // Shift not held down.
         //
 
-        if (input_key_just_pressed(KKEY_F12)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_ALL_WEAPONS_KKEY)) {
             SLONG wx, wy, wz, dx, dz;
             SLONG angle;
 
@@ -2453,7 +2453,7 @@ void process_controls(void)
             }
         }
 
-        if (input_key_just_pressed(KKEY_G)) {
+        if (input_key_just_pressed(ACT_BANG_TELEPORT_TO_MOUSE_KKEY)) {
             SLONG world_x;
             SLONG world_y;
             SLONG world_z;
@@ -2497,7 +2497,7 @@ void process_controls(void)
 
         // KKEY_U / KKEY_Q: continuous debug effects while held (no consume in
         // original). input_key_held preserves level-read intent.
-        if (input_key_held(KKEY_U)) {
+        if (input_key_held(ACT_BANG_HIT_BARREL_KKEY)) {
             BARREL_hit_with_sphere(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Y >> 8,
@@ -2505,7 +2505,7 @@ void process_controls(void)
                 0x80);
         }
 
-        if (input_key_held(KKEY_Q)) {
+        if (input_key_held(ACT_BANG_DRAW_ROAD_DEBUG_KKEY)) {
             ROAD_debug();
         }
     }

@@ -6,6 +6,7 @@
 
 #include "engine/input/keyboard.h"
 #include "engine/input/input_frame.h"
+#include "game/action_map/act_modifiers.h" // ACT_MOD_*
 
 // Modifier flags are convenience shortcuts for the held state of Shift /
 // Ctrl / Alt — recomputed from input_frame's live event-tracked state on
@@ -14,9 +15,9 @@
 // input_frame_update).
 static void update_modifier_flags()
 {
-    AltFlag = input_key_event_held(KKEY_LALT) || input_key_event_held(KKEY_RALT);
-    ControlFlag = input_key_event_held(KKEY_LCONTROL) || debug_overlay_locked_on;
-    ShiftFlag = input_key_event_held(KKEY_LSHIFT) || input_key_event_held(KKEY_RSHIFT);
+    AltFlag = input_key_event_held(ACT_MOD_ALT_L_KKEY) || input_key_event_held(ACT_MOD_ALT_R_KKEY);
+    ControlFlag = input_key_event_held(ACT_MOD_CTRL_L_KKEY) || debug_overlay_locked_on;
+    ShiftFlag = input_key_event_held(ACT_MOD_SHIFT_L_KKEY) || input_key_event_held(ACT_MOD_SHIFT_R_KKEY);
 }
 
 // uc_orig: SetupKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
