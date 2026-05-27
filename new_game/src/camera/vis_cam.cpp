@@ -975,17 +975,25 @@ void VC_process(void)
         if (in_collision) {
             // COLLISION mode.
             //   Sustained ticks: blend prev → freshly computed raw_vc.
-            //   First tick of contact: hold at fc identity (no pull-in
-            //     yet). The probe-extension early-detection means raw_vc
-            //     can have a non-trivial pull-in on the very first
-            //     detection (up to ~10 cm due to discrete probe step
+            //   First tick of contact (gamepad path): hold at fc identity
+            //     (no pull-in yet). The probe-extension early-detection
+            //     means raw_vc can have a non-trivial pull-in on the very
+            //     first detection (up to ~10 cm due to discrete probe step
             //     resolution × WALL_OFFSET); snapping straight to that
-            //     reads as a visible jerk. Starting at fc identity and
-            //     letting the standard 60/40 blend below pull toward
-            //     raw_vc over subsequent ticks spreads the pull-in
-            //     across ~5 ticks (≈0.25 s) — perceived as smooth.
+            //     reads as a visible jerk on gamepad, where rotation is
+            //     smoothed and fc moves into the wall gradually. The
+            //     60/40 blend below then pulls toward raw_vc over ~5 ticks.
+            //   First tick of contact (KBM path): use raw_vc immediately,
+            //     no fc-identity snap. KBM rotation is INSTANT (no angle
+            //     smoothing), so a single fast mouse flick can land fc
+            //     deep inside the wall in one tick. Snapping vc to fc on
+            //     that tick would render one frame from INSIDE the wall.
+            //     Using raw_vc (which already has the wall offset applied
+            //     by vc_process_one) keeps the camera outside the wall.
+            //     The "visible jerk" the gamepad path avoids is preferable
+            //     to a one-frame inside-wall render.
+            const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
             if (s.mode == VC_SM_COLLISION) {
-                const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
                 const SLONG alpha_num = kbm ? VC_SMOOTH_ALPHA_NUM_KBM : VC_SMOOTH_ALPHA_NUM;
                 const SLONG alpha_den = kbm ? VC_SMOOTH_ALPHA_DEN_KBM : VC_SMOOTH_ALPHA_DEN;
                 const SLONG keep = alpha_den - alpha_num;
@@ -1000,9 +1008,13 @@ void VC_process(void)
                     / alpha_den);
             } else {
                 s.mode = VC_SM_COLLISION;
-                vc.x = fc->x;
-                vc.y = fc->y;
-                vc.z = fc->z;
+                if (!kbm) {
+                    vc.x = fc->x;
+                    vc.y = fc->y;
+                    vc.z = fc->z;
+                }
+                // KBM: leave vc at vc_process_one's computed wall-offset
+                // position (no fc-identity override).
             }
             s.prev_x = vc.x;
             s.prev_y = vc.y;
