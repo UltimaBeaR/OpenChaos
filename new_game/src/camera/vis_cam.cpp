@@ -7,6 +7,8 @@
 #include "engine/core/fixed_math.h"   // MUL64
 #include "engine/core/macros.h"       // QDIST2, QDIST3, WITHIN
 #include "engine/core/math.h"         // SIN / COS
+#include "engine/input/gamepad.h"     // InputDeviceType
+#include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/physics/collide.h"   // there_is_a_los, LOS_FLAG_*
 #include "buildings/prim_types.h"     // PrimFace4, PrimPoint
 #include "game/game_types.h"          // TO_THING, THINGS, THING_NUMBER
@@ -115,6 +117,16 @@ static const SLONG VC_RAY_SAMPLES = 32;
 // stay snap-responsive on purpose.
 static const SLONG VC_SMOOTH_ALPHA_NUM = 6;
 static const SLONG VC_SMOOTH_ALPHA_DEN = 10;
+
+// Keyboard+mouse: ZERO wall-smoothing. The gamepad path uses 60/40 to
+// mask `min_d_hit` jitter while sliding along walls (R-stick orbit is
+// slow enough that the smoothing tail feels right). On mouse, ALL
+// rotation smoothing is disabled (mdx/mdy snap fc=want, the FC angle
+// smoothing pass is gated to snap mode too) — adding any wall smoothing
+// reintroduces a "different mode" rubber-band on contact. 10/10 means
+// keep=0, i.e. vc = computed_vc instantly each tick.
+static const SLONG VC_SMOOTH_ALPHA_NUM_KBM = 10;
+static const SLONG VC_SMOOTH_ALPHA_DEN_KBM = 10;
 
 // MAVHEIGHT delta above the focus cell needed to count a sample as "wall".
 // Without this, MAV_inside returns true on every step along flat ground —
@@ -973,16 +985,19 @@ void VC_process(void)
             //     raw_vc over subsequent ticks spreads the pull-in
             //     across ~5 ticks (≈0.25 s) — perceived as smooth.
             if (s.mode == VC_SM_COLLISION) {
-                SLONG keep = VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM;
+                const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
+                const SLONG alpha_num = kbm ? VC_SMOOTH_ALPHA_NUM_KBM : VC_SMOOTH_ALPHA_NUM;
+                const SLONG alpha_den = kbm ? VC_SMOOTH_ALPHA_DEN_KBM : VC_SMOOTH_ALPHA_DEN;
+                const SLONG keep = alpha_den - alpha_num;
                 vc.x = (SLONG)(((std::int64_t)s.prev_x * keep
-                        + (std::int64_t)vc.x * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
+                        + (std::int64_t)vc.x * alpha_num)
+                    / alpha_den);
                 vc.y = (SLONG)(((std::int64_t)s.prev_y * keep
-                        + (std::int64_t)vc.y * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
+                        + (std::int64_t)vc.y * alpha_num)
+                    / alpha_den);
                 vc.z = (SLONG)(((std::int64_t)s.prev_z * keep
-                        + (std::int64_t)vc.z * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
+                        + (std::int64_t)vc.z * alpha_num)
+                    / alpha_den);
             } else {
                 s.mode = VC_SM_COLLISION;
                 vc.x = fc->x;
@@ -1017,9 +1032,11 @@ void VC_process(void)
                     // because the lerp mechanism is unchanged — only the
                     // target switched (from collision-shifted to identity)
                     // and the weight started shrinking.
-                    SLONG keep_num = (VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM)
-                                     * s.exit_ticks_left;
-                    SLONG keep_den = VC_EXIT_TICKS * VC_SMOOTH_ALPHA_DEN;
+                    const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
+                    const SLONG alpha_num = kbm ? VC_SMOOTH_ALPHA_NUM_KBM : VC_SMOOTH_ALPHA_NUM;
+                    const SLONG alpha_den = kbm ? VC_SMOOTH_ALPHA_DEN_KBM : VC_SMOOTH_ALPHA_DEN;
+                    SLONG keep_num = (alpha_den - alpha_num) * s.exit_ticks_left;
+                    SLONG keep_den = VC_EXIT_TICKS * alpha_den;
                     SLONG drop_num = keep_den - keep_num;
                     SLONG fc_x = vc.x, fc_y = vc.y, fc_z = vc.z;
                     vc.x = (SLONG)(((std::int64_t)s.prev_x * keep_num

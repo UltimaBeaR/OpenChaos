@@ -71,6 +71,12 @@ extern BOOL PLAYCUTS_playing;
 #define MOUSE_ORBIT_LAG     5
 #define STICK_ORBIT_LAG     61
 
+// Note on mouse: the LAG mechanism is bypassed entirely on KBM (see the
+// mdx block in FC_process — full snap on both want and fc, no residual).
+// MOUSE_ORBIT_LAG is kept as a constant for documentation / parity with
+// the stick path, in case a future "automatic camera mode" wants to
+// re-enable a small smoothing tail for mouse.
+
 // Camera Y range, relative to focus_y (the character's vertical position).
 // Same numbers for mouse and gamepad — the camera-elevation range must
 // not depend on which input device is active. Lower bound is kept well
@@ -748,6 +754,105 @@ void FC_setup_camera_for_warehouse(SLONG cam)
     fc->toonear = UC_FALSE;
 }
 
+// Apply a Y delta to (px, py, pz) point relative to fc->focus AND adjust
+// the XZ position so the 3D distance to focus is preserved. Geometrically
+// equivalent to rotating the point around focus in its meridional plane
+// (the vertical plane containing focus, the point, and the world Y axis).
+//
+// Used by the mouse vertical orbit: mouse-Y motion ARCS the camera up/down
+// around the focus character (camera rises and moves closer in XZ when
+// looking up, lowers and moves farther in XZ when looking down) — same
+// philosophy as horizontal mouse, which orbits in the XZ plane around
+// focus. The plain Y-translation that this replaces produced a visible
+// "camera lifts straight up while view tilts to keep aiming at focus"
+// effect that felt off once vertical smoothing was tightened to match
+// horizontal snappiness.
+//
+// The Y value is clamped UNCONDITIONALLY to the same focus-relative range
+// the gamepad stick path uses (FC_CAM_Y_MIN/MAX_ABOVE_FOCUS). An earlier
+// "only clamp if THIS call crosses the boundary" version let overshoot
+// accumulate (e.g. focus_y moves DOWN, max_y drops, want_y now above new
+// max_y — but `old_py <= max_y` condition then failed and the clamp
+// silently stopped working, so further mouse-up pushed want_y past the
+// nominal limit without bound).
+// Pitch angle limits in game-angle units (2048 = 360°). Matched to the
+// gamepad's effective pitch range at default cam_dist:
+//   MIN: atan(FC_CAM_Y_MIN_ABOVE_FOCUS / target_xz) ≈ 11° = ~64 units
+//   MAX: atan(FC_CAM_Y_MAX_ABOVE_FOCUS / target_xz) ≈ 53° = ~302 units
+// The clamp is on the ANGLE itself, not on Y position — so the camera
+// never pitches steeper than ~53° (no bird's-eye view) regardless of
+// dist3d. Earlier Y-position-based clamping allowed pitch to approach
+// 90° when dist3d was small (camera straight above focus, looking down).
+static const SLONG KBM_PITCH_MIN = 64;
+static const SLONG KBM_PITCH_MAX = 302;
+
+static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLONG y_delta)
+{
+    if (y_delta == 0)
+        return;
+
+    const int64_t old_dx = (int64_t)(*px) - fc->focus_x;
+    const int64_t old_dz = (int64_t)(*pz) - fc->focus_z;
+    const int64_t old_off_y = (int64_t)(*py) - fc->focus_y;
+    const int64_t old_xz_sq = old_dx * old_dx + old_dz * old_dz;
+    const int64_t dist3d_sq = old_xz_sq + old_off_y * old_off_y;
+
+    // dist3d (fc-units). Pre-shift by 16 to keep Root() input within SLONG.
+    const SLONG dist3d = (SLONG)((int64_t)Root((SLONG)(dist3d_sq >> 16)) << 8);
+
+    // Convert pitch limits to Y offset using off_y = dist3d * sin(pitch).
+    // SIN/COS in this engine return 16-bit fixed point ([-65536, +65536]),
+    // so shift the product right by 16 to get fc-units.
+    const int64_t pitch_max_off_y = ((int64_t)dist3d * SIN(KBM_PITCH_MAX)) >> 16;
+    const int64_t pitch_min_off_y = ((int64_t)dist3d * SIN(KBM_PITCH_MIN)) >> 16;
+
+    // Combine with gamepad's absolute Y range. Take the TIGHTER of the
+    // two per side so that:
+    //   - max never exceeds gamepad MAX (no extra-high camera at large dist3d).
+    //   - min never goes below gamepad MIN (no extra-low camera at small dist3d
+    //     — without this, pitch=11° on a shrunk dist3d gives a Y offset less
+    //     than the gamepad floor, which the user perceived as mouse allowing
+    //     the camera lower than the gamepad does).
+    int64_t max_off_y = (pitch_max_off_y < FC_CAM_Y_MAX_ABOVE_FOCUS)
+                        ? pitch_max_off_y
+                        : (int64_t)FC_CAM_Y_MAX_ABOVE_FOCUS;
+    int64_t min_off_y = (pitch_min_off_y > FC_CAM_Y_MIN_ABOVE_FOCUS)
+                        ? pitch_min_off_y
+                        : (int64_t)FC_CAM_Y_MIN_ABOVE_FOCUS;
+    if (min_off_y > max_off_y) min_off_y = max_off_y;
+
+    int64_t new_off_y = old_off_y + y_delta;
+    if (new_off_y > max_off_y) new_off_y = max_off_y;
+    if (new_off_y < min_off_y) new_off_y = min_off_y;
+
+    const SLONG new_py = (SLONG)(new_off_y + fc->focus_y);
+    if (new_py == *py)
+        return;
+
+    // New XZ derived from preserved 3D distance.
+    int64_t new_xz_sq = dist3d_sq - new_off_y * new_off_y;
+    if (new_xz_sq < 0) new_xz_sq = 0;
+
+    *py = new_py;
+
+    if (old_xz_sq > 0) {
+        const SLONG old_xz_root = Root((SLONG)(old_xz_sq >> 16));
+        const SLONG new_xz_root = Root((SLONG)(new_xz_sq >> 16));
+        if (old_xz_root > 0) {
+            *px = fc->focus_x + (SLONG)(old_dx * new_xz_root / old_xz_root);
+            *pz = fc->focus_z + (SLONG)(old_dz * new_xz_root / old_xz_root);
+        }
+    } else if (new_xz_sq > 0) {
+        // Degenerate recovery: old XZ was 0 (legacy state from before
+        // pitch was angle-clamped). Place point behind the character
+        // per fc->focus_yaw — same direction as FC_setup_initial_camera.
+        const SLONG new_xz = (SLONG)((int64_t)Root((SLONG)(new_xz_sq >> 16)) << 8);
+        const SLONG fyaw = fc->focus_yaw & 2047;
+        *px = fc->focus_x - (SLONG)(((int64_t)SIN(fyaw) * new_xz) >> 16);
+        *pz = fc->focus_z - (SLONG)(((int64_t)COS(fyaw) * new_xz) >> 16);
+    }
+}
+
 // Main camera update called once per frame. Processes each active camera in FC_cam[].
 // Steps per camera:
 //   1. Skip if focus == NULL (inactive).
@@ -1003,34 +1108,20 @@ void FC_process()
                 input_mouse_consume_rel(&mdx, &mdy);
 
                 if (mdx != 0) {
-                    // True rotation around focus, with a constant
-                    // angular residual lag for the "rubber band" feel.
+                    // Horizontal mouse orbit: rotate camera position
+                    // around focus in XZ by `angle`. Full snap on both
+                    // want AND fc (no MOUSE_ORBIT_LAG residual) — KBM
+                    // rotation is intentionally instant. yaw/want_yaw
+                    // do NOT need to be updated here: FC_look_at_focus
+                    // (later in the pipeline) recomputes want_yaw from
+                    // the new want geometry, and the KBM-gated angle
+                    // smoothing block then snaps fc->yaw = want_yaw.
                     //
-                    // want_x/z always rotates by the full input angle
-                    // (it's the target). fc->x/z and fc->yaw sync to
-                    // angle MINUS a fixed residual (MOUSE_ORBIT_LAG
-                    // game units). The leftover lag is closed by the
-                    // standard position + angle smoothing blocks
-                    // (25%/tick), giving the keep-rotating-after-
-                    // release effect at all speeds.
-                    //
-                    // Behaviour by input magnitude:
-                    //   - Slow (|angle| <= LAG): sync_angle stays 0 --
-                    //     identical to legacy lag for that tick.
-                    //   - Medium: partial sync, the residual being LAG.
-                    //   - Fast flick: nearly all synced, leaving only
-                    //     LAG as residual -- so no chord dive through
-                    //     Darci, but rubber band feel is preserved.
-                    SLONG angle = mdx * MOUSE_YAW_SCALE_Q8 / 256;
-                    SLONG sync_angle;
-                    if (angle >  MOUSE_ORBIT_LAG)  sync_angle = angle - MOUSE_ORBIT_LAG;
-                    else if (angle < -MOUSE_ORBIT_LAG) sync_angle = angle + MOUSE_ORBIT_LAG;
-                    else                           sync_angle = 0;
-
                     // CCW rotation (matches the original Euler-step
                     // direction for positive mdx): new_rx = rx*c - rz*s,
                     // new_rz = rx*s + rz*c. 64-bit math to avoid overflow
                     // at large camera offsets.
+                    SLONG angle = mdx * MOUSE_YAW_SCALE_Q8 / 256;
                     SLONG s_full = SIN(angle & 2047);
                     SLONG c_full = COS(angle & 2047);
                     int64_t rx, rz;
@@ -1041,21 +1132,7 @@ void FC_process()
     (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
 
                     ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
-
-                    if (sync_angle != 0) {
-                        // Yaw sign: Arctan in this engine measures CW
-                        // from -Y, so for our CCW position rotation by
-                        // +sync_angle, want_yaw as recomputed by
-                        // FC_look_at_focus DECREASES by sync_angle --
-                        // so subtract here to keep position and look
-                        // direction in step.
-                        SLONG s_sync = SIN(sync_angle & 2047);
-                        SLONG c_sync = COS(sync_angle & 2047);
-                        ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
-                        SLONG yaw_mask = (2048 << 8) - 1;
-                        fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
-                        fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
-                    }
+                    ORBIT_PT(fc->x,      fc->z,      s_full, c_full);
 #undef ORBIT_PT
 
                     fc->nobehind = 0x2000;
@@ -1063,20 +1140,35 @@ void FC_process()
                 }
 
                 if (mdy != 0) {
-                    // Direction governed by MOUSE_INVERT_Y (top of
-                    // file). 1 = mouse-up lowers camera (FPS-style
-                    // inverted look), 0 = mouse-up raises camera.
-                    // mdy is positive when mouse moves down (SDL
-                    // convention).
+                    // Vertical mouse = orbital pitch around focus.
+                    // Camera arcs up/down on a sphere around the focus
+                    // character — looking up lifts the camera AND moves
+                    // it closer in XZ; looking down lowers it AND moves
+                    // it farther in XZ. 3D distance to focus is held
+                    // constant by the helper.
                     //
-                    // NOTE: no min/max clamp here. The character-
-                    // tracking block below clamps want_y once per
-                    // frame; clamping here too produced a double-step
+                    // Same MOUSE_INVERT_Y semantics as before: =1 means
+                    // mouse-up lowers the camera (FPS-style inverted),
+                    // =0 means mouse-up raises it. mdy is positive when
+                    // mouse moves down (SDL convention).
+                    //
+                    // Full snap on both want AND fc — no rotation
+                    // rubber-band. fc->pitch is NOT explicitly updated
+                    // here: FC_look_at_focus (later in the pipeline)
+                    // recomputes want_pitch from the new want geometry,
+                    // and the KBM-gated angle smoothing block snaps
+                    // fc->pitch = want_pitch.
+                    //
+                    // No want_y clamp here — clamping is done inside the
+                    // helper, only when THIS call crosses the boundary,
+                    // so the focus-tracking delta below doesn't see a
+                    // double clamp (which historically produced a -2Δ
                     // jerk when want_y was at the clamp AND focus_y
-                    // moved (clamp here drops want_y by Δ, then the
-                    // delta-tracking block adds Δ → net -2Δ).
+                    // moved at the same time).
                     SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
-                    fc->want_y += height_delta;
+
+                    apply_pitch_y_delta(fc, &fc->want_x, &fc->want_y, &fc->want_z, height_delta);
+                    apply_pitch_y_delta(fc, &fc->x,      &fc->y,      &fc->z,      height_delta);
 
                     fc->nobehind = 0x2000;
                 }
@@ -1247,16 +1339,45 @@ void FC_process()
             SLONG focus_dz = fc->focus_z - s_prev_focus_z[cam];
             const SLONG VC_FOCUS_SPEED_CAP   = 0x3000;   // ~9 cm/tick
             const SLONG TELEPORT_THRESHOLD   = 0x40000;
+            // Guard against huge deltas (focus teleport on level load /
+            // mission start) so we don't launch want across the map.
             if (abs(focus_dx) < TELEPORT_THRESHOLD
                 && abs(focus_dz) < TELEPORT_THRESHOLD) {
-                SLONG track_dx = 0;
-                SLONG track_dz = 0;
-                if      (focus_dx >  VC_FOCUS_SPEED_CAP) track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
-                else if (focus_dx < -VC_FOCUS_SPEED_CAP) track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
-                if      (focus_dz >  VC_FOCUS_SPEED_CAP) track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
-                else if (focus_dz < -VC_FOCUS_SPEED_CAP) track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
-                fc->want_x += track_dx;
-                fc->want_z += track_dz;
+                if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+                    // Keyboard+mouse: rigidly translate the camera by
+                    // the FULL focus delta — not just the excess above
+                    // a cap. This is what keeps the camera's world-space
+                    // angle FIXED relative to the character: if camera
+                    // and focus move by the same vector each tick, the
+                    // camera→focus offset is constant, so look_at_focus
+                    // computes the same want_yaw and the camera never
+                    // spontaneously rotates on character motion. Mouse
+                    // is the only thing that changes the angle.
+                    //
+                    // All downstream smoothing is preserved: want→x
+                    // position smoothing, distance clamp, and the
+                    // character side's own animation/physics smoothing
+                    // of focus_x/z all still run. So bumps, stairs, and
+                    // mid-step jitter come through with the same feel as
+                    // gamepad — just no auto-rotation.
+                    fc->want_x += focus_dx;
+                    fc->want_z += focus_dz;
+                } else {
+                    // Gamepad: excess-speed tracking. Below cap the
+                    // contribution is 0 (original walk/run feel kept,
+                    // get-behind decides where the camera ends up);
+                    // above cap the excess is absorbed so manual orbit
+                    // can fight only `cap`-per-tick drag instead of full
+                    // vehicle speed.
+                    SLONG track_dx = 0;
+                    SLONG track_dz = 0;
+                    if      (focus_dx >  VC_FOCUS_SPEED_CAP) track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dx < -VC_FOCUS_SPEED_CAP) track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
+                    if      (focus_dz >  VC_FOCUS_SPEED_CAP) track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dz < -VC_FOCUS_SPEED_CAP) track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
+                    fc->want_x += track_dx;
+                    fc->want_z += track_dz;
+                }
             }
             s_prev_focus_x[cam] = fc->focus_x;
             s_prev_focus_z[cam] = fc->focus_z;
@@ -1278,12 +1399,24 @@ void FC_process()
         // L2 release to wipe an active mouse-orbit lock-out. The two
         // suppressions are independent.
         const bool l2_freeze_get_behind = input_l2_is_held();
+        // Keyboard+mouse: no automatic camera rotation at all. The mouse
+        // is the ONLY thing that rotates the camera in this mode — no
+        // get-behind pull when the character moves, no inactivity-timer
+        // snap-back. Same philosophy as modern FPS / TPS games on PC.
+        // We still let `nobehind` decrement normally so that if the
+        // player switches back to the gamepad the state is sane (the
+        // residual manual-input lockout counts down rather than being
+        // frozen at whatever the last mouse orbit set it to).
+        const bool kbm_freeze_get_behind = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
         if (!fc->toonear && !l2_freeze_get_behind) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
                 }
+            } else if (kbm_freeze_get_behind) {
+                // Keyboard+mouse mode: skip auto get-behind entirely.
+                // Mouse orbit is the sole camera rotation source.
             } else if (fc->focus->Class == CLASS_PERSON
                 && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT
                 && (SLONG)GAME_TURN >= fc->fight_behind_until) {
@@ -1428,7 +1561,23 @@ void FC_process()
             dist <<= 8;
         }
 
-        if (dist < FC_DIST_MIN) {
+        // On keyboard+mouse the XZ-distance clamp is one-sided: ONLY the
+        // "too far" branch runs. The "too close" branch (push want away
+        // from focus when XZ < target) would undo the mouse orbital
+        // pitch on every tick — orbital deliberately shrinks XZ as the
+        // camera arcs up around the focus. Skipping it preserves orbital.
+        //
+        // The "too far" branch is kept because it provides sprint
+        // recovery: during sprint, want's XZ stays at target (translation
+        // tracking preserves the offset), but `fc` lags via position
+        // smoothing and the visible camera-to-focus XZ distance grows
+        // (the zoom-out effect — desired immersion). When the sprint
+        // ends, the position smoothing collapse threshold (`if QDIST3 <
+        // 0x800 { want = fc }`) pins want at fc's lagged position. The
+        // very next tick this clamp catches it (want's XZ > target),
+        // pulls want back to target XZ, and fc smooths in.
+        const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
+        if (!kbm && dist < FC_DIST_MIN) {
             if (!fc->toonear) {
                 ddist = FC_DIST_MIN - dist;
 
@@ -1476,32 +1625,44 @@ void FC_process()
         FC_look_at_focus(fc);
 
         // Smooth angles: want → actual >>2.
-        SLONG dyaw = fc->want_yaw - fc->yaw;
-        SLONG dpitch = fc->want_pitch - fc->pitch;
-        SLONG droll = fc->want_roll - fc->roll;
-
-        dyaw &= (2048 << 8) - 1;
-        dpitch &= (2048 << 8) - 1;
-        droll &= (2048 << 8) - 1;
-
-        if (dyaw > (1024) << 8) {
-            dyaw -= (2048 << 8);
-        }
-        if (dpitch > (1024) << 8) {
-            dpitch -= (2048 << 8);
-        }
-        if (droll > (1024) << 8) {
-            droll -= (2048 << 8);
-        }
-
-        if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
-            fc->yaw += dyaw >> 2;
-            fc->pitch += dpitch >> 2;
-            fc->roll += droll >> 2;
+        //
+        // Keyboard+mouse skip: KBM does ZERO rotation smoothing. Any
+        // smoothing here would be perceived as a rubber-band tail on
+        // mouse rotation (the mouse mdx/mdy blocks above also snap fc
+        // directly to want for the same reason). Just collapse fc =
+        // want every tick. Gamepad path keeps the legacy 25%/tick smoothing.
+        if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            fc->yaw   = fc->want_yaw;
+            fc->pitch = fc->want_pitch;
+            fc->roll  = fc->want_roll;
         } else {
-            fc->want_yaw = fc->yaw;
-            fc->want_pitch = fc->pitch;
-            fc->want_roll = fc->roll;
+            SLONG dyaw = fc->want_yaw - fc->yaw;
+            SLONG dpitch = fc->want_pitch - fc->pitch;
+            SLONG droll = fc->want_roll - fc->roll;
+
+            dyaw &= (2048 << 8) - 1;
+            dpitch &= (2048 << 8) - 1;
+            droll &= (2048 << 8) - 1;
+
+            if (dyaw > (1024) << 8) {
+                dyaw -= (2048 << 8);
+            }
+            if (dpitch > (1024) << 8) {
+                dpitch -= (2048 << 8);
+            }
+            if (droll > (1024) << 8) {
+                droll -= (2048 << 8);
+            }
+
+            if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
+                fc->yaw += dyaw >> 2;
+                fc->pitch += dpitch >> 2;
+                fc->roll += droll >> 2;
+            } else {
+                fc->want_yaw = fc->yaw;
+                fc->want_pitch = fc->pitch;
+                fc->want_roll = fc->roll;
+            }
         }
 
         // Fixed lens (FOV). Fight zoom is commented out in original.
