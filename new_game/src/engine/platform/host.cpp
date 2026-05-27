@@ -43,12 +43,18 @@ static void on_mouse_move(int x, int y, int xrel, int yrel)
 
 static void on_mouse_button(int button, bool down, int /*x*/, int /*y*/)
 {
-    // Capture state machine consumes the engagement click. Any click
-    // beyond that is left untouched here — gameplay-side consumers
-    // (camera, shooting) will read mouse buttons via their own path and
-    // are required to gate on mouse_capture_is_active().
+    // Capture state machine consumes the engagement click. Subsequent
+    // clicks (capture already engaged) pass through to input_frame, which
+    // exposes them to gameplay via input_mouse_btn_*(). The wait-for-
+    // release gate inside input_frame (armed on UI overlay close by
+    // input_consume_all_held_until_released) prevents a held button from
+    // leaking across overlay transitions.
     if (mouse_capture_on_button(button, down))
         return;
+    if (down)
+        input_frame_on_mouse_button_down(button);
+    else
+        input_frame_on_mouse_button_up(button);
 }
 
 void host_on_focus_changed(bool focused)

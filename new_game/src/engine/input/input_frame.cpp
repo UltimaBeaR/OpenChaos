@@ -64,6 +64,22 @@ UBYTE s_btns_prev[INPUT_BTN_COUNT];
 // be entirely between two ticks — sticky pending closes that gap.
 UBYTE s_btns_press_pending[INPUT_BTN_COUNT];
 
+// Mouse button state — event-driven (like keyboard) since SDL emits
+// per-event. INPUT_MBTN_COUNT = 3 (LEFT / MIDDLE / RIGHT). Mirrors the
+// keyboard state machine: event_held set by SDL down/up hooks; curr/prev
+// snapshot at frame start; press_pending sticky-latched on rising edge;
+// pressed_during_frame catches same-frame press+release. The wait-for-
+// release gate (s_mbtns_consume_until_released) ensures a button held
+// across a UI transition doesn't fire as a fresh action in the first
+// post-transition gameplay tick — same semantic as the keyboard gate.
+constexpr SLONG INPUT_MBTN_COUNT = 3;
+UBYTE s_mbtns_curr[INPUT_MBTN_COUNT];
+UBYTE s_mbtns_prev[INPUT_MBTN_COUNT];
+UBYTE s_mbtns_event_held[INPUT_MBTN_COUNT];
+UBYTE s_mbtns_pressed_during_frame[INPUT_MBTN_COUNT];
+UBYTE s_mbtns_press_pending[INPUT_MBTN_COUNT];
+UBYTE s_mbtns_consume_until_released[INPUT_MBTN_COUNT];
+
 // Virtual stick directions — boolean per (stick, dir). Computed from
 // continuous stick values with hysteresis so wobbling near the threshold
 // doesn't flicker pressed/released. Mutual exclusion: simultaneous up+down
@@ -134,6 +150,7 @@ float apply_stick_deadzone(int raw)
 
 bool key_in_range(SLONG kb_code) { return kb_code >= 0 && kb_code < INPUT_KEY_COUNT; }
 bool btn_in_range(SLONG btn_idx) { return btn_idx >= 0 && btn_idx < INPUT_BTN_COUNT; }
+bool mbtn_in_range(SLONG mbtn_idx) { return mbtn_idx >= 0 && mbtn_idx < INPUT_MBTN_COUNT; }
 bool stick_in_range(InputStickId stick) { return SLONG(stick) >= 0 && SLONG(stick) < INPUT_STICK_COUNT; }
 bool dir_in_range(InputStickDir dir) { return SLONG(dir) >= 0 && SLONG(dir) < INPUT_DIR_COUNT; }
 
@@ -163,6 +180,12 @@ void input_frame_init()
     memset(s_btns_curr, 0, sizeof(s_btns_curr));
     memset(s_btns_prev, 0, sizeof(s_btns_prev));
     memset(s_btns_press_pending, 0, sizeof(s_btns_press_pending));
+    memset(s_mbtns_curr, 0, sizeof(s_mbtns_curr));
+    memset(s_mbtns_prev, 0, sizeof(s_mbtns_prev));
+    memset(s_mbtns_event_held, 0, sizeof(s_mbtns_event_held));
+    memset(s_mbtns_pressed_during_frame, 0, sizeof(s_mbtns_pressed_during_frame));
+    memset(s_mbtns_press_pending, 0, sizeof(s_mbtns_press_pending));
+    memset(s_mbtns_consume_until_released, 0, sizeof(s_mbtns_consume_until_released));
     memset(s_stick_dir_curr, 0, sizeof(s_stick_dir_curr));
     memset(s_stick_dir_prev, 0, sizeof(s_stick_dir_prev));
     memset(s_keys_next_fire, 0, sizeof(s_keys_next_fire));
@@ -213,6 +236,25 @@ void input_frame_update()
         }
     }
 
+    memcpy(s_mbtns_prev, s_mbtns_curr, sizeof(s_mbtns_curr));
+    for (SLONG i = 0; i < INPUT_MBTN_COUNT; i++) {
+        // OR pressed-during-frame so a same-frame press+release stays visible
+        // for exactly one snapshot. Cleared after read.
+        s_mbtns_curr[i] = (s_mbtns_event_held[i] || s_mbtns_pressed_during_frame[i]) ? 1 : 0;
+        s_mbtns_pressed_during_frame[i] = 0;
+
+        // Wait-for-release: same semantic as the keyboard gate. Cleared the
+        // first snapshot after the user has physically released the button.
+        if (s_mbtns_consume_until_released[i]) {
+            if (!s_mbtns_event_held[i]) {
+                s_mbtns_consume_until_released[i] = 0;
+            } else {
+                s_mbtns_curr[i] = 0;
+                s_mbtns_press_pending[i] = 0;
+            }
+        }
+    }
+
     // Virtual stick directions — recompute from continuous stick values with
     // hysteresis. Done after gamepad snapshot so input_stick_x/y reads fresh
     // state.
@@ -260,6 +302,20 @@ void input_frame_on_key_down(UBYTE scancode)
 void input_frame_on_key_up(UBYTE scancode)
 {
     s_keys_event_held[scancode] = 0;
+}
+
+void input_frame_on_mouse_button_down(SLONG mbtn_idx)
+{
+    if (!mbtn_in_range(mbtn_idx)) return;
+    s_mbtns_event_held[mbtn_idx] = 1;
+    s_mbtns_pressed_during_frame[mbtn_idx] = 1;
+    s_mbtns_press_pending[mbtn_idx] = 1;
+}
+
+void input_frame_on_mouse_button_up(SLONG mbtn_idx)
+{
+    if (!mbtn_in_range(mbtn_idx)) return;
+    s_mbtns_event_held[mbtn_idx] = 0;
 }
 
 // ---- Keyboard ---------------------------------------------------------------
@@ -355,6 +411,49 @@ void input_btn_consume(SLONG btn_idx)
 {
     if (btn_in_range(btn_idx)) {
         s_btns_press_pending[btn_idx] = 0;
+    }
+}
+
+// ---- Mouse buttons ----------------------------------------------------------
+
+bool input_mouse_btn_held(SLONG mbtn_idx)
+{
+    return mbtn_in_range(mbtn_idx) && s_mbtns_curr[mbtn_idx];
+}
+
+bool input_mouse_btn_just_pressed(SLONG mbtn_idx)
+{
+    return mbtn_in_range(mbtn_idx) && s_mbtns_curr[mbtn_idx] && !s_mbtns_prev[mbtn_idx];
+}
+
+bool input_mouse_btn_just_released(SLONG mbtn_idx)
+{
+    return mbtn_in_range(mbtn_idx) && !s_mbtns_curr[mbtn_idx] && s_mbtns_prev[mbtn_idx];
+}
+
+bool input_mouse_btn_press_pending(SLONG mbtn_idx)
+{
+    return mbtn_in_range(mbtn_idx) && s_mbtns_press_pending[mbtn_idx];
+}
+
+void input_mouse_btn_consume(SLONG mbtn_idx)
+{
+    if (mbtn_in_range(mbtn_idx)) {
+        s_mbtns_press_pending[mbtn_idx] = 0;
+    }
+}
+
+// Arm the wait-for-release gate on every currently-held mouse button.
+// Mirror of input_keyboard_consume_all_held_until_released. Called from
+// input_consume_all_held_until_released on UI overlay close so a mouse
+// button held into the overlay doesn't fire as a fresh press on the
+// first gameplay tick after resume.
+static void input_mouse_btn_consume_all_held_until_released()
+{
+    for (SLONG i = 0; i < INPUT_MBTN_COUNT; i++) {
+        if (s_mbtns_event_held[i]) {
+            s_mbtns_consume_until_released[i] = 1;
+        }
     }
 }
 
@@ -537,6 +636,7 @@ void input_drain_all_press_pending()
 {
     memset(s_keys_press_pending, 0, sizeof(s_keys_press_pending));
     memset(s_btns_press_pending, 0, sizeof(s_btns_press_pending));
+    memset(s_mbtns_press_pending, 0, sizeof(s_mbtns_press_pending));
 }
 
 // ---- Bulk consume after UI overlay close ------------------------------------
@@ -547,6 +647,7 @@ void input_consume_all_held_until_released()
     gamepad_consume_all_held_buttons_until_released();
     gamepad_consume_held_triggers_until_released();
     gamepad_consume_held_sticks_until_rest();
+    input_mouse_btn_consume_all_held_until_released();
     input_mouse_drain_rel();
 
     // Also drop sticky press_pending. The wait-for-release gates above only

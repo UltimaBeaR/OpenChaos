@@ -4205,34 +4205,95 @@ ULONG get_hardware_input(UWORD type)
         // (continuous "while held" semantic — these drive INPUT_MASK_* bits
         // that downstream consumers sample as level state per physics tick).
 
-        // WASD movement: digital tanky-style path commented out below.
-        // WASD currently reads the arrow-key-replacement bindings
-        // (ACT_FOOT_MOVE_*_KKEY = KKEY_W/A/S/D) but is NOT consumed here —
-        // it gets picked up by the analog-stick-emulation path in step 7
-        // of new_game_devlog/input_system/keyboard_mouse_layout.md.
+        // WASD analog-stick emulation. Each held key contributes a unit
+        // signed component (W=-Y, S=+Y, A=-X, D=+X). When two perpendicular
+        // keys are held (e.g. W+D), the deflection vector is clamped to the
+        // unit circle — same magnitude as a real stick at 45° (≈0.7071 per
+        // axis, not 1.0+1.0 = √2). Result is packed into bits 18-31 of the
+        // input mask using the same encoding as the gamepad stick path
+        // (lines ~3778-3779 in this file), so downstream consumers
+        // (process_analogue_movement, etc.) see WASD identically to a stick.
         //
-        // Until step 7 lands, the character does not move on keyboard
-        // input. Gamepad movement is unaffected. The tanky-arrow handler
-        // below is kept commented as the reference implementation we'll
-        // re-enable for the "tank controls" opt-in setting (TODO-4).
+        // Runs AFTER the gamepad stick branch above, so if both gamepad
+        // stick and WASD are active, WASD takes precedence (overwrites the
+        // analog bits). Pragmatic: a player using both at once isn't a
+        // realistic case to optimize for; the simpler "last writer wins"
+        // rule avoids cross-source blending edge cases.
+        const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
+        const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
+        const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
+        const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
+
+        if (kb_fwd || kb_back || kb_left || kb_right) {
+            // Signed direction along each axis.
+            const SLONG vx_sign = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
+            const SLONG vy_sign = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+
+            // Deflection magnitude per axis:
+            //   1 axis active  → full deflection  AXIS_CENTRE = 32768
+            //   2 axes active  → diagonal — 32768 / sqrt(2) ≈ 23170 per
+            //                   axis, so the (vx, vy) magnitude stays at
+            //                   32768 just like a stick on its rim.
+            constexpr SLONG WASD_FULL_DEFLECTION_PER_AXIS = 32768;
+            constexpr SLONG WASD_DIAG_DEFLECTION_PER_AXIS = 23170;
+            const SLONG mag = (vx_sign != 0 && vy_sign != 0)
+                ? WASD_DIAG_DEFLECTION_PER_AXIS
+                : WASD_FULL_DEFLECTION_PER_AXIS;
+
+            SLONG axis_x = AXIS_CENTRE + vx_sign * mag;
+            SLONG axis_y = AXIS_CENTRE + vy_sign * mag;
+            if (axis_x < 0)     axis_x = 0;
+            if (axis_x > 65535) axis_x = 65535;
+            if (axis_y < 0)     axis_y = 0;
+            if (axis_y > 65535) axis_y = 65535;
+
+            // Clear any previous bits-18-31 packing from the JOY branch
+            // before writing WASD's, otherwise OR'ing in WASD on top of a
+            // partially-set gamepad packing would garble the magnitude.
+            input &= 0x0003FFFF;
+            analogue = 1;
+            input |= ((axis_x >> 9) + 0) << 18;
+            input |= ((axis_y >> 9) + 0) << 25;
+
+            // Digital direction flags — same thresholds as gamepad stick path.
+            if (axis_x > (SLONG)AXIS_MAX)
+                input |= INPUT_MASK_RIGHT;
+            else if (axis_x < (SLONG)AXIS_MIN)
+                input |= INPUT_MASK_LEFT;
+
+            if (axis_y > (SLONG)AXIS_MAX) {
+                input |= INPUT_MASK_BACKWARDS;
+            } else if (axis_y < (SLONG)AXIS_MIN) {
+                input |= INPUT_MASK_FORWARDS;
+                input |= INPUT_MASK_MOVE;
+            }
+
+            g_dwLastInputChangeTime = dwCurrentTime;
+        }
+
+        // Tanky-arrow reference implementation (kept for future TODO-4
+        // "tank controls" opt-in setting). When that toggle lands, gate
+        // this block on the setting and route it through the same input
+        // mask. Original Shift+arrow behaviour was strafe (STEP_LEFT/RIGHT)
+        // vs unmodified arrow = tank turn (LEFT/RIGHT).
         //
-        // const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
-        // const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
-        // const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
-        // const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
+        // const bool kb_tank_fwd   = input_key_held(ACT_FOOT_MOVE_TANK_FORWARD_KKEY);
+        // const bool kb_tank_back  = input_key_held(ACT_FOOT_MOVE_TANK_BACKWARD_KKEY);
+        // const bool kb_tank_left  = input_key_held(ACT_FOOT_MOVE_TANK_TURN_LEFT_KKEY);
+        // const bool kb_tank_right = input_key_held(ACT_FOOT_MOVE_TANK_TURN_RIGHT_KKEY);
         //
-        // if (kb_fwd || kb_back || kb_left || kb_right) {
+        // if (kb_tank_fwd || kb_tank_back || kb_tank_left || kb_tank_right) {
         //     analogue = 0;
         //     input &= 0x0003FFFF;
         // }
         //
-        // if (kb_fwd)  input |= INPUT_MASK_FORWARDS;
-        // if (kb_back) input |= INPUT_MASK_BACKWARDS;
-        // if (kb_left) {
+        // if (kb_tank_fwd)  input |= INPUT_MASK_FORWARDS;
+        // if (kb_tank_back) input |= INPUT_MASK_BACKWARDS;
+        // if (kb_tank_left) {
         //     if (ShiftFlag) input |= INPUT_MASK_STEP_LEFT;
         //     else           input |= INPUT_MASK_LEFT;
         // }
-        // if (kb_right) {
+        // if (kb_tank_right) {
         //     if (ShiftFlag) input |= INPUT_MASK_STEP_RIGHT;
         //     else           input |= INPUT_MASK_RIGHT;
         // }
@@ -4243,21 +4304,19 @@ ULONG get_hardware_input(UWORD type)
         if (input_key_held(ACT_FOOT_JUMP_KKEY))
             input |= INPUT_MASK_JUMP;
 
-        // PUNCH / KICK on keyboard layout moved to LMB / RMB respectively.
-        // Their keyboard reads (was KKEY_Z / KKEY_X) deleted here — the
-        // mouse-button equivalents are wired up in step 5 of
-        // new_game_devlog/input_system/keyboard_mouse_layout.md.
+        // LMB = punch (R2-trigger equivalent), RMB = kick (R1 equivalent).
+        // Digital reads: trigger-pull strength is not modeled on mouse —
+        // weapon_feel_evaluate_fire is bypassed on this path (same as the
+        // historical keyboard Z punch behavior). For melee that's fine;
+        // for gun fire the weapon's own cyclic-rate gating applies.
+        if (input_mouse_btn_held(ACT_FOOT_PUNCH_MBTN))
+            input |= INPUT_MASK_PUNCH;
+        if (input_mouse_btn_held(ACT_FOOT_KICK_MBTN))
+            input |= INPUT_MASK_KICK;
 
         if (input_key_held(ACT_FOOT_ACTION_KKEY)) {
             input |= INPUT_MASK_ACTION;
         }
-
-        // INPUT_MASK_MOVE was set from kb_fwd (forward arrow held). Commented
-        // out together with the tanky movement handler above — will be
-        // restored by the analog WASD path in step 7.
-        // if (kb_fwd) {
-        //     input |= INPUT_MASK_MOVE;
-        // }
     }
 
     if (input) {
@@ -4294,9 +4353,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    // Aim modifier on keyboard layout moved to MMB (middle mouse button).
-    // Keyboard read (was KKEY_A) deleted — MBTN equivalent added in step 5.
-    if (input_btn_held(ACT_FOOT_AIM_GBTN)) {
+    // Aim modifier: gamepad L1 hold OR middle mouse button hold.
+    if (input_btn_held(ACT_FOOT_AIM_GBTN) || input_mouse_btn_held(ACT_FOOT_AIM_MBTN)) {
         fpm = UC_TRUE;
     }
 

@@ -123,7 +123,7 @@ struct SDL3_Callbacks {
     // relative-mouse-mode the absolute coords are pinned but xrel/yrel
     // keep flowing — that's how the mouse camera reads infinite motion.
     void (*on_mouse_move)(int x, int y, int xrel, int yrel);
-    void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=right, 2=middle
+    void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=middle, 2=right (MBTN_*)
     void (*on_focus_gained)();
     void (*on_focus_lost)();
     void (*on_window_moved)();

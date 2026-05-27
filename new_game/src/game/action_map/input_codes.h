@@ -234,12 +234,16 @@
 #define KKEY_NUMPAD_PERIOD 0x53
 
 // =============================================================================
-// MBTN_* — Mouse buttons (SDL3 button indices, passed to mouse_capture_on_button).
+// MBTN_* — Mouse buttons. Normalized 0-indexed in source-of-truth order
+// LEFT / MIDDLE / RIGHT (spatial). SDL3 raw button codes (SDL_BUTTON_LEFT=1,
+// MIDDLE=2, RIGHT=3) are translated in sdl3_bridge to this scheme before
+// reaching input_frame. Used by input_mouse_btn_held() and friends, plus the
+// gameplay-side mouse-button action constants (ACT_FOOT_PUNCH_MBTN etc.).
 // =============================================================================
 
-#define MBTN_LEFT   1
-#define MBTN_MIDDLE 2
-#define MBTN_RIGHT  3
+#define MBTN_LEFT   0
+#define MBTN_MIDDLE 1
+#define MBTN_RIGHT  2
 
 // =============================================================================
 // MAXIS_* — Mouse motion axes. Symbolic markers for the two axes returned by

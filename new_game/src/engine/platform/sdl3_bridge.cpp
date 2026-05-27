@@ -754,12 +754,15 @@ bool sdl3_poll_events()
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         case SDL_EVENT_MOUSE_BUTTON_UP: {
             bool down = (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
+            // Translate SDL raw button codes (LEFT=1, MIDDLE=2, RIGHT=3) into
+            // the MBTN_* scheme (LEFT=0, MIDDLE=1, RIGHT=2) shared with
+            // input_codes.h and the input_frame mouse-button API.
             int btn = -1;
             if (e.button.button == SDL_BUTTON_LEFT)
                 btn = 0;
-            if (e.button.button == SDL_BUTTON_RIGHT)
-                btn = 1;
             if (e.button.button == SDL_BUTTON_MIDDLE)
+                btn = 1;
+            if (e.button.button == SDL_BUTTON_RIGHT)
                 btn = 2;
             if (btn >= 0 && s_callbacks.on_mouse_button)
                 s_callbacks.on_mouse_button(btn, down, (int)e.button.x, (int)e.button.y);

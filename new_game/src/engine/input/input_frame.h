@@ -146,7 +146,25 @@ float input_stick_y(InputStickId stick);
 
 float input_trigger(SLONG trigger_idx);
 
-// ---- Mouse ------------------------------------------------------------------
+// ---- Mouse buttons ----------------------------------------------------------
+// mbtn_idx = MBTN_LEFT / MBTN_MIDDLE / MBTN_RIGHT (0/1/2). Wired from SDL
+// mouse-button events in host.cpp::on_mouse_button — only events that occur
+// AFTER mouse capture is engaged are forwarded; the engagement click itself
+// is consumed by mouse_capture_on_button and never reaches input_frame.
+// On capture disengage (UI overlay open, focus loss), held buttons are
+// scrubbed by input_consume_all_held_until_released so they don't leak
+// across the transition.
+
+bool input_mouse_btn_held(SLONG mbtn_idx);
+bool input_mouse_btn_just_pressed(SLONG mbtn_idx);
+bool input_mouse_btn_just_released(SLONG mbtn_idx);
+
+// Sticky: was there a rising edge since the last consume? Same semantics as
+// input_btn_press_pending for the gamepad.
+bool input_mouse_btn_press_pending(SLONG mbtn_idx);
+void input_mouse_btn_consume(SLONG mbtn_idx);
+
+// ---- Mouse motion / position ------------------------------------------------
 // Wrappers around mouse_globals (cursor position) filled by mouse.cpp from
 // SDL3 events. Single source of truth for mouse reads.
 
@@ -301,5 +319,10 @@ void input_consume_all_held_until_released();
 
 void input_frame_on_key_down(UBYTE scancode);
 void input_frame_on_key_up(UBYTE scancode);
+
+// Called from host.cpp::on_mouse_button after mouse_capture_on_button has
+// declined to consume the click. button is in MBTN_LEFT/MIDDLE/RIGHT (0/1/2).
+void input_frame_on_mouse_button_down(SLONG mbtn_idx);
+void input_frame_on_mouse_button_up(SLONG mbtn_idx);
 
 #endif // ENGINE_INPUT_INPUT_FRAME_H

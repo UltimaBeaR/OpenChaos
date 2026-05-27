@@ -71,15 +71,28 @@ constexpr int ACT_FOOT_KICK_GBTN   = GBTN_R1;    // DS: R1, Xbox: RB
 // input_trigger_raw(GTRIG_R2) inside get_hardware_input.
 constexpr int ACT_FOOT_PUNCH_GTRIG = GTRIG_R2;
 
-// Punch / kick MBTN constants (LMB / RMB) — added in step 5 when the
-// mouse-button input_frame API lands. See keyboard_mouse_layout.md.
+// Mouse-button bindings for combat. LMB = punch (R2 trigger equivalent),
+// RMB = kick (R1 equivalent). Read via input_mouse_btn_held in
+// get_hardware_input. Mouse events only reach input_frame after mouse
+// capture is engaged (gating in host.cpp::on_mouse_button) — so clicks
+// in menus or while alt-tabbed do not register as gameplay actions.
+constexpr int ACT_FOOT_PUNCH_MBTN = MBTN_LEFT;
+constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
 
 // ---- L2 tactical mode (slow-walk + rolls) ----------------------------------
 // L2 analog trigger engages tactical mode (slow walk + ✕ does rolls / backflips
 // inside a 600 ms tap window). Read as input_trigger_raw(GTRIG_L2) with
 // ~10% engage / ~5% release hysteresis.
+//
+// Keyboard equivalent: Left Ctrl held = full engagement (treated as L2 at
+// 255). The tactical-mode state machine itself currently lives inside the
+// gamepad-connected branch of get_hardware_input — pulling it out so keyboard
+// players get full tactical-mode (slow walk + rolls/backflips with WASD as
+// direction source) is deferred (see keyboard_mouse_layout.md "что делаем
+// в конце").
 
 constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
+constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
 
 // ---- Inventory / weapon cycle (R3 / Tab) -----------------------------------
 // Opens / advances the inventory wheel popup. Read in
@@ -135,11 +148,10 @@ constexpr int ACT_FOOT_CAMERA_PITCH_MAXIS = MAXIS_Y;
 // Holding L1 on gamepad or the middle mouse button enters first-person aim
 // mode. Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as camera-toggle
 // press (edge) and aim modifier (hold). Two distinct ACT constants for the
-// two semantics on the same button. KKEY binding (was A) removed — aim is
-// now mouse-driven. MBTN constant will be added in step 5 when the
-// mouse-button input_frame API lands.
+// two semantics on the same button.
 
 constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
+constexpr int ACT_FOOT_AIM_MBTN = MBTN_MIDDLE;
 
 // ---- First-person look (arrow keys while aiming) ---------------------------
 // While in first-person aim, the arrow keys steer pitch / yaw of the look

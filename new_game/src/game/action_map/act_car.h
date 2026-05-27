@@ -35,10 +35,13 @@
 // ACT_FOOT_PUNCH_GTRIG / ACT_FOOT_TACTICAL_MODE_GTRIG (digital threshold vs
 // analog) but distinct semantic — two constants.
 //
-// Keyboard: accel = Z (via INPUT_MASK_PUNCH inside INPUT_CAR_KB_ACCELERATE),
-// brake = X (via INPUT_MASK_KICK inside INPUT_CAR_KB_DECELERATE). Reads happen
-// at the foot level (KKEY_Z / KKEY_X — see ACT_FOOT_PUNCH_KKEY / KICK_KKEY)
-// then go through the input-mask layer — these constants are semantic tags.
+// Keyboard (new layout): accel = W (via INPUT_MASK_FORWARDS+MOVE inside
+// INPUT_CAR_KB_ACCELERATE), brake = Space (via INPUT_MASK_JUMP inside
+// INPUT_CAR_KB_DECELERATE). The on-foot semantics of W and Space are
+// movement-forward and jump respectively — the same bits are reinterpreted
+// in the in-car branch of apply_button_input_car. These KKEY constants
+// below are semantic tags; the actual reads happen at the foot level
+// (ACT_FOOT_MOVE_FORWARD_KKEY / ACT_FOOT_JUMP_KKEY).
 
 constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
 constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital bit)
@@ -49,28 +52,24 @@ constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital
 constexpr int ACT_CAR_ACCEL_GTRIG = GTRIG_R2;
 constexpr int ACT_CAR_BRAKE_GTRIG = GTRIG_L2;
 
-constexpr int ACT_CAR_ACCEL_KKEY = KKEY_Z; // semantic tag — see header comment
-constexpr int ACT_CAR_BRAKE_KKEY = KKEY_X; // semantic tag — see header comment
+constexpr int ACT_CAR_ACCEL_KKEY = KKEY_W;     // semantic tag — see header comment
+constexpr int ACT_CAR_BRAKE_KKEY = KKEY_SPACE; // semantic tag — see header comment
 
-// "Go faster" modifier (accel + brake combined). Composed in
-// INPUT_CAR_KB_GOFASTER / INPUT_CAR_PAD_GOFASTER input masks; no direct
-// constant read at the call site. Semantic tag only.
-//
-// Note: SPACE = both car-siren (direct read) AND "go faster" (via
-// INPUT_MASK_JUMP inside INPUT_CAR_KB_GOFASTER). Two separate ACT names for
-// the two semantics on the same scancode.
-
-constexpr int ACT_CAR_GO_FASTER_KKEY = KKEY_SPACE; // semantic tag — see comment
+// "Go faster" modifier — kept as a semantic tag for historical reference.
+// VEH_FASTER is now always-on in apply_button_input_car (no input gating),
+// so this constant is unused at the call site. See input_actions.cpp.
+constexpr int ACT_CAR_GO_FASTER_KKEY = KKEY_W; // semantic tag — see comment
 
 // ---- Siren toggle ----------------------------------------------------------
 // Toggles siren / lights in apply_button_input_car. Edge-triggered via
 // input_frame's sticky press_pending (level signals would re-fire every
-// physics tick while held). Keyboard SPACE direct read; gamepad Triangle (Y)
-// direct read. Triangle is also the menu-cancel button — when not driving,
-// process_hardware_level_input_for_player drains the press_pending so a
-// menu-context Triangle press doesn't leak into the first car-entry tick.
+// physics tick while held). Keyboard E direct read; gamepad Triangle (Y)
+// direct read. Triangle is no longer the menu-cancel button (moved to
+// Circle) but the drain logic in process_hardware_level_input_for_player
+// still drains its press_pending while not driving so an on-foot Triangle
+// press doesn't leak into the first car-entry tick.
 
-constexpr int ACT_CAR_SIREN_KKEY = KKEY_SPACE;
+constexpr int ACT_CAR_SIREN_KKEY = KKEY_E;
 constexpr int ACT_CAR_SIREN_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
 
 // ---- Open dev console (gameplay-level hotkey) ------------------------------
