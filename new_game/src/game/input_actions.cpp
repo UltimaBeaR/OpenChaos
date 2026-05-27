@@ -3751,7 +3751,22 @@ ULONG get_hardware_input(UWORD type)
     DWORD dwCurrentTime = 0;
 
     if (type & INPUT_TYPE_JOY) {
-        if (input_gamepad_connected()) {
+        // Skip the entire gamepad block when KBM is the active input device.
+        // Without this, gamepad data leaks into the input mask (stick packing
+        // into bits 18-31, button bits, etc.) and tints the player input even
+        // though the user is on keyboard. Specifically: the gamepad block
+        // unconditionally packs CENTER stick into bits 18-31, which the
+        // keyboard path then relies on as the "neutral stick" baseline — so
+        // disconnecting the gamepad made GET_JOYX/Y return -128 (raw zero
+        // bits decode as full-deflection), the character was forced into
+        // STATE_MOVEING, action_run mapped PUNCH → ACTION_SHOOT, no gun →
+        // silent no-op → "click doesn't punch" bug.
+        //
+        // active_input_device is auto-switched by the input_frame layer when
+        // it sees any gamepad input, so the gate doesn't lock the user into
+        // KBM — the first gamepad input flips active_input_device to PAD and
+        // this block resumes running.
+        if (input_gamepad_connected() && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) {
             {
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
@@ -4257,6 +4272,29 @@ ULONG get_hardware_input(UWORD type)
             }
 
             g_dwLastInputChangeTime = dwCurrentTime;
+        } else if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            // No WASD held AND KBM is the active device. Pack CENTER stick
+            // (bits 18-31) so GET_JOYX/Y returns 0 — without this baseline,
+            // raw zero bits in 18-31 decode as -128 (full deflection), which
+            // process_analogue_movement interprets as "stick fully zenged" →
+            // character forced into STATE_MOVEING / ACTION_RUN → action_run
+            // table maps PUNCH → ACTION_SHOOT → no gun → silent no-op
+            // (the click-doesn't-punch bug).
+            //
+            // Previously the gamepad block above provided this baseline
+            // (always packing CENTER even when stick was at rest), but with
+            // gamepad now gated by active_input_device != KBM, that path no
+            // longer fires when KBM is active — so KBM must provide its own
+            // neutral baseline. Also covers the gamepad-disconnected case
+            // identically: bits 18-31 always have a valid encoding.
+            //
+            // Clear bits 18-31 first to drop any stale gamepad packing from
+            // a previous tick (in case active device was just switched).
+            constexpr SLONG WASD_AXIS_CENTRE_PACKED = 64;  // AXIS_CENTRE >> 9
+            input &= 0x0003FFFF;
+            input |= WASD_AXIS_CENTRE_PACKED << 18;
+            input |= WASD_AXIS_CENTRE_PACKED << 25;
+            analogue = 0;
         }
 
         // Tanky-arrow reference implementation — kept here commented in
