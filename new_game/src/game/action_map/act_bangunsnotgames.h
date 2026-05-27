@@ -146,7 +146,7 @@ constexpr int ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY = KKEY_TAB;
 // ---- WARE debug overlay (level-hold T) -------------------------------------
 // T held draws the WARE (warehouse / interest-point) debug overlay each frame.
 // Gated by input_debug_modifier_active() at the ware.cpp read site —
-// F2+T enables the overlay.
+// F1+T enables the overlay.
 
 constexpr int ACT_BANG_WARE_DEBUG_KKEY = KKEY_T;
 

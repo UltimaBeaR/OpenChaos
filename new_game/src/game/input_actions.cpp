@@ -3697,7 +3697,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // by the input layer whenever it's physically pressed.
     {
         // Suppress KB siren read when F1 debug modifier is held (gameplay-
-        // input gate). Gamepad siren read stays unconditional — F2 is a
+        // input gate). Gamepad siren read stays unconditional — F1 is a
         // keyboard concept.
         const bool kb_siren  = input_gameplay_enabled() && input_key_press_pending(ACT_CAR_SIREN_KKEY);
         const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
@@ -4342,7 +4342,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     *processed = 0;
 
     // Aim modifier: gamepad L1 hold OR middle mouse button hold.
-    // MMB read is gated by input_gameplay_enabled() so F2-debug suppresses
+    // MMB read is gated by input_gameplay_enabled() so F1-debug suppresses
     // keyboard-side aim (MMB is mouse, but it's a gameplay-input source);
     // gamepad L1 stays unconditional.
     if (input_btn_held(ACT_FOOT_AIM_GBTN)

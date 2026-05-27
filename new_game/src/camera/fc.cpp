@@ -993,7 +993,7 @@ void FC_process()
             // held, mouse motion is dropped so the camera doesn't swing
             // around while the dev is using debug hotkeys. We DRAIN the
             // accumulated motion (consume + discard) rather than just
-            // skipping, otherwise motion would burst all at once on F2
+            // skipping, otherwise motion would burst all at once on F1
             // release.
             if (!entering_vehicle && mouse_capture_is_active() && !input_gameplay_enabled()) {
                 input_mouse_drain_rel();
