@@ -1354,14 +1354,31 @@ void FC_process()
                     // spontaneously rotates on character motion. Mouse
                     // is the only thing that changes the angle.
                     //
+                    // EXCEPT when standing on a moving vehicle platform:
+                    // the platform_thing block above already moved
+                    // want_x/z (rigid rotate + translate around vehicle
+                    // pivot) to inherit vehicle motion. Adding focus_dx
+                    // again here would DOUBLE-APPLY vehicle motion onto
+                    // want — over-shooting the focus, which then makes
+                    // look_at_focus compute a yaw offset and the camera
+                    // auto-rotates (visible as "camera auto-rotation
+                    // while standing on a moving vehicle"). Gamepad
+                    // doesn't hit this bug because its excess-speed
+                    // tracking below contributes 0 for typical vehicle
+                    // speeds, leaving platform inheritance as the single
+                    // motion source. Skip translation tracking here on
+                    // KBM when on a platform to match.
+                    //
                     // All downstream smoothing is preserved: want→x
                     // position smoothing, distance clamp, and the
                     // character side's own animation/physics smoothing
                     // of focus_x/z all still run. So bumps, stairs, and
                     // mid-step jitter come through with the same feel as
                     // gamepad — just no auto-rotation.
-                    fc->want_x += focus_dx;
-                    fc->want_z += focus_dz;
+                    if (!fc->platform_thing) {
+                        fc->want_x += focus_dx;
+                        fc->want_z += focus_dz;
+                    }
                 } else {
                     // Gamepad: excess-speed tracking. Below cap the
                     // contribution is 0 (original walk/run feel kept,
