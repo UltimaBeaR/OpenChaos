@@ -1971,9 +1971,8 @@ SLONG ELEV_game_init(
     // frame of gameplay doesn't see a stale press from the loading screen.
     input_key_force_release(ACT_FOOT_JUMP_KKEY);
     input_key_force_release(ACT_FOOT_INVENTORY_KKEY);
-    input_key_force_release(ACT_FOOT_AIM_KKEY);
-    input_key_force_release(ACT_FOOT_PUNCH_KKEY);
-    input_key_force_release(ACT_FOOT_KICK_KKEY);
+    // PUNCH / KICK / AIM moved to mouse buttons — keyboard force_release
+    // calls removed. Mouse-button equivalents to be added in step 5.
     input_key_force_release(ACT_FOOT_ACTION_KKEY);
     input_key_force_release(ACT_BANG_SHOW_VERSION_KKEY);
     input_key_force_release(ACT_FOOT_MOVE_LEFT_KKEY);

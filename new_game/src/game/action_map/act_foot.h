@@ -52,14 +52,15 @@ constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
 // constexpr int ACT_FOOT_MOVE_TANK_TURN_RIGHT_KKEY = KKEY_RIGHT;
 
 // ---- Combat: punch / kick / action / jump ----------------------------------
-// PUNCH: keyboard Z (level read) + analog R2 trigger via weapon_feel.
-// KICK: keyboard X + gamepad R1.
-// ACTION (interact / get in or out of vehicle / pick up): keyboard C + Circle/B.
+// PUNCH: LMB (mouse) + analog R2 trigger via weapon_feel. KKEY binding
+// removed (was Z) — punch is mouse-only on keyboard layout.
+// KICK: RMB (mouse) + gamepad R1. KKEY binding removed (was X).
+// ACTION (interact / get in or out of vehicle / pick up / sprint hold):
+// keyboard Left Shift + Circle/B. Shift hold while moving = sprint
+// (same semantic as holding Circle on gamepad).
 // JUMP: keyboard SPACE + Cross/A.
 
-constexpr int ACT_FOOT_PUNCH_KKEY  = KKEY_Z;
-constexpr int ACT_FOOT_KICK_KKEY   = KKEY_X;
-constexpr int ACT_FOOT_ACTION_KKEY = KKEY_C;
+constexpr int ACT_FOOT_ACTION_KKEY = KKEY_LEFT_SHIFT;
 constexpr int ACT_FOOT_JUMP_KKEY   = KKEY_SPACE;
 
 constexpr int ACT_FOOT_JUMP_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
@@ -70,6 +71,9 @@ constexpr int ACT_FOOT_KICK_GBTN   = GBTN_R1;    // DS: R1, Xbox: RB
 // input_trigger_raw(GTRIG_R2) inside get_hardware_input.
 constexpr int ACT_FOOT_PUNCH_GTRIG = GTRIG_R2;
 
+// Punch / kick MBTN constants (LMB / RMB) — added in step 5 when the
+// mouse-button input_frame API lands. See keyboard_mouse_layout.md.
+
 // ---- L2 tactical mode (slow-walk + rolls) ----------------------------------
 // L2 analog trigger engages tactical mode (slow walk + ✕ does rolls / backflips
 // inside a 600 ms tap window). Read as input_trigger_raw(GTRIG_L2) with
@@ -77,12 +81,12 @@ constexpr int ACT_FOOT_PUNCH_GTRIG = GTRIG_R2;
 
 constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
 
-// ---- Inventory / weapon cycle (R3 / Enter) ---------------------------------
+// ---- Inventory / weapon cycle (R3 / Tab) -----------------------------------
 // Opens / advances the inventory wheel popup. Read in
 // game_tick.cpp::process_controls AND in input_actions.cpp::get_hardware_input
 // (the latter sets INPUT_MASK_SELECT from R3 hold).
 
-constexpr int ACT_FOOT_INVENTORY_KKEY = KKEY_ENTER;
+constexpr int ACT_FOOT_INVENTORY_KKEY = KKEY_TAB;
 constexpr int ACT_FOOT_INVENTORY_GBTN = GBTN_R3; // DS: R3, Xbox: RSB
 
 // ---- Weapon select: keyboard digit hotkeys ---------------------------------
@@ -127,13 +131,14 @@ constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 constexpr int ACT_FOOT_CAMERA_YAW_MAXIS   = MAXIS_X;
 constexpr int ACT_FOOT_CAMERA_PITCH_MAXIS = MAXIS_Y;
 
-// ---- First-person aim (L1 / KKEY_A held) -----------------------------------
-// Holding L1 on gamepad or A on keyboard enters first-person aim mode.
-// Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as camera-toggle press
-// (edge) and aim modifier (hold). Two distinct ACT constants for the two
-// semantics on the same button.
+// ---- First-person aim (L1 / MMB held) --------------------------------------
+// Holding L1 on gamepad or the middle mouse button enters first-person aim
+// mode. Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as camera-toggle
+// press (edge) and aim modifier (hold). Two distinct ACT constants for the
+// two semantics on the same button. KKEY binding (was A) removed — aim is
+// now mouse-driven. MBTN constant will be added in step 5 when the
+// mouse-button input_frame API lands.
 
-constexpr int ACT_FOOT_AIM_KKEY = KKEY_A;
 constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
 
 // ---- First-person look (arrow keys while aiming) ---------------------------

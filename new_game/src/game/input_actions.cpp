@@ -4243,12 +4243,10 @@ ULONG get_hardware_input(UWORD type)
         if (input_key_held(ACT_FOOT_JUMP_KKEY))
             input |= INPUT_MASK_JUMP;
 
-        if (input_key_held(ACT_FOOT_PUNCH_KKEY))
-            input |= INPUT_MASK_PUNCH;
-        if (input_key_held(ACT_FOOT_KICK_KKEY)) {
-            MSG_add(" HARDWARE KICK");
-            input |= INPUT_MASK_KICK;
-        }
+        // PUNCH / KICK on keyboard layout moved to LMB / RMB respectively.
+        // Their keyboard reads (was KKEY_Z / KKEY_X) deleted here — the
+        // mouse-button equivalents are wired up in step 5 of
+        // new_game_devlog/input_system/keyboard_mouse_layout.md.
 
         if (input_key_held(ACT_FOOT_ACTION_KKEY)) {
             input |= INPUT_MASK_ACTION;
@@ -4296,8 +4294,9 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    if (input_key_held(ACT_FOOT_AIM_KKEY)
-        || input_btn_held(ACT_FOOT_AIM_GBTN)) {
+    // Aim modifier on keyboard layout moved to MMB (middle mouse button).
+    // Keyboard read (was KKEY_A) deleted — MBTN equivalent added in step 5.
+    if (input_btn_held(ACT_FOOT_AIM_GBTN)) {
         fpm = UC_TRUE;
     }
 
