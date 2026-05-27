@@ -6,6 +6,7 @@
 #include "engine/input/mouse_globals.h" // MouseX/MouseY for input_mouse_x/y
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
 #include "engine/core/types.h" // BOOL
+#include "engine/debug/input_debug/input_debug.h" // input_debug_is_active
 #include "game/action_map/input_codes.h" // GAXIS_* / GDIR_* / KKEY_F1
 
 // Runtime debug-mode flag — set by typing "bangunsnotgames" in the dev
@@ -716,8 +717,14 @@ bool input_debug_modifier_active()
 bool input_gameplay_enabled()
 {
     // Single future-proof gate. Returns false whenever any condition wants
-    // gameplay input suppressed. Currently only the F1 debug modifier.
+    // gameplay input suppressed. Conditions:
+    //   - F1 debug modifier held (gameplay vs. debug keys mutex)
+    //   - Modal input debug panel open (panel owns input; gameplay frozen)
+    // Add other "suppress gameplay" conditions here as needed; call sites
+    // don't need per-condition checks.
     if (input_debug_modifier_active())
+        return false;
+    if (input_debug_is_active())
         return false;
     return true;
 }

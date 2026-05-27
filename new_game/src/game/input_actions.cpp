@@ -4542,11 +4542,24 @@ SLONG can_darci_change_weapon(Thing* p_person)
 // (driving / fight / normal).
 void process_hardware_level_input_for_player(Thing* p_player)
 {
-    // Modal input debug panel — bail out entirely so neither the packet
-    // path nor the direct Keys[]/rgbButtons[] reads inside this dispatcher
-    // (e.g. apply_button_input_first_person) can drive the player.
-    if (input_debug_is_active())
+    // Modal input debug panel — drive the dispatcher with input=0 so the
+    // state machine transitions the character into idle (continue_moveing
+    // returns 0, jump→fall→land terminates as idle, etc.) instead of
+    // freezing whatever bits the player was holding before the panel
+    // opened. Then bail out before the rest of the per-tick logic so
+    // the panel stays modal (no first-person aim, no camera switching,
+    // no inventory / weapon hotkeys process from this dispatcher).
+    if (input_debug_is_active()) {
+        if (p_player && p_player->Genus.Player) {
+            Thing* p_person = p_player->Genus.Player->PlayerPerson;
+            if (p_person && p_person->Genus.Person) {
+                apply_button_input(p_player, p_person, 0);
+            } else {
+                p_player->Genus.Player->Input = 0;
+            }
+        }
         return;
+    }
 
     SLONG i;
 

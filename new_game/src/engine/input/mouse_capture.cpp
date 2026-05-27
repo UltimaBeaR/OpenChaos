@@ -1,6 +1,7 @@
 #include "engine/input/mouse_capture.h"
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_is_fullscreen
+#include "engine/input/input_frame.h" // input_debug_modifier_active, input_mouse_drain_rel
 #include "engine/platform/sdl3_bridge.h" // sdl3_set_relative_mouse_mode, cursor / window queries
 #include "engine/platform/wind_procs_globals.h" // app_inactive
 #include "game/game_globals.h" // the_game (GAME_STATE via game_types.h)
@@ -27,6 +28,16 @@ bool s_was_in_gameplay = false;
 // videos aren't gameplay even during a cutscene, and a click on the
 // window must not engage the camera path.
 bool s_suppressed = false;
+
+// True while the debug modifier (F1) is held and we've temporarily
+// released the cursor so the dev can click on the world (teleport to
+// mouse, spawn mine at mouse, etc.). On F1 release we re-engage capture
+// — but ONLY if (a) capture was active when F1 was first pressed,
+// (b) the window is still focused, (c) the cursor is still inside the
+// client area. If any of those is missing on release we drop the
+// "we want capture" state and the dev re-engages by clicking, same as
+// a fresh start.
+bool s_temp_release_for_debug = false;
 
 bool is_in_active_gameplay()
 {
@@ -81,6 +92,16 @@ void apply_capture(bool capture)
     // (hidden while focused) so we leave it alone there.
     if (!capture && !ge_is_fullscreen())
         sdl3_show_cursor();
+
+    // Drain any accumulated mouse relative-motion delta on EVERY capture
+    // transition (both off→on and on→off). On off→on it prevents the
+    // first post-recapture frame from consuming motion that accumulated
+    // while the cursor was free (e.g. user moved cursor to click on the
+    // world during F1-debug-temp-release; on F1 release the camera
+    // would otherwise swing by the OS-cursor travel distance). On on→off
+    // it's a defensive drain so the next consumer (UI overlay, etc.)
+    // starts from zero.
+    input_mouse_drain_rel();
 }
 
 } // namespace
@@ -89,6 +110,7 @@ void mouse_capture_update()
 {
     if (s_suppressed) {
         s_capture_requested = false;
+        s_temp_release_for_debug = false;
         apply_capture(false);
         return;
     }
@@ -112,10 +134,30 @@ void mouse_capture_update()
     // gone away. We don't remember "wanted capture" across these
     // transitions — the user must trigger fresh (re-click, or get a new
     // gameplay-entry edge) to re-engage.
-    if (!now_in_gameplay || !focused || !visible)
+    if (!now_in_gameplay || !focused || !visible) {
         s_capture_requested = false;
+        s_temp_release_for_debug = false;
+    }
 
-    apply_capture(s_capture_requested);
+    // Debug-modifier temp release: while F1 is held in debug mode and
+    // capture was active, free the cursor so the dev can click into the
+    // world for teleport / spawn-at-mouse / etc. On F1 release we
+    // re-engage capture only if the standard click-engagement conditions
+    // still hold; otherwise we drop the requested state so the dev gets
+    // a fresh engagement next time they click.
+    const bool debug_mod = input_debug_modifier_active();
+    if (debug_mod && s_capture_requested && !s_temp_release_for_debug) {
+        s_temp_release_for_debug = true;
+    } else if (!debug_mod && s_temp_release_for_debug) {
+        s_temp_release_for_debug = false;
+        // Re-engagement gate — same standard checks used elsewhere.
+        if (!(focused && visible && cursor_inside_client_area())) {
+            s_capture_requested = false;
+        }
+    }
+
+    // Effective capture state = requested AND not in temp-release.
+    apply_capture(s_capture_requested && !s_temp_release_for_debug);
 }
 
 bool mouse_capture_on_button(int /*button*/, bool down)
