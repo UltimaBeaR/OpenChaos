@@ -162,12 +162,22 @@ static bool poll_dualsense()
         s_is_dualsense = false;
         gamepad_state.connected = (s_gamepad != nullptr);
         if (!gamepad_state.connected) {
-            // Reset axes to centre (32768) so downstream code doesn't see phantom input.
+            // Reset axes to centre (32768) so downstream code doesn't see
+            // phantom input. BOTH cooked (lX/lY/rX/rY) and raw (lX_raw etc)
+            // must be set — raw fields are read by input_frame_update for
+            // virtual stick directions (input_stick_held), and raw=0 (from
+            // memset) decodes as full-left/up deflection. Missing the _raw
+            // reset caused menu nav to auto-cycle UP/LEFT after gamepad
+            // disconnect while in a menu.
             memset(&gamepad_state, 0, sizeof(gamepad_state));
-            gamepad_state.lX = 32768;
-            gamepad_state.lY = 32768;
-            gamepad_state.rX = 32768;
-            gamepad_state.rY = 32768;
+            gamepad_state.lX = STICK_RAW_CENTER;
+            gamepad_state.lY = STICK_RAW_CENTER;
+            gamepad_state.rX = STICK_RAW_CENTER;
+            gamepad_state.rY = STICK_RAW_CENTER;
+            gamepad_state.lX_raw = STICK_RAW_CENTER;
+            gamepad_state.lY_raw = STICK_RAW_CENTER;
+            gamepad_state.rX_raw = STICK_RAW_CENTER;
+            gamepad_state.rY_raw = STICK_RAW_CENTER;
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
         }
         debug_log_backend("ds_disconnected");
@@ -325,12 +335,18 @@ static void poll_sdl3()
                 s_gamepad = nullptr;
                 if (!s_is_dualsense) {
                     gamepad_state.connected = false;
-                    // Reset axes to centre so downstream code doesn't see phantom input.
+                    // Reset axes to centre so downstream code doesn't see
+                    // phantom input. See the DualSense disconnect branch
+                    // above for why both cooked AND raw fields must be set.
                     memset(&gamepad_state, 0, sizeof(gamepad_state));
-                    gamepad_state.lX = 32768;
-                    gamepad_state.lY = 32768;
-                    gamepad_state.rX = 32768;
-                    gamepad_state.rY = 32768;
+                    gamepad_state.lX = STICK_RAW_CENTER;
+                    gamepad_state.lY = STICK_RAW_CENTER;
+                    gamepad_state.rX = STICK_RAW_CENTER;
+                    gamepad_state.rY = STICK_RAW_CENTER;
+                    gamepad_state.lX_raw = STICK_RAW_CENTER;
+                    gamepad_state.lY_raw = STICK_RAW_CENTER;
+                    gamepad_state.rX_raw = STICK_RAW_CENTER;
+                    gamepad_state.rY_raw = STICK_RAW_CENTER;
                     active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
                 }
                 debug_log_backend("sdl3_disconnected");
