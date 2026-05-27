@@ -28,15 +28,28 @@
 
 #include "game/action_map/input_codes.h"
 
-// ---- Movement (keyboard digital; gamepad is analog left stick) -------------
-// Arrow keys for movement on foot. Gamepad movement comes from the left stick
-// (input_stick_x_axis(GAXIS_LEFT) / _y_axis(...)), packed into the
-// input_mask analog bits — no GBTN constants for that path.
+// ---- Movement (keyboard analog-emulation via WASD; gamepad analog left stick)
+// WASD on keyboard emulates the gamepad left stick: each key held = full
+// deflection in one cardinal direction, two keys together (e.g. W+D) clamp
+// to unit-circle magnitude (45° diagonals). Actual analog-emulation path is
+// implemented in get_hardware_input — see TODO step 7 in
+// new_game_devlog/input_system/keyboard_mouse_layout.md.
+//
+// Old "tanky" arrow-key controls (↑↓ = fwd/back digital, ←→ = tank turn) are
+// preserved as a commented-out aliases below — TODO-4 in the plan doc will
+// wire them back in as an opt-in setting toggle for fans of the original UC
+// PC control scheme.
 
-constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_UP;
-constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_DOWN;
-constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_LEFT;
-constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_RIGHT;
+constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_W;
+constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_S;
+constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_A;
+constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
+
+// Tanky-arrow legacy (kept for future toggle — see TODO-4):
+// constexpr int ACT_FOOT_MOVE_TANK_FORWARD_KKEY  = KKEY_UP;
+// constexpr int ACT_FOOT_MOVE_TANK_BACKWARD_KKEY = KKEY_DOWN;
+// constexpr int ACT_FOOT_MOVE_TANK_TURN_LEFT_KKEY  = KKEY_LEFT;
+// constexpr int ACT_FOOT_MOVE_TANK_TURN_RIGHT_KKEY = KKEY_RIGHT;
 
 // ---- Combat: punch / kick / action / jump ----------------------------------
 // PUNCH: keyboard Z (level read) + analog R2 trigger via weapon_feel.

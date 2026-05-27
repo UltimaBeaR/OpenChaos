@@ -4204,43 +4204,38 @@ ULONG get_hardware_input(UWORD type)
         // Movement / action buttons: level reads through input_key_held
         // (continuous "while held" semantic — these drive INPUT_MASK_* bits
         // that downstream consumers sample as level state per physics tick).
-        // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
-        // toggles → just_pressed (edge-detect via input_frame).
 
-        const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
-        const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
-        const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
-        const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
-
-        // If any movement key is pressed, switch to digital mode
-        // (analog mode only makes sense with a stick).
-        // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
-        // non-zero upper bits and treats centered stick (value 0) as analog input.
-        if (kb_fwd || kb_back || kb_left || kb_right) {
-            analogue = 0;
-            input &= 0x0003FFFF;
-        }
-
-        if (kb_fwd) {
-            input |= INPUT_MASK_FORWARDS;
-        }
-
-        if (kb_back)
-            input |= INPUT_MASK_BACKWARDS;
-
-        if (kb_left) {
-            if (ShiftFlag)
-                input |= INPUT_MASK_STEP_LEFT;
-            else
-                input |= INPUT_MASK_LEFT;
-        }
-
-        if (kb_right) {
-            if (ShiftFlag)
-                input |= INPUT_MASK_STEP_RIGHT;
-            else
-                input |= INPUT_MASK_RIGHT;
-        }
+        // WASD movement: digital tanky-style path commented out below.
+        // WASD currently reads the arrow-key-replacement bindings
+        // (ACT_FOOT_MOVE_*_KKEY = KKEY_W/A/S/D) but is NOT consumed here —
+        // it gets picked up by the analog-stick-emulation path in step 7
+        // of new_game_devlog/input_system/keyboard_mouse_layout.md.
+        //
+        // Until step 7 lands, the character does not move on keyboard
+        // input. Gamepad movement is unaffected. The tanky-arrow handler
+        // below is kept commented as the reference implementation we'll
+        // re-enable for the "tank controls" opt-in setting (TODO-4).
+        //
+        // const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
+        // const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
+        // const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
+        // const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
+        //
+        // if (kb_fwd || kb_back || kb_left || kb_right) {
+        //     analogue = 0;
+        //     input &= 0x0003FFFF;
+        // }
+        //
+        // if (kb_fwd)  input |= INPUT_MASK_FORWARDS;
+        // if (kb_back) input |= INPUT_MASK_BACKWARDS;
+        // if (kb_left) {
+        //     if (ShiftFlag) input |= INPUT_MASK_STEP_LEFT;
+        //     else           input |= INPUT_MASK_LEFT;
+        // }
+        // if (kb_right) {
+        //     if (ShiftFlag) input |= INPUT_MASK_STEP_RIGHT;
+        //     else           input |= INPUT_MASK_RIGHT;
+        // }
 
         if (input_key_held(ACT_FOOT_INVENTORY_KKEY))
             input |= INPUT_MASK_SELECT;
@@ -4259,9 +4254,12 @@ ULONG get_hardware_input(UWORD type)
             input |= INPUT_MASK_ACTION;
         }
 
-        if (kb_fwd) {
-            input |= INPUT_MASK_MOVE;
-        }
+        // INPUT_MASK_MOVE was set from kb_fwd (forward arrow held). Commented
+        // out together with the tanky movement handler above — will be
+        // restored by the analog WASD path in step 7.
+        // if (kb_fwd) {
+        //     input |= INPUT_MASK_MOVE;
+        // }
     }
 
     if (input) {
