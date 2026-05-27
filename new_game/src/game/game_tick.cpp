@@ -1404,7 +1404,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(ACT_BANG_ROOM_BEHIND_CHECK_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_ROOM_BEHIND_CHECK_KKEY)) {
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
@@ -1475,7 +1475,7 @@ void process_controls(void)
     };
     static int s_model_cycle_type     = PERSON_DARCI;
     static int s_model_cycle_variant  = 0;
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_CYCLE_PLAYER_MODEL_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_CYCLE_PLAYER_MODEL_KKEY)) {
         Thing* darci_thing = NET_PERSON(0);
         if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
             // Advance variant within type; wrap to next type when out.
@@ -1505,7 +1505,7 @@ void process_controls(void)
     // (top-down map TGA dump) in the allow_debug_keys block below —
     // pressing H would fire both handlers. B avoids that and reads as
     // "Bones".
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY)) {
         g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
         CONSOLE_status(g_skin_debug_draw_skeleton
             ? (CBYTE*)"Skeleton overlay: ON"
@@ -1539,7 +1539,7 @@ void process_controls(void)
         }
     }
 
-    if (allow_debug_keys) {
+    if (input_debug_modifier_active()) {
         static SLONG index_cam = 0;
         Thing* p_thing;
 
@@ -1680,7 +1680,7 @@ void process_controls(void)
     extern Form* form_leave_map;
     extern SLONG can_darci_change_weapon(Thing * p_person);
 
-    if ((!(GAME_FLAGS & GF_PAUSED) && !form_leave_map) && can_darci_change_weapon(darci)) {
+    if ((!(GAME_FLAGS & GF_PAUSED) && !form_leave_map) && can_darci_change_weapon(darci) && input_gameplay_enabled()) {
         Thing* the_player = NET_PLAYER(0);
 
         //		if (can_darci_change_weapon(darci))
@@ -1805,7 +1805,12 @@ void process_controls(void)
         }
     }
 
-    if (!allow_debug_keys)
+    // F1-modifier gate: debug-mode hotkeys below only fire while F1 is held
+    // (in addition to allow_debug_keys being on). Returns when modifier is
+    // NOT active — same effect as the previous `if (!allow_debug_keys)` but
+    // adds the F1-hold requirement that suppresses conflicts with WASD /
+    // E / etc. See input_frame::input_debug_modifier_active().
+    if (!input_debug_modifier_active())
         return;
 
     // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).

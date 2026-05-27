@@ -96,8 +96,12 @@ constexpr int ACT_MENU_ATTRACT_QUIT_KKEY = KKEY_Q;
 // side-channels at the call site. NOT gated by allow_debug_keys — these are
 // frontend-only cheats with their own Ctrl+Shift guard.
 
-constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_NUMPAD_PLUS;
-constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_NUMPAD_ASTERISK;
+// Moved off numpad (target hardware doesn't have one). Ctrl+Shift modifier
+// guard at the call site already makes the combo unique enough that picking
+// regular-row keys is safe — gameplay keys 1-8 are weapon hotkeys but in
+// frontend (where these cheats live) those bindings are inert.
+constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_EQUALS; // Ctrl+Shift+=
+constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_8;      // Ctrl+Shift+8 (asterisk via Shift)
 
 // ---- Modal dialog acknowledge ----------------------------------------------
 // "Press anything sensible to continue" modal screens during gameplay (e.g.

@@ -2291,7 +2291,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (input_key_held(ACT_BANG_SHOW_VERSION_KKEY) && allow_debug_keys) {
+        if (input_key_held(ACT_BANG_SHOW_VERSION_KKEY) && input_debug_modifier_active()) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

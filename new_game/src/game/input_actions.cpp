@@ -3696,7 +3696,10 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // on foot is currently unbound, but the press_pending flag is still set
     // by the input layer whenever it's physically pressed.
     {
-        const bool kb_siren  = input_key_press_pending(ACT_CAR_SIREN_KKEY);
+        // Suppress KB siren read when F1 debug modifier is held (gameplay-
+        // input gate). Gamepad siren read stays unconditional — F2 is a
+        // keyboard concept.
+        const bool kb_siren  = input_gameplay_enabled() && input_key_press_pending(ACT_CAR_SIREN_KKEY);
         const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
         input_key_consume(ACT_CAR_SIREN_KKEY);
         input_btn_consume(ACT_CAR_SIREN_GBTN);
@@ -4179,11 +4182,16 @@ ULONG get_hardware_input(UWORD type)
     // When gamepad is connected, disable analog mode if keyboard provides input
     // (analog mode is re-enabled next frame if gamepad has stick input).
 
-    if (type & INPUT_TYPE_KEY) {
+    if ((type & INPUT_TYPE_KEY) && input_gameplay_enabled()) {
 
         // Movement / action buttons: level reads through input_key_held
         // (continuous "while held" semantic — these drive INPUT_MASK_* bits
         // that downstream consumers sample as level state per physics tick).
+        //
+        // The whole block is gated by input_gameplay_enabled() — when the
+        // F1 debug modifier is held (or any other "suppress gameplay"
+        // condition fires in the future), keyboard input is dropped so a
+        // debug-key press doesn't ALSO drive the character.
 
         // WASD analog-stick emulation. Each held key contributes a unit
         // signed component (W=-Y, S=+Y, A=-X, D=+X). When two perpendicular
@@ -4334,7 +4342,11 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     *processed = 0;
 
     // Aim modifier: gamepad L1 hold OR middle mouse button hold.
-    if (input_btn_held(ACT_FOOT_AIM_GBTN) || input_mouse_btn_held(ACT_FOOT_AIM_MBTN)) {
+    // MMB read is gated by input_gameplay_enabled() so F2-debug suppresses
+    // keyboard-side aim (MMB is mouse, but it's a gameplay-input source);
+    // gamepad L1 stays unconditional.
+    if (input_btn_held(ACT_FOOT_AIM_GBTN)
+        || (input_gameplay_enabled() && input_mouse_btn_held(ACT_FOOT_AIM_MBTN))) {
         fpm = UC_TRUE;
     }
 
@@ -4679,7 +4691,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
             // fires (e.g. weapon not in inventory) — matches the original
             // just_pressed semantic where a press is "spent" on the tick
             // it's read, not queued.
-            if (can_darci_change_weapon(p_person)) {
+            if (can_darci_change_weapon(p_person) && input_gameplay_enabled()) {
                 const bool pressed_holster    = input_key_press_pending(ACT_FOOT_WEAPON_HOLSTER_KKEY);
                 const bool pressed_pistol     = input_key_press_pending(ACT_FOOT_WEAPON_PISTOL_KKEY);
                 const bool pressed_shotgun    = input_key_press_pending(ACT_FOOT_WEAPON_SHOTGUN_KKEY);

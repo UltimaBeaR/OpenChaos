@@ -29,12 +29,20 @@
 #include "game/action_map/input_codes.h"
 
 // ---- F-key toggles ----------------------------------------------------------
+//
+// Note: under the F1-modifier scheme (see input_frame.h ::input_debug_modifier_active),
+// nearly all debug-mode hotkeys fire only while F1 is HELD as a modifier.
+// F1 itself doubles as the help-legend trigger — held alone (5-second
+// timer) it shows the overlay; F1+key fires the debug action and the
+// overlay auto-hides (debug_help.cpp).
 
-// F1: show debug-hotkey legend overlay (5-second timer). Read in
+// F1: hold as the global debug modifier; alone (no other key pressed)
+// shows the debug-hotkey legend for 5 seconds. Read in
 // debug_help.cpp::debug_help_tick.
 constexpr int ACT_BANG_SHOW_LEGEND_KKEY = KKEY_F1;
 
-// F2: toggle CRT scanline post-process shader. Read in game.cpp::special_keys.
+// F2: toggle CRT scanline post-process shader. Read in game.cpp::special_keys
+// (under F1-modifier).
 constexpr int ACT_BANG_TOGGLE_CRT_KKEY = KKEY_F2;
 
 // F8: toggle single-step physics mode. Pair with KKEY_INSERT (step one tick).
@@ -137,22 +145,21 @@ constexpr int ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY = KKEY_TAB;
 
 // ---- WARE debug overlay (level-hold T) -------------------------------------
 // T held draws the WARE (warehouse / interest-point) debug overlay each frame.
-// NOTE: this read in ware.cpp is NOT gated by allow_debug_keys (it ships in
-// every build). Effectively a developer-only feature anyway — T is unlikely
-// to be pressed by a regular player, and the overlay is harmless if it is.
-// Listed here for action-map completeness; if review wants the gate, add
-// `if (allow_debug_keys)` to ware.cpp::WARE_debug.
+// Gated by input_debug_modifier_active() at the ware.cpp read site —
+// F2+T enables the overlay.
 
 constexpr int ACT_BANG_WARE_DEBUG_KKEY = KKEY_T;
 
 // ---- On-screen message buffer scroll (debug-mode-only) ---------------------
-// Inside MSG_draw (engine/console/message.cpp), gated by allow_debug_keys.
-// Numpad +/-/Enter scroll the debug message history; Shift modifier multiplies
-// scroll step by 20 (read separately via ShiftFlag).
+// Inside MSG_draw (engine/console/message.cpp). Numpad bindings moved off
+// numpad onto the Home/End cluster — the perf-debug compile-flag now owns
+// numpad, and the project target audience (Steam Deck etc.) doesn't have
+// numpad anyway. Shift modifier multiplies scroll step by 20 (read
+// separately via ShiftFlag).
 
-constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_NUMPAD_PLUS;
-constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_NUMPAD_MINUS;
-constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_NUMPAD_ENTER;
+constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_PAGE_UP;
+constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_PAGE_DOWN;
+constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_HOME;
 
 // ---- Misc gameplay-side dev hotkeys (gated by allow_debug_keys) ------------
 
@@ -207,20 +214,24 @@ constexpr int ACT_BANG_SPAWN_VEHICLE_KKEY = KKEY_E;
 // W (held): continuously spawn water particles around the player.
 constexpr int ACT_BANG_SPAWN_WATER_KKEY = KKEY_W;
 
-// Numpad 7: cycle the pyro-test "which_pyro" selector.
-constexpr int ACT_BANG_PYRO_CYCLE_TYPE_KKEY = KKEY_NUMPAD_7;
+// End: cycle the pyro-test "which_pyro" selector (was Numpad 7).
+constexpr int ACT_BANG_PYRO_CYCLE_TYPE_KKEY = KKEY_END;
 
-// Numpad 5: spawn the currently-selected pyro effect at the player.
-constexpr int ACT_BANG_PYRO_SPAWN_KKEY = KKEY_NUMPAD_5;
+// K: spawn the currently-selected pyro effect at the player (was Numpad 5).
+// Moved off Insert because Insert is the single-step companion key (paired
+// with F8). K is otherwise unused in act_bangunsnotgames — picked as a
+// free letter near the home row.
+constexpr int ACT_BANG_PYRO_SPAWN_KKEY = KKEY_K;
 
 // L: toggle a directional debug light following the player.
 constexpr int ACT_BANG_TOGGLE_DIRECTIONAL_LIGHT_KKEY = KKEY_L;
 
-// Numpad 2: immolate the test chopper.
-constexpr int ACT_BANG_IMMOLATE_CHOPPER_KKEY = KKEY_NUMPAD_2;
+// Delete: immolate the test chopper (was Numpad 2).
+constexpr int ACT_BANG_IMMOLATE_CHOPPER_KKEY = KKEY_DELETE;
 
-// Numpad 3: spawn a firepool line (2-press sequence: anchor / target).
-constexpr int ACT_BANG_SPAWN_FIREPOOL_KKEY = KKEY_NUMPAD_3;
+// R: spawn a firepool line (2-press sequence: anchor / target). Was Numpad 3.
+// Picked as a free letter (R = fiRe).
+constexpr int ACT_BANG_SPAWN_FIREPOOL_KKEY = KKEY_R;
 
 // `/` (forward slash): toggle stealth_debug overlay.
 constexpr int ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY = KKEY_SLASH;

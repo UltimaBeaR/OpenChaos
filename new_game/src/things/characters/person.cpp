@@ -2799,7 +2799,7 @@ void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz)
     dx = dx * ratio >> TICK_SHIFT;
     dz = dz * ratio >> TICK_SHIFT;
 
-    if (allow_debug_keys)
+    if (input_debug_modifier_active())
         if (ShiftFlag && input_key_held(ACT_BANG_SPEED_BOOST_KKEY)) {
             dx <<= 2;
             dz <<= 2;

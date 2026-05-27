@@ -5,7 +5,14 @@
 #include "engine/input/gamepad.h" // gamepad_poll
 #include "engine/input/mouse_globals.h" // MouseX/MouseY for input_mouse_x/y
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
-#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_*
+#include "engine/core/types.h" // BOOL
+#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_* / KKEY_F1
+
+// Runtime debug-mode flag — set by typing "bangunsnotgames" in the dev
+// console (game_tick_globals.cpp). Used by input_debug_modifier_active()
+// below. Forward-declared here (rather than #include game_tick_globals.h)
+// to keep input_frame's #include surface engine-only.
+extern BOOL allow_debug_keys;
 
 #include <string.h>
 
@@ -690,4 +697,27 @@ bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)
         return true;
     }
     return false;
+}
+
+// ---- Debug modifier / gameplay gating ---------------------------------------
+// See input_frame.h for design notes.
+
+bool input_debug_modifier_active()
+{
+    // F1 doubles as the debug-help legend trigger AND the global debug
+    // modifier. Holding F1 alone shows the help; F1+key fires a debug
+    // action (and the help overlay auto-hides inside debug_help_tick when
+    // it sees a non-F1 keypress while F1 is held). One key for both jobs
+    // — the legend is most useful when you want to discover what to press,
+    // and once you press it you don't need the overlay anymore.
+    return allow_debug_keys && input_key_held(KKEY_F1);
+}
+
+bool input_gameplay_enabled()
+{
+    // Single future-proof gate. Returns false whenever any condition wants
+    // gameplay input suppressed. Currently only the F1 debug modifier.
+    if (input_debug_modifier_active())
+        return false;
+    return true;
 }

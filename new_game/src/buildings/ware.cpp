@@ -586,8 +586,10 @@ void WARE_debug(void)
     SLONG x1, y1, z1, x2, y2, z2;
     WARE_Ware* ww;
 
-    // Continuous level read: WARE_debug overlay drawn every frame T is held.
-    if (!input_key_held(ACT_BANG_WARE_DEBUG_KKEY))
+    // Continuous level read: WARE_debug overlay drawn every frame T is held
+    // — gated by the debug modifier (F2+T) so the overlay can't be
+    // accidentally enabled by a player in non-debug mode tapping T.
+    if (!(input_debug_modifier_active() && input_key_held(ACT_BANG_WARE_DEBUG_KKEY)))
         return;
 
     for (i = 1; i < WARE_ware_upto; i++) {

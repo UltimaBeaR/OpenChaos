@@ -200,7 +200,11 @@ SLONG GAMEMENU_process()
     // menu becomes reactive.
     const bool menu_open = (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE);
     const bool can_react = !menu_open || GAMEMENU_is_paused();
-    const bool toggle_pause_kb       = can_react && input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
+    // Suppress the keyboard ESC pause-toggle while F1 debug modifier is held
+    // (gameplay-input gate). Gamepad Start is left as-is — F2 is a keyboard
+    // concept; gamepad continues to behave normally.
+    const bool toggle_pause_kb       = can_react && input_gameplay_enabled()
+                                       && input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
     const bool toggle_pause_gp_start = can_react && input_btn_press_pending(ACT_MENU_TOGGLE_PAUSE_GBTN);
     const bool cancel_in_open_menu   = can_react && menu_open
                                        && input_btn_press_pending(ACT_MENU_CANCEL_GBTN);

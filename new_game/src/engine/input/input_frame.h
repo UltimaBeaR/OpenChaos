@@ -325,4 +325,31 @@ void input_frame_on_key_up(UBYTE scancode);
 void input_frame_on_mouse_button_down(SLONG mbtn_idx);
 void input_frame_on_mouse_button_up(SLONG mbtn_idx);
 
+// ---- Debug modifier / gameplay gating ---------------------------------------
+//
+// In `bangunsnotgames` debug mode, the player holds F1 as the global debug
+// modifier. F1 doubles as the help-legend trigger: held alone (no other
+// key pressed) it shows the overlay for 5 seconds; F1+key fires a debug
+// action and the overlay auto-hides on the first non-F1 keypress.
+//
+// While F1 is held in debug mode:
+//   - ALL bangunsnotgames hotkeys fire only on F1+key (suppresses individual
+//     conflicts with WASD/E/S/D/Tab/1-8/etc.)
+//   - Gameplay input is suppressed at every entry point — so pressing W
+//     during F1-hold doesn't make Darci move forward AND spawn water
+//     particles at the same time.
+//
+// input_debug_modifier_active() — true when F1 is held AND debug mode is on.
+// Used at each `if (allow_debug_keys && ...)` call site (replaces the bare
+// allow_debug_keys check). Same one-stop helper everywhere.
+//
+// input_gameplay_enabled() — opposite gate for gameplay-input call sites.
+// Currently just `!input_debug_modifier_active()`, but designed as a single
+// future-proof gate: if other "suppress gameplay" conditions ever arise
+// (modal dialog open, cutscene driving the camera, etc.) they extend this
+// helper, no per-site edit needed.
+
+bool input_debug_modifier_active();
+bool input_gameplay_enabled();
+
 #endif // ENGINE_INPUT_INPUT_FRAME_H

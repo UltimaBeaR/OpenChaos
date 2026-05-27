@@ -590,7 +590,7 @@ void screen_flip(void)
     // FONT_buffer flush moved to ui_render_post_composition — they draw
     // text that must land on the default FB at native resolution, after
     // composition, so FXAA / bilinear upscale don't soften the glyphs.
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_DEBUG_OVERLAY_LOCK_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_DEBUG_OVERLAY_LOCK_KKEY)) {
         debug_overlay_locked_on = !debug_overlay_locked_on;
     }
 
@@ -681,12 +681,12 @@ SLONG special_keys(void)
     // identical in practice). ControlFlag stays as the modifier source —
     // it's a separate level-state Ctrl tracker, out of scope for this
     // discrete-event migration.
-    if (allow_debug_keys && ControlFlag && input_key_just_pressed(ACT_BANG_QUIT_GAME_KKEY)) {
+    if (input_debug_modifier_active() && ControlFlag && input_key_just_pressed(ACT_BANG_QUIT_GAME_KKEY)) {
         return 1;
     }
 
     // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_CRT_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_CRT_KKEY)) {
         g_crt_enabled ^= 1;
         if (g_crt_enabled)
             CONSOLE_text((CBYTE*)"CRT shader on", 3000);
@@ -698,14 +698,14 @@ SLONG special_keys(void)
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger
     // "pause/continue" key, which matches intent.
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_SINGLE_STEP_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SINGLE_STEP_KKEY)) {
         single_step ^= 1;
     }
 
     // F10: toggle far-facet debug mode (skip level geometry + shader
     // debug-split colours on far-facets). Only active after bangunsnotgames
     // cheat. See stage12_farfacets.md.
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_FARFACET_DEBUG_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_FARFACET_DEBUG_KKEY)) {
         g_farfacet_debug ^= 1;
         if (g_farfacet_debug)
             CONSOLE_text("farfacet debug on", 3000);
@@ -716,7 +716,7 @@ SLONG special_keys(void)
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames
     // so only developers hit it — regular players never see the panel
     // even by accident.
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_INPUT_DEBUG_PANEL_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_INPUT_DEBUG_PANEL_KKEY)) {
         input_debug_toggle();
     }
 
@@ -734,7 +734,7 @@ SLONG special_keys(void)
 
     // Step once while in single-step mode. Was comma (`,`) — rebound to
     // Insert for the same legend-readability reason as the F8 toggle.
-    if (allow_debug_keys && single_step && input_key_just_pressed(ACT_BANG_STEP_ONE_TICK_KKEY)) {
+    if (input_debug_modifier_active() && single_step && input_key_just_pressed(ACT_BANG_STEP_ONE_TICK_KKEY)) {
         process_things(0);
     }
 

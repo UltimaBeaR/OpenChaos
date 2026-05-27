@@ -989,7 +989,16 @@ void FC_process()
             //   - Y-axis inversion option.
             //   - Mouse-driven aim mode.
             //   - Per-axis dead zone if micro-tremor turns out to matter.
-            if (!entering_vehicle && mouse_capture_is_active()) {
+            // input_gameplay_enabled() gate: while F1 debug modifier is
+            // held, mouse motion is dropped so the camera doesn't swing
+            // around while the dev is using debug hotkeys. We DRAIN the
+            // accumulated motion (consume + discard) rather than just
+            // skipping, otherwise motion would burst all at once on F2
+            // release.
+            if (!entering_vehicle && mouse_capture_is_active() && !input_gameplay_enabled()) {
+                input_mouse_drain_rel();
+            }
+            if (!entering_vehicle && mouse_capture_is_active() && input_gameplay_enabled()) {
                 SLONG mdx = 0, mdy = 0;
                 input_mouse_consume_rel(&mdx, &mdy);
 

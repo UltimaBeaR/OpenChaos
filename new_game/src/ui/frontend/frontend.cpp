@@ -2386,7 +2386,7 @@ static UBYTE FRONTEND_input(void)
         }
     }
 
-    if (allow_debug_keys) {
+    if (input_debug_modifier_active()) {
         const bool theme1 = input_key_just_pressed(ACT_BANG_MENU_THEME_1_KKEY);
         const bool theme2 = input_key_just_pressed(ACT_BANG_MENU_THEME_2_KKEY);
         const bool theme3 = input_key_just_pressed(ACT_BANG_MENU_THEME_3_KKEY);

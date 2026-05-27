@@ -2395,7 +2395,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (input_key_just_pressed(ACT_BANG_TOGGLE_OUTSIDE_CAM_KKEY) && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_OUTSIDE_CAM_KKEY) && ControlFlag && input_debug_modifier_active()) {
         outside ^= 1;
     }
 
@@ -5832,7 +5832,7 @@ void AENG_draw_warehouse()
 // Dumps the screen to a TGA file when KKEY_S is pressed (debug only).
 void AENG_screen_shot(void)
 {
-    if (allow_debug_keys)
+    if (input_debug_modifier_active())
         if (input_key_just_pressed(ACT_BANG_SCREENSHOT_KKEY) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;

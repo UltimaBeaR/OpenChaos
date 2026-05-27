@@ -454,7 +454,7 @@ void process_things_tick(SLONG frame_rate_independant, SLONG tick_diff_override)
     if (frame_rate_independant == 0)
         tick_diff = 1000 / 25; // assume 25 fps
 
-    if (allow_debug_keys && input_key_just_pressed(ACT_BANG_TOGGLE_SLOW_MO_KKEY)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SLOW_MO_KKEY)) {
         if (slow_mo)
             slow_mo = 0;
         else
