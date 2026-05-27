@@ -386,6 +386,21 @@ void parse_console(CBYTE* str)
             case 25:
                 PYRO_create(darci->WorldPos, PYRO_GAMEOVER);
                 break;
+
+            // Cheat commands (no allow_debug_keys gate — these are full
+            // gameplay cheats, equivalents of the gamepad combo).
+            case 26: // bloodofkings — toggle immortality
+                cheat_apply_immortal_toggle();
+                break;
+            case 27: // shieldofsteel — full health
+                cheat_apply_full_health();
+                break;
+            case 28: // weneedguns — spawn weapons ring around player
+                cheat_apply_spawn_weapons();
+                break;
+            case 29: // losttrack — max ammo for all weapon types
+                cheat_apply_max_ammo();
+                break;
             }
             return;
         }

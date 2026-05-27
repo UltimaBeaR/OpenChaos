@@ -36,16 +36,18 @@
 // new_game_devlog/input_system/keyboard_mouse_layout.md.
 //
 // Old "tanky" arrow-key controls (↑↓ = fwd/back digital, ←→ = tank turn) are
-// preserved as a commented-out aliases below — TODO-4 in the plan doc will
-// wire them back in as an opt-in setting toggle for fans of the original UC
-// PC control scheme.
+// preserved as commented-out aliases below — if anyone ever wants to bring
+// them back as an opt-in setting for fans of the original UC PC control
+// scheme. Not on the roadmap; just keeping the reference handy.
 
 constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_W;
 constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_S;
 constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_A;
 constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
 
-// Tanky-arrow legacy (kept for future toggle — see TODO-4):
+// Tanky-arrow legacy — kept commented here in case anyone wants to wire
+// the old PC control scheme back as an opt-in setting later. Not on the
+// roadmap.
 // constexpr int ACT_FOOT_MOVE_TANK_FORWARD_KKEY  = KKEY_UP;
 // constexpr int ACT_FOOT_MOVE_TANK_BACKWARD_KKEY = KKEY_DOWN;
 // constexpr int ACT_FOOT_MOVE_TANK_TURN_LEFT_KKEY  = KKEY_LEFT;

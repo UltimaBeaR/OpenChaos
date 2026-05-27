@@ -3645,8 +3645,8 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     veh->DControl = 0;
 
-    // Keyboard uses PC button→action mapping (Z=accel, X=brake, Space=siren).
-    // Gamepad uses PSX mapping (Cross=accel, Square=brake, Triangle=siren).
+    // Keyboard (new layout): W=accel, Space=brake, A/D=steer, E=siren.
+    // Gamepad: R2=accel, L2=brake, Left stick=steer, Triangle=siren.
     // VEH_FASTER: always-on, unconditionally, no input gating. The flag
     // historically had keyboard and gamepad binding chords to toggle it,
     // but in manual testing no perceptible vehicle behavior change was
@@ -4137,44 +4137,24 @@ ULONG get_hardware_input(UWORD type)
 
                     if (cheat_combo) {
                         if (input_btn_held(ACT_FOOT_CHEAT_IMMORTAL_GBTN)) {
-                            // D-pad Up: toggle immortality (invulnerability flag on player).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
-                                if (NET_PERSON(0)->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
-                                    CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
-                                else
-                                    CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+                                cheat_apply_immortal_toggle();
                             }
                         } else if (input_btn_held(ACT_FOOT_CHEAT_FULL_HEALTH_GBTN)) {
-                            // D-pad Down: full health.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->Health = 1000;
-                                CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+                                cheat_apply_full_health();
                             }
                         } else if (input_btn_held(ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN)) {
-                            // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-#define CHEAT_RING_SIZE 128
-                                alloc_special(SPECIAL_AK47, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE - 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE - 32, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 32, 0);
-#undef CHEAT_RING_SIZE
-                                CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+                                cheat_apply_spawn_weapons();
                             }
                         } else if (input_btn_held(ACT_FOOT_CHEAT_MAX_AMMO_GBTN)) {
-                            // D-pad Right: max ammo for all weapon types.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_pistol = 240;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_shotgun = 240;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_ak47 = 240;
-                                CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
+                                cheat_apply_max_ammo();
                             }
                         } else {
                             bCheatLastFrame = false;
@@ -4271,11 +4251,11 @@ ULONG get_hardware_input(UWORD type)
             g_dwLastInputChangeTime = dwCurrentTime;
         }
 
-        // Tanky-arrow reference implementation (kept for future TODO-4
-        // "tank controls" opt-in setting). When that toggle lands, gate
-        // this block on the setting and route it through the same input
-        // mask. Original Shift+arrow behaviour was strafe (STEP_LEFT/RIGHT)
-        // vs unmodified arrow = tank turn (LEFT/RIGHT).
+        // Tanky-arrow reference implementation — kept here commented in
+        // case anyone wants to bring back the old PC control scheme as an
+        // opt-in setting. Not on the roadmap. Original Shift+arrow behavior
+        // was strafe (STEP_LEFT/RIGHT) vs unmodified arrow = tank turn
+        // (LEFT/RIGHT).
         //
         // const bool kb_tank_fwd   = input_key_held(ACT_FOOT_MOVE_TANK_FORWARD_KKEY);
         // const bool kb_tank_back  = input_key_held(ACT_FOOT_MOVE_TANK_BACKWARD_KKEY);
@@ -4980,4 +4960,67 @@ SLONG continue_blocking(Thing* p_person)
     } else {
         return 0;
     }
+}
+
+// ---- Cheat helpers ----------------------------------------------------------
+// Ported from Dreamcast cheats (fallen/Source/interfac.cpp). Each helper
+// performs the gameplay effect AND prints the corresponding on-screen
+// message — same behavior whether triggered by the gamepad combo
+// (Select+L1+L2+DPad) or by the keyboard F9-console command.
+
+void cheat_apply_immortal_toggle()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    p_darci->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
+    if (p_darci->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
+        CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
+    else
+        CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+}
+
+void cheat_apply_full_health()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    // 1000 HP — same value as the original Dreamcast cheat. Darci's normal
+    // max is 100 (gameplay HP scale) so 1000 is effectively "you can't die
+    // from anything that hits you in one shot".
+    constexpr SLONG CHEAT_FULL_HEALTH_HP = 1000;
+    p_darci->Genus.Person->Health = CHEAT_FULL_HEALTH_HP;
+    CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+}
+
+void cheat_apply_spawn_weapons()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci) return;
+    // Spawn ring of weapons around the player: AK47, shotgun, pistol, 3
+    // grenades. Each weapon offsets by CHEAT_RING_SIZE world-units from
+    // Darci's position so the player doesn't auto-pick them up immediately
+    // and can choose what to grab.
+    constexpr SLONG CHEAT_RING_SIZE = 128;
+    const SLONG px = p_darci->WorldPos.X >> 8;
+    const SLONG py = p_darci->WorldPos.Y >> 8;
+    const SLONG pz = p_darci->WorldPos.Z >> 8;
+    alloc_special(SPECIAL_AK47,    SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GUN,     SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE - 32, py, pz - CHEAT_RING_SIZE - 32, 0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE + 32, py, pz - CHEAT_RING_SIZE + 32, 0);
+    CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+}
+
+void cheat_apply_max_ammo()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    // 240 ammo packs each — original Dreamcast cheat value, well past any
+    // realistic mission requirement.
+    constexpr SLONG CHEAT_MAX_AMMO = 240;
+    p_darci->Genus.Person->ammo_packs_pistol  = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_shotgun = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_ak47    = CHEAT_MAX_AMMO;
+    CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
 }

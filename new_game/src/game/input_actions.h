@@ -282,4 +282,17 @@ SLONG continue_firing(Thing* p_person);
 SLONG continue_moveing(Thing* p_person);
 // uc_orig: continue_blocking (fallen/Source/interfac.cpp)
 SLONG continue_blocking(Thing* p_person);
+
+// ---- Cheat helpers ---------------------------------------------------------
+// Apply one of the four port-from-Dreamcast cheats. Used by the gamepad
+// Select+L1+L2+DPad combo (input_actions.cpp::get_hardware_input) AND by the
+// keyboard F9-console commands (game_tick.cpp::parse_console). Each function
+// performs the same gameplay effect AND prints the corresponding on-screen
+// message — see GAMEPLAY_CHANGES.md "Геймпад-читы" for the message text and
+// new_game_devlog/input_system/keyboard_mouse_layout.md for the keyboard
+// command names (bloodofkings / shieldofsteel / weneedguns / losttrack).
+void cheat_apply_immortal_toggle();
+void cheat_apply_full_health();
+void cheat_apply_spawn_weapons();
+void cheat_apply_max_ammo();
 #endif // GAME_INPUT_ACTIONS_H
