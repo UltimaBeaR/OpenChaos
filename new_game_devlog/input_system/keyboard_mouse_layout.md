@@ -244,14 +244,17 @@ gameplay-маппингом. Главные конфликты:
 запрещён — у пользователя его нет). Кандидаты: ;, ', `, [, ], =, -, /, \,
 и буквенные клавиши которые свободны после нового маппинга.
 
-### TODO-2: разобраться почему 1–8 не работают
+### TODO-2 ✅ DONE: фикс 1–8 weapon hotkeys
 
-Текущая проблема: нажатие 1–8 не переключает оружие. Подозрение —
-`apply_button_input` использует `input_key_just_pressed` (single-frame
-edge), а вызывается из physics-tick (20 Hz), не render-frame (60+ Hz).
-Ребро может теряться между тиками. Cam-keys выше используют `press_pending`
-(sticky edge) — они работают. Чинить переводом weapon-keys на
-`press_pending`.
+Было: `apply_button_input` использовал `input_key_just_pressed` (single-frame
+edge), а вызывался из physics-tick (20 Hz) — не render-frame (60+ Hz).
+Ребро могло теряться между тиками.
+
+Стало: переведено на `input_key_press_pending` + `input_key_consume`.
+Sticky pending переживает gap между тиками. Consume происходит up-front
+для всех 8 клавиш сразу — press «потрачен» на тике когда прочитан
+(не очередится при блокировке), что сохраняет старую just_pressed
+семантику.
 
 ## Шаги реализации (порядок)
 

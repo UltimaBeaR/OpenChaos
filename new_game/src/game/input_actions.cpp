@@ -4666,16 +4666,45 @@ void process_hardware_level_input_for_player(Thing* p_player)
         if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
             // Can't draw weapons while driving.
         } else {
-            // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
-            // — single press = single switch, regardless of FPS.
+            // Keyboard weapon hotkeys (1..8). Edge-detect via sticky
+            // press_pending — apply_button_input runs on the physics tick
+            // (~20 Hz) but presses can land on any render frame (60+ Hz),
+            // so a single just_pressed edge can fall between two physics
+            // ticks and vanish before this code reads it. press_pending
+            // latches the rising edge until explicit consume, so the
+            // press survives across the tick-gap. Same pattern the camera
+            // and pause-toggle keys already use.
+            //
+            // Consume happens up-front whether or not the action actually
+            // fires (e.g. weapon not in inventory) — matches the original
+            // just_pressed semantic where a press is "spent" on the tick
+            // it's read, not queued.
             if (can_darci_change_weapon(p_person)) {
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_HOLSTER_KKEY)) {
+                const bool pressed_holster    = input_key_press_pending(ACT_FOOT_WEAPON_HOLSTER_KKEY);
+                const bool pressed_pistol     = input_key_press_pending(ACT_FOOT_WEAPON_PISTOL_KKEY);
+                const bool pressed_shotgun    = input_key_press_pending(ACT_FOOT_WEAPON_SHOTGUN_KKEY);
+                const bool pressed_ak47       = input_key_press_pending(ACT_FOOT_WEAPON_AK47_KKEY);
+                const bool pressed_grenade    = input_key_press_pending(ACT_FOOT_WEAPON_GRENADE_KKEY);
+                const bool pressed_explosives = input_key_press_pending(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY);
+                const bool pressed_knife      = input_key_press_pending(ACT_FOOT_WEAPON_KNIFE_KKEY);
+                const bool pressed_bat        = input_key_press_pending(ACT_FOOT_WEAPON_BAT_KKEY);
+
+                input_key_consume(ACT_FOOT_WEAPON_HOLSTER_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_PISTOL_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_SHOTGUN_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_AK47_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_GRENADE_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_KNIFE_KKEY);
+                input_key_consume(ACT_FOOT_WEAPON_BAT_KKEY);
+
+                if (pressed_holster) {
                     if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
                         set_person_gun_away(p_person);
                     }
                 }
 
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_PISTOL_KKEY)) {
+                if (pressed_pistol) {
                     if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
                         if (p_person->Flags & FLAGS_HAS_GUN) {
                             if (p_person->Genus.Person->SpecialUse) {
@@ -4683,19 +4712,18 @@ void process_hardware_level_input_for_player(Thing* p_player)
                             }
 
                             set_person_draw_gun(p_person);
-                        } else {
                         }
                     }
                 }
 
                 SLONG special_type = SPECIAL_NONE;
 
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_KKEY))    special_type = SPECIAL_SHOTGUN;
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_AK47_KKEY))       special_type = SPECIAL_AK47;
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_GRENADE_KKEY))    special_type = SPECIAL_GRENADE;
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY)) special_type = SPECIAL_EXPLOSIVES;
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_KNIFE_KKEY))      special_type = SPECIAL_KNIFE;
-                if (input_key_just_pressed(ACT_FOOT_WEAPON_BAT_KKEY))        special_type = SPECIAL_BASEBALLBAT;
+                if (pressed_shotgun)    special_type = SPECIAL_SHOTGUN;
+                if (pressed_ak47)       special_type = SPECIAL_AK47;
+                if (pressed_grenade)    special_type = SPECIAL_GRENADE;
+                if (pressed_explosives) special_type = SPECIAL_EXPLOSIVES;
+                if (pressed_knife)      special_type = SPECIAL_KNIFE;
+                if (pressed_bat)        special_type = SPECIAL_BASEBALLBAT;
 
                 if (special_type) {
                     if (person_has_special(p_person, special_type)) {
