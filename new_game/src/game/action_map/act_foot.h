@@ -96,17 +96,13 @@ constexpr int ACT_FOOT_WEAPON_AK47_GBTN         = GBTN_DPAD_LEFT;
 constexpr int ACT_FOOT_WEAPON_SHOTGUN_GBTN      = GBTN_DPAD_RIGHT;
 constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN  = GBTN_DPAD_DOWN;
 
-// ---- Camera switch (mode + behind + side rotate) ---------------------------
-// F-keys pick a fixed camera mode; END puts the camera behind the player;
-// DEL / PGDN rotate the camera left / right. Gamepad L1 (alias for camera
-// toggle) sets INPUT_MASK_CAMERA — same effect as F-keys' MODE switch.
+// ---- Camera toggle (gamepad-only) ------------------------------------------
+// Gamepad L1 sets INPUT_MASK_CAMERA (cycle next camera mode). Keyboard
+// equivalents were removed when the new WASD + mouse layout took over —
+// mouse handles look, so keyboard camera rotation / snap-behind bindings
+// (F5/F6/F7/End/Del/PgDn) are gone. See
+// new_game_devlog/input_system/keyboard_mouse_layout.md.
 
-constexpr int ACT_FOOT_CAM_MODE_1_KKEY = KKEY_F5;
-constexpr int ACT_FOOT_CAM_MODE_2_KKEY = KKEY_F6;
-constexpr int ACT_FOOT_CAM_MODE_3_KKEY = KKEY_F7;
-constexpr int ACT_FOOT_CAM_BEHIND_KKEY = KKEY_END;
-constexpr int ACT_FOOT_CAM_LEFT_KKEY   = KKEY_DELETE;
-constexpr int ACT_FOOT_CAM_RIGHT_KKEY  = KKEY_PAGE_DOWN;
 constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 
 // ---- Camera look: right stick + mouse (analog) -----------------------------
