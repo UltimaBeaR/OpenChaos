@@ -23,6 +23,13 @@ bool s_currently_applied = false;
 // non-gameplay → gameplay transition that auto-engages capture.
 bool s_was_in_gameplay = false;
 
+// Previous tick's GS_PLAY_GAME bit — for distinguishing "level just
+// started" (the bit went 0 → 1) from "pause menu closed" (the bit was
+// already set, only GAMEMENU_menu_type changed). On a fresh level
+// start we auto-engage even if the cursor is outside the client area;
+// on pause-menu exit we keep the strict "cursor inside" gate.
+bool s_was_in_play_game = false;
+
 // When true, all engage paths are blocked and any active capture is
 // kept released. Used by the video player for the playback duration —
 // videos aren't gameplay even during a cutscene, and a click on the
@@ -119,16 +126,28 @@ void mouse_capture_update()
     const bool focused = !app_inactive;
     const bool visible = !sdl3_window_is_minimized();
 
-    // Auto-engage on non-gameplay → gameplay edge, but only when the
-    // window already has focus and the cursor is over it. Typical case:
-    // unpausing while the user's mouse was hovering over the game
-    // window. If the cursor is elsewhere (other monitor, title bar),
-    // the user has to click to engage — same as a fresh start.
-    if (!s_was_in_gameplay && now_in_gameplay) {
-        if (focused && visible && cursor_inside_client_area())
+    // Auto-engage on non-gameplay → gameplay edge. Two distinct cases:
+    //
+    //  (a) Level just started/restarted — GS_PLAY_GAME bit went 0 → 1.
+    //      On a fresh level load the user expects the game to grab the
+    //      mouse immediately so they can play, even if their cursor
+    //      happened to be on another monitor or over a title bar when
+    //      the loading finished. Focus + visible is enough; we skip the
+    //      cursor-inside-client-area check.
+    //
+    //  (b) Returning to gameplay from a pause/menu overlay — GS_PLAY_GAME
+    //      was already set, only GAMEMENU_menu_type went back to 0.
+    //      Here we keep the strict "cursor inside" gate: if the user's
+    //      mouse is on another monitor (e.g. they alt-tabbed to chat),
+    //      we don't snatch it back; they re-engage by clicking.
+    const bool play_game_edge = (!s_was_in_play_game) && (GAME_STATE & GS_PLAY_GAME);
+    const bool gameplay_edge = (!s_was_in_gameplay) && now_in_gameplay;
+    if (gameplay_edge && focused && visible) {
+        if (play_game_edge || cursor_inside_client_area())
             s_capture_requested = true;
     }
     s_was_in_gameplay = now_in_gameplay;
+    s_was_in_play_game = (GAME_STATE & GS_PLAY_GAME) != 0;
 
     // Forced release: any of the necessary conditions for capture has
     // gone away. We don't remember "wanted capture" across these
@@ -192,6 +211,7 @@ void mouse_capture_set_suppressed(bool suppressed)
     if (suppressed) {
         s_capture_requested = false;
         s_was_in_gameplay = false;
+        s_was_in_play_game = false;
         apply_capture(false);
     }
 }
