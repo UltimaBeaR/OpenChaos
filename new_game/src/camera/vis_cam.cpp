@@ -2,13 +2,12 @@
 #include "ai/mav.h"                   // MAV_inside, MAVHEIGHT
 #include "buildings/prim.h"           // get_prim_info, PrimInfo
 #include "buildings/ware.h"           // WARE_inside (indoor sampler)
+#include "camera/camera_mode.h"       // get_active_camera_mode, keep_for_rubberness
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/core/fixed_math.h"   // MUL64
 #include "engine/core/macros.h"       // QDIST2, QDIST3, WITHIN
 #include "engine/core/math.h"         // SIN / COS
-#include "engine/input/gamepad.h"     // InputDeviceType
-#include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/physics/collide.h"   // there_is_a_los, LOS_FLAG_*
 #include "buildings/prim_types.h"     // PrimFace4, PrimPoint
 #include "game/game_types.h"          // TO_THING, THINGS, THING_NUMBER
@@ -110,23 +109,22 @@ static const SLONG VC_WALL_OFFSET_Y = VC_WALL_OFFSET / 8;
 // MAV cell of resolution along a typical 3–4m third-person distance.
 static const SLONG VC_RAY_SAMPLES = 32;
 
-// Lerp weight applied to the freshly computed camera position when both the
-// previous and current physics tick were in collision. Lower = smoother
-// (and laggier). Applied per-tick: vc = lerp(prev_vc, computed_vc, num/den).
-// Only kicks in for sustained collision — entry into and exit from collision
-// stay snap-responsive on purpose.
-static const SLONG VC_SMOOTH_ALPHA_NUM = 6;
-static const SLONG VC_SMOOTH_ALPHA_DEN = 10;
-
-// Keyboard+mouse: ZERO wall-smoothing. The gamepad path uses 60/40 to
-// mask `min_d_hit` jitter while sliding along walls (R-stick orbit is
-// slow enough that the smoothing tail feels right). On mouse, ALL
-// rotation smoothing is disabled (mdx/mdy snap fc=want, the FC angle
-// smoothing pass is gated to snap mode too) — adding any wall smoothing
-// reintroduces a "different mode" rubber-band on contact. 10/10 means
-// keep=0, i.e. vc = computed_vc instantly each tick.
-static const SLONG VC_SMOOTH_ALPHA_NUM_KBM = 10;
-static const SLONG VC_SMOOTH_ALPHA_DEN_KBM = 10;
+// Shipping default lerp weight for sustained-collision smoothing in AUTO
+// mode at rubberness 0.5: `vc = prev_vc * 0.4 + computed_vc * 0.6` per
+// tick (60/40 blend → "keep 40% of the previous position"). The actual
+// keep fraction used per tick is `keep_for_rubberness(VC_KEEP_DEFAULT)`,
+// so rubberness 0 collapses to keep=0 (= MANUAL behaviour: no smoothing)
+// and rubberness 1 gives a much laggier wall slide.
+//
+// MANUAL mode bypasses this entirely (keep=0 hard-coded — no smoothing
+// regardless of rubberness, since MANUAL doesn't use the rubberness
+// scalar at all).
+//
+// Why smoothing matters for AUTO: the gamepad R-stick rotates slowly,
+// and `min_d_hit` jitters by ~one probe step each tick. Snapping vc to
+// raw_vc on every tick would show that jitter as visible pumping while
+// sliding along walls. The smoothing tail averages it out.
+static constexpr float VC_KEEP_DEFAULT = 0.4f;
 
 // MAVHEIGHT delta above the focus cell needed to count a sample as "wall".
 // Without this, MAV_inside returns true on every step along flat ground —
@@ -975,46 +973,46 @@ void VC_process(void)
         if (in_collision) {
             // COLLISION mode.
             //   Sustained ticks: blend prev → freshly computed raw_vc.
-            //   First tick of contact (gamepad path): hold at fc identity
+            //   First tick of contact (AUTO mode): hold at fc identity
             //     (no pull-in yet). The probe-extension early-detection
             //     means raw_vc can have a non-trivial pull-in on the very
             //     first detection (up to ~10 cm due to discrete probe step
             //     resolution × WALL_OFFSET); snapping straight to that
-            //     reads as a visible jerk on gamepad, where rotation is
+            //     reads as a visible jerk in AUTO, where rotation is
             //     smoothed and fc moves into the wall gradually. The
-            //     60/40 blend below then pulls toward raw_vc over ~5 ticks.
-            //   First tick of contact (KBM path): use raw_vc immediately,
-            //     no fc-identity snap. KBM rotation is INSTANT (no angle
-            //     smoothing), so a single fast mouse flick can land fc
-            //     deep inside the wall in one tick. Snapping vc to fc on
-            //     that tick would render one frame from INSIDE the wall.
-            //     Using raw_vc (which already has the wall offset applied
-            //     by vc_process_one) keeps the camera outside the wall.
-            //     The "visible jerk" the gamepad path avoids is preferable
-            //     to a one-frame inside-wall render.
-            const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
+            //     subsequent sustained-collision blend then pulls toward
+            //     raw_vc over ~5 ticks.
+            //   First tick of contact (MANUAL mode): use raw_vc
+            //     immediately, no fc-identity snap. MANUAL rotation is
+            //     INSTANT (no angle smoothing), so a single fast manual
+            //     flick can land fc deep inside the wall in one tick.
+            //     Snapping vc to fc on that tick would render one frame
+            //     from INSIDE the wall. Using raw_vc (which already has
+            //     the wall offset applied by vc_process_one) keeps the
+            //     camera outside the wall. The "visible jerk" that AUTO
+            //     avoids is preferable to a one-frame inside-wall render.
+            const bool manual = camera_is_manual();
+            // Per-tick "keep" fraction (share of previous position kept).
+            // MANUAL → 0 (snap to raw_vc). AUTO → rubberness-scaled, with
+            // rubberness 0.5 yielding the shipping 0.4 keep = 60/40 blend.
+            // double for the blend math — camera positions are 16.16
+            // fixed-point with magnitudes up to ~8M, where 32-bit float
+            // only has ~1-unit precision and can pump visibly.
+            const double keep_d = manual ? 0.0 : (double)keep_for_rubberness(VC_KEEP_DEFAULT);
             if (s.mode == VC_SM_COLLISION) {
-                const SLONG alpha_num = kbm ? VC_SMOOTH_ALPHA_NUM_KBM : VC_SMOOTH_ALPHA_NUM;
-                const SLONG alpha_den = kbm ? VC_SMOOTH_ALPHA_DEN_KBM : VC_SMOOTH_ALPHA_DEN;
-                const SLONG keep = alpha_den - alpha_num;
-                vc.x = (SLONG)(((std::int64_t)s.prev_x * keep
-                        + (std::int64_t)vc.x * alpha_num)
-                    / alpha_den);
-                vc.y = (SLONG)(((std::int64_t)s.prev_y * keep
-                        + (std::int64_t)vc.y * alpha_num)
-                    / alpha_den);
-                vc.z = (SLONG)(((std::int64_t)s.prev_z * keep
-                        + (std::int64_t)vc.z * alpha_num)
-                    / alpha_den);
+                const double blend_d = 1.0 - keep_d;
+                vc.x = (SLONG)((double)s.prev_x * keep_d + (double)vc.x * blend_d);
+                vc.y = (SLONG)((double)s.prev_y * keep_d + (double)vc.y * blend_d);
+                vc.z = (SLONG)((double)s.prev_z * keep_d + (double)vc.z * blend_d);
             } else {
                 s.mode = VC_SM_COLLISION;
-                if (!kbm) {
+                if (!manual) {
                     vc.x = fc->x;
                     vc.y = fc->y;
                     vc.z = fc->z;
                 }
-                // KBM: leave vc at vc_process_one's computed wall-offset
-                // position (no fc-identity override).
+                // MANUAL: leave vc at vc_process_one's computed wall-
+                // offset position (no fc-identity override).
             }
             s.prev_x = vc.x;
             s.prev_y = vc.y;
@@ -1044,22 +1042,18 @@ void VC_process(void)
                     // because the lerp mechanism is unchanged — only the
                     // target switched (from collision-shifted to identity)
                     // and the weight started shrinking.
-                    const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
-                    const SLONG alpha_num = kbm ? VC_SMOOTH_ALPHA_NUM_KBM : VC_SMOOTH_ALPHA_NUM;
-                    const SLONG alpha_den = kbm ? VC_SMOOTH_ALPHA_DEN_KBM : VC_SMOOTH_ALPHA_DEN;
-                    SLONG keep_num = (alpha_den - alpha_num) * s.exit_ticks_left;
-                    SLONG keep_den = VC_EXIT_TICKS * alpha_den;
-                    SLONG drop_num = keep_den - keep_num;
+                    // Mode-driven keep, linearly scaled by exit_ticks_left
+                    // so the smoothing tail fades to 0 (vc → fc) over
+                    // VC_EXIT_TICKS. MANUAL → 0 keep (instant) regardless
+                    // of ticks_left; AUTO → rubberness-scaled keep × fade.
+                    const bool manual = camera_is_manual();
+                    const double base_keep = manual ? 0.0 : (double)keep_for_rubberness(VC_KEEP_DEFAULT);
+                    const double keep_d = base_keep * ((double)s.exit_ticks_left / (double)VC_EXIT_TICKS);
+                    const double drop_d = 1.0 - keep_d;
                     SLONG fc_x = vc.x, fc_y = vc.y, fc_z = vc.z;
-                    vc.x = (SLONG)(((std::int64_t)s.prev_x * keep_num
-                                    + (std::int64_t)fc_x * drop_num)
-                                   / keep_den);
-                    vc.y = (SLONG)(((std::int64_t)s.prev_y * keep_num
-                                    + (std::int64_t)fc_y * drop_num)
-                                   / keep_den);
-                    vc.z = (SLONG)(((std::int64_t)s.prev_z * keep_num
-                                    + (std::int64_t)fc_z * drop_num)
-                                   / keep_den);
+                    vc.x = (SLONG)((double)s.prev_x * keep_d + (double)fc_x * drop_d);
+                    vc.y = (SLONG)((double)s.prev_y * keep_d + (double)fc_y * drop_d);
+                    vc.z = (SLONG)((double)s.prev_z * keep_d + (double)fc_z * drop_d);
                     s.prev_x = vc.x;
                     s.prev_y = vc.y;
                     s.prev_z = vc.z;

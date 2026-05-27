@@ -10,6 +10,7 @@
 #include "map/level_pools.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+#include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness, camera_is_*
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
@@ -783,8 +784,8 @@ void FC_setup_camera_for_warehouse(SLONG cam)
 // never pitches steeper than ~53° (no bird's-eye view) regardless of
 // dist3d. Earlier Y-position-based clamping allowed pitch to approach
 // 90° when dist3d was small (camera straight above focus, looking down).
-static const SLONG KBM_PITCH_MIN = 64;
-static const SLONG KBM_PITCH_MAX = 302;
+static const SLONG MOUSE_PITCH_MIN = 64;
+static const SLONG MOUSE_PITCH_MAX = 302;
 
 static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLONG y_delta)
 {
@@ -803,8 +804,8 @@ static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLO
     // Convert pitch limits to Y offset using off_y = dist3d * sin(pitch).
     // SIN/COS in this engine return 16-bit fixed point ([-65536, +65536]),
     // so shift the product right by 16 to get fc-units.
-    const int64_t pitch_max_off_y = ((int64_t)dist3d * SIN(KBM_PITCH_MAX)) >> 16;
-    const int64_t pitch_min_off_y = ((int64_t)dist3d * SIN(KBM_PITCH_MIN)) >> 16;
+    const int64_t pitch_max_off_y = ((int64_t)dist3d * SIN(MOUSE_PITCH_MAX)) >> 16;
+    const int64_t pitch_min_off_y = ((int64_t)dist3d * SIN(MOUSE_PITCH_MIN)) >> 16;
 
     // Combine with gamepad's absolute Y range. Take the TIGHTER of the
     // two per side so that:
@@ -912,6 +913,17 @@ void FC_process()
         used_to_be_in_warehouse = fc->focus_in_warehouse;
 
         FC_calc_focus(fc);
+
+        // "Manual Y input is active this tick" — set by the mouse and
+        // stick input blocks below when a non-zero vertical input arrived.
+        // Consumed by the Y-tracking block further down to decide between
+        // AUTO-mode default-height convergence (no input) and AUTO-mode
+        // delta-tracking (input active). MANUAL mode ignores this and
+        // always delta-tracks. Default false so a tick with no input
+        // block running counts as idle. Declared at cam-loop scope
+        // because the input blocks and the Y-tracking block live in
+        // separate `if (!fc->toonear)` sub-scopes within the loop.
+        bool manual_y_input_this_tick = false;
 
         // Rigidly inherit vehicle motion when the focus person stands on
         // a moving vehicle: translate camera by vehicle's per-tick world
@@ -1145,6 +1157,7 @@ void FC_process()
                 }
 
                 if (mdy != 0) {
+                    manual_y_input_this_tick = true;
                     // Vertical mouse = orbital pitch around focus.
                     // Camera arcs up/down on a sphere around the focus
                     // character — looking up lifts the camera AND moves
@@ -1249,6 +1262,7 @@ void FC_process()
                 // Height: directly move want_y (bypasses the slow Y smoothing).
                 // Stick up (negative Y) = raise camera, stick down = lower camera.
                 if (abs(stick_y) > 8000) {
+                    manual_y_input_this_tick = true;
                     SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
                     fc->want_y += height_delta;
 
@@ -1371,16 +1385,16 @@ void FC_process()
             // mission start) so we don't launch want across the map.
             if (abs(focus_dx) < TELEPORT_THRESHOLD
                 && abs(focus_dz) < TELEPORT_THRESHOLD) {
-                if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
-                    // Keyboard+mouse: rigidly translate the camera by
-                    // the FULL focus delta — not just the excess above
-                    // a cap. This is what keeps the camera's world-space
-                    // angle FIXED relative to the character: if camera
-                    // and focus move by the same vector each tick, the
-                    // camera→focus offset is constant, so look_at_focus
-                    // computes the same want_yaw and the camera never
-                    // spontaneously rotates on character motion. Mouse
-                    // is the only thing that changes the angle.
+                if (camera_is_manual()) {
+                    // MANUAL: rigidly translate the camera by the FULL
+                    // focus delta — not just the excess above a cap. This
+                    // is what keeps the camera's world-space angle FIXED
+                    // relative to the character: if camera and focus move
+                    // by the same vector each tick, the camera→focus
+                    // offset is constant, so look_at_focus computes the
+                    // same want_yaw and the camera never spontaneously
+                    // rotates on character motion. Manual input is the
+                    // ONLY thing that changes the angle.
                     //
                     // EXCEPT when standing on a moving vehicle platform:
                     // the platform_thing block above already moved
@@ -1390,25 +1404,25 @@ void FC_process()
                     // want — over-shooting the focus, which then makes
                     // look_at_focus compute a yaw offset and the camera
                     // auto-rotates (visible as "camera auto-rotation
-                    // while standing on a moving vehicle"). Gamepad
+                    // while standing on a moving vehicle"). AUTO mode
                     // doesn't hit this bug because its excess-speed
                     // tracking below contributes 0 for typical vehicle
                     // speeds, leaving platform inheritance as the single
                     // motion source. Skip translation tracking here on
-                    // KBM when on a platform to match.
+                    // MANUAL when on a platform to match.
                     //
                     // All downstream smoothing is preserved: want→x
                     // position smoothing, distance clamp, and the
                     // character side's own animation/physics smoothing
                     // of focus_x/z all still run. So bumps, stairs, and
                     // mid-step jitter come through with the same feel as
-                    // gamepad — just no auto-rotation.
+                    // AUTO — just no auto-rotation.
                     if (!fc->platform_thing) {
                         fc->want_x += focus_dx;
                         fc->want_z += focus_dz;
                     }
                 } else {
-                    // Gamepad: excess-speed tracking. Below cap the
+                    // AUTO: excess-speed tracking. Below cap the
                     // contribution is 0 (original walk/run feel kept,
                     // get-behind decides where the camera ends up);
                     // above cap the excess is absorbed so manual orbit
@@ -1444,24 +1458,24 @@ void FC_process()
         // L2 release to wipe an active mouse-orbit lock-out. The two
         // suppressions are independent.
         const bool l2_freeze_get_behind = input_l2_is_held();
-        // Keyboard+mouse: no automatic camera rotation at all. The mouse
-        // is the ONLY thing that rotates the camera in this mode — no
-        // get-behind pull when the character moves, no inactivity-timer
-        // snap-back. Same philosophy as modern FPS / TPS games on PC.
+        // MANUAL mode: no automatic camera rotation at all. Manual input
+        // (mouse / stick orbit) is the ONLY thing that rotates the camera
+        // — no get-behind pull when the character moves, no inactivity-
+        // timer snap-back. Same philosophy as modern FPS / TPS games.
         // We still let `nobehind` decrement normally so that if the
-        // player switches back to the gamepad the state is sane (the
+        // player switches back to AUTO mode the state is sane (the
         // residual manual-input lockout counts down rather than being
-        // frozen at whatever the last mouse orbit set it to).
-        const bool kbm_freeze_get_behind = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
+        // frozen at whatever the last manual orbit set it to).
+        const bool manual_freeze_get_behind = camera_is_manual();
         if (!fc->toonear && !l2_freeze_get_behind) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
                 }
-            } else if (kbm_freeze_get_behind) {
-                // Keyboard+mouse mode: skip auto get-behind entirely.
-                // Mouse orbit is the sole camera rotation source.
+            } else if (manual_freeze_get_behind) {
+                // MANUAL mode: skip auto get-behind entirely.
+                // Manual orbit is the sole camera rotation source.
             } else if (fc->focus->Class == CLASS_PERSON
                 && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT
                 && (SLONG)GAME_TURN >= fc->fight_behind_until) {
@@ -1523,19 +1537,28 @@ void FC_process()
             // cut-scene short-circuit at the top of the loop.)
             SLONG focus_y_delta = fc->focus_y - s_prev_focus_y[cam];
 
-            // Detect actively-deflected stick Y (same threshold the
-            // stick-input block uses to apply height_delta).
-            bool stick_y_active = false;
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE
-                && input_gamepad_connected()) {
+            // Mode-driven Y behaviour:
+            //   MANUAL: always delta-track (no auto convergence — player
+            //           sets the height with manual input, it persists).
+            //   AUTO + manual Y input this tick: delta-track (input would
+            //           otherwise fight the convergence pull each tick).
+            //   AUTO + no manual Y input: converge toward default height
+            //           above focus (idle-return feature of AUTO mode).
+            //
+            // `manual_y_input_this_tick` is set by the mouse and stick
+            // input blocks above when a non-zero vertical input arrived.
+            // For gamepad we also detect a held-deflection that didn't
+            // pass through the input block this tick (input block runs
+            // on a different path but the held-stick semantics are the
+            // same — convergence would still fight it).
+            if (!manual_y_input_this_tick && input_gamepad_connected()) {
                 SLONG sy = input_stick_y_axis(GAXIS_RIGHT) - 32768;
-                if (abs(sy) > 8000) stick_y_active = true;
+                if (abs(sy) > 8000) manual_y_input_this_tick = true;
             }
 
-            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE
-                || stick_y_active) {
+            if (camera_is_manual() || manual_y_input_this_tick) {
                 fc->want_y += focus_y_delta;
-                // Clamp to the unified mouse/gamepad Y range.
+                // Clamp to the unified Y range.
                 SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
                 SLONG max_y = fc->focus_y + FC_CAM_Y_MAX_ABOVE_FOCUS;
                 if (fc->want_y < min_y)
@@ -1621,8 +1644,14 @@ void FC_process()
         // 0x800 { want = fc }`) pins want at fc's lagged position. The
         // very next tick this clamp catches it (want's XZ > target),
         // pulls want back to target XZ, and fc smooths in.
-        const bool kbm = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE);
-        if (!kbm && dist < FC_DIST_MIN) {
+        // MANUAL mode skips the "too close" clamp: manual vertical orbit
+        // (mouse pitch / stick orbit) deliberately shrinks XZ as the camera
+        // arcs up around the focus; min-clamping would undo that on every
+        // tick. The "too far" branch below is kept for both modes — it
+        // provides sprint recovery (lagged fc catches up to want after
+        // sprint zoom-out ends) and that feels right on MANUAL too.
+        const bool min_clamp_enabled = camera_is_auto();
+        if (min_clamp_enabled && dist < FC_DIST_MIN) {
             if (!fc->toonear) {
                 ddist = FC_DIST_MIN - dist;
 
@@ -1669,14 +1698,18 @@ void FC_process()
 
         FC_look_at_focus(fc);
 
-        // Smooth angles: want → actual >>2.
+        // Smooth angles: want → actual.
         //
-        // Keyboard+mouse skip: KBM does ZERO rotation smoothing. Any
-        // smoothing here would be perceived as a rubber-band tail on
-        // mouse rotation (the mouse mdx/mdy blocks above also snap fc
-        // directly to want for the same reason). Just collapse fc =
-        // want every tick. Gamepad path keeps the legacy 25%/tick smoothing.
-        if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+        // MANUAL mode: zero rotation smoothing — any smoothing here is
+        // perceived as a rubber-band tail on manual rotation (the mouse
+        // mdx/mdy blocks above also snap fc directly to want for the same
+        // reason). Just collapse fc = want every tick.
+        //
+        // AUTO mode: smoothing scaled by rubberness. Shipping default
+        // (rubberness 0.5) keeps the legacy `>>2` step exactly — i.e.
+        // 25%/tick toward want. Lower rubberness → snappier. Higher →
+        // laggier rubber-band.
+        if (camera_is_manual()) {
             fc->yaw   = fc->want_yaw;
             fc->pitch = fc->want_pitch;
             fc->roll  = fc->want_roll;
@@ -1700,9 +1733,16 @@ void FC_process()
             }
 
             if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
-                fc->yaw += dyaw >> 2;
-                fc->pitch += dpitch >> 2;
-                fc->roll += droll >> 2;
+                // Legacy step was `>> 2` (drop 25% of remaining delta per
+                // tick → keep 75% of the old angle). Express that as a
+                // "keep" fraction so rubberness can scale it. At
+                // rubberness 0.5 the helper returns exactly 0.75, the
+                // multiplication below collapses to `* 0.25` = `>>2`,
+                // bit-identical to the original.
+                const float drop = 1.0f - keep_for_rubberness(0.75f);
+                fc->yaw   += (SLONG)((float)dyaw   * drop);
+                fc->pitch += (SLONG)((float)dpitch * drop);
+                fc->roll  += (SLONG)((float)droll  * drop);
             } else {
                 fc->want_yaw = fc->yaw;
                 fc->want_pitch = fc->pitch;

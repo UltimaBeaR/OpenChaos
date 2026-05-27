@@ -487,6 +487,7 @@ set(SOURCES_NEW
     src/missions/save_globals.cpp
 
     # === Camera ===
+    src/camera/camera_mode.cpp
     src/camera/fc.cpp
     src/camera/fc_globals.cpp
     src/camera/vis_cam.cpp

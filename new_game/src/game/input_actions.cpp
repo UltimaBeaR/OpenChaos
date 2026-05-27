@@ -3748,7 +3748,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     veh->DControl = 0;
 
     // Keyboard (new layout): W=accel, Space=brake, A/D=steer, E=siren.
-    // Gamepad: R2=accel, L2=brake, Left stick=steer, Triangle=siren.
+    // Gamepad: R2=accel, L2=brake, Left stick X=steer (Y ignored), Triangle=siren.
     // VEH_FASTER: always-on, unconditionally, no input gating. The flag
     // historically had keyboard and gamepad binding chords to toggle it,
     // but in manual testing no perceptible vehicle behavior change was
@@ -3764,16 +3764,35 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
         else if (input & INPUT_CAR_KB_DECELERATE)
             veh->DControl |= VEH_DECEL;
     } else {
-        // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
-        // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
-        // crosses ~half-deflection inside the gamepad layer); btn_held below
-        // reads exactly those bits, not the analog uint8_t triggers.
+        // R2 = accelerate, L2 = brake. Left stick is STEERING ONLY (X
+        // axis); stick Y is intentionally ignored for gas/brake.
+        //
+        // Why: the previous mapping had stick-forward = gas and stick-
+        // back = brake (via INPUT_CAR_PAD_ACCELERATE / DECELERATE which
+        // include INPUT_MASK_FORWARDS / INPUT_MASK_BACKWARDS bits set
+        // from stick deflection). Players often slightly pull the stick
+        // back while turning, or the stick drifts past the deadzone on
+        // its own — the car then auto-brakes mid-corner, breaking
+        // driving feel. Likely cause of the "car brakes by itself" bug
+        // tracked in known_issues_and_bugs_1_0.md (Gameplay section).
+        //
+        // Face buttons (Cross / Square) for gas/brake were also dropped
+        // here as part of the same simplification — modern controllers
+        // use triggers for analog gas/brake, and the on-foot semantics
+        // of those face buttons (jump / punch) shouldn't leak into the
+        // car context.
+        //
+        // rgbButtons[15/16] are the DIGITAL trigger bits (set when
+        // analog trigger crosses ~half-deflection inside the gamepad
+        // layer); btn_held below reads exactly those bits, not the
+        // analog uint8_t triggers. Analog trigger position is read
+        // separately in vehicle.cpp for proportional accel/brake force.
         bool r2 = input_btn_held(ACT_CAR_ACCEL_GBTN);
         bool l2 = input_btn_held(ACT_CAR_BRAKE_GBTN);
 
-        if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
+        if (r2)
             veh->DControl |= VEH_ACCEL;
-        else if ((input & INPUT_CAR_PAD_DECELERATE) || l2)
+        else if (l2)
             veh->DControl |= VEH_DECEL;
     }
 
