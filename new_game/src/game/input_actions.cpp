@@ -3647,13 +3647,20 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     // Keyboard uses PC button→action mapping (Z=accel, X=brake, Space=siren).
     // Gamepad uses PSX mapping (Cross=accel, Square=brake, Triangle=siren).
+    // VEH_FASTER: always-on, unconditionally, no input gating. The flag
+    // historically had keyboard and gamepad binding chords to toggle it,
+    // but in manual testing no perceptible vehicle behavior change was
+    // observed. To avoid wasting a chord (and to free the chord component
+    // keys for the new WASD car layout), the flag is just always set
+    // every tick. If a future audit of vehicle.cpp shows the flag actually
+    // does something undesirable when always-on, gate it here.
+    veh->DControl |= VEH_FASTER;
+
     if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
         if (input & INPUT_CAR_KB_ACCELERATE)
             veh->DControl |= VEH_ACCEL;
         else if (input & INPUT_CAR_KB_DECELERATE)
             veh->DControl |= VEH_DECEL;
-        if (input & INPUT_CAR_KB_GOFASTER)
-            veh->DControl |= VEH_FASTER;
     } else {
         // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
         // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
@@ -3666,8 +3673,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_ACCEL;
         else if ((input & INPUT_CAR_PAD_DECELERATE) || l2)
             veh->DControl |= VEH_DECEL;
-        if ((input & INPUT_CAR_PAD_GOFASTER) || r2 || l2)
-            veh->DControl |= VEH_FASTER;
     }
 
     // Siren toggle: edge-triggered via input_frame's sticky press_pending.
