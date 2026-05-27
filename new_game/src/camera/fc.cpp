@@ -821,6 +821,11 @@ static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLO
                         : (int64_t)FC_CAM_Y_MIN_ABOVE_FOCUS;
     if (min_off_y > max_off_y) min_off_y = max_off_y;
 
+    // Early-exit when user input pushes IN THE DIRECTION the position is
+    // already past a limit. See block comment at the top of this section.
+    if (y_delta > 0 && old_off_y > max_off_y) return;
+    if (y_delta < 0 && old_off_y < min_off_y) return;
+
     int64_t new_off_y = old_off_y + y_delta;
     if (new_off_y > max_off_y) new_off_y = max_off_y;
     if (new_off_y < min_off_y) new_off_y = min_off_y;
@@ -1167,8 +1172,31 @@ void FC_process()
                     // moved at the same time).
                     SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
 
+                    // Apply pitch helper ONLY to want, then mirror the
+                    // resulting world-space delta onto fc.
+                    //
+                    // Calling the helper independently for want and fc was
+                    // broken: each call computes pitch_max_off_y from its
+                    // OWN dist3d, and want vs fc diverge over time
+                    // (position smoothing lag + want-only translation /
+                    // Y-focus tracking). At the upper limit, want correctly
+                    // saw eff_dy=0, but fc — with a larger dist3d — saw
+                    // a higher pitch_max and continued moving up by
+                    // thousands of fc-units per tick. Position smoothing
+                    // then dragged fc back down toward want each tick,
+                    // visible as drift at the limit on continued mouse-up.
+                    //
+                    // Mirroring the delta keeps want/fc in lockstep on
+                    // mouse motion (same as ORBIT_PT on both for mdx).
+                    // Other sources of want/fc divergence (translation,
+                    // Y-focus tracking, smoothing) keep working as before.
+                    const SLONG want_x_pre = fc->want_x;
+                    const SLONG want_y_pre = fc->want_y;
+                    const SLONG want_z_pre = fc->want_z;
                     apply_pitch_y_delta(fc, &fc->want_x, &fc->want_y, &fc->want_z, height_delta);
-                    apply_pitch_y_delta(fc, &fc->x,      &fc->y,      &fc->z,      height_delta);
+                    fc->x += (fc->want_x - want_x_pre);
+                    fc->y += (fc->want_y - want_y_pre);
+                    fc->z += (fc->want_z - want_z_pre);
 
                     fc->nobehind = 0x2000;
                 }
