@@ -4660,6 +4660,23 @@ void set_person_flip(Thing* p_person, SLONG dir)
 // uc_orig: set_person_running (fallen/Source/Person.cpp)
 void set_person_running(Thing* p_person)
 {
+    // OpenChaos: arm the "just transitioned to MOVEING" snap window for the
+    // player on ANY entry to MOVEING from a non-MOVEING state. This catches
+    // every path — process_analogue_movement IDLE→MOVEING, set_person_idle
+    // (called from landing animations) with continue_moveing fallback into
+    // set_person_running, dangling drop-out, etc. — without each call site
+    // needing its own arm. See PLAYER_RUN_ENTRY_SNAP_TICKS comment in
+    // input_actions.cpp for full rationale.
+    //
+    // Prior-State gate: walk→run / run→walk transitions stay inside
+    // STATE_MOVEING and don't need a snap (the character has been rotating
+    // toward the camera-relative target for many ticks already). Only the
+    // non-MOVEING → MOVEING transitions are race-prone.
+    if (p_person->Genus.Person->PlayerID && p_person->State != STATE_MOVEING) {
+        extern void player_arm_run_entry_snap();
+        player_arm_run_entry_snap();
+    }
+
     p_person->Draw.Tweened->Locked = 0;
     p_person->Genus.Person->Timer1 = 0;
 

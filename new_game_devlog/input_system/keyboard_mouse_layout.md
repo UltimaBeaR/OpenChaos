@@ -348,6 +348,60 @@ mdy (так же как mdx через `ORBIT_PT` для обоих). Други
 расхождения want/fc (translation tracking, Y focus tracking, position
 smoothing) работают как раньше.
 
+### BUG-JUMP-FROM-IDLE-WRONG-DIR ✅ FIXED: прыжок с места «вперёд+jump» иногда идёт в старое направление перса
+**Воспроизведение:** перс стоит на месте. Прокручиваешь камеру в другую
+сторону (перс лицом «куда было раньше»). Почти одновременно: «вперёд»
+(чуть раньше) + jump. Ожидаемо: перс развернётся к камере и прыгнет
+бегом в направлении камеры. Реально — **через раз**:
+- Иногда: перс разворачивается к камере, бежит в направлении камеры,
+  прыгает на бегу в направлении камеры (правильно).
+- Иногда: перс бежит в направлении куда смотрел РАНЬШЕ (не в направлении
+  камеры), прыжок на бегу в это старое направление (неправильно).
+- Это НЕ "стрелочка не успела": в неправильном случае прыжок именно
+  **на бегу**, не с места.
+
+Уже бежал + резкий разворот камеры в другую сторону + jump не отпуская
+бега — это работает корректно (перс продолжает бежать в текущую сторону,
+прыжок туда же; резкого разворота не делает). Бажит только сценарий
+"из стояния".
+
+**Воспроизведение на устройствах:**
+- Клавиатура: воспроизводится.
+- Геймпад: тоже воспроизводится, **«через раз»** — реже чем на клаве,
+  но баг общий, не KBM-специфика.
+
+**Корень:** action tree dispatch в `apply_button_input` бежит ДО
+rotation pass (`player_interface_move` → `player_turn_left_right_analogue`)
+в том же тике. На тике первого нажатия движения+jump из stand перс
+ещё не повернут к камере — `Tweened->Angle` старый. Jump-обработчики
+(`set_person_standing_jump_forwards` / `set_person_running_jump`) читают
+этот старый Angle → прыжок летит в старое направление.
+
+Кейс race-prone из-за timing: если W и Space прилетели в один тик из
+IDLE → ACTION_STANDING_JUMP, не было snap-а; если W прилетел тик-два
+раньше Space → state уже MOVEING, action_run → ACTION_RUNNING_JUMP,
+также без snap. Также воспроизводилось после landing (DROP_DOWN_LAND
+end → set_person_idle → continue_moveing → set_person_running) — counter
+не армировался т.к. путь минует `process_analogue_movement`.
+
+**Фикс (3 части):**
+1. `ACTION_STANDING_JUMP` FORWARDS branch — добавил snap angle к
+   stick+camera direction перед `set_person_standing_jump_forwards`
+   (зеркало существующего snap-а в side/back branch).
+2. Глобал-counter `g_player_run_entry_ticks` (5 тиков). Армируется
+   через `player_arm_run_entry_snap()` внутри `set_person_running`
+   (когда prior State != MOVEING для player) — покрывает ВСЕ пути
+   входа в MOVEING (process_analogue_movement, set_person_idle-continue,
+   dangling drop, etc.) одной точкой. Декремент — в начале
+   `apply_button_input`.
+3. `ACTION_RUNNING_JUMP` body — если counter > 0, snap angle перед
+   `set_person_running_jump`. Тот же formula что в STANDING_JUMP.
+
+Counter-window (5 тиков ≈ 100ms) маленький — преднамеренный
+«бежал → flip камеры → jump» (где perse продолжает бежать в свою
+сторону, не разворачивается резко) сохраняет существующее поведение
+(counter=0 после установившегося бега).
+
 ### BUG-CAM-SMALL-ROT-SHIFT: мелкое кручение мыши даёт смещение, а не поворот
 **Воспроизведение:** на клаве делаешь очень маленькое движение мышью —
 визуально воспринимается не как поворот камеры, а как небольшое

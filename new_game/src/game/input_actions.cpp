@@ -141,6 +141,47 @@ static inline void stick_camera_to_char_frame(
 // uc_orig: INPUT_ACTION_MASK (fallen/Source/interfac.cpp)
 #define INPUT_ACTION_MASK (~0x3f)
 
+// OpenChaos: "player just transitioned into MOVEING from non-MOVEING" counter
+// (ticks). Armed via player_arm_run_entry_snap() from set_person_running when
+// prior State was not MOVEING; decremented once at the top of apply_button_input.
+//
+// Used by ACTION_RUNNING_JUMP to apply the same stick+camera angle snap that
+// ACTION_STANDING_JUMP already performs. Race-prone scenarios:
+//  - Stand + (W slightly before Space): on the W tick action tree fires no
+//    action; player_interface_move runs the rotation pass with State=IDLE
+//    max_angle=1024 and snaps Angle — but if the camera is STILL rotating
+//    when W lands, the snap goes to an intermediate camera angle. Then
+//    process_analogue_movement transitions to MOVEING. On the next tick(s)
+//    rotation max_angle drops to 192/(velocity/8) ≈ 38/tick and the character
+//    lags far behind the (still-moving) camera. Space arrives → action_run →
+//    ACTION_RUNNING_JUMP. Without snap, set_person_running_jump bakes the
+//    half-rotated facing.
+//  - Landing on a ledge with W held: SUB_STATE_DROP_DOWN_LAND end →
+//    set_person_idle → continue_moveing fallback → set_person_running. Same
+//    half-rotated Angle problem on next-tick ACTION_RUNNING_JUMP.
+//
+// Counter value bounds the snap window: small enough that "running steady +
+// camera flip + jump" (the user-requested behaviour where the character does
+// NOT spin to face the camera mid-flight) is preserved — that scenario starts
+// with counter == 0 because the character has been MOVEING for many ticks.
+// Large enough to cover the typical 1-3 tick window between transition into
+// MOVEING and the JUMP press.
+//
+// 5 ticks @ 50 Hz design rate ≈ 100 ms — within "almost simultaneously" but
+// outside any deliberate run-then-jump-later input pattern.
+#define PLAYER_RUN_ENTRY_SNAP_TICKS 5
+static SLONG g_player_run_entry_ticks = 0;
+
+// Called from set_person_running (person.cpp) whenever the player transitions
+// from a non-MOVEING state into MOVEING — regardless of the path that led
+// there (process_analogue_movement IDLE→MOVEING, set_person_idle landing-then-
+// continue-moveing fallback, dangling drop, etc.). Centralising the arm here
+// keeps the magic constant and global private to this translation unit.
+void player_arm_run_entry_snap()
+{
+    g_player_run_entry_ticks = PLAYER_RUN_ENTRY_SNAP_TICKS;
+}
+
 // Action tables: each array lists valid transitions from a specific player action/state.
 // Indexed via action_tree[] below.
 // uc_orig: action_idle (fallen/Source/interfac.cpp)
@@ -1929,7 +1970,7 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
             case 0:
             case SUB_STATE_SIDLE:
             default:
-                set_person_running(p_thing);
+                set_person_running(p_thing); // arms run-entry snap via player_arm_run_entry_snap()
                 break;
             case SUB_STATE_IDLE_CROUTCHING:
                 set_person_crawling(p_thing);
@@ -2534,6 +2575,13 @@ void person_enter_fight_mode(Thing* p_person)
 // Returns the bitmask of inputs consumed/processed this frame.
 ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 {
+    // Decrement the post-IDLE→MOVEING snap window once per physics tick.
+    // See PLAYER_RUN_ENTRY_SNAP_TICKS comment for full rationale. Decrement
+    // happens BEFORE the action tree dispatch so the counter reflects the
+    // window state at jump-decision time.
+    if (g_player_run_entry_ticks > 0)
+        --g_player_run_entry_ticks;
+
     // Publish player character locomotion state for get_hardware_input's L2
     // regime classification. See g_player_thing_is_running_or_walking comment.
     g_player_thing_is_running_or_walking =
@@ -2864,9 +2912,40 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 // climb-edge rolls); for D-pad/keyboard, legacy roll-anyway path
                 // is preserved.
                 if (should_i_jump(p_person)) {
-                    if (input & INPUT_MASK_FORWARDS)
+                    if (input & INPUT_MASK_FORWARDS) {
+                        // OpenChaos: snap facing to stick+camera direction
+                        // before jumping. apply_button_input dispatches the
+                        // action tree BEFORE player_interface_move runs the
+                        // rotation pass, so on the first tick of (idle +
+                        // forward + jump) the character's Tweened->Angle is
+                        // still the pre-rotation value. Without the snap,
+                        // set_person_standing_jump_forwards bakes that stale
+                        // angle and the jump flies in the OLD facing instead
+                        // of the camera-relative direction the player aimed
+                        // at. Race-prone: if forward and jump arrive on
+                        // separate ticks the character has already rotated
+                        // (1-tick max_angle=1024 snap from STATE_IDLE in
+                        // player_turn_left_right_analogue), so the bug only
+                        // shows when both inputs land on the same physics
+                        // tick → user perceives "sometimes works, sometimes
+                        // jumps the wrong way" on stand → forward + jump.
+                        //
+                        // Same snap formula as the side/back-stick branch
+                        // below and the L2-tactical branches above. Guarded
+                        // on (dx|dz) != 0 to skip the digital-pure-arrow
+                        // case where bits 18-31 carry no stick value
+                        // (Arctan(0,0) is undefined) — there the legacy
+                        // non-analog rotation in player_turn_left_right
+                        // path handles facing.
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        if (dx != 0 || dz != 0) {
+                            SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                            target_angle = (target_angle + 2048) & 2047;
+                            p_person->Draw.Tweened->Angle = target_angle;
+                        }
                         set_person_standing_jump_forwards(p_person);
-                    else if (analogue && (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_BACKWARDS))) {
+                    } else if (analogue && (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_BACKWARDS))) {
                         // Stick: any movement direction → forward jump in stick
                         // direction (same end-call as running jump). Without
                         // this, slow-walk side/back + jump produced a feel-wrong
@@ -2965,6 +3044,29 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                     // through to normal running jump.
                 }
                 if (should_i_jump(p_person)) {
+                    // OpenChaos: snap facing to stick+camera direction when
+                    // the character JUST transitioned from IDLE → MOVEING
+                    // (g_player_run_entry_ticks > 0). Mirrors the snap in
+                    // ACTION_STANDING_JUMP and covers the residual 5% of the
+                    // "stand → W+Space" race where W landed one tick earlier
+                    // (state switched to MOVEING + Angle partially rotated
+                    // toward camera). Without this, ACTION_RUNNING_JUMP fires
+                    // through the action_run table on the Space tick and
+                    // set_person_running_jump bakes the half-rotated facing
+                    // → jump goes in an in-between direction.
+                    //
+                    // Window-gated (counter expires after a few ticks), so a
+                    // deliberate "running steady + camera flip + jump" keeps
+                    // its existing behaviour (no snap, jump in current facing).
+                    if (g_player_run_entry_ticks > 0) {
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        if (dx != 0 || dz != 0) {
+                            SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                            target_angle = (target_angle + 2048) & 2047;
+                            p_person->Draw.Tweened->Angle = target_angle;
+                        }
+                    }
                     set_person_running_jump(p_person);
                 }
                 break;
