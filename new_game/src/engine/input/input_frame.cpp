@@ -395,23 +395,44 @@ void input_last_key_consume()
 
 // ---- Gamepad buttons --------------------------------------------------------
 
+// Device-active gate: any gameplay/menu code reading gamepad state should
+// see "no input" when the active device is keyboard+mouse. Without this
+// gate, leftover gamepad poll state can drive game logic even after the
+// user switches to keyboard (or disconnects the gamepad mid-session) —
+// canonical breakage was a pause menu auto-cycling because the gamepad's
+// last-known stick direction was treated as held.
+//
+// Internal gamepad polling and auto-switch detection (which set
+// active_input_device based on physical input) run in input_frame_update
+// BEFORE any of these getters fire, so the gate doesn't lock the user
+// into KBM — the first real gamepad input flips active_input_device to
+// PAD and the next getter call returns the live state.
+static inline bool gamepad_input_gated()
+{
+    return active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE;
+}
+
 bool input_btn_held(SLONG btn_idx)
 {
+    if (gamepad_input_gated()) return false;
     return btn_in_range(btn_idx) && s_btns_curr[btn_idx];
 }
 
 bool input_btn_just_pressed(SLONG btn_idx)
 {
+    if (gamepad_input_gated()) return false;
     return btn_in_range(btn_idx) && s_btns_curr[btn_idx] && !s_btns_prev[btn_idx];
 }
 
 bool input_btn_just_released(SLONG btn_idx)
 {
+    if (gamepad_input_gated()) return false;
     return btn_in_range(btn_idx) && !s_btns_curr[btn_idx] && s_btns_prev[btn_idx];
 }
 
 bool input_btn_press_pending(SLONG btn_idx)
 {
+    if (gamepad_input_gated()) return false;
     return btn_in_range(btn_idx) && s_btns_press_pending[btn_idx];
 }
 
@@ -514,24 +535,28 @@ bool input_btn_just_pressed_or_repeat(SLONG btn_idx)
 
 bool input_stick_held(InputStickId stick, InputStickDir dir)
 {
+    if (gamepad_input_gated()) return false;
     if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
     return s_stick_dir_curr[stick][dir];
 }
 
 bool input_stick_just_pressed(InputStickId stick, InputStickDir dir)
 {
+    if (gamepad_input_gated()) return false;
     if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
     return s_stick_dir_curr[stick][dir] && !s_stick_dir_prev[stick][dir];
 }
 
 bool input_stick_just_released(InputStickId stick, InputStickDir dir)
 {
+    if (gamepad_input_gated()) return false;
     if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
     return !s_stick_dir_curr[stick][dir] && s_stick_dir_prev[stick][dir];
 }
 
 bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir)
 {
+    if (gamepad_input_gated()) return false;
     if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
     if (!input_stick_held(stick, dir)) {
         s_stick_dir_repeat_armed[stick][dir] = 0;
@@ -554,12 +579,14 @@ bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir)
 
 float input_stick_x(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 0.0f;
     int raw = (stick == GAXIS_LEFT) ? gamepad_state.lX : gamepad_state.rX;
     return apply_stick_deadzone(raw);
 }
 
 float input_stick_y(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 0.0f;
     int raw = (stick == GAXIS_LEFT) ? gamepad_state.lY : gamepad_state.rY;
     return apply_stick_deadzone(raw);
 }
@@ -568,6 +595,7 @@ float input_stick_y(InputStickId stick)
 
 float input_trigger(SLONG trigger_idx)
 {
+    if (gamepad_input_gated()) return 0.0f;
     if (trigger_idx == 15) return float(gamepad_state.trigger_left)  / 255.0f;
     if (trigger_idx == 16) return float(gamepad_state.trigger_right) / 255.0f;
     return 0.0f;
@@ -575,6 +603,11 @@ float input_trigger(SLONG trigger_idx)
 
 // ---- Raw axis / trigger / connection accessors -----------------------------
 
+// NOTE: input_gamepad_connected() is NOT gated by active_input_device — it
+// reports the physical connection state and is used by the auto-switch
+// detector itself, plus by code that genuinely needs to know about hardware
+// presence (e.g. UI hints, controller-icon glyphs). Gameplay/menu logic
+// reading gamepad INPUT goes through the gated getters above.
 bool input_gamepad_connected()
 {
     return gamepad_state.connected != 0;
@@ -582,31 +615,42 @@ bool input_gamepad_connected()
 
 bool input_dpad_active()
 {
+    if (gamepad_input_gated()) return false;
     return gamepad_state.dpad_active != 0;
 }
 
+// Stick axes return CENTRE (32768) when the active device is keyboard+mouse.
+// Same device-active gate as the button/direction getters — gameplay/menu
+// code reads these to decide whether the user is deflecting the stick, and
+// must see "no deflection" when the user is on KBM (otherwise stale or
+// disconnected-gamepad state drives logic).
 int input_stick_x_axis(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lX : gamepad_state.rX;
 }
 
 int input_stick_y_axis(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lY : gamepad_state.rY;
 }
 
 int input_stick_x_axis_raw(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
 }
 
 int input_stick_y_axis_raw(InputStickId stick)
 {
+    if (gamepad_input_gated()) return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
 }
 
 int input_trigger_raw(SLONG trigger_idx)
 {
+    if (gamepad_input_gated()) return 0;
     if (trigger_idx == 15) return gamepad_state.trigger_left;
     if (trigger_idx == 16) return gamepad_state.trigger_right;
     return 0;
