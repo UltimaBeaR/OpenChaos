@@ -241,7 +241,13 @@ void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
         h = u * u * (3.0 - 2.0 * u); // smoothstep
     }
 
-    const SLONG ground = PAP_calc_map_height_at(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8) << 8;
+    // Ground reference is sampled under the VEHICLE (the street it sits on),
+    // NOT under the person at the door point. The door point can land on top of
+    // a low obstacle next to the car; sampling there would make the rise climb
+    // onto the obstacle instead of staying at door level. Using the car's own
+    // ground keeps the animation at the proper height (clipping through any
+    // adjacent obstacle, like the original instant teleport did).
+    const SLONG ground = PAP_calc_map_height_at(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Z >> 8) << 8;
 
     p_person->WorldPos.Y = ground + (SLONG)((double)(up << 8) * h);
 }
