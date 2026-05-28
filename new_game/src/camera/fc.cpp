@@ -1823,7 +1823,27 @@ void FC_process()
                 // rubberness 0.5 the helper returns exactly 0.75, the
                 // multiplication below collapses to `* 0.25` = `>>2`,
                 // bit-identical to the original.
-                const float drop = 1.0f - keep_for_rubberness(0.75f);
+                //
+                // CAP at default (0.75): position smoothing is fixed at
+                // `>>2` (keep 0.75) and NOT rubberness-scaled — if angle
+                // smoothing went slower than position smoothing (keep
+                // approaching 1.0 at high rubberness), fc.x/z would
+                // reach the target orbital position several ticks before
+                // fc.yaw caught up to want_yaw. Camera physically there
+                // but looking in old direction → character drifts off-
+                // centre during rotation. Capping at 0.75 keeps angle
+                // and position smoothing rates equal, so the camera
+                // tracks the look target throughout the catch-up.
+                //
+                // Effectively rubberness [0..0.5] scales angle smoothing
+                // from snap to default; rubberness [0.5..1] leaves angle
+                // at default. The extra "laziness" of rubberness > 0.5
+                // is then expressed via the wall-collision blend (which
+                // doesn't interact with position smoothing) and the
+                // orbit-lag residual for fast mouse flicks.
+                float keep = keep_for_rubberness(0.75f);
+                if (keep > 0.75f) keep = 0.75f;
+                const float drop = 1.0f - keep;
                 fc->yaw   += (SLONG)((float)dyaw   * drop);
                 fc->pitch += (SLONG)((float)dpitch * drop);
                 fc->roll  += (SLONG)((float)droll  * drop);
