@@ -5113,6 +5113,15 @@ try_again:;
         locked_anim_change_end(p_person, SUB_OBJECT_LEFT_FOOT, anim);
 
         add_thing_to_map(p_person);
+
+        // Apply the initial (seated) height NOW, before marking the teleport.
+        // The clip starts at its last frame (progress ~1) so the rise puts the
+        // person at the seated height; doing it here means the very first
+        // EXITING tick doesn't jump Y from ground to seated and get
+        // interpolated into a visible pop (most obvious on NPCs — the camera
+        // masks it for the player). Mark the teleport AFTER, so the snapshot
+        // captures the correct start pose/position with no lerp.
+        car_enter_anim_rise(p_person, p_vehicle);
         render_interp_mark_teleport(p_person);
 
         set_thing_velocity(p_person, 0);
