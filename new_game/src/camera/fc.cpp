@@ -114,11 +114,10 @@ extern BOOL PLAYCUTS_playing;
 
 // OpenChaos: master switch for the vehicle enter/exit camera "scene override"
 // (programmatic lock-rotation behind the car + manual-input block during the
-// enter/exit animations). TEMPORARILY false so the animations can be watched
-// with a free camera while tuning the exit reverse-play. Set back to true to
-// re-enable the lock for BOTH entering and exiting.
+// enter/exit animations). Applies to BOTH entering and exiting, so the exit
+// reverse-climb gets the same locked camera rotation as the entry.
 // uc_orig: n/a (OpenChaos addition)
-static constexpr bool CAR_ENTER_EXIT_CAM_LOCK = false;
+static constexpr bool CAR_ENTER_EXIT_CAM_LOCK = true;
 
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
@@ -412,7 +411,11 @@ void FC_calc_focus(FC_Cam* fc)
                 fc->platform_thing = 0;
             }
 
-            if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
+            if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE) {
+                // Same framing offset for the exit (reverse) animation as for
+                // entry — the clip (ANIM_ENTER_CAR / ENTER_TAXI) is the same, so
+                // the camera frames the door the same way on the way out.
                 if (fc->focus->Draw.Tweened->CurrentAnim == ANIM_ENTER_TAXI) {
                     fc->focus_yaw -= 712;
                     fc->focus_yaw &= 2047;
@@ -1136,7 +1139,13 @@ void FC_process()
             // accumulated motion (consume + discard) rather than just
             // skipping, otherwise motion would burst all at once on F1
             // release.
-            if (!entering_vehicle && mouse_capture_is_active() && !input_gameplay_enabled()) {
+            // Drain (consume + discard) accumulated mouse motion while the
+            // camera is locked for a vehicle enter/exit animation OR the debug
+            // modifier is held. Mouse motion accumulates between consumes, so
+            // just skipping the apply below would let it burst out as a jerk
+            // the moment the lock releases — drain keeps the released camera
+            // exactly where the programmatic rotation left it.
+            if (mouse_capture_is_active() && (entering_vehicle || !input_gameplay_enabled())) {
                 input_mouse_drain_rel();
             }
             if (!entering_vehicle && mouse_capture_is_active() && input_gameplay_enabled()) {
@@ -1541,6 +1550,14 @@ void FC_process()
             && (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
                 || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE);
 
+        // Exit specifically: the climb-out starts immediately (no door-open
+        // pause), so the camera rotation must complete faster than on entry to
+        // hide Darci emerging through the closed car body. Used to speed up the
+        // position and angle smoothing below (the get-behind rate is bumped
+        // inline in the get-behind block).
+        const bool exiting_vehicle_scene = entering_vehicle_scene
+            && fc->focus->SubState == SUB_STATE_EXITING_VEHICLE;
+
         // MANUAL mode: no automatic camera rotation at all. Manual input
         // (mouse / stick orbit) is the ONLY thing that rotates the camera
         // — no get-behind pull when the character moves, no inactivity-
@@ -1578,6 +1595,13 @@ void FC_process()
                 if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
                     fc->want_x += dx >> 3;
                     fc->want_z += dz >> 3;
+                } else if (fc->focus->SubState == SUB_STATE_EXITING_VEHICLE) {
+                    // Exit starts climbing out immediately (no door-open pause
+                    // at the start like entry), so push the camera behind a bit
+                    // faster — it has to be behind before Darci emerges through
+                    // the (visually closed) car body. ~37%/tick vs entry's 25%.
+                    fc->want_x += dx >> 2;
+                    fc->want_z += dz >> 2;
                 } else if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     fc->want_x += dx >> 5;
                     fc->want_z += dz >> 5;
@@ -1803,9 +1827,19 @@ void FC_process()
             // stairs, platforms etc. without snapping. Rubberness is
             // specifically about rotation rubber (angle / wall / orbit
             // lag), not position rubber.
-            fc->x += dx >> 2;
+            //
+            // Vehicle EXIT scene: faster XZ follow (~37.5%/tick = >>2 + >>3)
+            // so the camera orbits behind quickly enough to hide Darci emerging
+            // before the climb-out anim shows her through the car body — but
+            // not as snappy as a flat >>1.
+            if (exiting_vehicle_scene) {
+                fc->x += (dx >> 2) + (dx >> 3);
+                fc->z += (dz >> 2) + (dz >> 3);
+            } else {
+                fc->x += dx >> 2;
+                fc->z += dz >> 2;
+            }
             fc->y += dy >> 3;
-            fc->z += dz >> 2;
         } else {
             fc->want_x = fc->x;
             fc->want_y = fc->y;
@@ -1881,6 +1915,11 @@ void FC_process()
                 // orbit-lag residual for fast mouse flicks.
                 float keep = keep_for_rubberness(0.75f);
                 if (keep > 0.75f) keep = 0.75f;
+                // Vehicle EXIT scene: drop ~37.5%/tick (keep 0.625) to match
+                // the faster exit position smoothing above — angle and position
+                // stay in lockstep so the character doesn't drift off-centre
+                // while the camera rotates quickly behind.
+                if (exiting_vehicle_scene) keep = 0.625f;
                 const float drop = 1.0f - keep;
                 fc->yaw   += (SLONG)((float)dyaw   * drop);
                 fc->pitch += (SLONG)((float)dpitch * drop);
