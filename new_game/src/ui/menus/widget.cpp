@@ -169,11 +169,13 @@ SLONG FORM_Process(Form* form)
         else {
             EatenKey = 0;
             lastfocus = form->focus;
-            if (FORM_KeyProc(ACT_MENU_NAV_UP_KKEY, ACT_MENU_NAV_UP_GBTN)) {
+            if (FORM_KeyProc(ACT_MENU_NAV_UP_KKEY, ACT_MENU_NAV_UP_GBTN)
+                || FORM_KeyProc(ACT_MENU_NAV_UP_ALT_KKEY)) {
                 FORM_Focus(form, 0, -1);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(ACT_MENU_NAV_DOWN_KKEY, ACT_MENU_NAV_DOWN_GBTN)) {
+            if (FORM_KeyProc(ACT_MENU_NAV_DOWN_KKEY, ACT_MENU_NAV_DOWN_GBTN)
+                || FORM_KeyProc(ACT_MENU_NAV_DOWN_ALT_KKEY)) {
                 FORM_Focus(form, 0, 1);
                 WIDGET_snd(WS_MOVE);
             }
@@ -185,7 +187,7 @@ SLONG FORM_Process(Form* form)
                 FORM_Focus(form, form->children, -1);
                 WIDGET_snd(WS_MOVE);
             }
-            if (FORM_KeyProc(ACT_MENU_CONFIRM_KKEY_1, ACT_MENU_CONFIRM_GBTN))
+            if (FORM_KeyProc(ACT_MENU_CONFIRM_1_KKEY, ACT_MENU_CONFIRM_GBTN))
                 if (form->focus && form->focus->methods->Push)
                     form->focus->methods->Push(form->focus);
             if (FORM_KeyProc(ACT_MENU_FORM_CYCLE_FOCUS_KKEY) && form->focus) {

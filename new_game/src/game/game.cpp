@@ -605,9 +605,9 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_1)
-        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_2)
-        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_KKEY_3)) {
+    if (input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_1_KKEY)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_2_KKEY)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_3_KKEY)) {
         GAME_STATE = 0;
     }
 
@@ -819,15 +819,15 @@ SLONG hardware_input_continue(void)
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
         const UBYTE last_key = input_last_key();
-        if (last_key == ACT_CINE_GENERIC_SKIP_KKEY_1
-            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_2
-            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_3
-            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_4
-            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_5
-            || last_key == ACT_CINE_GENERIC_SKIP_KKEY_6
+        if (last_key == ACT_CINE_GENERIC_SKIP_1_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_2_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_3_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_4_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_5_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_6_KKEY
             || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))
-            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_GBTN_1)
-            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_GBTN_2)) {
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_1_GBTN)
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_2_GBTN)) {
             input_last_key_consume();
 
             return (1);
@@ -1523,10 +1523,10 @@ round_again:;
 
                         // Clear any pending press carried in from the previous
                         // screen so the warning loop doesn't dismiss instantly.
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_1);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_2);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_3);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_4);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_1_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_2_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_3_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_4_KKEY);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1565,20 +1565,20 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_1)
-                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_2)
-                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_3)
-                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_KKEY_4)) {
+                            if (input_key_just_pressed(ACT_MENU_MODAL_ACK_1_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_2_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_3_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_4_KKEY)) {
                                 break;
                             }
                         }
 
                         ge_reset_back_image();
 
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_1);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_2);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_3);
-                        input_key_force_release(ACT_MENU_MODAL_ACK_KKEY_4);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_1_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_2_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_3_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_4_KKEY);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

@@ -12,7 +12,7 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/input_frame.h"
 #include "engine/platform/ds_bridge.h"
-#include "game/action_map/act_menu.h" // ACT_MENU_NAV_*_KKEY, ACT_MENU_CONFIRM_KKEY_1
+#include "game/action_map/act_menu.h" // ACT_MENU_NAV_*_KKEY, ACT_MENU_CONFIRM_1_KKEY
 #include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_PANEL_*
 #include "engine/platform/uc_common.h" // DisplayWidth, DisplayHeight
 #include "ui/hud/panel.h"
@@ -78,7 +78,7 @@ void refresh_nav()
     s_nav.down  = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY);
     s_nav.left  = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY);
     s_nav.right = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY);
-    s_nav.enter = input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_1);
+    s_nav.enter = input_key_just_pressed(ACT_MENU_CONFIRM_1_KKEY);
 }
 
 // Rumble test state. Motor amplitudes are shared across gamepad +

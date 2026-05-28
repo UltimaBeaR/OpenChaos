@@ -319,15 +319,19 @@ SLONG GAMEMENU_process()
             static InputAutoRepeat ar_down;
 
             const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
+                || input_key_just_pressed(ACT_MENU_NAV_UP_ALT_KKEY)
                 || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
                 || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
             const bool any_up_held = input_key_held(ACT_MENU_NAV_UP_KKEY)
+                || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY)
                 || input_stick_held(GAXIS_LEFT, GDIR_UP)
                 || input_btn_held(ACT_MENU_NAV_UP_GBTN);
             const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
+                || input_key_just_pressed(ACT_MENU_NAV_DOWN_ALT_KKEY)
                 || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
                 || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
             const bool any_dn_held = input_key_held(ACT_MENU_NAV_DOWN_KKEY)
+                || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY)
                 || input_stick_held(GAXIS_LEFT, GDIR_DOWN)
                 || input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
 
@@ -377,18 +381,18 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_1);
-            const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_2);
-            const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_KKEY_3);
+            const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_1_KKEY);
+            const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_2_KKEY);
+            const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_3_KKEY);
             const bool confirm_gp  = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
             if (confirm_kb1 || confirm_kb2 || confirm_kb3 || confirm_gp) {
                 // Force-release in input_frame's CURRENT snapshot — see
                 // comment in the ESC handler above. Otherwise SPACE held for
                 // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
                 // INPUT_MASK_SELECT (weapon switch popup opens), etc.
-                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_KKEY_1);
-                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_KKEY_2);
-                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_KKEY_3);
+                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_1_KKEY);
+                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_2_KKEY);
+                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_3_KKEY);
                 if (confirm_gp)  input_btn_consume(ACT_MENU_CONFIRM_GBTN);
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);

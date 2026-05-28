@@ -140,7 +140,7 @@ constexpr int ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY = KKEY_3;
 constexpr int ACT_BANG_PANEL_CYCLE_SUBVIEW_KKEY = KKEY_TAB;
 
 // Navigation within the panel re-uses menu-nav constants (ACT_MENU_NAV_*_KKEY
-// + ACT_MENU_CONFIRM_KKEY_1) — the semantic is the same as in any other menu;
+// + ACT_MENU_CONFIRM_1_KKEY) — the semantic is the same as in any other menu;
 // no separate panel-nav constants needed.
 
 // ---- WARE debug overlay (level-hold T) -------------------------------------

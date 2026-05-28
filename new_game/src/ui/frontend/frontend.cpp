@@ -2286,10 +2286,10 @@ static UBYTE FRONTEND_input(void)
         // from a previous screen produces no rising edge in the snapshot, so
         // a stale press cannot leak into the menu.
 
-        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY);
-        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY);
-        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY);
-        const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY);
+        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY)    || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY);
+        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY)  || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY);
+        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY)  || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY);
+        const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY);
 
         bool st_up = input_stick_held(GAXIS_LEFT, GDIR_UP);
         bool st_dn = input_stick_held(GAXIS_LEFT, GDIR_DOWN);
@@ -2333,15 +2333,19 @@ static UBYTE FRONTEND_input(void)
         const bool any_rt_held = kb_rt || st_rt || dp_rt;
 
         const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_UP_ALT_KKEY)
             || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
             || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
         const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_DOWN_ALT_KKEY)
             || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
             || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
         const bool any_lt_jp = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_LEFT_ALT_KKEY)
             || input_stick_just_pressed(GAXIS_LEFT, GDIR_LEFT)
             || input_btn_just_pressed(ACT_MENU_NAV_LEFT_GBTN);
         const bool any_rt_jp = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_RIGHT_ALT_KKEY)
             || input_stick_just_pressed(GAXIS_LEFT, GDIR_RIGHT)
             || input_btn_just_pressed(ACT_MENU_NAV_RIGHT_GBTN);
 
@@ -2448,7 +2452,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_1) || input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_2) || input_key_just_pressed(ACT_MENU_CONFIRM_KKEY_3) || any_button) {
+    if (input_key_just_pressed(ACT_MENU_CONFIRM_1_KKEY) || input_key_just_pressed(ACT_MENU_CONFIRM_2_KKEY) || input_key_just_pressed(ACT_MENU_CONFIRM_3_KKEY) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)

@@ -82,11 +82,11 @@ void MAIN_main()
         // Triangle/Y (button 3). (Original PS1 was Cross only; we accept
         // a wider set so the player can always close the outro with what
         // their hand is on.)
-        if (input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_1)
-            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_2)
-            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_KKEY_3)
-            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_GBTN_1)
-            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_GBTN_2)) {
+        if (input_key_just_pressed(ACT_CINE_OUTRO_SKIP_1_KKEY)
+            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_2_KKEY)
+            || input_key_just_pressed(ACT_CINE_OUTRO_SKIP_3_KKEY)
+            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_1_GBTN)
+            || input_btn_just_pressed(ACT_CINE_OUTRO_SKIP_2_GBTN)) {
             return;
         }
 

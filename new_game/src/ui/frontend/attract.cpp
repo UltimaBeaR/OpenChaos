@@ -108,7 +108,9 @@ reinit_because_of_language_change:
         // edge: as long as user is interacting we keep the screen alive.
         if (input_key_held(ACT_MENU_NAV_LEFT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_KKEY)
             || input_key_held(ACT_MENU_NAV_UP_KKEY) || input_key_held(ACT_MENU_NAV_DOWN_KKEY)
-            || input_key_held(ACT_MENU_CONFIRM_KKEY_2) || input_key_held(ACT_MENU_CONFIRM_KKEY_1))
+            || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY)
+            || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY) || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY)
+            || input_key_held(ACT_MENU_CONFIRM_2_KKEY) || input_key_held(ACT_MENU_CONFIRM_1_KKEY))
             y = 500;
 
         {

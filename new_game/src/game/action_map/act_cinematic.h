@@ -26,19 +26,19 @@
 // loop over rgbButtons[0..16] in video_player.cpp, not a single binding.
 // No GBTN constant defined for that wildcard; the loop stays as-is.
 
-constexpr int ACT_CINE_VIDEO_SKIP_KKEY_1 = KKEY_ESCAPE;
-constexpr int ACT_CINE_VIDEO_SKIP_KKEY_2 = KKEY_ENTER;
-constexpr int ACT_CINE_VIDEO_SKIP_KKEY_3 = KKEY_SPACE;
+constexpr int ACT_CINE_VIDEO_SKIP_1_KKEY = KKEY_ESCAPE;
+constexpr int ACT_CINE_VIDEO_SKIP_2_KKEY = KKEY_ENTER;
+constexpr int ACT_CINE_VIDEO_SKIP_3_KKEY = KKEY_SPACE;
 
 // ---- Outro (credits / end sequence) skip ------------------------------------
 // Read in outro_main.cpp::outro_main (top-level outro skip check). Skips the
 // entire outro sequence and returns to the menu.
 
-constexpr int ACT_CINE_OUTRO_SKIP_KKEY_1 = KKEY_ESCAPE;
-constexpr int ACT_CINE_OUTRO_SKIP_KKEY_2 = KKEY_ENTER;
-constexpr int ACT_CINE_OUTRO_SKIP_KKEY_3 = KKEY_SPACE;
-constexpr int ACT_CINE_OUTRO_SKIP_GBTN_1 = GBTN_SOUTH; // DS: Cross, Xbox: A
-constexpr int ACT_CINE_OUTRO_SKIP_GBTN_2 = GBTN_EAST;  // DS: Circle, Xbox: B
+constexpr int ACT_CINE_OUTRO_SKIP_1_KKEY = KKEY_ESCAPE;
+constexpr int ACT_CINE_OUTRO_SKIP_2_KKEY = KKEY_ENTER;
+constexpr int ACT_CINE_OUTRO_SKIP_3_KKEY = KKEY_SPACE;
+constexpr int ACT_CINE_OUTRO_SKIP_1_GBTN = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_CINE_OUTRO_SKIP_2_GBTN = GBTN_EAST;  // DS: Circle, Xbox: B
 
 // ---- Outro framework quit ---------------------------------------------------
 // Read in outro_os.cpp::OS_process_messages — sets KEY_on[KEY_ESCAPE] which
@@ -65,9 +65,9 @@ constexpr int ACT_CINE_PLAYCUT_SKIP_KKEY = KKEY_SPACE;
 // keys / any gamepad face button exits playback (sets GAME_STATE = 0). Read
 // in game.cpp::playback_game_keys.
 
-constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_1 = KKEY_SPACE;
-constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_2 = KKEY_ENTER;
-constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_NUMPAD_ENTER;
+constexpr int ACT_CINE_PLAYBACK_EXIT_1_KKEY = KKEY_SPACE;
+constexpr int ACT_CINE_PLAYBACK_EXIT_2_KKEY = KKEY_ENTER;
+constexpr int ACT_CINE_PLAYBACK_EXIT_3_KKEY = KKEY_NUMPAD_ENTER;
 // Gamepad: loop over buttons 0..9 (face buttons + L1/R1 etc.) — any rising
 // edge exits playback. Same "any button wildcard" pattern as video skip in
 // video_player.cpp; no single GBTN constant.
@@ -80,13 +80,13 @@ constexpr int ACT_CINE_PLAYBACK_EXIT_KKEY_3 = KKEY_NUMPAD_ENTER;
 // the gameplay INPUT_MASK_JUMP / INPUT_MASK_SELECT branch in the same
 // function and need no separate GBTN constants here.
 
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_1 = KKEY_SPACE;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_2 = KKEY_ESCAPE;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_3 = KKEY_Z;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_4 = KKEY_X;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_5 = KKEY_C;
-constexpr int ACT_CINE_GENERIC_SKIP_KKEY_6 = KKEY_ENTER;
-constexpr int ACT_CINE_GENERIC_SKIP_GBTN_1 = GBTN_START; // DS: Options, Xbox: Start
-constexpr int ACT_CINE_GENERIC_SKIP_GBTN_2 = GBTN_EAST;  // DS: Circle, Xbox: B
+constexpr int ACT_CINE_GENERIC_SKIP_1_KKEY = KKEY_SPACE;
+constexpr int ACT_CINE_GENERIC_SKIP_2_KKEY = KKEY_ESCAPE;
+constexpr int ACT_CINE_GENERIC_SKIP_3_KKEY = KKEY_Z;
+constexpr int ACT_CINE_GENERIC_SKIP_4_KKEY = KKEY_X;
+constexpr int ACT_CINE_GENERIC_SKIP_5_KKEY = KKEY_C;
+constexpr int ACT_CINE_GENERIC_SKIP_6_KKEY = KKEY_ENTER;
+constexpr int ACT_CINE_GENERIC_SKIP_1_GBTN = GBTN_START; // DS: Options, Xbox: Start
+constexpr int ACT_CINE_GENERIC_SKIP_2_GBTN = GBTN_EAST;  // DS: Circle, Xbox: B
 
 #endif // GAME_ACTION_MAP_ACT_CINEMATIC_H

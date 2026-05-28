@@ -39,13 +39,25 @@ constexpr int ACT_MENU_NAV_DOWN_GBTN  = GBTN_DPAD_DOWN;
 constexpr int ACT_MENU_NAV_LEFT_GBTN  = GBTN_DPAD_LEFT;
 constexpr int ACT_MENU_NAV_RIGHT_GBTN = GBTN_DPAD_RIGHT;
 
+// WASD as an ergonomic alternative to the arrow keys (modern keyboard
+// convention). The arrow keys stay bound; these are OR'd in alongside the
+// ACT_MENU_NAV_*_KKEY arrows at every menu-nav call site, so both work.
+// W=up, S=down, A=left, D=right. In Form widgets that consume typed
+// characters (e.g. text entry), the letter is delivered to the widget's
+// Char handler first and only falls through to navigation when the widget
+// doesn't consume it — so typing WASD into a text field never navigates.
+constexpr int ACT_MENU_NAV_UP_ALT_KKEY    = KKEY_W;
+constexpr int ACT_MENU_NAV_DOWN_ALT_KKEY  = KKEY_S;
+constexpr int ACT_MENU_NAV_LEFT_ALT_KKEY  = KKEY_A;
+constexpr int ACT_MENU_NAV_RIGHT_ALT_KKEY = KKEY_D;
+
 // ---- Confirm / submit ------------------------------------------------------
 // Confirm-current-item in a menu / form. Multiple keyboard bindings — Enter,
 // numpad Enter, and Space — all behave as confirm. Gamepad: Cross / A.
 
-constexpr int ACT_MENU_CONFIRM_KKEY_1 = KKEY_ENTER;
-constexpr int ACT_MENU_CONFIRM_KKEY_2 = KKEY_SPACE;
-constexpr int ACT_MENU_CONFIRM_KKEY_3 = KKEY_NUMPAD_ENTER;
+constexpr int ACT_MENU_CONFIRM_1_KKEY = KKEY_ENTER;
+constexpr int ACT_MENU_CONFIRM_2_KKEY = KKEY_SPACE;
+constexpr int ACT_MENU_CONFIRM_3_KKEY = KKEY_NUMPAD_ENTER;
 constexpr int ACT_MENU_CONFIRM_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
 
 // ---- Cancel / back ---------------------------------------------------------
@@ -109,10 +121,10 @@ constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_8;      // Ctrl+Shift+
 // cancel — distinct ACT names so the modal context can be retargeted
 // independently if needed. Read in game.cpp::game_loop deadcivs branch.
 
-constexpr int ACT_MENU_MODAL_ACK_KKEY_1 = KKEY_ESCAPE;
-constexpr int ACT_MENU_MODAL_ACK_KKEY_2 = KKEY_SPACE;
-constexpr int ACT_MENU_MODAL_ACK_KKEY_3 = KKEY_ENTER;
-constexpr int ACT_MENU_MODAL_ACK_KKEY_4 = KKEY_NUMPAD_ENTER;
+constexpr int ACT_MENU_MODAL_ACK_1_KKEY = KKEY_ESCAPE;
+constexpr int ACT_MENU_MODAL_ACK_2_KKEY = KKEY_SPACE;
+constexpr int ACT_MENU_MODAL_ACK_3_KKEY = KKEY_ENTER;
+constexpr int ACT_MENU_MODAL_ACK_4_KKEY = KKEY_NUMPAD_ENTER;
 
 // ---- "Any button" confirm probe (used in attract / "press start") ----------
 // Frontend attract mode and similar "press start" screens want a single
