@@ -11,6 +11,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness, camera_is_*
+#include "camera/cam_trig.h"    // cam_arctan_psx_fp8 — high-precision atan for FC_look_at_focus
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
@@ -618,16 +619,16 @@ void FC_look_at_focus(FC_Cam* fc)
     // pitch was systematically biased toward horizontal.
     SLONG dxz = Root(dx * dx + dz * dz);
 
-    fc->want_yaw = -Arctan(dx, dz);
-    fc->want_pitch = Arctan(dy, dxz);
-    fc->want_roll = 1024;
-
-    fc->want_yaw &= 2047;
-    fc->want_pitch &= 2047;
-
-    fc->want_yaw <<= 8;
-    fc->want_pitch <<= 8;
-    fc->want_roll <<= 8;
+    // Compute yaw/pitch directly in the 11.8 fixed-point format used by
+    // FC_Cam yaw/pitch/roll (256 == 1 PSX game-angle unit). Avoids the
+    // legacy round-to-integer-PSX step that loses the bottom 8 bits of
+    // precision and produces ±1 PSX unit per-tick jitter on steady
+    // rotation (~the micro-jerks visible at high frame rates with
+    // smoothing snap modes).
+    constexpr SLONG YAW_FP8_RANGE = 2048 * 256;
+    fc->want_yaw   = ((-cam_arctan_psx_fp8(dx, dz)) % YAW_FP8_RANGE + YAW_FP8_RANGE) % YAW_FP8_RANGE;
+    fc->want_pitch = cam_arctan_psx_fp8(dy, dxz);
+    fc->want_roll  = 1024 << 8;
 
     if (fc->focus->Class == CLASS_PERSON && (fc->focus->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
         Thing* p_vehicle = TO_THING(fc->focus->Genus.Person->InCar);
