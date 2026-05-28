@@ -1516,6 +1516,19 @@ void FC_process()
         // L2 release to wipe an active mouse-orbit lock-out. The two
         // suppressions are independent.
         const bool l2_freeze_get_behind = input_l2_is_held();
+
+        // Scene override — vehicle entry: the enter animation programmatically
+        // rotates the camera behind the (entry-facing) character REGARDLESS of
+        // camera mode. The player's manual input is already suppressed during
+        // entry (see the `entering_vehicle` gates on the mouse / stick input
+        // blocks above), so on KBM/MANUAL the camera would otherwise just sit
+        // still. Force get-behind here, and bypass the nobehind / fight skips
+        // so a mouse orbit done right before entry can't block the lock. Auto-
+        // released when SubState leaves ENTERING_VEHICLE (anim end).
+        const bool entering_vehicle_scene = fc->focus
+            && fc->focus->Class == CLASS_PERSON
+            && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+
         // MANUAL mode: no automatic camera rotation at all. Manual input
         // (mouse / stick orbit) is the ONLY thing that rotates the camera
         // — no get-behind pull when the character moves, no inactivity-
@@ -1524,9 +1537,9 @@ void FC_process()
         // player switches back to AUTO mode the state is sane (the
         // residual manual-input lockout counts down rather than being
         // frozen at whatever the last manual orbit set it to).
-        const bool manual_freeze_get_behind = camera_is_manual();
+        const bool manual_freeze_get_behind = camera_is_manual() && !entering_vehicle_scene;
         if (!fc->toonear && !l2_freeze_get_behind) {
-            if (fc->nobehind) {
+            if (fc->nobehind && !entering_vehicle_scene) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
@@ -1534,7 +1547,8 @@ void FC_process()
             } else if (manual_freeze_get_behind) {
                 // MANUAL mode: skip auto get-behind entirely.
                 // Manual orbit is the sole camera rotation source.
-            } else if (fc->focus->Class == CLASS_PERSON
+            } else if (!entering_vehicle_scene
+                && fc->focus->Class == CLASS_PERSON
                 && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT
                 && (SLONG)GAME_TURN >= fc->fight_behind_until) {
                 // Don't get behind fighting people -- except briefly
@@ -1729,7 +1743,13 @@ void FC_process()
         // tick. The "too far" branch below is kept for both modes — it
         // provides sprint recovery (lagged fc catches up to want after
         // sprint zoom-out ends) and that feels right on MANUAL too.
-        const bool min_clamp_enabled = camera_is_auto();
+        //
+        // EXCEPTION — vehicle entry: keep the min-clamp ON even in MANUAL so
+        // the programmatic get-behind orbits AROUND the character (constant
+        // radius) like it does on the gamepad. Without it, want is pulled in a
+        // straight chord to the behind point and the camera cuts directly
+        // across instead of arcing round.
+        const bool min_clamp_enabled = camera_is_auto() || entering_vehicle_scene;
         if (min_clamp_enabled && dist < FC_DIST_MIN) {
             if (!fc->toonear) {
                 ddist = FC_DIST_MIN - dist;
@@ -1794,7 +1814,12 @@ void FC_process()
         // (rubberness 0.5) keeps the legacy `>>2` step exactly — i.e.
         // 25%/tick toward want. Lower rubberness → snappier. Higher →
         // laggier rubber-band.
-        if (camera_is_manual()) {
+        //
+        // EXCEPTION — vehicle entry: use the smoothed path even in MANUAL so
+        // the programmatic entry rotation eases the same way it does on the
+        // gamepad (AUTO). Without this the snap makes the lock-rotation look
+        // abrupt on KBM.
+        if (camera_is_manual() && !entering_vehicle_scene) {
             fc->yaw   = fc->want_yaw;
             fc->pitch = fc->want_pitch;
             fc->roll  = fc->want_roll;
