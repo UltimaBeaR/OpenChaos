@@ -197,19 +197,26 @@ void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
     if (up == 0)
         return;
 
-    // Animation progress in [0,1]: position within the clip / total length.
-    // FrameIndex is the cumulative keyframe index, AnimTween the 0..255 blend
-    // within it; total keyframes come from walking to the LAST_FRAME marker.
+    // Animation progress in [0,1] from the CURRENT frame's position in the
+    // keyframe chain — direction-agnostic, so it works for both the forward
+    // enter climb and the backward exit climb (FrameIndex can't be used: it
+    // counts up even when playing backwards). `before` = frames from the start
+    // to the current frame, `after` = frames from current to the last; the
+    // 0..255 AnimTween is the sub-frame blend.
     double prog01 = 1.0;
     if (dt && dt->CurrentFrame) {
-        SLONG remaining = 0;
-        GameKeyFrame* g = dt->CurrentFrame;
-        while (g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && remaining < CAR_ENTER_RISE_MAX_FRAMES) {
-            g = g->NextFrame;
-            remaining++;
-        }
-        const SLONG total = dt->FrameIndex + remaining + 1; // keyframes in clip
-        const SLONG pos   = dt->FrameIndex * 256 + (dt->AnimTween & 0xff);
+        SLONG before = 0;
+        for (GameKeyFrame* p = dt->CurrentFrame;
+             p->PrevFrame && before < CAR_ENTER_RISE_MAX_FRAMES; p = p->PrevFrame)
+            before++;
+
+        SLONG after = 0;
+        for (GameKeyFrame* g = dt->CurrentFrame;
+             g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && after < CAR_ENTER_RISE_MAX_FRAMES; g = g->NextFrame)
+            after++;
+
+        const SLONG total = before + after + 1; // keyframes in clip
+        const SLONG pos   = before * 256 + (dt->AnimTween & 0xff);
         if (total > 0)
             prog01 = (double)pos / (double)(total * 256);
         if (prog01 < 0.0)
@@ -2078,7 +2085,9 @@ SLONG GetRunoverHP(Thing* p_car, Thing* p_person)
 // uc_orig: VEH_throw_out_person (fallen/Source/Vehicle.cpp)
 void VEH_throw_out_person(Thing* p_person, Thing* p_vehicle)
 {
-    set_person_exit_vehicle(p_person);
+    // Forced ejection (vehicle destroyed / scared off): instant teleport-out,
+    // never the climb-out animation, and never revives the vehicle.
+    set_person_exit_vehicle(p_person, /*forced=*/true);
 
     knock_person_down(
         p_person,

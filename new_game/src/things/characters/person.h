@@ -358,8 +358,10 @@ void remove_person_from_passenger_list(Thing* p_person, Thing* p_vehicle);
 void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door);
 
 // Exits person from vehicle: tries both doors, repositions, removes from driver/passenger lists.
+// `forced` = thrown out (vehicle destroyed / scared off) — uses the instant
+// teleport-out, never the climb-out animation, and never revives the vehicle.
 // uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
-void set_person_exit_vehicle(Thing* p_person);
+void set_person_exit_vehicle(Thing* p_person, bool forced = false);
 
 // Selects the correct walk animation for person type and equipped weapon.
 // uc_orig: set_anim_walking (fallen/Source/Person.cpp)

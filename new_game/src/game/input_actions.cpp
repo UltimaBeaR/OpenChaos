@@ -775,9 +775,12 @@ SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 // uc_orig: person_get_in_specific_car (fallen/Source/interfac.cpp)
 SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 {
-    if (p_vehicle->Genus.Vehicle->Driver) {
+    if (p_vehicle->Genus.Vehicle->Driver
+        || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)) {
         //
-        // This vehicle is already occupied.
+        // This vehicle is already occupied, or someone is mid enter/exit
+        // animation (Driver is only set once the enter animation finishes, so
+        // FLAG_VEH_ANIMATING covers the in-between window).
         //
 
         return UC_FALSE;

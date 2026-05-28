@@ -2889,6 +2889,8 @@ void PCOM_set_person_ai_findcar(Thing* p_person, UWORD car)
 
             if (p_car->Genus.Vehicle->Driver) {
                 // Car already driven by someone.
+            } else if (p_car->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING) {
+                // Someone is mid enter/exit animation (Driver not set yet).
             } else if (p_car->State == STATE_DEAD) {
                 // Car is damaged.
             } else if (p_car->Genus.Vehicle->key != SPECIAL_NONE && !person_has_special(p_person, p_car->Genus.Vehicle->key)) {
@@ -5742,8 +5744,13 @@ void PCOM_process_findcar(Thing* p_person)
     case PCOM_AI_SUBSTATE_GOTOCAR:
 
         if (p_person->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER || p_person->Genus.Person->pcom_ai == PCOM_AI_DRIVER) {
-            // Drivers never enter a car that is already occupied by another driver.
-            if (p_vehicle->Genus.Vehicle->Driver) {
+            // Drivers never enter a car that is occupied, currently being
+            // entered/exited (FLAG_VEH_ANIMATING — Driver is only set when the
+            // enter animation finishes, so without this the NPC commits to a
+            // car someone is still climbing into and gets blocked), or dead.
+            if (p_vehicle->Genus.Vehicle->Driver
+                || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)
+                || p_vehicle->State == STATE_DEAD) {
                 PCOM_set_person_ai_findcar(p_person, NULL);
             }
         }

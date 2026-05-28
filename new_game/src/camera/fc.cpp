@@ -112,6 +112,14 @@ extern BOOL PLAYCUTS_playing;
 #define MOUSE_HEIGHT_SCALE \
     (MOUSE_YAW_SCALE_Q8 * 0x3100 / (61 * 256))
 
+// OpenChaos: master switch for the vehicle enter/exit camera "scene override"
+// (programmatic lock-rotation behind the car + manual-input block during the
+// enter/exit animations). TEMPORARILY false so the animations can be watched
+// with a free camera while tuning the exit reverse-play. Set back to true to
+// re-enable the lock for BOTH entering and exiting.
+// uc_orig: n/a (OpenChaos addition)
+static constexpr bool CAR_ENTER_EXIT_CAM_LOCK = false;
+
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
 // uc_orig: CAM_AT_WORLD_POS (fallen/Source/fc.cpp)
@@ -1091,9 +1099,11 @@ void FC_process()
             // angle; letting the player override with the right stick exposes
             // the trick. Released as soon as SubState transitions out of
             // ENTERING_VEHICLE (anim end).
-            const bool entering_vehicle = fc->focus
+            const bool entering_vehicle = CAR_ENTER_EXIT_CAM_LOCK
+                && fc->focus
                 && fc->focus->Class == CLASS_PERSON
-                && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+                && (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                    || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE);
 
             // Mouse-driven orbital camera. Mirrors the right-stick block
             // below — same orbit-around-focus math, same height-delta
@@ -1525,9 +1535,11 @@ void FC_process()
         // still. Force get-behind here, and bypass the nobehind / fight skips
         // so a mouse orbit done right before entry can't block the lock. Auto-
         // released when SubState leaves ENTERING_VEHICLE (anim end).
-        const bool entering_vehicle_scene = fc->focus
+        const bool entering_vehicle_scene = CAR_ENTER_EXIT_CAM_LOCK
+            && fc->focus
             && fc->focus->Class == CLASS_PERSON
-            && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+            && (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE);
 
         // MANUAL mode: no automatic camera rotation at all. Manual input
         // (mouse / stick orbit) is the ONLY thing that rotates the camera

@@ -4898,7 +4898,14 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 {
     ASSERT(door == 0 || door == 1);
 
-    if (p_vehicle->Genus.Vehicle->Driver) {
+    // Reserve the car for the whole enter/exit ANIMATION, not just once a
+    // driver is finalized. Driver is only set when the enter animation
+    // completes (set_person_in_vehicle), so without the FLAG_VEH_ANIMATING
+    // check a second person (NPC ↔ player) could start climbing in while
+    // someone is still mid enter/exit animation. The flag is set at the start
+    // of the enter (and exit) animation and cleared on completion.
+    if (p_vehicle->Genus.Vehicle->Driver
+        || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)) {
         p_person->Genus.Person->InCar = 0;
         return;
     }
@@ -5009,7 +5016,7 @@ void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG do
 // Exits person from vehicle: finds a door (tries both sides), repositions on map,
 // removes from driver/passenger lists, stops engine sounds.
 // uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
-void set_person_exit_vehicle(Thing* p_person)
+void set_person_exit_vehicle(Thing* p_person, bool forced)
 {
     Thing* p_vehicle;
 
@@ -5042,6 +5049,8 @@ try_again:;
 
     door_y = PAP_calc_map_height_at(door_x + dx, door_z + dz);
 
+    bool degenerate = false;
+
     if (abs(door_y - (p_person->WorldPos.Y >> 8)) > 150 || (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) || !there_is_a_los(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Y + 0x6000 >> 8, p_vehicle->WorldPos.Z >> 8, door_x + dx, door_y + 0x60, door_z + dz, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
         if (!otherside) {
             side = !side;
@@ -5049,10 +5058,87 @@ try_again:;
 
             goto try_again;
         } else {
-            // Both doors blocked — exit inside the vehicle footprint.
+            // Both doors blocked — exit inside the vehicle footprint (no anim).
+            degenerate = true;
             door_x = p_vehicle->WorldPos.X >> 8;
             door_z = p_vehicle->WorldPos.Z >> 8;
         }
+    }
+
+    // OpenChaos: play the ENTER animation in reverse as an exit animation —
+    // mirror of set_person_enter_vehicle, reusing the entry door point + per-
+    // model rise tuning (veh_enter_tune). SUB_STATE_EXITING_VEHICLE drives the
+    // clip backwards via person_backwards_animate, so Darci climbs out and down
+    // to the ground.
+    //
+    // Side = whatever the door-find above chose (original logic): the driver
+    // door normally, the passenger door if the driver side is blocked. Under
+    // normal circumstances that's the driver/left door, matching the original
+    // game (Darci always slides to the driver seat, so she leaves the driver
+    // side).
+    //
+    // Skipped (falls through to the original instant teleport-out below) when:
+    //   - both doors blocked (degenerate — Darci would pop out at a weird spot,
+    //     so no animation), or
+    //   - the leaver is a passenger (NPC) — passengers use the instant path,
+    //     which also handles passenger-list removal, or
+    //   - `forced` (thrown out by a destroyed / scared vehicle), or the vehicle
+    //     is dead — must NOT run the calm climb-out anim, and must not touch the
+    //     vehicle state (the original instant path leaves the dead car dead).
+    if (!forced && p_vehicle->State != STATE_DEAD && !degenerate
+        && !(p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER)) {
+        const SLONG door = side ? 1 : 0;
+        const SLONG anim = (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR;
+
+        // Normalize the residual pose first. Entry leaves the person in the
+        // seated pose of the side they got in (ENTER_TAXI for the passenger
+        // side, ENTER_CAR for the driver side). The setup below anchors the
+        // foot from the CURRENT pose, so a mismatched residual pose makes the
+        // exit land in a different spot depending on entry side (seen as
+        // exiting "from the rear" after a passenger-side entry). Forcing the
+        // exit clip's own seated last frame here makes the residual identical
+        // for both entry sides.
+        locked_anim_change_end(p_person, SUB_OBJECT_LEFT_FOOT, anim);
+
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_TRUE;
+        position_person_for_vehicle(p_person, p_vehicle, door);
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_FALSE;
+
+        // Entry-style setup (mirror of set_person_enter_vehicle): stand at the
+        // door (first frame, foot planted), then jump to the seated last frame
+        // keeping the same foot anchor. Backward playback then climbs back out
+        // to standing at the door. With the normalized residual above this is
+        // now deterministic regardless of which side Darci entered.
+        set_locked_anim(p_person, anim, SUB_OBJECT_LEFT_FOOT);
+        locked_anim_change_end(p_person, SUB_OBJECT_LEFT_FOOT, anim);
+
+        add_thing_to_map(p_person);
+        render_interp_mark_teleport(p_person);
+
+        set_thing_velocity(p_person, 0);
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+        p_person->SubState = SUB_STATE_EXITING_VEHICLE;
+        p_person->Genus.Person->Action = ACTION_ENTER_VEHICLE;
+        p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_DRIVING;
+
+        // Stop the car being driven now; the person keeps InCar until the
+        // animation ends, when set_person_out_of_vehicle finalizes the exit.
+        // NOTE: do NOT change the vehicle State here — the original exit didn't,
+        // and forcing STATE_NORMAL would revive a dead car (re-enterable wreck).
+        p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_ANIMATING;
+        p_vehicle->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+        p_vehicle->Genus.Vehicle->Driver = NULL;
+
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_START);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_CRUISE);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_IDLE);
+        if (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_FX_STATE) {
+            p_vehicle->Genus.Vehicle->Flags &= ~FLAG_VEH_FX_STATE;
+        }
+        MFX_stop(THING_NUMBER(p_vehicle), MFX_WAVE_ALL);
+        MFX_play_thing(THING_NUMBER(p_vehicle), S_CAR_DOOR, 0, p_vehicle);
+        return;
     }
 
     newpos.X = door_x << 8;
@@ -7655,6 +7741,9 @@ void set_person_out_of_vehicle(Thing* p_person)
     set_person_locked_idle_ready(p_person);
     plant_feet(p_person);
     p_car->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+    // Clear the anim-freeze set when the exit climb-out started, so the now
+    // driverless car resumes its normal (parked) behaviour.
+    p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
 }
 
 // Changes to a fresh animation while keeping a specific limb locked in world-space.
@@ -9561,12 +9650,21 @@ void fn_person_moveing(Thing* p_person)
 
         break;
 
-    case SUB_STATE_EXITING_VEHICLE:
-        end = person_normal_animate(p_person);
+    case SUB_STATE_EXITING_VEHICLE: {
+        // OpenChaos: exit plays the ENTER animation in reverse (set up by
+        // set_person_exit_vehicle). Backward playback makes the per-model rise
+        // descend (animation progress decreases), so Darci climbs down to the
+        // ground; reuses the same veh_enter_tune as entry. On reaching the
+        // start of the clip the person is on the ground at the door point.
+        end = person_backwards_animate(p_person);
+        Thing* p_car = TO_THING(p_person->Genus.Person->InCar);
+        if (!end) {
+            car_enter_anim_rise(p_person, p_car);
+        }
         if (end) {
             set_person_out_of_vehicle(p_person);
         }
-        break;
+    } break;
 
     case SUB_STATE_SLIPPING_END:
         change_velocity_to(p_person, 0);
