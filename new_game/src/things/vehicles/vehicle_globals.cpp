@@ -37,6 +37,29 @@ struct VehInfo veh_info[VEH_TYPE_NUMBER] = {
     { WHEELBASE_VAN, ENGINE_LGV, 0, 30, PRIM_OBJ_VAN_WHEEL, PRIM_OBJ_WILDCATVAN_BODY, 0x6800, 0, NULL, -248, 15, 90, 0, 0, 0, 0, 0, 0, 0, 185, 100 },
 };
 
+// OpenChaos: per-model enter-animation tuning. See VehEnterTune in
+// vehicle_globals.h. Lateral placement is the original (correct) behaviour;
+// { alongLeft, alongRight, upLeft, upRight } are tuned per model.
+//   alongLeft  : longitudinal offset from front wheel, LEFT door (door 0)
+//   alongRight : longitudinal offset from front wheel, RIGHT door (door 1)
+//   upLeft     : door-bottom height above ground, LEFT door (smooth rise)
+//   upRight    : door-bottom height above ground, RIGHT door
+// + along = toward rear (from front wheel toward door handle). Left/right
+// differ because each enter anim grabs a different door edge. All-zero =
+// exactly at the front wheel, no rise. Units = wheel DX/DZ scale.
+//                              { alongLeft, alongRight, upLeft, upRight }
+VehEnterTune veh_enter_tune[VEH_TYPE_NUMBER] = {
+    /* VEH_TYPE_VAN        */ { 150, 100, 80, 50 },
+    /* VEH_TYPE_CAR        */ { 175, 130, 25, 15 },
+    /* VEH_TYPE_TAXI       */ { 175, 130, 25, 15 },
+    /* VEH_TYPE_POLICE     */ { 175, 130, 25, 15 },
+    /* VEH_TYPE_AMBULANCE  */ { 150, 100, 80, 50 },
+    /* VEH_TYPE_JEEP       */ { 200, 130, 50, 30 },
+    /* VEH_TYPE_MEATWAGON  */ { 200, 130, 50, 30 },
+    /* VEH_TYPE_SEDAN      */ { 175, 130, 25, 15 },
+    /* VEH_TYPE_WILDCATVAN */ { 150, 100, 80, 50 },
+};
+
 // Weighted list of civilian vehicle types for random NPC spawning.
 // Police/Ambulance/etc. are intentionally absent — only civilian types spawn randomly.
 // uc_orig: vehicle_random (fallen/Source/Vehicle.cpp)

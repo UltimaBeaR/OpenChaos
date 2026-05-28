@@ -26,9 +26,15 @@ static void write_crash_timestamp(FILE* f, const char* label)
         lt->tm_hour, lt->tm_min, lt->tm_sec);
 }
 
+extern "C" void win_restore_accessibility_shortcuts(void);
+
 static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
 {
     g_exit_log_written = true;
+
+    // Restore the user's Sticky/Filter/Toggle Keys before we die — these are
+    // system-global, so a crash must not leave them disabled.
+    win_restore_accessibility_shortcuts();
 
     // For stack overflow: use a small static buffer and WriteFile as fallback,
     // since fprintf/localtime may need stack space we don't have.
@@ -142,6 +148,9 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
         return FALSE;
     g_exit_log_written = true;
 
+    // Restore system-global accessibility settings before the process ends.
+    win_restore_accessibility_shortcuts();
+
     const char* desc = ctrl_type == CTRL_C_EVENT ? "Ctrl+C" : ctrl_type == CTRL_BREAK_EVENT ? "Ctrl+Break"
         : ctrl_type == CTRL_CLOSE_EVENT                                                     ? "Console window closed"
         : ctrl_type == CTRL_LOGOFF_EVENT                                                    ? "User logoff"
@@ -216,6 +225,59 @@ static int crt_report_hook(int report_type, char* message, int* return_value)
     if (return_value)
         *return_value = 0;
     return TRUE;
+}
+
+// --- Accessibility shortcut keys (Sticky / Toggle / Filter Keys) -----------
+// Windows pops up an accessibility prompt on certain key patterns: Sticky Keys
+// (Shift pressed 5x), Filter Keys (Shift held ~8s), Toggle Keys. In a game
+// these fire by accident (sprint/strafe holds, repeated Shift) and steal focus.
+//
+// We disable only the HOTKEY-ACTIVATION of these features while the game is
+// focused, and restore the user's original settings on focus loss / exit. We
+// never touch the feature for a user who has it permanently ON (SKF/TKF/FKF_
+// *ON) — their accessibility setup keeps working; we only stop the surprise
+// popup. Settings are system-global, so restore must run on every exit path
+// (clean exit, abort, crash, console close) or the popup would stay disabled
+// after the game dies.
+static STICKYKEYS s_startup_sticky = { sizeof(STICKYKEYS), 0 };
+static TOGGLEKEYS s_startup_toggle = { sizeof(TOGGLEKEYS), 0 };
+static FILTERKEYS s_startup_filter = { sizeof(FILTERKEYS), 0 };
+static bool s_accessibility_captured = false;
+
+extern "C" void win_disable_accessibility_shortcuts(void)
+{
+    // Capture the user's real settings once, before we change anything.
+    if (!s_accessibility_captured) {
+        SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS), &s_startup_sticky, 0);
+        SystemParametersInfo(SPI_GETTOGGLEKEYS, sizeof(TOGGLEKEYS), &s_startup_toggle, 0);
+        SystemParametersInfo(SPI_GETFILTERKEYS, sizeof(FILTERKEYS), &s_startup_filter, 0);
+        s_accessibility_captured = true;
+    }
+
+    if (!(s_startup_sticky.dwFlags & SKF_STICKYKEYSON)) {
+        STICKYKEYS sk = s_startup_sticky;
+        sk.dwFlags &= ~(SKF_HOTKEYACTIVE | SKF_CONFIRMHOTKEY);
+        SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &sk, 0);
+    }
+    if (!(s_startup_toggle.dwFlags & TKF_TOGGLEKEYSON)) {
+        TOGGLEKEYS tk = s_startup_toggle;
+        tk.dwFlags &= ~(TKF_HOTKEYACTIVE | TKF_CONFIRMHOTKEY);
+        SystemParametersInfo(SPI_SETTOGGLEKEYS, sizeof(TOGGLEKEYS), &tk, 0);
+    }
+    if (!(s_startup_filter.dwFlags & FKF_FILTERKEYSON)) {
+        FILTERKEYS fk = s_startup_filter;
+        fk.dwFlags &= ~(FKF_HOTKEYACTIVE | FKF_CONFIRMHOTKEY);
+        SystemParametersInfo(SPI_SETFILTERKEYS, sizeof(FILTERKEYS), &fk, 0);
+    }
+}
+
+extern "C" void win_restore_accessibility_shortcuts(void)
+{
+    if (!s_accessibility_captured)
+        return; // nothing captured -> nothing to restore (never disabled)
+    SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &s_startup_sticky, 0);
+    SystemParametersInfo(SPI_SETTOGGLEKEYS, sizeof(TOGGLEKEYS), &s_startup_toggle, 0);
+    SystemParametersInfo(SPI_SETFILTERKEYS, sizeof(FILTERKEYS), &s_startup_filter, 0);
 }
 
 extern "C" void install_crash_handler(void)

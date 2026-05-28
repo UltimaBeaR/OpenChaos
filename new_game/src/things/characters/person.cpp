@@ -208,7 +208,6 @@ extern SWORD people_types[50];
 extern Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 // might_i_be_a_villain: defined in this file (chunk 10 below)
 // chunk 5 additional externs (Person.cpp later chunks or other files not yet migrated)
-extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz);
 extern SLONG find_best_grapple(Thing* p_person);
 extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
@@ -4871,7 +4870,9 @@ void position_person_for_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 
     ASSERT(door == 0 || door == 1);
 
-    get_car_enter_xz(p_vehicle, door, &ix, &iz);
+    // OpenChaos: teleport to the front-wheel-based entry point (+ per-model
+    // hand-tuned offsets), not the old wheelbase heuristic used for detection.
+    get_car_enter_anim_xz(p_vehicle, door, &ix, &iz);
 
     new_position.X = ix << 8;
     new_position.Z = iz << 8;
@@ -9529,12 +9530,23 @@ void fn_person_moveing(Thing* p_person)
     }
     SlideSoundCheck(p_person);
     switch (p_person->SubState) {
-    case SUB_STATE_ENTERING_VEHICLE:
+    case SUB_STATE_ENTERING_VEHICLE: {
         end = person_normal_animate(p_person);
-        if (end) {
-            set_person_in_vehicle(p_person, TO_THING(p_person->Genus.Person->InCar));
+
+        // OpenChaos: ease-in vertical rise to the door bottom over the enter
+        // animation (cars sit at different heights; without this Darci stays at
+        // ground level the whole climb). Driven by animation progress, so it
+        // matches the clip length. Skip on the final tick — the anim's
+        // FrameIndex has reset and the person is about to be seated anyway.
+        Thing* p_car = TO_THING(p_person->Genus.Person->InCar);
+        if (!end) {
+            car_enter_anim_rise(p_person, p_car);
         }
-        break;
+
+        if (end) {
+            set_person_in_vehicle(p_person, p_car);
+        }
+    } break;
 
     case SUB_STATE_INSIDE_VEHICLE:
 

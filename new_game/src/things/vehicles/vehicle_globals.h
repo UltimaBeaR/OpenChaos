@@ -38,6 +38,32 @@ struct VehInfo {
 // uc_orig: veh_info (fallen/Source/Vehicle.cpp)
 extern struct VehInfo veh_info[VEH_TYPE_NUMBER];
 
+// OpenChaos: per-model hand-tuned tuning for the enter-animation teleport.
+// The lateral (across-the-car) placement keeps the ORIGINAL behaviour — it was
+// already correct (Darci's seated position lines up with the wheel centre on
+// both sides). What is tuned, in car-local units (same scale as the wheel
+// DX/DZ), per vehicle model:
+//   alongLeft  : longitudinal offset from the FRONT wheel for the LEFT door
+//                (door 0, ANIM_ENTER_CAR). + = toward the REAR, − = toward the
+//                nose. 0 = exactly at the front wheel.
+//   alongRight : same, for the RIGHT door (door 1, ANIM_ENTER_TAXI).
+//   upLeft     : door-bottom height above the ground (where the wheels touch)
+//                for the LEFT door. The person climbs from ground to this height
+//                during a window of the enter animation (see car_enter_anim_rise).
+//   upRight    : same, for the RIGHT door.
+// Left and right need separate values because the two enter animations grab a
+// different part of the door (left grabs the rear edge, right the front edge),
+// so the door width shifts them differently — and door width varies per model.
+// Applied ONLY to the enter-animation teleport, never to entry detection.
+// Index: [VEH_TYPE_*]. All-zero == place exactly at the front wheel, no rise.
+struct VehEnterTune {
+    SWORD alongLeft;
+    SWORD alongRight;
+    SWORD upLeft;
+    SWORD upRight;
+};
+extern VehEnterTune veh_enter_tune[VEH_TYPE_NUMBER];
+
 // Weighted list of civilian vehicle types for random NPC spawning (civilian types only).
 // uc_orig: vehicle_random (fallen/Source/Vehicle.cpp)
 extern UBYTE vehicle_random[];

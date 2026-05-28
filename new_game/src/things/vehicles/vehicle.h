@@ -282,6 +282,17 @@ SLONG VEH_on_road(Thing* p_vehicle, SLONG step);
 // uc_orig: get_car_door_offsets (fallen/Source/Vehicle.cpp)
 void get_car_door_offsets(SLONG type, SLONG door, SLONG* dx, SLONG* dz);
 
+// OpenChaos: world-space XZ teleport point for the vehicle-enter animation —
+// front wheel of the door's side plus per-model hand-tuned offsets. See
+// veh_enter_tune in vehicle_globals.h.
+void get_car_enter_anim_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz);
+
+// OpenChaos: set the person's height for one physics tick of the enter
+// animation — waits on the ground, then climbs to the door bottom
+// (veh_enter_tune.upLeft/upRight) during a window of the animation. No-op when
+// the side's up == 0.
+void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle);
+
 // Update steering wheel angle based on input direction.
 // uc_orig: steering_wheel (fallen/Source/Vehicle.cpp)
 void steering_wheel(Vehicle* veh, SLONG velocity, bool player);

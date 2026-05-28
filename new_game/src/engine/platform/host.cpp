@@ -22,6 +22,17 @@
 // Forward declaration for best-found device initialisation.
 void init_best_found(void);
 
+// Windows accessibility-shortcut suppression (Sticky/Filter/Toggle Keys popups).
+// Real implementation in crash_handler_win.cpp; no-ops elsewhere. Disabled while
+// the game window is focused, restored on focus loss / exit. See that file.
+#ifdef _WIN32
+extern "C" void win_disable_accessibility_shortcuts(void);
+extern "C" void win_restore_accessibility_shortcuts(void);
+#else
+static inline void win_disable_accessibility_shortcuts(void) {}
+static inline void win_restore_accessibility_shortcuts(void) {}
+#endif
+
 // ---------------------------------------------------------------------------
 // SDL3 event callbacks
 // ---------------------------------------------------------------------------
@@ -82,11 +93,15 @@ void host_on_focus_changed(bool focused)
 static void on_focus_gained()
 {
     host_on_focus_changed(true);
+    // Suppress the Windows Sticky/Filter/Toggle Keys popups while we have focus.
+    win_disable_accessibility_shortcuts();
 }
 
 static void on_focus_lost()
 {
     host_on_focus_changed(false);
+    // Restore the user's accessibility settings so they work on the desktop.
+    win_restore_accessibility_shortcuts();
 }
 
 static void on_window_moved()
@@ -318,6 +333,9 @@ static void exit_log_handler(void)
         return;
     g_exit_log_written = true;
 
+    // Restore system-global accessibility settings on normal exit.
+    win_restore_accessibility_shortcuts();
+
     FILE* f = fopen("crash_log.txt", "w");
     if (!f)
         return;
@@ -337,6 +355,9 @@ static void abort_signal_handler(int sig)
         return;
     }
     g_exit_log_written = true;
+
+    // Restore system-global accessibility settings before aborting.
+    win_restore_accessibility_shortcuts();
 
     FILE* f = fopen("crash_log.txt", "w");
     if (f) {
@@ -431,6 +452,11 @@ int HOST_run(int argc_in, char* argv_in[])
     signal(SIGSEGV, crash_signal_handler);
     signal(SIGFPE, crash_signal_handler);
 #endif
+
+    // Suppress the Windows accessibility-shortcut popups (Sticky/Filter/Toggle
+    // Keys) up front — the window starts focused, and on_focus_gained re-applies
+    // it on every alt-tab back. Restored on focus loss and on all exit paths.
+    win_disable_accessibility_shortcuts();
 
     init_best_found();
 

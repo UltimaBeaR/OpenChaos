@@ -106,6 +106,139 @@ void get_car_door_offsets(SLONG type, SLONG door, SLONG* dx, SLONG* dz)
     *dz = (veh_info[type].DZ[door + 1] * 50) >> 8;
 }
 
+// OpenChaos: world-space XZ teleport point for the vehicle-enter animation.
+//
+// Lateral (across-the-car) placement keeps the ORIGINAL behaviour — same as
+// get_car_enter_xz with the enter-anim (sneaky) width, which is already correct
+// (Darci lines up with the wheel centre on both sides). Only the LONGITUDINAL
+// (along-the-body) placement is changed: instead of the original magic-scaled
+// wheel Z (which mirrored the two doors to front/rear), the point sits at the
+// FRONT wheel Z plus a per-model, per-door `along` offset (veh_enter_tune).
+// Entry DETECTION still uses get_car_enter_xz — only the teleport changed.
+void get_car_enter_anim_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
+{
+    ASSERT(p_vehicle->Class == CLASS_VEHICLE);
+    ASSERT(door == 0 || door == 1);
+
+    const SLONG type = p_vehicle->Genus.Vehicle->Type;
+    ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
+
+    // Lateral: original enter-anim width (door-specific side, x450 scale).
+    const SLONG width = (veh_info[type].DX[door + 1] * 450) >> 8;
+
+    // Longitudinal: front-wheel Z (front wheels are indices 2/3 and share the
+    // same Z) plus the per-model `along` offset (+ = toward the rear). The two
+    // doors use separate offsets — each enter animation grabs a different door
+    // edge, so the door width shifts them differently.
+    const SLONG along         = (door == 0) ? veh_enter_tune[type].alongLeft
+                                            : veh_enter_tune[type].alongRight;
+    const SLONG front_wheel_z = veh_info[type].DZ[2];
+    const SLONG target_z      = front_wheel_z + along;
+
+    // Forward axis maps a positive `length` toward the nose (−Z at angle 0), so
+    // length = −target_z places the point at car-local Z = target_z.
+    const SLONG length = -target_z;
+
+    const SLONG dx = -SIN(p_vehicle->Genus.Vehicle->Angle);
+    const SLONG dz = -COS(p_vehicle->Genus.Vehicle->Angle);
+
+    SLONG ix = p_vehicle->WorldPos.X >> 8;
+    SLONG iz = p_vehicle->WorldPos.Z >> 8;
+
+    ix += (dx * length) >> 16; // longitudinal (front wheel + along)
+    iz += (dz * length) >> 16;
+
+    ix += (dz * width) >> 16; // lateral (original behaviour)
+    iz -= (dx * width) >> 16;
+
+    *cx = ix;
+    *cz = iz;
+}
+
+// Rise window as a fraction of the enter animation's progress (0..1): Darci
+// stays on the ground until START (opening the door), then rises smoothly but
+// quickly to the door bottom across [START, END], then holds at the top for the
+// rest of the animation. Smoothstep inside the window gives a soft accel/decel
+// (no snap at either end). Move START earlier / END later to widen or shift the
+// climb; keep START < END.
+//
+// Separate windows per side because the two enter animations (left =
+// ANIM_ENTER_CAR, right = ANIM_ENTER_TAXI) climb in at different moments.
+// uc_orig: n/a (OpenChaos addition)
+#define CAR_ENTER_RISE_START_L 0.40
+#define CAR_ENTER_RISE_END_L   0.70
+#define CAR_ENTER_RISE_START_R 0.40
+#define CAR_ENTER_RISE_END_R   0.70
+
+// Safety cap when walking the keyframe chain to find its length.
+// uc_orig: n/a (OpenChaos addition)
+#define CAR_ENTER_RISE_MAX_FRAMES 64
+
+// OpenChaos: set the person's height for one physics tick of the enter
+// animation — Darci waits on the ground, then climbs to the door bottom during
+// a window of the animation (veh_enter_tune.up above the ground; larger Y is
+// higher in this engine).
+//
+// The climb is driven by the ANIMATION's own progress (FrameIndex + AnimTween
+// over the clip's total keyframes), so it always matches the animation's length
+// and has no quantization (unlike recovering progress from the integer Y, which
+// stalls on the flat part of the curve for small `up`). No-op when up == 0.
+void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
+{
+    const SLONG type = p_vehicle->Genus.Vehicle->Type;
+    ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
+
+    // Which side: the two enter animations differ (left = ANIM_ENTER_CAR,
+    // right = ANIM_ENTER_TAXI) and use separate height and window tuning.
+    DrawTween* dt = p_person->Draw.Tweened;
+    const bool is_right = (dt && dt->CurrentAnim == ANIM_ENTER_TAXI);
+
+    const SLONG up = is_right ? veh_enter_tune[type].upRight : veh_enter_tune[type].upLeft;
+    if (up == 0)
+        return;
+
+    // Animation progress in [0,1]: position within the clip / total length.
+    // FrameIndex is the cumulative keyframe index, AnimTween the 0..255 blend
+    // within it; total keyframes come from walking to the LAST_FRAME marker.
+    double prog01 = 1.0;
+    if (dt && dt->CurrentFrame) {
+        SLONG remaining = 0;
+        GameKeyFrame* g = dt->CurrentFrame;
+        while (g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && remaining < CAR_ENTER_RISE_MAX_FRAMES) {
+            g = g->NextFrame;
+            remaining++;
+        }
+        const SLONG total = dt->FrameIndex + remaining + 1; // keyframes in clip
+        const SLONG pos   = dt->FrameIndex * 256 + (dt->AnimTween & 0xff);
+        if (total > 0)
+            prog01 = (double)pos / (double)(total * 256);
+        if (prog01 < 0.0)
+            prog01 = 0.0;
+        else if (prog01 > 1.0)
+            prog01 = 1.0;
+    }
+
+    const double start = is_right ? CAR_ENTER_RISE_START_R : CAR_ENTER_RISE_START_L;
+    const double end   = is_right ? CAR_ENTER_RISE_END_R : CAR_ENTER_RISE_END_L;
+
+    // Height fraction: flat on the ground before the window, smoothstep rise
+    // across [start, end], flat at the top after — so there is a distinct
+    // moment in the animation where the climb happens.
+    double h;
+    if (prog01 <= start)
+        h = 0.0;
+    else if (prog01 >= end)
+        h = 1.0;
+    else {
+        const double u = (prog01 - start) / (end - start);
+        h = u * u * (3.0 - 2.0 * u); // smoothstep
+    }
+
+    const SLONG ground = PAP_calc_map_height_at(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8) << 8;
+
+    p_person->WorldPos.Y = ground + (SLONG)((double)(up << 8) * h);
+}
+
 // uc_orig: get_vehicle_body_prim (fallen/Source/Vehicle.cpp)
 UWORD get_vehicle_body_prim(SLONG type)
 {
