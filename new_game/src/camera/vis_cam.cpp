@@ -978,24 +978,19 @@ void VC_process(void)
         if (in_collision) {
             // COLLISION mode.
             //   Sustained ticks: blend prev → freshly computed raw_vc.
-            //   First tick of contact (AUTO mode): hold at fc identity
-            //     (no pull-in yet). The probe-extension early-detection
-            //     means raw_vc can have a non-trivial pull-in on the very
-            //     first detection (up to ~10 cm due to discrete probe step
-            //     resolution × WALL_OFFSET); snapping straight to that
-            //     reads as a visible jerk in AUTO, where rotation is
-            //     smoothed and fc moves into the wall gradually. The
-            //     subsequent sustained-collision blend then pulls toward
-            //     raw_vc over ~5 ticks.
-            //   First tick of contact (MANUAL mode): use raw_vc
-            //     immediately, no fc-identity snap. MANUAL rotation is
-            //     INSTANT (no angle smoothing), so a single fast manual
-            //     flick can land fc deep inside the wall in one tick.
-            //     Snapping vc to fc on that tick would render one frame
-            //     from INSIDE the wall. Using raw_vc (which already has
-            //     the wall offset applied by vc_process_one) keeps the
-            //     camera outside the wall. The "visible jerk" that AUTO
-            //     avoids is preferable to a one-frame inside-wall render.
+            //   First tick of contact (BOTH modes): use raw_vc
+            //     immediately, no fc-identity snap. fc can land inside
+            //     the wall in one tick when rotation is fast enough
+            //     (MANUAL rotation is INSTANT; AUTO rotation at low
+            //     rubberness is also instant via the angle smoothing
+            //     snap; AUTO rotation at higher rubberness can still
+            //     burst far on a fast stick flick or mouse motion).
+            //     Snapping vc to fc on the entry tick would render one
+            //     frame from INSIDE the wall in all of those cases.
+            //     Using raw_vc (which already has the wall offset
+            //     applied by vc_process_one) keeps the camera outside.
+            //     The ~10 cm pull-in jerk on entry is preferable to a
+            //     one-frame inside-wall render.
             const bool manual = camera_is_manual();
             // Per-tick "keep" fraction (share of previous position kept).
             // MANUAL → 0 (snap to raw_vc). AUTO → rubberness-scaled,
@@ -1014,13 +1009,9 @@ void VC_process(void)
                 vc.z = (SLONG)((double)s.prev_z * keep_d + (double)vc.z * blend_d);
             } else {
                 s.mode = VC_SM_COLLISION;
-                if (!manual) {
-                    vc.x = fc->x;
-                    vc.y = fc->y;
-                    vc.z = fc->z;
-                }
-                // MANUAL: leave vc at vc_process_one's computed wall-
-                // offset position (no fc-identity override).
+                // Leave vc at vc_process_one's computed wall-offset
+                // position (raw_vc) for both modes — no fc-identity
+                // override. See entry-tick comment above for rationale.
             }
             s.prev_x = vc.x;
             s.prev_y = vc.y;
