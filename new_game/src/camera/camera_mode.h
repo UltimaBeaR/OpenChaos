@@ -39,8 +39,22 @@ enum CameraMode {
 constexpr CameraMode KBM_DEFAULT_CAMERA_MODE     = CAMERA_MODE_MANUAL;
 constexpr CameraMode GAMEPAD_DEFAULT_CAMERA_MODE = CAMERA_MODE_AUTO;
 
-// Rubberness scalar [0..1] for AUTO mode only. Tunes the rotation and
-// wall-collision smoothing alphas in lockstep:
+// Rubberness scalar [0..1] for AUTO mode only. Tunes ROTATION rubber
+// in lockstep — one knob covering the things that produce a rubber-
+// band feel during camera ROTATION (i.e. how the camera reorients,
+// orbits, and recovers from wall contact). Specifically:
+//   - horizontal/vertical angle smoothing (yaw/pitch/roll lag),
+//   - orbit-lag residual on user input (mouse/stick rotation tail),
+//   - wall-collision blend (camera orbit pull-in/recovery on walls).
+//
+// NOT scaled by rubberness (always smoothed, both modes):
+//   - Position smoothing (camera following character motion through
+//     jumps, stairs, platforms) — always on regardless of mode. Camera
+//     never snaps to the character's current position; this is what
+//     keeps motion smooth on bumps / curbs / climbs.
+//   - Y-convergence (auto-return to default height) — AUTO-mode feature.
+//   - Get-behind rates — AUTO-mode feature.
+// Rubberness is specifically about ROTATION feel, not translation.
 //   0.0  — snap (matches MANUAL feel but with AUTO features enabled).
 //   0.5  — current "classic Urban Chaos" feel (rotation 25%/tick, wall
 //          60/40 blend). Default — preserves shipping behaviour on
@@ -84,5 +98,23 @@ float get_camera_rubberness();
 //                                                          it is at 0.5).
 // Piecewise-linear interpolation; inputs are clamped.
 float keep_for_rubberness(float current_default_keep);
+
+// Orbit-lag helper.
+//
+// AUTO-mode rotation blocks (mdx mouse, stick X gamepad) keep a small
+// angular RESIDUAL on each input tick — the camera position partially
+// catches up to want, leaving N game-angle units to be closed by the
+// standard position+angle smoothing pass over subsequent ticks. The
+// residual + smoothing produces the rubber-band tail.
+//
+// `orbit_lag_for_rubberness(default_lag_at_half)` returns the residual
+// to use at the current rubberness setting:
+//   rubberness == 0.0  → returns 0                    (no residual → snap)
+//   rubberness == 0.5  → returns default_lag_at_half  (shipping behaviour)
+//   rubberness == 1.0  → returns default × 4          (4× the residual,
+//                                                       distinctly laggier)
+// Piecewise-linear. MANUAL mode never calls this (it does full snap and
+// bypasses the sync-with-residual path entirely).
+float orbit_lag_for_rubberness(float default_lag_at_half);
 
 #endif // CAMERA_CAMERA_MODE_H

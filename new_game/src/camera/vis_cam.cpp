@@ -110,20 +110,25 @@ static const SLONG VC_WALL_OFFSET_Y = VC_WALL_OFFSET / 8;
 static const SLONG VC_RAY_SAMPLES = 32;
 
 // Shipping default lerp weight for sustained-collision smoothing in AUTO
-// mode at rubberness 0.5: `vc = prev_vc * 0.4 + computed_vc * 0.6` per
-// tick (60/40 blend → "keep 40% of the previous position"). The actual
-// keep fraction used per tick is `keep_for_rubberness(VC_KEEP_DEFAULT)`,
-// so rubberness 0 collapses to keep=0 (= MANUAL behaviour: no smoothing)
-// and rubberness 1 gives a much laggier wall slide.
+// at rubberness 0.5: each tick `vc = prev_vc * 0.4 + computed_vc * 0.6`
+// (60/40 blend → "keep 40% of the previous position"). The actual keep
+// fraction is `keep_for_rubberness(VC_KEEP_DEFAULT)` — wall-orbit lag
+// is a ROTATION-rubber case per the camera-mode spec (the camera adjusts
+// its orbit around focus when contact with a wall pulls it in), and
+// rubberness scales it in lockstep with the rest of the rotation
+// smoothings. r=0 → snap (instant vc update). r=0.5 → 60/40. r=1 → laggy.
 //
-// MANUAL mode bypasses this entirely (keep=0 hard-coded — no smoothing
-// regardless of rubberness, since MANUAL doesn't use the rubberness
-// scalar at all).
+// MANUAL mode hard-codes keep=0 (= no smoothing) regardless of
+// rubberness. Why: MANUAL rotation is INSTANT (no angle smoothing), so
+// a single fast manual flick can land fc deep inside a wall in one
+// tick. Snapping vc to raw_vc each tick keeps the camera outside the
+// wall — see the entry-tick comment in `VC_process` for the full
+// inside-wall-render avoidance rationale.
 //
-// Why smoothing matters for AUTO: the gamepad R-stick rotates slowly,
+// Why smoothing matters for AUTO: the gamepad R-stick rotates slowly
 // and `min_d_hit` jitters by ~one probe step each tick. Snapping vc to
 // raw_vc on every tick would show that jitter as visible pumping while
-// sliding along walls. The smoothing tail averages it out.
+// sliding along walls. The 0.4 keep averages it out.
 static constexpr float VC_KEEP_DEFAULT = 0.4f;
 
 // MAVHEIGHT delta above the focus cell needed to count a sample as "wall".
@@ -993,8 +998,11 @@ void VC_process(void)
             //     avoids is preferable to a one-frame inside-wall render.
             const bool manual = camera_is_manual();
             // Per-tick "keep" fraction (share of previous position kept).
-            // MANUAL → 0 (snap to raw_vc). AUTO → rubberness-scaled, with
-            // rubberness 0.5 yielding the shipping 0.4 keep = 60/40 blend.
+            // MANUAL → 0 (snap to raw_vc). AUTO → rubberness-scaled,
+            // with rubberness 0.5 yielding the shipping 0.4 keep = 60/40
+            // blend. Wall orbit-pullin is a rotation-rubber case (the
+            // camera's orbit around focus adjusts when hitting a wall),
+            // so it follows the same scaling as angle/orbit-lag smoothing.
             // double for the blend math — camera positions are 16.16
             // fixed-point with magnitudes up to ~8M, where 32-bit float
             // only has ~1-unit precision and can pump visibly.

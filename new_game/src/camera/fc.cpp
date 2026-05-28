@@ -64,19 +64,27 @@ extern BOOL PLAYCUTS_playing;
 #define MOUSE_SENSITIVITY   22     // 0..100, see comment above.
 #define MOUSE_INVERT_Y      1
 // Residual angular lag the rotation path leaves unsynced each tick,
-// closed afterwards by the standard position+angle smoothing (25%/tick).
-// Higher = more "rubber band" tail; lower = snappier 1:1 input→camera.
-// Mouse wants snappy (5 = effectively immediate). Gamepad stick wants
-// the full legacy tail (61 = no sync, all smoothing) — stick deflection
-// caps at ~61 angle units per tick at full deflection anyway.
-#define MOUSE_ORBIT_LAG     5
+// closed afterwards by the standard position+angle smoothing. Higher =
+// more "rubber band" tail; lower = snappier.
+//
+// These constants are the SHIPPING DEFAULTS — i.e. the residual at
+// rubberness 0.5 (preserves the legacy gamepad rubber feel). At runtime
+// the actual residual is scaled by `orbit_lag_for_rubberness(default)`:
+//   rubberness 0.0  → 0   (snap, no residual)
+//   rubberness 0.5  → 61  (shipping)
+//   rubberness 1.0  → 244 (4× residual — distinctly laggier)
+//
+// Only used in AUTO camera mode. MANUAL mode does full snap on both
+// want and fc (no residual) — see the mdx block in FC_process and the
+// stick-X block below for the gated paths.
+//
+// 61 game-angle units ≈ stick deflection at full per-tick, so at the
+// shipping default the stick effectively contributes 0 "sync" while
+// leaving the entire motion to be smoothed by the position/angle pass.
+// Mouse uses the same default value so AUTO + mouse and AUTO + gamepad
+// feel identical at rubberness 0.5.
+#define MOUSE_ORBIT_LAG     61
 #define STICK_ORBIT_LAG     61
-
-// Note on mouse: the LAG mechanism is bypassed entirely on KBM (see the
-// mdx block in FC_process — full snap on both want and fc, no residual).
-// MOUSE_ORBIT_LAG is kept as a constant for documentation / parity with
-// the stick path, in case a future "automatic camera mode" wants to
-// re-enable a small smoothing tail for mouse.
 
 // Camera Y range, relative to focus_y (the character's vertical position).
 // Same numbers for mouse and gamepad — the camera-elevation range must
@@ -1126,13 +1134,20 @@ void FC_process()
 
                 if (mdx != 0) {
                     // Horizontal mouse orbit: rotate camera position
-                    // around focus in XZ by `angle`. Full snap on both
-                    // want AND fc (no MOUSE_ORBIT_LAG residual) — KBM
-                    // rotation is intentionally instant. yaw/want_yaw
-                    // do NOT need to be updated here: FC_look_at_focus
-                    // (later in the pipeline) recomputes want_yaw from
-                    // the new want geometry, and the KBM-gated angle
-                    // smoothing block then snaps fc->yaw = want_yaw.
+                    // around focus in XZ by `angle`.
+                    //
+                    // MANUAL mode: full snap on both want AND fc (no
+                    // residual). Rotation is intentionally instant; the
+                    // angle smoothing block at the end of the pipeline
+                    // also snaps fc->yaw = want_yaw in MANUAL.
+                    //
+                    // AUTO mode: orbit want by full angle, orbit fc by
+                    // (angle - MOUSE_ORBIT_LAG) so a small residual
+                    // remains for position+angle smoothing to close
+                    // over the next few ticks. Mirrors the gamepad
+                    // stick's sync-with-residual approach so the two
+                    // input devices have a consistent rubber-band feel
+                    // in AUTO.
                     //
                     // CCW rotation (matches the original Euler-step
                     // direction for positive mdx): new_rx = rx*c - rz*s,
@@ -1149,7 +1164,27 @@ void FC_process()
     (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
 
                     ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
-                    ORBIT_PT(fc->x,      fc->z,      s_full, c_full);
+
+                    if (camera_is_manual()) {
+                        // Snap fc — no residual lag.
+                        ORBIT_PT(fc->x, fc->z, s_full, c_full);
+                    } else {
+                        // AUTO: sync fc by (angle - lag), leaving the
+                        // rubberness-scaled residual to be smoothed.
+                        const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)MOUSE_ORBIT_LAG);
+                        SLONG sync_angle;
+                        if      (angle >  lag) sync_angle = angle - lag;
+                        else if (angle < -lag) sync_angle = angle + lag;
+                        else                   sync_angle = 0;
+                        if (sync_angle != 0) {
+                            SLONG s_sync = SIN(sync_angle & 2047);
+                            SLONG c_sync = COS(sync_angle & 2047);
+                            ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
+                            SLONG yaw_mask = (2048 << 8) - 1;
+                            fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                            fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
+                        }
+                    }
 #undef ORBIT_PT
 
                     fc->nobehind = 0x2000;
@@ -1207,9 +1242,15 @@ void FC_process()
                     const SLONG want_y_pre = fc->want_y;
                     const SLONG want_z_pre = fc->want_z;
                     apply_pitch_y_delta(fc, &fc->want_x, &fc->want_y, &fc->want_z, height_delta);
-                    fc->x += (fc->want_x - want_x_pre);
-                    fc->y += (fc->want_y - want_y_pre);
-                    fc->z += (fc->want_z - want_z_pre);
+                    if (camera_is_manual()) {
+                        // MANUAL: mirror the world-space delta onto fc
+                        // so vertical rotation is instant (no rubber).
+                        fc->x += (fc->want_x - want_x_pre);
+                        fc->y += (fc->want_y - want_y_pre);
+                        fc->z += (fc->want_z - want_z_pre);
+                    }
+                    // AUTO: leave fc alone — position smoothing pulls it
+                    // toward want over the next few ticks (rubber tail).
 
                     fc->nobehind = 0x2000;
                 }
@@ -1229,10 +1270,18 @@ void FC_process()
                     SLONG angle = (stick_x * 61) / 32767;
                     angle = angle * TICK_RATIO >> TICK_SHIFT;
 
+                    // MANUAL mode: sync fc by FULL angle (no residual
+                    // lag) — instant rotation. AUTO mode: keep a
+                    // rubberness-scaled residual for the rubber tail.
                     SLONG sync_angle;
-                    if (angle >  STICK_ORBIT_LAG)  sync_angle = angle - STICK_ORBIT_LAG;
-                    else if (angle < -STICK_ORBIT_LAG) sync_angle = angle + STICK_ORBIT_LAG;
-                    else                           sync_angle = 0;
+                    if (camera_is_manual()) {
+                        sync_angle = angle;
+                    } else {
+                        const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)STICK_ORBIT_LAG);
+                        if      (angle >  lag) sync_angle = angle - lag;
+                        else if (angle < -lag) sync_angle = angle + lag;
+                        else                   sync_angle = 0;
+                    }
 
                     SLONG s_full = SIN(angle & 2047);
                     SLONG c_full = COS(angle & 2047);
@@ -1264,6 +1313,7 @@ void FC_process()
                 if (abs(stick_y) > 8000) {
                     manual_y_input_this_tick = true;
                     SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
+                    const SLONG want_y_pre = fc->want_y;
                     fc->want_y += height_delta;
 
                     SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
@@ -1272,6 +1322,13 @@ void FC_process()
                         fc->want_y = min_y;
                     if (fc->want_y > max_y)
                         fc->want_y = max_y;
+
+                    if (camera_is_manual()) {
+                        // MANUAL: mirror the clamped delta onto fc.y so
+                        // vertical input is instant. AUTO: leave fc.y
+                        // alone — position smoothing pulls it.
+                        fc->y += (fc->want_y - want_y_pre);
+                    }
 
                     fc->nobehind = 0x2000;
                 }
@@ -1566,6 +1623,27 @@ void FC_process()
                 if (fc->want_y > max_y)
                     fc->want_y = max_y;
             } else {
+                // AUTO + no manual Y input: track character vertical
+                // motion 1:1 AND slowly drift toward default height
+                // above focus (idle-return feature).
+                //
+                // 1:1 delta tracking is necessary so the camera Y stays
+                // locked to character Y when running over bumps, curbs,
+                // jumps, climbs. Without it, want_y would only converge
+                // toward default via the slow >>3 step below — at the
+                // moment focus_y bumps up, want_y lags by ~1 second
+                // before catching up, and look-at-focus computes a
+                // shifting want_pitch (camera looking up at character)
+                // → at low rubberness the angle snap to that shifting
+                // pitch reads as a camera jerk on every step.
+                //
+                // The drift then closes the residual offset (e.g. after
+                // player released Y stick at a non-default height) over
+                // ~1 second per the >>3 cap rate. Drift's per-tick cap
+                // is intentionally NOT scaled by rubberness — translation
+                // is always smoothed.
+                fc->want_y += focus_y_delta;
+
                 SLONG goto_y = fc->focus_y + FC_focus_above(fc) + offset_height;
 
                 if (GAME_FLAGS & GF_NO_FLOOR) {
@@ -1686,6 +1764,12 @@ void FC_process()
         dz = fc->want_z - fc->z;
 
         if (QDIST3(abs(dx), abs(dy), abs(dz)) > 0x800) {
+            // Position smoothing — camera following the character.
+            // ALWAYS on in BOTH modes (rubberness does NOT scale this):
+            // even in MANUAL the camera should smoothly follow jumps,
+            // stairs, platforms etc. without snapping. Rubberness is
+            // specifically about rotation rubber (angle / wall / orbit
+            // lag), not position rubber.
             fc->x += dx >> 2;
             fc->y += dy >> 3;
             fc->z += dz >> 2;
