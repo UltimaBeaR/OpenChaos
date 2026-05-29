@@ -2425,12 +2425,24 @@ static void siren(Vehicle* veh, UBYTE play)
     if (veh->Siren == play)
         return;
 
-    if ((veh->Type == VEH_TYPE_POLICE) || (veh->Type == VEH_TYPE_AMBULANCE) || (veh->Type == VEH_TYPE_MEATWAGON)) {
-        if (play)
-            MFX_play_ambient(VEHICLE_NUMBER(veh), S_CAR_SIREN1, MFX_LOOPED);
-        else
-            MFX_stop(VEHICLE_NUMBER(veh), S_CAR_SIREN1);
-    }
+    // Only vehicles that actually have a siren respond — gated by the SAME
+    // check as the visual flashing lights (veh_info[].FLZ != 0, see the
+    // emergency-lights draw in process_car). FLZ != 0 is exactly the police /
+    // ambulance / meatwagon set (the original sound gate tested those three
+    // types explicitly — equivalent, but FLZ keeps sound, lights and the
+    // DualSense lightbar siren effect on one source of truth).
+    //
+    // OpenChaos: for a non-siren car we now return WITHOUT setting veh->Siren.
+    // The original set the flag unconditionally; it was harmless in-game (no
+    // sound, no lights), but the DualSense lightbar reads veh->Siren directly,
+    // so a stray flag fired the red/blue strobe on ordinary cars.
+    if (veh_info[veh->Type].FLZ == 0)
+        return;
+
+    if (play)
+        MFX_play_ambient(VEHICLE_NUMBER(veh), S_CAR_SIREN1, MFX_LOOPED);
+    else
+        MFX_stop(VEHICLE_NUMBER(veh), S_CAR_SIREN1);
 
     veh->Siren = play;
 }
