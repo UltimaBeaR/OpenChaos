@@ -952,6 +952,12 @@ void FC_process()
         // yaw delta. Result: camera is glued to the vehicle's reference
         // frame, so standing still on a moving/turning vehicle gives the
         // exact same camera behaviour as standing still on the ground.
+        //
+        // plat_focus_dx/dz: the platform's rigid contribution to the FOCUS
+        // point this tick (stays 0 when not on a moving platform). MANUAL
+        // translation tracking subtracts it so the camera follows only the
+        // character's motion RELATIVE to the vehicle. Filled in the block below.
+        SLONG plat_focus_dx = 0, plat_focus_dz = 0;
         if (fc->platform_thing) {
             Thing* p_vehicle = TO_THING(fc->platform_thing);
             SLONG cur_x = p_vehicle->WorldPos.X;
@@ -984,6 +990,25 @@ void FC_process()
                 INHERIT_PT(fc->x, fc->z);
                 INHERIT_PT(fc->want_x, fc->want_z);
 #undef INHERIT_PT
+
+                // Platform's rigid contribution to the FOCUS point this tick:
+                // how far the focus moved purely from the vehicle's motion
+                // (the character rides the vehicle). MANUAL tracking subtracts
+                // it below to isolate the character's motion RELATIVE to the
+                // vehicle. Uses the SAME transform as INHERIT_PT above (same
+                // pivot, same `>>4` prescale + `>>12`) — the `>>4` is NOT
+                // optional precision, it's part of the Q16 SIN/COS fixed-point
+                // scale; dropping it inflates the result 16×. Matching the
+                // camera transform exactly keeps plat_focus consistent with the
+                // motion inheritance already applied to want.
+                {
+                    SLONG frx = s_prev_focus_x[cam] - fc->platform_last_x;
+                    SLONG frz = s_prev_focus_z[cam] - fc->platform_last_z;
+                    SLONG nfx = cur_x + (((frx >> 4) * c + (frz >> 4) * s) >> 12);
+                    SLONG nfz = cur_z + (((frz >> 4) * c - (frx >> 4) * s) >> 12);
+                    plat_focus_dx = nfx - s_prev_focus_x[cam];
+                    plat_focus_dz = nfz - s_prev_focus_z[cam];
+                }
 
                 // Yaw stored as angle << 8.
                 SLONG yaw_mask = (2048 << 8) - 1;
@@ -1474,31 +1499,29 @@ void FC_process()
                     // rotates on character motion. Manual input is the
                     // ONLY thing that changes the angle.
                     //
-                    // EXCEPT when standing on a moving vehicle platform:
-                    // the platform_thing block above already moved
-                    // want_x/z (rigid rotate + translate around vehicle
-                    // pivot) to inherit vehicle motion. Adding focus_dx
-                    // again here would DOUBLE-APPLY vehicle motion onto
-                    // want — over-shooting the focus, which then makes
-                    // look_at_focus compute a yaw offset and the camera
-                    // auto-rotates (visible as "camera auto-rotation
-                    // while standing on a moving vehicle"). AUTO mode
-                    // doesn't hit this bug because its excess-speed
-                    // tracking below contributes 0 for typical vehicle
-                    // speeds, leaving platform inheritance as the single
-                    // motion source. Skip translation tracking here on
-                    // MANUAL when on a platform to match.
+                    // On a vehicle platform, the platform_thing block above
+                    // already moved want_x/z by the vehicle's rigid motion
+                    // (rotate + translate around the pivot). The raw focus
+                    // delta ALSO contains that vehicle motion plus the
+                    // character's motion across the deck. Adding the raw delta
+                    // would DOUBLE-APPLY the vehicle motion → want over-shoots
+                    // the focus → look_at_focus sees a yaw offset → camera
+                    // auto-rotates while standing on a moving car. But simply
+                    // SKIPPING tracking on a platform (the previous fix) means
+                    // running across the deck isn't followed at all — the
+                    // jerky-follow bug.
                     //
-                    // All downstream smoothing is preserved: want→x
-                    // position smoothing, distance clamp, and the
-                    // character side's own animation/physics smoothing
-                    // of focus_x/z all still run. So bumps, stairs, and
-                    // mid-step jitter come through with the same feel as
-                    // AUTO — just no auto-rotation.
-                    if (!fc->platform_thing) {
-                        fc->want_x += focus_dx;
-                        fc->want_z += focus_dz;
-                    }
+                    // So subtract the platform's own contribution to the focus
+                    // (plat_focus_dx/dz, computed above): what's left is the
+                    // character's motion RELATIVE to the vehicle. Standing on a
+                    // moving car → ~0 (no double-apply, no auto-rotation);
+                    // running on the deck → the run (camera follows). Off a
+                    // platform plat_focus_* = 0, so this is the plain full-delta
+                    // 1:1 follow that keeps the world-space angle fixed (only
+                    // manual input rotates the camera). Position smoothing,
+                    // distance clamp and focus-side smoothing all still run.
+                    fc->want_x += focus_dx - plat_focus_dx;
+                    fc->want_z += focus_dz - plat_focus_dz;
                 } else {
                     // AUTO: excess-speed tracking. Below cap the
                     // contribution is 0 (original walk/run feel kept,
