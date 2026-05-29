@@ -87,7 +87,6 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 extern SLONG am_i_a_thug(Thing* p_person);
-extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
 extern UWORD fade_black;
 extern void reload_level(void);
@@ -1761,20 +1760,21 @@ void process_controls(void)
                 if (CONTROLS_inventory_mode < 0)
                     CONTROLS_inventory_mode = 0;
 
-                if (!ShiftFlag) {
+                //
+                // does the fade in
+                //
+                CONTROLS_new_inventory(darci, the_player);
 
-                    //
-                    // does the fade in
-                    //
-                    CONTROLS_new_inventory(darci, the_player);
-
-                } else {
-                    //
-                    // Shift + Return == Drop current weapon.
-                    //
-                    set_person_gun_away(darci);
-                    drop_current_gun(darci, 1);
-                }
+                // OpenChaos: the original "Shift (while the wheel is open) =
+                // drop current weapon" branch was removed. It was triple-broken:
+                // (1) the ground-drop was dead — set_person_gun_away() clears
+                // GUN_OUT/SpecialUse before drop_current_gun() runs, so nothing
+                // ever spawned; it only holstered to empty hands; (2) it ran
+                // every frame while Shift was held, re-posing Darci → freeze;
+                // (3) it skipped the fade-in, leaving a near-invisible wheel.
+                // In our layout Shift = ACTION (sprint), so "sprint + open
+                // wheel" hit it constantly. Holster/unequip belongs on its own
+                // input (gamepad: D-pad down; keyboard: TODO mirror the pad).
             }
         }
 
