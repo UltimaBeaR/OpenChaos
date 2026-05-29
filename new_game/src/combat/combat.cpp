@@ -19,7 +19,8 @@
 #include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/physics/collide.h" // LOS_FLAG_IGNORE_*
-#include "game/input_actions.h" // INPUT_MASK_FORWARDS (player grapple intent)
+#include "game/input_actions.h" // INPUT_MASK_FORWARDS, input_virtual_axis (player grapple intent)
+#include "game/action_map/act_foot.h" // ACT_FOOT_MOVE_Y_VAXIS
 #include "engine/input/gamepad.h" // gamepad_set_shock
 
 // Functions not yet in any header: declared here as in the original.
@@ -375,7 +376,7 @@ SLONG find_best_grapple(Thing* p_person)
     if (p_person->Genus.Person->PlayerID) {
         ULONG pin = NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Input;
         const SLONG STICK_DEADZONE = 8;          // ANALOGUE_MIN_VELOCITY
-        SLONG stick_y = (SLONG)(((pin >> 24) & 0xfe) - 128); // GET_JOYY
+        SLONG stick_y = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back movement intent
         bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0;  // keyboard / D-pad
         bool fwd_stick = stick_y < -STICK_DEADZONE;           // analog stick up
         player_grapple_intent = fwd_digital || fwd_stick;

@@ -58,12 +58,10 @@ extern SLONG set_person_search(Thing* p_person, SLONG ob_index, SLONG ox, SLONG 
 extern SLONG set_person_search_corpse(Thing* p_person, Thing* p_personb);
 extern SLONG find_searchable_person(Thing* p_person);
 
-// Analog stick X axis: packed into bits 18-24 of the input ULONG, range -128..+127.
-// uc_orig: GET_JOYX (fallen/Source/interfac.cpp)
-#define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
-// Analog stick Y axis: packed into bits 25-31 of the input ULONG, range -128..+127.
-// uc_orig: GET_JOYY (fallen/Source/interfac.cpp)
-#define GET_JOYY(input) (((input >> 24) & 0xfe) - 128)
+// Analog stick X / Y are packed into bits 18-31 of the input ULONG (range
+// -128..+126, even). They are read back via input_virtual_axis(input, VAXIS_*)
+// — see input_actions.h. (Replaces the old GET_JOYX / GET_JOYY macros, which
+// had no source-name argument; behaviour is byte-identical.)
 
 // Minimum analog stick velocity below which movement is ignored (game logic deadzone).
 // PC: 8/128. The hardware-level deadzone is NOISE_TOLERANCE in get_hardware_input().
@@ -1506,8 +1504,8 @@ SLONG get_camera_angle(void)
 // char-rel translation in the keyboard scheme work.
 static bool input_is_char_rel_forward(Thing* p_person, ULONG input)
 {
-    const SLONG raw_dx = GET_JOYX(input);
-    const SLONG raw_dy = GET_JOYY(input);
+    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
     if ((raw_dx != 0 || raw_dy != 0) && p_person->Draw.Tweened) {
         SLONG dx_p, dy_p;
         stick_camera_to_char_frame(raw_dx, raw_dy,
@@ -1580,8 +1578,8 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     SLONG dx = 0, dz = 0;
     SLONG angle = -1;
 
-    dx = GET_JOYX(input);
-    dz = GET_JOYY(input);
+    dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
     angle = Arctan(-dx, dz);
 
@@ -1779,8 +1777,8 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
         SLONG angle = -1;
         SLONG velocity;
 
-        dx = GET_JOYX(input);
-        dz = GET_JOYY(input);
+        dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+        dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
         velocity = QDIST2(abs(dx), abs(dz));
 
@@ -1905,8 +1903,8 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
     SLONG angle = -1;
     SLONG ca;
 
-    dx = GET_JOYX(input);
-    dz = GET_JOYY(input);
+    dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
     velocity = QDIST2(abs(dx), abs(dz));
 
@@ -2222,7 +2220,7 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         wMaxTurn >>= 1;
     }
 
-    SWORD wJoyX = GET_JOYX(input);
+    SWORD wJoyX = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
     SWORD wTurn;
     if ((input & INPUT_MASK_LEFT) || (input & INPUT_MASK_RIGHT)) {
         // Keyboard detection: if the analog bits (18-31) are all zero while a direction bit is set,
@@ -2617,8 +2615,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
     // through unchanged (when stick is centred, dx_c/dy_c are ~0 and the
     // dominance check would mis-classify centred-stick as side-ish).
     if (p_person->State == STATE_DANGLING && input_gamepad_connected()) {
-        const SLONG axis_x = input_stick_x_axis_raw(GAXIS_LEFT);
-        const SLONG axis_y = input_stick_y_axis_raw(GAXIS_LEFT);
+        const SLONG axis_x = input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
+        const SLONG axis_y = input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
         const SLONG dx_c = axis_x - 32768;
         const SLONG dy_c = axis_y - 32768;
         const bool stick_active = (abs(dx_c) > 8192) || (abs(dy_c) > 8192);
@@ -2813,8 +2811,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 // the live stick direction (no snapshot). All other cases
                 // fall through to the source-aware fallback below.
                 if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
-                    const SLONG raw_dx = GET_JOYX(input);
-                    const SLONG raw_dy = GET_JOYY(input);
+                    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                     SLONG dx_p, dy_p;
                     stick_camera_to_char_frame(raw_dx, raw_dy,
                         g_l2_tap_cam_snap, g_l2_tap_char_snap,
@@ -2884,8 +2882,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 // L2 first. Standard +1024 facing snap.
                 if (should_i_jump(p_person) && l2_regime == L2_REGIME_BACKWARD) {
                     if (should_person_backflip(p_person)) {
-                        const SLONG raw_dx = GET_JOYX(input);
-                        const SLONG raw_dy = GET_JOYY(input);
+                        const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                         SLONG target_angle = Arctan(-raw_dx, raw_dy) + get_camera_angle() + 1024;
                         target_angle = (target_angle + 2048) & 2047;
                         p_person->Draw.Tweened->Angle = target_angle;
@@ -2941,8 +2939,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                         // (Arctan(0,0) is undefined) — there the legacy
                         // non-analog rotation in player_turn_left_right
                         // path handles facing.
-                        const SLONG dx = GET_JOYX(input);
-                        const SLONG dz = GET_JOYY(input);
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                         if (dx != 0 || dz != 0) {
                             SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
                             target_angle = (target_angle + 2048) & 2047;
@@ -2970,8 +2968,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                         //
                         // Same stick → world angle formula as
                         // process_analogue_movement.
-                        const SLONG dx = GET_JOYX(input);
-                        const SLONG dz = GET_JOYY(input);
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                         SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
                         target_angle = (target_angle + 2048) & 2047;
                         p_person->Draw.Tweened->Angle = target_angle;
@@ -3010,8 +3008,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 // this override, sprint + L2-tap + side + ✕ would just
                 // produce a running jump.
                 if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
-                    const SLONG raw_dx = GET_JOYX(input);
-                    const SLONG raw_dy = GET_JOYY(input);
+                    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                     SLONG dx_p, dy_p;
                     stick_camera_to_char_frame(raw_dx, raw_dy,
                         g_l2_tap_cam_snap, g_l2_tap_char_snap,
@@ -3063,8 +3061,8 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                     // deliberate "running steady + camera flip + jump" keeps
                     // its existing behaviour (no snap, jump in current facing).
                     if (g_player_run_entry_ticks > 0) {
-                        const SLONG dx = GET_JOYX(input);
-                        const SLONG dz = GET_JOYY(input);
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
                         if (dx != 0 || dz != 0) {
                             SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
                             target_angle = (target_angle + 2048) & 2047;
@@ -3288,7 +3286,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         && !oc_combat_busy(p_person->SubState)) {
         ULONG pin = pl->Input;
         const SLONG STICK_DEADZONE = 8;                      // ANALOGUE_MIN_VELOCITY
-        SLONG sy = (SLONG)(((pin >> 24) & 0xfe) - 128);      // GET_JOYY (<0 = fwd)
+        SLONG sy = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back intent (<0 = fwd)
         bool fwd = (pin & INPUT_MASK_FORWARDS) || (sy < -STICK_DEADZONE);
         if (fwd && find_best_grapple(p_person)) {
             pl->DoneSomething = UC_TRUE;
@@ -3728,7 +3726,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     static SWORD wCurrentSteering = 0;
 #define STEERING_MAX_DELTA 30
 
-    SWORD wSteering = GET_JOYX(input);
+    SWORD wSteering = input_virtual_axis(input, ACT_CAR_STEER_VAXIS);
     if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
         wSteering = 0;
     }
@@ -3900,8 +3898,8 @@ ULONG get_hardware_input(UWORD type)
                 // no character movement here. D-Pad buttons themselves are
                 // still readable via input_btn_held(11..14) for menu nav and
                 // any other consumer that wants them.
-                const SLONG axis_x = input_stick_x_axis_raw(GAXIS_LEFT);
-                const SLONG axis_y = input_stick_y_axis_raw(GAXIS_LEFT);
+                const SLONG axis_x = input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
+                const SLONG axis_y = input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
 
                 if (input_gamepad_connected()) {
                     // Analog stick mode: pack position into bits 18-31.
@@ -4574,10 +4572,10 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // fight keyboard input. Left stick uses _raw to skip the D-Pad
             // override (D-Pad doesn't drive on-foot movement in OpenChaos).
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                const SLONG sx_r = (SLONG)input_stick_x_axis(GAXIS_RIGHT) - 32768;
-                const SLONG sy_r = (SLONG)input_stick_y_axis(GAXIS_RIGHT) - 32768;
-                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(GAXIS_LEFT) - 32768;
-                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(GAXIS_LEFT) - 32768;
+                const SLONG sx_r = (SLONG)input_stick_x_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
+                const SLONG sy_r = (SLONG)input_stick_y_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
+                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(ACT_FOOT_AIM_LOOK_ALT_GAXIS) - 32768;
+                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(ACT_FOOT_AIM_LOOK_ALT_GAXIS) - 32768;
 
                 const SLONG sx = (abs(sx_r) > STICK_DEAD) ? sx_r : sx_l;
                 const SLONG sy = (abs(sy_r) > STICK_DEAD) ? sy_r : sy_l;
@@ -5135,8 +5133,8 @@ SLONG continue_moveing(Thing* p_person)
         if (analogue) {
             SLONG angle, dx, dy;
 
-            dx = abs((SLONG)GET_JOYX(input));
-            dy = abs((SLONG)GET_JOYY(input));
+            dx = abs((SLONG)input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS));
+            dy = abs((SLONG)input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS));
 
             if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
                 return (0);

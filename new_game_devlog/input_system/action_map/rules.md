@@ -48,10 +48,13 @@ ACT_<CONTEXT>_<SEMANTIC_NAME>_<TYPE_SUFFIX>
 | `_MBTN` | Mouse button | `mouse_capture_on_button(MBTN_*)` |
 | `_MAXIS` | Mouse motion axis | `input_mouse_consume_rel(&dx, &dy)` (MAXIS_X = dx, MAXIS_Y = dy) |
 | `_GBTN` | Gamepad button (общая для Xbox/DS, индексы rgbButtons[0..16]) | `input_btn_held/just_pressed(GBTN_*)` |
-| `_GDIR` | Gamepad stick discrete direction (для меню) | `input_stick_held(GDIR_*)` |
-| `_GAXIS` | Gamepad stick analog axis (-1..1) | `input_stick_x(GAXIS_*) / input_stick_y(GAXIS_*)` |
+| `_GDIR` | Gamepad stick discrete direction (для меню) | `input_stick_held(GAXIS_*, GDIR_*)` |
+| `_GAXIS` | Gamepad stick analog axis (-1..1) | `input_stick_x_axis(GAXIS_*) / input_stick_y_axis(GAXIS_*)` |
 | `_GTRIG` | Gamepad trigger analog (0..1) | `input_trigger(GTRIG_*)` |
 | `_DBTN` | DualSense unique button (touchpad click, mute, rgbButtons[17..18]) | `input_btn_held(DBTN_*)` |
+| `_VAXIS` | **Виртуальная** ось «намерения движения» — НЕ железо. Один аналоговый вектор, в который пакуется И стик, И WASD (биты 18-31 игрового слова `input`). Читается на точках РЕАКЦИИ (поворот/руль/grapple). | `input_virtual_axis(input, VAXIS_*)` |
+
+**Первая буква суффикса = ИСТОЧНИК однозначно.** `K`=клавиатура, `M`=мышь, `G`=геймпад, `D`=DualSense-эксклюзив, `V`=виртуальный (постмультиплексный) источник. Если появляется новый отдельный вид источника (что-то виртуальное, на что мапятся несколько физических устройств) — заводи новую первую букву и описывай источник в `input_codes.h`.
 
 Если для одного и того же действия можно дать привязку к нескольким устройствам
 (например клавиша + кнопка геймпада) — заводи **отдельные константы рядом**,
@@ -194,24 +197,58 @@ constexpr int DBTN_MUTE     = 18;
 ### GTRIG_* (gamepad triggers analog)
 - `GTRIG_L2`, `GTRIG_R2`
 
-## 8. Покрытие — 100%
+### VAXIS_* (виртуальная ось намерения движения)
+- `VAXIS_X`, `VAXIS_Y` — горизонтальная / вертикальная компонента единого
+  вектора «намерения движения», упакованного в биты 18-31 игрового слова
+  `input`. Источник device-agnostic (стик ИЛИ WASD). Читается
+  `input_virtual_axis(input, VAXIS_*)` (см. `input_actions.h`).
 
-После полного прохода 3c + finishing-pass все обращения к `input_key_*` /
-`input_btn_*` / `input_stick_*` / `input_trigger*` в `new_game/src/` идут
-через `ACT_*` константы. Оставшиеся 4 совпадения по grep — комментарии
-(описание API в `input_frame.h`, пояснения в `gamemenu.cpp` / `input_actions.cpp`),
-не код.
+### Прочие источники-границы
+- `GBTN_COMMON_COUNT` — количество общих для всех геймпадов кнопок (0..16);
+  граница для wildcard-сканов «любая кнопка» (video-skip).
+
+## 8. Принципы покрытия
+
+1. **Смысл — в точке РЕАКЦИИ, не считывания.** ACT-константа называется по
+   тому, что ввод ДЕЛАЕТ в игре («поворот на ногах», «руль машины»), а не
+   «считывание X стика». Даже если железо считано раньше в другом месте —
+   именуем и ссылаемся там, где игра реагирует. Чтобы при смене кнопки сразу
+   видеть все затронутые места и ловить конфликты (одна клавиша с разными
+   смыслами, срабатывающими ОДНОВРЕМЕННО в одном режиме).
+2. **Весь ввод — через реестр, без исключений.** Ни одного чтения
+   клавиши/кнопки/мыши/стика/модификатора в обход `ACT_*`. Включая мёртвый код
+   (его удаляем) — кроме намеренно сохранённого с явным комментом «почему».
+3. **Никаких неиспользуемых констант.** Константа-тег, которую невозможно
+   подставить в вызов (паромная мышь `input_mouse_consume_rel`, чтение
+   глобального флага `if (ShiftFlag)`), НЕ заводится — вместо неё роль
+   документируется комментом (мышь — в `act_foot.h`; модификаторы — в
+   `act_modifiers.h`).
+4. **Аналог и виртуальные источники — тоже в реестре.** Стик-оси заворачиваются
+   в `_GAXIS`-константы (передаются аргументом в `input_stick_*`); виртуальная
+   ось движения — в `_VAXIS` (аргумент `input_virtual_axis`).
+
+**Что законно читает сырьё (НЕ нарушение, не привязки):**
+- **Слой абстракции/драйвер** — `gamepad.cpp` (SDL→`rgbButtons`), `input_frame.cpp`
+  (сборка снапшотов), `sdl3_bridge.cpp` (SDL scancode→`KKEY_*` таблица),
+  `keyboard.cpp`, `mouse_capture.cpp`. Это РЕАЛИЗАЦИЯ, через которую `ACT_*`
+  и разрешаются.
+- **Input-debug тестер** — `input_debug_*.cpp` показывает сырое состояние КАЖДОЙ
+  клавиши/кнопки (диагностика железа, как тест-экран контроллера); привязок нет.
+- **Wildcard-сканы** — «любая кнопка пропускает» (video/playback/outro): цикл по
+  диапазону, не привязка к конкретной кнопке (бенд — `GBTN_COMMON_COUNT`).
+- **Текстовый ввод** — консоль / поля ввода читают `input_last_key()` как «любой
+  скан-код → символ»; это ввод текста, не игровая привязка.
 
 Файлы action-map:
-- `input_codes.h` — device-level: `KKEY_*`, `MBTN_*`, `MAXIS_*`, `GBTN_*`, `DBTN_*`, `GTRIG_*`
-- `act_menu.h` — frontend / pause / won/lost / attract / input-debug-panel nav / modal-acknowledge
-- `act_foot.h` — gameplay на ногах
-- `act_car.h` — в машине
-- `act_cinematic.h` — outro / playcuts / video skip / generic skip / replay-exit
-- `act_bangunsnotgames.h` — runtime debug-keys (после `bangunsnotgames` cheat)
+- `input_codes.h` — источники: `KKEY_*`, `MBTN_*`, `MAXIS_*`, `GBTN_*`, `DBTN_*`, `GTRIG_*`, `VAXIS_*`, `GBTN_COMMON_COUNT`
+- `act_menu.h` — frontend / pause / won/lost / attract / input-debug-panel nav / modal-acknowledge / form-widget keys
+- `act_foot.h` — gameplay на ногах (вкл. стик-оси движения/камеры/прицела, виртуальную ось движения)
+- `act_car.h` — в машине (вкл. руль через `_VAXIS`)
+- `act_cinematic.h` — outro / playcuts / video skip / generic skip / replay-exit (вкл. стик прицела в outro)
+- `act_bangunsnotgames.h` — runtime debug-keys (после `bangunsnotgames` cheat; F1-модификатор)
 - `act_dev_console.h` — text-input в открытой консоли
 - `act_dev_perf.h` — compile-time-gated perf-diag (OC_DEBUG_PERF, OC_DEBUG_PHYSICS_TIMING)
-- `act_modifiers.h` — modifier keys (LAlt/RAlt/LCtrl/LShift/RShift → ShiftFlag/AltFlag/ControlFlag)
+- `act_modifiers.h` — modifier keys (LCtrl/LShift/RShift → ControlFlag/ShiftFlag; роли в комментах)
 
 ## 9. Как добавлять новую константу
 

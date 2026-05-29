@@ -313,11 +313,12 @@ bool video_play(const char* filename, bool allow_skip)
                 || input_key_just_pressed(ACT_CINE_VIDEO_SKIP_3_KKEY)) {
                 done = true;
             }
-            // Any gamepad / DualSense button rising edge = skip — special
-            // "any button" wildcard, not a single binding. No ACT_*_GBTN
-            // constant for this case (see act_cinematic.h).
+            // Any common gamepad button rising edge = skip — a "any button"
+            // wildcard, not a single binding (so no ACT_*_GBTN constant; see
+            // act_cinematic.h). The scan bound is the named device-vocabulary
+            // count GBTN_COMMON_COUNT rather than a magic 17.
             if (!done) {
-                for (int i = 0; i < 17; i++) {
+                for (int i = 0; i < GBTN_COMMON_COUNT; i++) {
                     if (input_btn_just_pressed(i)) {
                         done = true;
                         break;

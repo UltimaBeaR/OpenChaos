@@ -9,13 +9,15 @@
 // ESC → open pause menu lives in act_menu.h (ACT_MENU_TOGGLE_PAUSE_*) — it's
 // a menu-context action triggered from gameplay, the menu owns the binding.
 //
-// Analog inputs (left stick for movement, right stick for camera, mouse
-// motion, L2 tactical engagement) are read directly through the input_frame
-// API (input_stick_x_axis / input_stick_y_axis / input_mouse_consume_rel /
-// input_trigger_raw). These are NOT wrapped in ACT_* constants — they're
-// streams of float / int data, not discrete bindings. Where the act-map view
-// matters (e.g. "mouse X = camera yaw"), it's documented in a
-// _MAXIS / _GAXIS constant below as a semantic tag.
+// Analog stick axes ARE wrapped in ACT_*_GAXIS constants (below): the ACT
+// constant is passed as the stick-id argument to input_stick_x_axis /
+// input_stick_y_axis, so a rebind is one edit and every reaction site is
+// found by searching the ACT name.
+//
+// Mouse motion is read by the single paramless call input_mouse_consume_rel
+// (dx+dy at once) — no per-axis argument to bind, so it has no ACT_*_MAXIS
+// constant; it's documented in prose at the camera-look section below. The L2
+// trigger is read via input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG).
 //
 // Naming rules, prefix table, suffix table → see
 //   new_game_devlog/input_system/action_map/rules.md
@@ -44,6 +46,21 @@ constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_W;
 constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_S;
 constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_A;
 constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
+
+// Gamepad left stick = analog on-foot movement (direction + magnitude).
+// Passed as the stick-id arg to input_stick_x_axis_raw / input_stick_y_axis_raw
+// in input_actions.cpp::get_hardware_input (packs into the movement word) and
+// in the STATE_DANGLING side-step classifier.
+constexpr int ACT_FOOT_MOVE_GAXIS = GAXIS_LEFT;
+
+// On-foot movement-intent vector, read back from the packed input word via
+// input_virtual_axis(input, ...) — device-agnostic (gamepad stick OR WASD,
+// see VAXIS_* in input_codes.h). X = horizontal (turn / lateral / strafe /
+// char-relative), Y = forward / back. Consumed across input_actions.cpp
+// (movement angle, turning, char-rel-forward, side-step classifier) and the
+// combat grapple-forward check in combat.cpp.
+constexpr int ACT_FOOT_MOVE_X_VAXIS = VAXIS_X;
+constexpr int ACT_FOOT_MOVE_Y_VAXIS = VAXIS_Y;
 
 // Tanky-arrow legacy — kept commented here in case anyone wants to wire
 // the old PC control scheme back as an opt-in setting later. Not on the
@@ -138,13 +155,18 @@ constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN  = GBTN_DPAD_DOWN;
 constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 
 // ---- Camera look: right stick + mouse (analog) -----------------------------
-// Right stick X / Y and mouse relative motion drive free camera yaw / pitch.
-// Read via input_stick_x_axis(GAXIS_RIGHT) and input_mouse_consume_rel.
-// Constants here are SEMANTIC TAGS — no API uses them directly; they document
-// which physical axis maps to which camera axis.
+// Right stick X / Y drives free camera yaw / pitch: the read passes
+// ACT_FOOT_CAMERA_LOOK_GAXIS as the stick-id arg to input_stick_x_axis /
+// input_stick_y_axis in fc.cpp.
+//
+// Mouse look is read in fc.cpp via the single paramless call
+// input_mouse_consume_rel(&dx, &dy) — dx (MAXIS_X) drives yaw, dy (MAXIS_Y)
+// drives pitch. That call consumes both axes at once and has no per-axis
+// argument to pass a constant into, and mouse motion is not rebindable, so no
+// ACT_*_MAXIS constant is defined (one would never reach an API — a dead
+// constant). The MAXIS_X / MAXIS_Y source codes stay in input_codes.h.
 
-constexpr int ACT_FOOT_CAMERA_YAW_MAXIS   = MAXIS_X;
-constexpr int ACT_FOOT_CAMERA_PITCH_MAXIS = MAXIS_Y;
+constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS  = GAXIS_RIGHT;
 
 // ---- First-person aim (L1 / MMB held) --------------------------------------
 // Holding L1 on gamepad or the middle mouse button enters first-person aim
@@ -154,6 +176,13 @@ constexpr int ACT_FOOT_CAMERA_PITCH_MAXIS = MAXIS_Y;
 
 constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
 constexpr int ACT_FOOT_AIM_MBTN = MBTN_MIDDLE;
+
+// In aim mode BOTH sticks steer the look yaw / pitch: the right stick is
+// primary, the left stick is the per-axis fallback (and that same left stick
+// still drives movement — see ACT_FOOT_MOVE_GAXIS, same physical stick, two
+// semantics). Passed as stick-id args in input_actions.cpp's aim block.
+constexpr int ACT_FOOT_AIM_LOOK_GAXIS     = GAXIS_RIGHT;
+constexpr int ACT_FOOT_AIM_LOOK_ALT_GAXIS = GAXIS_LEFT;
 
 // ---- First-person look (arrow keys while aiming) ---------------------------
 // While in first-person aim, the arrow keys steer pitch / yaw of the look

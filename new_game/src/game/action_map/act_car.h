@@ -9,14 +9,13 @@
 // ESC → open pause menu lives in act_menu.h (ACT_MENU_TOGGLE_PAUSE_*) — same
 // key in both foot and car, owned by menu context.
 //
-// Steering (analog) and steering keys are NOT bound here — they go through
-// INPUT_MASK_LEFT / RIGHT and analog stick reads in apply_button_input_car,
-// which are abstraction-level signals already covered by act_foot.h movement
-// constants. The keyboard mapping for accelerate / brake / go-faster is also
-// indirected via INPUT_CAR_KB_* input masks (composed of INPUT_MASK_PUNCH /
-// _KICK / _JUMP from on-foot keyboard reads). The constants below are
-// SEMANTIC TAGS for those KKEY mappings — they're not read directly anywhere,
-// they document which on-foot key produces each in-car action.
+// Steering reads the virtual movement-intent X axis (the same packed word that
+// foot movement uses) via input_virtual_axis(input, ACT_CAR_STEER_VAXIS) in
+// apply_button_input_car — see ACT_CAR_STEER_VAXIS below. The discrete
+// INPUT_MASK_LEFT / RIGHT bits gate it (no deflection → centred). Accelerate /
+// brake / reverse are read DIRECTLY from their KKEY / GBTN constants below
+// (input_key_held / input_btn_held in apply_button_input_car) — see the
+// per-control comment further down.
 //
 // Naming rules, prefix table, suffix table → see
 //   new_game_devlog/input_system/action_map/rules.md
@@ -52,14 +51,12 @@ constexpr int ACT_CAR_REVERSE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digit
 // bumper) has no analog axis; reverse drives at a fixed rate (no analog).
 constexpr int ACT_CAR_ACCEL_GTRIG = GTRIG_R2;
 
-constexpr int ACT_CAR_ACCEL_KKEY   = KKEY_W;     // semantic tag — see header comment
-constexpr int ACT_CAR_BRAKE_KKEY   = KKEY_SPACE; // semantic tag — see header comment
-constexpr int ACT_CAR_REVERSE_KKEY = KKEY_S;     // semantic tag — see header comment
-
-// "Go faster" modifier — kept as a semantic tag for historical reference.
-// VEH_FASTER is now always-on in apply_button_input_car (no input gating),
-// so this constant is unused at the call site. See input_actions.cpp.
-constexpr int ACT_CAR_GO_FASTER_KKEY = KKEY_W; // semantic tag — see comment
+// Read directly in apply_button_input_car (input_key_held) — W and S are
+// opposite ends of the WASD analog axis, so they can't go through the stick
+// bits (they'd cancel); they're read as individual keys.
+constexpr int ACT_CAR_ACCEL_KKEY   = KKEY_W;     // gas
+constexpr int ACT_CAR_BRAKE_KKEY   = KKEY_SPACE; // brake
+constexpr int ACT_CAR_REVERSE_KKEY = KKEY_S;     // reverse
 
 // ---- Siren toggle ----------------------------------------------------------
 // Toggles siren / lights in apply_button_input_car. Edge-triggered via
@@ -72,6 +69,15 @@ constexpr int ACT_CAR_GO_FASTER_KKEY = KKEY_W; // semantic tag — see comment
 
 constexpr int ACT_CAR_SIREN_KKEY = KKEY_E;
 constexpr int ACT_CAR_SIREN_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
+
+// ---- Steering (virtual movement-intent X axis) -----------------------------
+// Car steering reads the horizontal component of the unified movement-intent
+// vector (same packed word as on-foot movement) via
+// input_virtual_axis(input, ACT_CAR_STEER_VAXIS) in steering_wheel /
+// apply_button_input_car. Device-agnostic: fed by the gamepad left stick or
+// keyboard A/D. See VAXIS_* in input_codes.h.
+
+constexpr int ACT_CAR_STEER_VAXIS = VAXIS_X;
 
 // ---- Open dev console (gameplay-level hotkey) ------------------------------
 // F9 opens the dev console from gameplay. Same scancode as

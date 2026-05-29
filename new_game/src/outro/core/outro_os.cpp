@@ -46,8 +46,8 @@ void OS_joy_poll(void)
     }
 
     // Stick axis is 0..65535 (centre 32768). Convert to -1..+1.
-    OS_joy_x = (float(input_stick_x_axis(GAXIS_LEFT)) / 32768.0F) - 1.0F;
-    OS_joy_y = (float(input_stick_y_axis(GAXIS_LEFT)) / 32768.0F) - 1.0F;
+    OS_joy_x = (float(input_stick_x_axis(ACT_CINE_OUTRO_AIM_GAXIS)) / 32768.0F) - 1.0F;
+    OS_joy_y = (float(input_stick_y_axis(ACT_CINE_OUTRO_AIM_GAXIS)) / 32768.0F) - 1.0F;
 
     ULONG last = OS_joy_button;
     ULONG now = 0;

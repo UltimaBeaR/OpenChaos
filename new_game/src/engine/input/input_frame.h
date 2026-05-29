@@ -45,8 +45,8 @@ bool input_key_just_released(SLONG kb_code);
 // key-up event immediately, without waiting for the next
 // input_frame_update() snapshot. Use ONLY from inside SDL event handlers
 // where the just-applied event must be visible to subsequent code in the
-// same call (e.g. keyboard.cpp::SetFlagsFromKeyArray recomputing
-// ShiftFlag/ControlFlag/AltFlag). Most consumers should use
+// same call (e.g. keyboard.cpp::update_modifier_flags recomputing
+// ShiftFlag/ControlFlag). Most consumers should use
 // input_key_held instead — it's snapshot-stable across the frame and
 // won't see mid-frame state flips.
 bool input_key_event_held(SLONG kb_code);

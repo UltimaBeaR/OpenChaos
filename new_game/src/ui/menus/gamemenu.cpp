@@ -181,7 +181,7 @@ SLONG GAMEMENU_process()
     // open-pause when no menu is up.
     //
     // Triangle consume drains its press_pending so the press doesn't leak
-    // into car siren toggle (which reads input_btn_press_pending(3)) when
+    // into car siren toggle (which reads input_btn_press_pending(ACT_CAR_SIREN_GBTN)) when
     // the menu closes — physics doesn't run during pause, so the car-siren
     // consumer can't drain the pending itself, and a stale flag would fire
     // on the first tick after resume.
@@ -320,19 +320,19 @@ SLONG GAMEMENU_process()
 
             const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
                 || input_key_just_pressed(ACT_MENU_NAV_UP_ALT_KKEY)
-                || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
+                || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR)
                 || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
             const bool any_up_held = input_key_held(ACT_MENU_NAV_UP_KKEY)
                 || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY)
-                || input_stick_held(GAXIS_LEFT, GDIR_UP)
+                || input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR)
                 || input_btn_held(ACT_MENU_NAV_UP_GBTN);
             const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
                 || input_key_just_pressed(ACT_MENU_NAV_DOWN_ALT_KKEY)
-                || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
+                || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR)
                 || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
             const bool any_dn_held = input_key_held(ACT_MENU_NAV_DOWN_KKEY)
                 || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY)
-                || input_stick_held(GAXIS_LEFT, GDIR_DOWN)
+                || input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR)
                 || input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
 
             bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);

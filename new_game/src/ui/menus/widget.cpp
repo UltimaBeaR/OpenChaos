@@ -101,37 +101,37 @@ SLONG FORM_Process(Form* form)
             key = 127;
         if (!key)
             switch (last_key) {
-            case KKEY_UP:
+            case ACT_MENU_NAV_UP_KKEY:
                 key = 11;
                 break;
-            case KKEY_RIGHT:
+            case ACT_MENU_NAV_RIGHT_KKEY:
                 key = 9;
                 break;
-            case KKEY_LEFT:
+            case ACT_MENU_NAV_LEFT_KKEY:
                 key = 8;
                 break;
-            case KKEY_DOWN:
+            case ACT_MENU_NAV_DOWN_KKEY:
                 key = 10;
                 break;
-            case KKEY_ESCAPE:
+            case ACT_MENU_CANCEL_KKEY:
                 key = 27;
                 break;
-            case KKEY_ENTER:
+            case ACT_MENU_CONFIRM_1_KKEY:
                 key = 13;
                 break;
-            case KKEY_PAGE_UP:
+            case ACT_MENU_FORM_PAGE_UP_KKEY:
                 key = 1;
                 break;
-            case KKEY_PAGE_DOWN:
+            case ACT_MENU_FORM_PAGE_DOWN_KKEY:
                 key = 2;
                 break;
-            case KKEY_HOME:
+            case ACT_MENU_PAGE_FIRST_KKEY:
                 key = 3;
                 break;
-            case KKEY_END:
+            case ACT_MENU_PAGE_LAST_KKEY:
                 key = 4;
                 break;
-            case KKEY_DELETE:
+            case ACT_MENU_FORM_DELETE_KKEY:
                 key = 5;
                 break;
             }

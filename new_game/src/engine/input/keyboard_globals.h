@@ -11,9 +11,8 @@
 // Modifier flags below are kept as convenience shortcuts (mirrored from
 // input_frame's event-tracked state on every keyboard event in keyboard.cpp).
 
-// uc_orig: AltFlag (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE AltFlag;
 // uc_orig: ControlFlag (MFStdLib/Headers/StdKeybd.h)
+// (uc_orig AltFlag removed — set from the Alt keys but read nowhere.)
 extern volatile UBYTE ControlFlag;
 // When true, ControlFlag is forced to 1 every frame (debug overlay toggle).
 extern bool debug_overlay_locked_on;

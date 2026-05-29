@@ -15,9 +15,10 @@
 //   new_game/src/game/action_map/input_codes.h
 //
 // Note on sticks: gamepad stick discrete directions for menu navigation are
-// read via the two-arg API `input_stick_held(GAXIS_LEFT, GDIR_UP)` —
-// the GAXIS_* / GDIR_DIR_* values come from input_codes.h. Used directly at
-// call sites inside menu-nav OR-chains alongside the ACT_MENU_NAV_*_GBTN /
+// read via the two-arg API `input_stick_held(ACT_MENU_NAV_GAXIS,
+// ACT_MENU_NAV_UP_GDIR)` — both args are ACT constants (below) so the nav
+// stick and each direction are rebindable from here. Used at call sites
+// inside menu-nav OR-chains alongside the ACT_MENU_NAV_*_GBTN /
 // ACT_MENU_NAV_*_KKEY constants below.
 // =============================================================================
 
@@ -38,6 +39,15 @@ constexpr int ACT_MENU_NAV_UP_GBTN    = GBTN_DPAD_UP;
 constexpr int ACT_MENU_NAV_DOWN_GBTN  = GBTN_DPAD_DOWN;
 constexpr int ACT_MENU_NAV_LEFT_GBTN  = GBTN_DPAD_LEFT;
 constexpr int ACT_MENU_NAV_RIGHT_GBTN = GBTN_DPAD_RIGHT;
+
+// Left stick = menu navigation (discrete directions). The stick-id and each
+// direction are passed as args to input_stick_held / input_stick_just_pressed
+// in frontend.cpp and gamemenu.cpp menu-nav OR-chains.
+constexpr int ACT_MENU_NAV_GAXIS       = GAXIS_LEFT;
+constexpr int ACT_MENU_NAV_UP_GDIR     = GDIR_UP;
+constexpr int ACT_MENU_NAV_DOWN_GDIR   = GDIR_DOWN;
+constexpr int ACT_MENU_NAV_LEFT_GDIR   = GDIR_LEFT;
+constexpr int ACT_MENU_NAV_RIGHT_GDIR  = GDIR_RIGHT;
 
 // WASD as an ergonomic alternative to the arrow keys (modern keyboard
 // convention). The arrow keys stay bound; these are OR'd in alongside the
@@ -91,6 +101,17 @@ constexpr int ACT_MENU_PAGE_LAST_KKEY  = KKEY_END;
 // reverses). Read inside widget.cpp::FORM_Process via FORM_KeyProc.
 
 constexpr int ACT_MENU_FORM_CYCLE_FOCUS_KKEY = KKEY_TAB;
+
+// ---- Form widget: text-edit / scroll control keys --------------------------
+// Inside a Form, special keys are translated to widget control codes fed to
+// the focused widget's Char handler (cursor move / page scroll / delete) in
+// widget.cpp::FORM_Process (the last_key switch). Arrow / Enter / Esc / Home /
+// End cases reuse the nav / confirm / cancel / page constants above; PageUp /
+// PageDown / Delete have no other home and live here.
+
+constexpr int ACT_MENU_FORM_PAGE_UP_KKEY   = KKEY_PAGE_UP;
+constexpr int ACT_MENU_FORM_PAGE_DOWN_KKEY = KKEY_PAGE_DOWN;
+constexpr int ACT_MENU_FORM_DELETE_KKEY    = KKEY_DELETE;
 
 // ---- Attract-mode wake / quit ----------------------------------------------
 // Any of these keys held wakes the attract screen up so the menu stays alive

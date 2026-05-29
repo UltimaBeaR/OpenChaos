@@ -1,10 +1,8 @@
 #include "engine/input/keyboard_globals.h"
 
-// uc_orig: AltFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
-volatile UBYTE AltFlag,
-    // uc_orig: ControlFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
-    ControlFlag,
-    // uc_orig: ShiftFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
+// uc_orig: ControlFlag / ShiftFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
+// (uc_orig AltFlag removed — it was set from the Alt keys but never read.)
+volatile UBYTE ControlFlag,
     ShiftFlag;
 
 bool debug_overlay_locked_on = false;

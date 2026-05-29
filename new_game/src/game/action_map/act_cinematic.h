@@ -52,6 +52,13 @@ constexpr int ACT_CINE_OUTRO_SKIP_2_GBTN = GBTN_EAST;  // DS: Circle, Xbox: B
 constexpr int ACT_CINE_OUTRO_QUIT_KKEY = KKEY_ESCAPE;
 constexpr int ACT_CINE_OUTRO_QUIT_GBTN = GBTN_START; // DS: Options, Xbox: Start
 
+// ---- Outro interactive aim (left stick) ------------------------------------
+// During the interactive outro the left stick aims (OS_joy_x / OS_joy_y).
+// Passed as the stick-id arg to input_stick_x_axis / input_stick_y_axis in
+// outro_os.cpp::OS_process_joystick.
+
+constexpr int ACT_CINE_OUTRO_AIM_GAXIS = GAXIS_LEFT;
+
 // ---- In-mission cutscene (playcut) skip -------------------------------------
 // Read in playcuts.cpp::play_cutscene as an extra rising-edge break out of the
 // playcut loop. The playcut loop also calls hardware_input_continue() (see

@@ -2291,10 +2291,10 @@ static UBYTE FRONTEND_input(void)
         const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY)  || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY);
         const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY);
 
-        bool st_up = input_stick_held(GAXIS_LEFT, GDIR_UP);
-        bool st_dn = input_stick_held(GAXIS_LEFT, GDIR_DOWN);
-        bool st_lt = input_stick_held(GAXIS_LEFT, GDIR_LEFT);
-        bool st_rt = input_stick_held(GAXIS_LEFT, GDIR_RIGHT);
+        bool st_up = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR);
+        bool st_dn = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR);
+        bool st_lt = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_LEFT_GDIR);
+        bool st_rt = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_RIGHT_GDIR);
 
         const bool dp_up = input_btn_held(ACT_MENU_NAV_UP_GBTN);
         const bool dp_dn = input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
@@ -2313,8 +2313,8 @@ static UBYTE FRONTEND_input(void)
             const bool st_y = st_up || st_dn;
             const bool st_x = st_lt || st_rt;
             if (st_y && st_x) {
-                const int32_t lx_raw = input_stick_x_axis_raw(GAXIS_LEFT);
-                const int32_t ly_raw = input_stick_y_axis_raw(GAXIS_LEFT);
+                const int32_t lx_raw = input_stick_x_axis_raw(ACT_MENU_NAV_GAXIS);
+                const int32_t ly_raw = input_stick_y_axis_raw(ACT_MENU_NAV_GAXIS);
                 const int32_t dx = (lx_raw > 32768) ? lx_raw - 32768 : 32768 - lx_raw;
                 const int32_t dy = (ly_raw > 32768) ? ly_raw - 32768 : 32768 - ly_raw;
                 if (dy >= dx) {
@@ -2334,19 +2334,19 @@ static UBYTE FRONTEND_input(void)
 
         const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
             || input_key_just_pressed(ACT_MENU_NAV_UP_ALT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR)
             || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
         const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
             || input_key_just_pressed(ACT_MENU_NAV_DOWN_ALT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR)
             || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
         const bool any_lt_jp = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY)
             || input_key_just_pressed(ACT_MENU_NAV_LEFT_ALT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_LEFT)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_LEFT_GDIR)
             || input_btn_just_pressed(ACT_MENU_NAV_LEFT_GBTN);
         const bool any_rt_jp = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY)
             || input_key_just_pressed(ACT_MENU_NAV_RIGHT_ALT_KKEY)
-            || input_stick_just_pressed(GAXIS_LEFT, GDIR_RIGHT)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_RIGHT_GDIR)
             || input_btn_just_pressed(ACT_MENU_NAV_RIGHT_GBTN);
 
         static InputAutoRepeat ar_up;

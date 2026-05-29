@@ -7,7 +7,8 @@
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
 #include "engine/core/types.h" // BOOL
 #include "engine/debug/input_debug/input_debug.h" // input_debug_is_active
-#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_* / KKEY_F1
+#include "game/action_map/input_codes.h" // GAXIS_* / GDIR_*
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_DEBUG_MODIFIER_KKEY (F1 debug-modifier gate)
 
 // Runtime debug-mode flag — set by typing "bangunsnotgames" in the dev
 // console (game_tick_globals.cpp). Used by input_debug_modifier_active()
@@ -755,7 +756,7 @@ bool input_debug_modifier_active()
     // it sees a non-F1 keypress while F1 is held). One key for both jobs
     // — the legend is most useful when you want to discover what to press,
     // and once you press it you don't need the overlay anymore.
-    return allow_debug_keys && input_key_held(KKEY_F1);
+    return allow_debug_keys && input_key_held(ACT_BANG_DEBUG_MODIFIER_KKEY);
 }
 
 bool input_gameplay_enabled()

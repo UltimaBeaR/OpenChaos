@@ -246,10 +246,12 @@
 #define MBTN_RIGHT  2
 
 // =============================================================================
-// MAXIS_* — Mouse motion axes. Symbolic markers for the two axes returned by
+// MAXIS_* — Mouse motion axes. Source vocabulary for the two axes returned by
 // input_mouse_consume_rel(&dx, &dy) — MAXIS_X corresponds to dx, MAXIS_Y to dy.
-// Constants here let action-map files (act_*.h) document which axis a given
-// action reads, even though the API itself reads both axes in one call.
+// That call reads BOTH axes at once and takes no axis argument, so there is no
+// ACT_*_MAXIS binding constant to pass one in — mouse look is documented in
+// prose in act_foot.h (camera-look section). These names just document the
+// source's two axes (dx = yaw, dy = pitch).
 // =============================================================================
 
 #define MAXIS_X 0
@@ -302,6 +304,13 @@
 // DualSense mute button.
 #define DBTN_MUTE     18
 
+// Number of common cross-pad buttons (indices 0..16: face, Select/Guide/Start,
+// stick clicks, L1/R1, D-pad, L2/R2 digital). The DualSense-only buttons
+// (DBTN_TOUCHPAD 17 / DBTN_MUTE 18) sit above this. Used as the loop bound for
+// "any common button" wildcard scans — e.g. the video-skip check in
+// video_player.cpp (any button rising edge skips the FMV).
+#define GBTN_COMMON_COUNT 17
+
 // =============================================================================
 // GAXIS_* — Gamepad stick analog axis ID. First arg to input_stick_x_axis() /
 // input_stick_y_axis() (the X-or-Y choice is in the function name itself).
@@ -333,5 +342,24 @@
 #define GTRIG_L2 15
 // R2 trigger analog. DS: R2, Xbox: RT.
 #define GTRIG_R2 16
+
+// =============================================================================
+// VAXIS_* — Virtual movement-intent axis. This is NOT a physical device. It is
+// the single analog "movement intent" vector that get_hardware_input packs
+// into the high bits of the gameplay input word from EITHER the gamepad left
+// stick OR the keyboard WASD emulation. Downstream reaction code reads it back
+// via input_virtual_axis(input, VAXIS_*) (see input_actions.h) — foot turning /
+// movement direction, car steering, grapple-forward intent, etc.
+//
+// It is its own input "source" precisely because it is device-agnostic: the
+// physical rebindable binding lives at the pack site (ACT_FOOT_MOVE_GAXIS for
+// the stick, the WASD keys for keyboard); these reaction sites just consume the
+// unified result and don't care which device produced it.
+//   VAXIS_X = horizontal component (turn / lateral / steer)
+//   VAXIS_Y = vertical   component (forward / back)
+// =============================================================================
+
+#define VAXIS_X 0
+#define VAXIS_Y 1
 
 #endif // GAME_ACTION_MAP_INPUT_CODES_H

@@ -6,6 +6,7 @@
 // Translates keyboard/gamepad state into game actions (INPUT_MASK_* / ACTION_*).
 
 #include "engine/core/types.h"
+#include "game/action_map/input_codes.h" // VAXIS_X / VAXIS_Y for input_virtual_axis
 
 // Forward declarations
 struct Thing;
@@ -89,6 +90,24 @@ struct Thing;
 // Covers only the 18 digital button bits (0-17); bits 18-31 hold analog axis data.
 // uc_orig: INPUT_MASK_ALL_BUTTONS (fallen/Headers/interfac.h)
 #define INPUT_MASK_ALL_BUTTONS (0x3ffff)
+
+// Unpacks one axis of the virtual movement-intent stick (VAXIS_X / VAXIS_Y,
+// see input_codes.h) from the packed gameplay input word. Bits 18-31 are
+// filled by get_hardware_input from either the gamepad left stick or the
+// keyboard WASD emulation, so this is the device-agnostic "movement intent"
+// read used by foot turning / movement, car steering and grapple-forward
+// detection. Reaction sites pass an ACT_*_VAXIS constant naming what they use
+// it for (ACT_FOOT_MOVE_X_VAXIS, ACT_FOOT_MOVE_Y_VAXIS, ACT_CAR_STEER_VAXIS).
+//
+// Behaviour is byte-identical to the GET_JOYX / GET_JOYY macros it replaces:
+// same bit layout (X at >>17, Y at >>24), same signed range (even values,
+// -128..+126; the low bit is masked off by & 0xfe).
+// uc_orig: GET_JOYX / GET_JOYY (fallen/Source/interfac.cpp)
+inline SLONG input_virtual_axis(ULONG input, SLONG vaxis)
+{
+    const SLONG shift = (vaxis == VAXIS_X) ? 17 : 24;
+    return (SLONG)(((input >> shift) & 0xfe) - 128);
+}
 
 // Vehicle button mapping — two variants from the original (fallen/Headers/interfac.h).
 // Keyboard uses the PC variant; gamepad uses the PSX variant (matches PS1 Config 0).

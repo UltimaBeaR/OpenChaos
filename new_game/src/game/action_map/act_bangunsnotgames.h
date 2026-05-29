@@ -41,6 +41,12 @@
 // debug_help.cpp::debug_help_tick.
 constexpr int ACT_BANG_SHOW_LEGEND_KKEY = KKEY_F1;
 
+// F1 again, named for its OTHER role: the global "debug modifier" that gates
+// every runtime debug hotkey. Read in input_frame.cpp::input_debug_modifier_active
+// (the gate ANDed with allow_debug_keys). Same physical key as the legend
+// trigger above — two semantics on F1, two constants per the action-map rules.
+constexpr int ACT_BANG_DEBUG_MODIFIER_KKEY = KKEY_F1;
+
 // F2: toggle CRT scanline post-process shader. Read in game.cpp::special_keys
 // (under F1-modifier).
 constexpr int ACT_BANG_TOGGLE_CRT_KKEY = KKEY_F2;

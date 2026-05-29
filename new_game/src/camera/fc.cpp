@@ -15,6 +15,7 @@
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
+#include "game/action_map/act_foot.h" // ACT_FOOT_CAMERA_LOOK_GAXIS
 #include "engine/input/mouse_capture.h" // mouse_capture_is_active
 #include "game/input_actions.h" // input_l2_is_held (suppress get-behind while L2 held)
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
@@ -1277,8 +1278,8 @@ void FC_process()
             }
 
             if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                SLONG stick_x = input_stick_x_axis(GAXIS_RIGHT) - 32768; // signed, -32768..+32767
-                SLONG stick_y = input_stick_y_axis(GAXIS_RIGHT) - 32768;
+                SLONG stick_x = input_stick_x_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768; // signed, -32768..+32767
+                SLONG stick_y = input_stick_y_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768;
 
                 if (abs(stick_x) > 8000) {
                     // True rotation with constant-residual lag -- see
@@ -1660,7 +1661,7 @@ void FC_process()
             // on a different path but the held-stick semantics are the
             // same — convergence would still fight it).
             if (!manual_y_input_this_tick && input_gamepad_connected()) {
-                SLONG sy = input_stick_y_axis(GAXIS_RIGHT) - 32768;
+                SLONG sy = input_stick_y_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768;
                 if (abs(sy) > 8000) manual_y_input_this_tick = true;
             }
 
