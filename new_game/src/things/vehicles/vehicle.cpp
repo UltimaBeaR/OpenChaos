@@ -83,10 +83,9 @@ static void do_car_input(Thing* p_thing);
 
 // uc_orig: SKID_START (fallen/Source/Vehicle.cpp)
 #define SKID_START 3
-// uc_orig: SKID_FORCE (fallen/Source/Vehicle.cpp)
-#define SKID_FORCE 8500
-// uc_orig: NEAR_SKID_FORCE (fallen/Source/Vehicle.cpp)
-#define NEAR_SKID_FORCE 5000
+// SKID_FORCE / NEAR_SKID_FORCE (uc_orig) removed — they only fed the
+// corner-skid onset, which is gone (see do_car_input). The hard-brake skid
+// uses its own thresholds in pedals().
 // uc_orig: STABLE_COUNT (fallen/Source/Vehicle.cpp)
 #define STABLE_COUNT 16
 // uc_orig: CAR_VEL_SHIFT (fallen/Source/Vehicle.cpp)
@@ -2445,9 +2444,10 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 {
     SLONG inc = TICK_RATIO;
 
-    // Max wheel deflection this tick. Full lock by default (and for AI); for the
-    // player it shrinks with speed so high-speed turns aren't razor-sharp.
-    SLONG wheel_limit = WHEELTIME << TICK_SHIFT;
+    // Max wheel deflection = full lock. The speed-sensitive limiting now lives
+    // on the steering INPUT accumulator (apply_button_input_car), so here we
+    // just clamp to the mechanical full-lock range.
+    const SLONG wheel_limit = WHEELTIME << TICK_SHIFT;
 
     if (!(veh->Flags & FLAG_FURN_DRIVING) || (veh->Flags & FLAG_VEH_IN_AIR)) {
         // No driver or airborne: bring wheel toward centre.
@@ -2459,28 +2459,7 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
             veh->Wheel = 0;
     } else {
         if (player) {
-            const SLONG abs_vel = abs(velocity);
-
-            // OpenChaos: speed-sensitive max steering (player only). Scale the
-            // wheel limit from full lock at rest down to VEH_STEER_LIMIT_MIN/256
-            // at VEH_STEER_LIMIT_SPEED and above. AI keeps full lock (it never
-            // reaches this branch with player=true).
-            {
-                // Full lock below FREE_SPEED; above it, ease the limit off
-                // quadratically toward MIN at SPEED. Only high speed is reduced.
-                if (abs_vel > VEH_STEER_LIMIT_FREE_SPEED) {
-                    const SLONG span = VEH_STEER_LIMIT_SPEED - VEH_STEER_LIMIT_FREE_SPEED;
-                    SLONG t = abs_vel - VEH_STEER_LIMIT_FREE_SPEED;
-                    if (t > span)
-                        t = span;
-                    const SLONG tt = (t * t) / span; // quadratic ease-in over the span
-                    const SLONG factor = 256 - (((256 - VEH_STEER_LIMIT_MIN) * tt) / span);
-                    wheel_limit = ((WHEELTIME << TICK_SHIFT) * factor) >> 8;
-                }
-                // else: wheel_limit stays at full lock (set above).
-            }
-
-            velocity = abs_vel;
+            velocity = abs(velocity);
             if (velocity > 1000)
                 velocity = 1000;
 
@@ -2921,29 +2900,14 @@ static void do_car_input(Thing* p_thing)
         dangle = 0;
     }
 
-    // Detect skid onset from lateral force.
-    if ((veh->VelX || veh->VelZ) && (veh->Skid < SKID_START)) {
-        SLONG ax, az;
-        SLONG vx, vz, vv;
-        SLONG av;
-
-        ax = dx - veh->VelX;
-        az = dz - veh->VelZ;
-
-        vx = veh->VelX;
-        vz = veh->VelZ;
-        vv = vx * vx + vz * vz;
-        if (vv) {
-            vv = Root(vv);
-
-            av = (ax * vz) - (az * vx);
-
-            if (abs(av) > SKID_FORCE * vv)
-                veh->Skid = SKID_START;
-            else if (abs(av) > ((NEAR_SKID_FORCE * vinfo->FwdAccel) >> 5) * vv)
-                MFX_play_thing(THING_NUMBER(p_thing), SOUND_Range(S_SKID_SLOW_START, S_SKID_SLOW_END), MFX_MOVING, p_thing);
-        }
-    }
+    // Corner-skid onset REMOVED (OpenChaos) — for everyone, player and AI.
+    // The original lateral-force skid compared the turn's desired velocity to
+    // the actual velocity vector, but that vector picks up noise (precision /
+    // kerbs / collisions): it fired RANDOM skids on near-straight driving yet
+    // often missed genuinely sharp turns. Tried threshold scaling and a
+    // drift-free angular-rate metric — still erratic, unstable junk. Cars no
+    // longer break into a skid from cornering. (The deliberate hard-brake skid
+    // set in pedals() is separate and still applies.)
 
     if (veh->Skid < SKID_START) {
         veh->VelX = dx;

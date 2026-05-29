@@ -3704,8 +3704,8 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
 
 // uc_orig: apply_button_input_car (fallen/Source/interfac.cpp)
 // Translates the input bitmask into steering/throttle/brake for the vehicle the player is driving.
-// Analogue: uses joypad X axis with damping (STEERING_MAX_DELTA per frame).
-// Digital: steering = -1/0/+1.
+// Steering: always the damped analogue path — the wheel accumulator eases toward
+// the joypad/WASD X axis at a constant rate (STEERING_MAX_DELTA per tick).
 ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 {
     ULONG processed_input = 0;
@@ -3714,40 +3714,36 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     Vehicle* veh = p_furn->Genus.Vehicle;
 
-    if (analogue) {
-
-        // Damped analogue steering.
-        static SWORD wCurrentSteering = 0;
+    // Player car steering is ALWAYS the analogue damper path — there is no
+    // digital fallback. This keeps the wheel centring at one consistent rate
+    // whether gassing or coasting (the old digital ">>1" path only ran while
+    // coasting, so the wheel lingered far longer on a coast-release than on a
+    // gas-release — felt like the car kept turning after letting go). KBM packs
+    // a centred stick baseline when no WASD is held, so GET_JOYX reads 0 there;
+    // the gamepad reads its stick; AI steers via pcom, not through here.
+    //
+    // The accumulator eases toward the input at a constant rate (the original
+    // damping). Speed-sensitive steering caps/rates were tried here but made the
+    // feel unstable near the skid threshold — reverted to this simple, stable form.
+    static SWORD wCurrentSteering = 0;
 #define STEERING_MAX_DELTA 30
-        SWORD wSteering = (GET_JOYX(input));
-        if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
-            wSteering = 0;
-        }
 
-        if (wCurrentSteering > wSteering) {
-            wCurrentSteering -= STEERING_MAX_DELTA;
-            if (wCurrentSteering < wSteering) {
-                wCurrentSteering = wSteering;
-            }
-        } else {
-            wCurrentSteering += STEERING_MAX_DELTA;
-            if (wCurrentSteering > wSteering) {
-                wCurrentSteering = wSteering;
-            }
-        }
-        veh->Steering = wCurrentSteering;
-
-        veh->IsAnalog = 1;
-
-    } else {
-        veh->IsAnalog = 0;
-        veh->Steering = 0;
-
-        if (input & INPUT_MASK_LEFT)
-            veh->Steering--;
-        if (input & INPUT_MASK_RIGHT)
-            veh->Steering++;
+    SWORD wSteering = GET_JOYX(input);
+    if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
+        wSteering = 0;
     }
+
+    if (wCurrentSteering > wSteering) {
+        wCurrentSteering -= STEERING_MAX_DELTA;
+        if (wCurrentSteering < wSteering)
+            wCurrentSteering = wSteering;
+    } else {
+        wCurrentSteering += STEERING_MAX_DELTA;
+        if (wCurrentSteering > wSteering)
+            wCurrentSteering = wSteering;
+    }
+    veh->Steering = wCurrentSteering;
+    veh->IsAnalog = 1;
 
     veh->DControl = 0;
 

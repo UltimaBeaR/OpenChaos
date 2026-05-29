@@ -98,20 +98,6 @@ typedef struct
 // uc_orig: VEH_REVERSE_SPEED (fallen/Headers/Vehicle.h)
 #define VEH_REVERSE_SPEED 300
 
-// OpenChaos: speed-sensitive steering limit (PLAYER ONLY; AI unaffected). Below
-// FREE_SPEED the car keeps FULL steering lock (fully maneuverable at low/mid
-// speed). Above it, the max wheel angle eases off quadratically, reaching
-// MIN/256 of full lock at SPEED — so only high speed gets the gentle,
-// hard-to-oversteer feel. Tunable:
-//   MIN        = how tight steering stays at top speed (higher = looser at top)
-//   FREE_SPEED = speed below which steering is unrestricted (raise to keep more
-//                of the mid range fully maneuverable)
-//   SPEED      = the speed treated as "full" (effective top ~2000 with FASTER);
-//                the limit reaches MIN here
-#define VEH_STEER_LIMIT_MIN 56         // out of 256 (≈22% of full lock at top speed)
-#define VEH_STEER_LIMIT_FREE_SPEED 1000 // full steering at/below this speed
-#define VEH_STEER_LIMIT_SPEED 2000      // speed where the limit bottoms out at MIN
-
 // Steering geometry: ticks to reach full wheel lock; width/depth ratio for arctan.
 // uc_orig: WHEELTIME (fallen/Source/Vehicle.cpp)
 #define WHEELTIME 35
