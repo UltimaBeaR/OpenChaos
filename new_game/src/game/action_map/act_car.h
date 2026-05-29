@@ -29,31 +29,32 @@
 
 #include "game/action_map/input_codes.h"
 
-// ---- Accelerate / brake ----------------------------------------------------
-// Gamepad: R2 (digital trigger bit) = accel, L2 (digital) = brake. Read via
-// input_btn_held in apply_button_input_car. Same physical scancode as
-// ACT_FOOT_PUNCH_GTRIG / ACT_FOOT_TACTICAL_MODE_GTRIG (digital threshold vs
-// analog) but distinct semantic — two constants.
+// ---- Accelerate / brake / reverse ------------------------------------------
+// Three independent in-car controls (OpenChaos scheme — the original coupled
+// brake and reverse onto one button):
+//   Gas     — keyboard W     / gamepad R2 (RT)
+//   Brake   — keyboard Space / gamepad L1 (LB)   — hard-brake, never reverses
+//   Reverse — keyboard S     / gamepad L2 (LT)   — drive backwards
 //
-// Keyboard (new layout): accel = W (via INPUT_MASK_FORWARDS+MOVE inside
-// INPUT_CAR_KB_ACCELERATE), brake = Space (via INPUT_MASK_JUMP inside
-// INPUT_CAR_KB_DECELERATE). The on-foot semantics of W and Space are
-// movement-forward and jump respectively — the same bits are reinterpreted
-// in the in-car branch of apply_button_input_car. These KKEY constants
-// below are semantic tags; the actual reads happen at the foot level
-// (ACT_FOOT_MOVE_FORWARD_KKEY / ACT_FOOT_JUMP_KKEY).
+// Both gamepad (R2/L1/L2) and keyboard (W/Space/S) are read DIRECTLY via
+// input_btn_held / input_key_held in apply_button_input_car using the GBTN /
+// KKEY constants below. (Keyboard can't go through the WASD analog-stick bits:
+// W and S are opposite ends of the same axis and would cancel when both held.)
+//
+// Priority (resolved in vehicle.cpp::pedals): brake > reverse > gas.
 
-constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
-constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital bit)
+constexpr int ACT_CAR_ACCEL_GBTN   = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
+constexpr int ACT_CAR_BRAKE_GBTN   = GBTN_L1;         // DS: L1, Xbox: LB (digital bumper)
+constexpr int ACT_CAR_REVERSE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital bit)
 
-// Analog versions of the trigger axes — drives proportional accel / brake
-// scaling in vehicle.cpp::do_car_input. Read via input_trigger_raw(...) for
-// byte resolution (0..255).
+// Analog trigger axis — drives proportional acceleration (gas) scaling in
+// vehicle.cpp::pedals. Read via input_trigger_raw(...) (0..255). Brake (L1
+// bumper) has no analog axis; reverse drives at a fixed rate (no analog).
 constexpr int ACT_CAR_ACCEL_GTRIG = GTRIG_R2;
-constexpr int ACT_CAR_BRAKE_GTRIG = GTRIG_L2;
 
-constexpr int ACT_CAR_ACCEL_KKEY = KKEY_W;     // semantic tag — see header comment
-constexpr int ACT_CAR_BRAKE_KKEY = KKEY_SPACE; // semantic tag — see header comment
+constexpr int ACT_CAR_ACCEL_KKEY   = KKEY_W;     // semantic tag — see header comment
+constexpr int ACT_CAR_BRAKE_KKEY   = KKEY_SPACE; // semantic tag — see header comment
+constexpr int ACT_CAR_REVERSE_KKEY = KKEY_S;     // semantic tag — see header comment
 
 // "Go faster" modifier — kept as a semantic tag for historical reference.
 // VEH_FASTER is now always-on in apply_button_input_car (no input gating),

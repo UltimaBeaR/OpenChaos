@@ -4898,12 +4898,14 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 {
     ASSERT(door == 0 || door == 1);
 
-    // Reserve the car for the whole enter/exit ANIMATION, not just once a
-    // driver is finalized. Driver is only set when the enter animation
-    // completes (set_person_in_vehicle), so without the FLAG_VEH_ANIMATING
-    // check a second person (NPC ↔ player) could start climbing in while
-    // someone is still mid enter/exit animation. The flag is set at the start
-    // of the enter (and exit) animation and cleared on completion.
+    // Reserve the car for the duration of the ENTER animation. Driver is only
+    // set once the animation completes (set_person_in_vehicle), so the
+    // FLAG_VEH_ANIMATING reservation stops a second person from climbing in
+    // meanwhile. The flag is set below at the start of the enter animation and
+    // released either on completion OR, if the animation is interrupted by ANY
+    // means (the animator killed / knocked / any state change), by the per-tick
+    // guard in process_car (which watches Vehicle::Animator). Exit does NOT set
+    // the flag — leaving the car immediately enterable as the driver climbs out.
     if (p_vehicle->Genus.Vehicle->Driver
         || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)) {
         p_person->Genus.Person->InCar = 0;
@@ -4944,7 +4946,11 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 
     set_locked_anim(p_person, (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR, SUB_OBJECT_LEFT_FOOT);
     p_person->Genus.Person->InCar = THING_NUMBER(p_vehicle);
+    // Reserve the car for this enter animation and remember WHO is animating, so
+    // process_car can release the reservation the instant this person stops
+    // entering (completes, or is interrupted by any state change / death).
     p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_ANIMATING;
+    p_vehicle->Genus.Vehicle->Animator = THING_NUMBER(p_person);
 
     MFX_play_thing(THING_NUMBER(p_vehicle), S_CAR_DOOR, 0, p_vehicle);
 }
@@ -5131,11 +5137,15 @@ try_again:;
         p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
         p_person->Genus.Person->Flags &= ~FLAG_PERSON_DRIVING;
 
-        // Stop the car being driven now; the person keeps InCar until the
-        // animation ends, when set_person_out_of_vehicle finalizes the exit.
+        // Free the car IMMEDIATELY at the start of the exit: clear the driver
+        // and the enter-reservation now, so the car is enterable the moment the
+        // driver starts climbing out (no risk of a stuck "occupied" flag if the
+        // exit animation is interrupted). The person keeps InCar only to drive
+        // its own climb-out animation, finalized in set_person_out_of_vehicle.
         // NOTE: do NOT change the vehicle State here — the original exit didn't,
         // and forcing STATE_NORMAL would revive a dead car (re-enterable wreck).
-        p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_ANIMATING;
+        p_vehicle->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+        p_vehicle->Genus.Vehicle->Animator = 0;
         p_vehicle->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
         p_vehicle->Genus.Vehicle->Driver = NULL;
 
@@ -7728,7 +7738,10 @@ void set_person_in_vehicle(Thing* p_person, Thing* p_car)
     p_person->SubState = SUB_STATE_INSIDE_VEHICLE;
     remove_thing_from_map(p_person);
     p_car->Genus.Vehicle->Flags |= FLAG_FURN_DRIVING;
+    // Enter animation finished: release the reservation (occupancy is now the
+    // real Driver below).
     p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+    p_car->Genus.Vehicle->Animator = 0;
     p_car->Genus.Vehicle->Driver = THING_NUMBER(p_person);
     set_state_function(p_car, STATE_FDRIVING);
 }
@@ -7750,9 +7763,9 @@ void set_person_out_of_vehicle(Thing* p_person)
     set_person_locked_idle_ready(p_person);
     plant_feet(p_person);
     p_car->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
-    // Clear the anim-freeze set when the exit climb-out started, so the now
-    // driverless car resumes its normal (parked) behaviour.
+    // Defensive: ensure no stale enter-reservation survives a finished exit.
     p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+    p_car->Genus.Vehicle->Animator = 0;
 }
 
 // Changes to a fresh animation while keeping a specific limb locked in world-space.

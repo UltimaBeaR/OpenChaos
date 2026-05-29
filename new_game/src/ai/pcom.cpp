@@ -9274,10 +9274,18 @@ void DriveCar(Thing* p_person)
     dspeed = p_vehicle->Velocity - wspeed;
 
     if (dspeed < -10) {
+        // Need MORE velocity (speed up forward, or ease off too-fast reverse):
+        // VEH_ACCEL handles both — it brakes a backward roll, else drives forward.
         p_vehicle->Genus.Vehicle->DControl = VEH_ACCEL;
     }
     if (dspeed > +10) {
-        p_vehicle->Genus.Vehicle->DControl = VEH_DECEL;
+        // Need LESS velocity. If the AI's target speed is negative it actually
+        // wants to drive backwards -> VEH_REVERSE (the new dedicated reverse
+        // control). Otherwise it's just slowing down -> VEH_DECEL (brake).
+        // The original coupled brake+reverse onto VEH_DECEL; with the controls
+        // split, AI reverse must use VEH_REVERSE or the car would only brake
+        // to a stop and never back up (3-point turns, runover-reverse).
+        p_vehicle->Genus.Vehicle->DControl = (wspeed < 0) ? VEH_REVERSE : VEH_DECEL;
     }
 
     // shift up if PCOM_BENT_DILIGENT person (disabled in original, kept 1:1)

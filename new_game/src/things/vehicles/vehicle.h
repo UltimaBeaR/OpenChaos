@@ -48,12 +48,69 @@ typedef struct
 #define VEH_FASTER 4
 // uc_orig: VEH_SIREN (fallen/Headers/Vehicle.h)
 #define VEH_SIREN 8
+// OpenChaos: dedicated reverse (drive-backward) control. The original coupled
+// brake and reverse on a single button (VEH_DECEL: brake at speed, reverse
+// when slow/stopped). The OpenChaos control scheme splits them onto separate
+// buttons — brake (Space / L1) stays VEH_DECEL, reverse (S / L2) gets this
+// new bit. Not in the original.
+#define VEH_REVERSE 16
+
+// Speed magnitude (signed Velocity units) below which the car is treated as
+// effectively stopped for direction decisions and stop detection. Matches the
+// historical hard-coded threshold used in do_car_input's stop check.
+// uc_orig: literal 10 in do_car_input (fallen/Source/Vehicle.cpp)
+#define VEH_STOP_SPEED 10
+
+// Forward-speed threshold separating "brake" from "reverse" in the brake/
+// reverse pedal logic: above it the car is moving forward fast enough to brake;
+// below it (and slow/stopped) the reverse key drives backwards instead.
+// uc_orig: literal 200 in pedals (fallen/Source/Vehicle.cpp)
+#define VEH_BRAKE_SPEED 200
+
+// OpenChaos: friction shift drop for the brake key at LOW speed (no-skid).
+// Smaller drop = higher friction value = gentler. The hard brake (with skid)
+// keeps the original drop of 4. (friction starts at 7; new_vel = vel*(2^f-1)/2^f.)
+#define VEH_SOFT_DECEL_FRICTION_DROP 3
+
+// OpenChaos: deceleration curve for the THROTTLE opposing motion — reverse key
+// slowing forward motion, gas key slowing a backward roll. Two INDEPENDENT
+// knobs:
+//   FRICTION_DROP: the percentage (∝ speed) term — controls how fast HIGH
+//     speed bleeds off. Bigger drop = lower friction value = faster high-speed
+//     slowdown. (friction starts 7; drop 3 -> f4 -> -1/16 of speed per tick.)
+//   CONST: a flat per-tick decel on top — controls the firmness of the stop at
+//     LOW speed (kills the long exponential tail). Bigger = quicker dead stop.
+// Together: fast bleed when fast, firm stop when slow. Tune them separately to
+// taste (high-speed feel = FRICTION_DROP, low-speed/stop feel = CONST).
+#define VEH_THROTTLE_DECEL_FRICTION_DROP 3
+#define VEH_THROTTLE_DECEL_CONST 15
+
+// OpenChaos: when the reverse key brakes the car from forward motion to a full
+// stop and the player keeps holding it, the car pauses this many physics ticks
+// at zero before it starts driving backwards on its own. Releasing the key
+// resets the pause (so release+re-press reverses immediately at zero speed).
+// Symmetric for the gas key vs a backward roll. 5 ≈ 0.25 s at 20 Hz physics.
+#define VEH_THROTTLE_HOLD_TICKS 5
 
 // Maximum forward/reverse speed (world units per tick).
 // uc_orig: VEH_SPEED_LIMIT (fallen/Headers/Vehicle.h)
 #define VEH_SPEED_LIMIT 750
 // uc_orig: VEH_REVERSE_SPEED (fallen/Headers/Vehicle.h)
 #define VEH_REVERSE_SPEED 300
+
+// OpenChaos: speed-sensitive steering limit (PLAYER ONLY; AI unaffected). Below
+// FREE_SPEED the car keeps FULL steering lock (fully maneuverable at low/mid
+// speed). Above it, the max wheel angle eases off quadratically, reaching
+// MIN/256 of full lock at SPEED — so only high speed gets the gentle,
+// hard-to-oversteer feel. Tunable:
+//   MIN        = how tight steering stays at top speed (higher = looser at top)
+//   FREE_SPEED = speed below which steering is unrestricted (raise to keep more
+//                of the mid range fully maneuverable)
+//   SPEED      = the speed treated as "full" (effective top ~2000 with FASTER);
+//                the limit reaches MIN here
+#define VEH_STEER_LIMIT_MIN 56         // out of 256 (≈22% of full lock at top speed)
+#define VEH_STEER_LIMIT_FREE_SPEED 1000 // full steering at/below this speed
+#define VEH_STEER_LIMIT_SPEED 2000      // speed where the limit bottoms out at MIN
 
 // Steering geometry: ticks to reach full wheel lock; width/depth ratio for arctan.
 // uc_orig: WHEELTIME (fallen/Source/Vehicle.cpp)
@@ -106,6 +163,26 @@ typedef struct
 
     SBYTE Dir; // +2=fwd, +1=fwd braking, -1/-2=reverse variants, 0=stopped
     UBYTE Skid; // 0=no skid; >=SKID_START=full skid
+
+    // OpenChaos: "press twice" hold for the split reverse/gas keys. When the
+    // reverse key brakes the car from forward motion down to a stop (or gas
+    // brakes a backward roll to a stop), the throttle latches — holding it just
+    // keeps the car stopped; the player must release and press again to drive
+    // the other way. Implemented as an internal hold (NOT input-masking) so the
+    // reverse key still fully overrides a held gas (input-masking would let the
+    // gas leak through after the stop). Player-only; AI never latches (seamless
+    // brake-then-reverse). Cleared the moment the key is released.
+    UBYTE GasLatch; // gas held through a reverse->stop brake
+    UBYTE RevLatch; // reverse held through a forward->stop brake
+    UBYTE GasTimer; // ticks paused at zero before gas auto-drives forward
+    UBYTE RevTimer; // ticks paused at zero before reverse auto-drives backward
+
+    // OpenChaos: THING index of the person currently playing the ENTER
+    // animation (0 = none). The enter reservation (FLAG_VEH_ANIMATING) is valid
+    // only while this person is still actually entering; process_car releases
+    // it the instant they stop (completed, killed, or any state change), so the
+    // car can never be left permanently "occupied" by an interrupted animation.
+    UWORD Animator;
     UBYTE Stable;
     UBYTE Smokin; // tyre smoke active
 

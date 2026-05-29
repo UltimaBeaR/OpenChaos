@@ -94,41 +94,25 @@ struct Thing;
 // Keyboard uses the PC variant; gamepad uses the PSX variant (matches PS1 Config 0).
 // apply_button_input_car() picks the right set based on active_input_device.
 //
-// Keyboard (new layout): W=accel, Space=brake, A/D=steer, E=siren.
-// W sets FORWARDS+MOVE bits via the WASD analog-stick emulation path.
-// Space still sets JUMP on foot (jump); inside the car the JUMP bit is
-// reinterpreted as brake — so the same key carries different semantics
-// in the two contexts via the input mask.
-// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PC variant)
-#define INPUT_CAR_KB_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)
-// uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h, PC variant)
-#define INPUT_CAR_KB_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_JUMP)
-// uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h, PC variant)
-// NOTE: VEH_FASTER is now unconditionally set in apply_button_input_car —
-// this mask is no longer read at the call site (kept for parity with the
-// PAD variant and for future debug/audit if anyone wants to flip back to
-// chord-gated go-faster). See input_actions.cpp::apply_button_input_car.
-#define INPUT_CAR_KB_GOFASTER (INPUT_CAR_KB_ACCELERATE | INPUT_CAR_KB_DECELERATE)
+// Keyboard (new layout): W=gas, Space=brake, S=reverse, A/D=steer, E=siren.
+// Gas/brake/reverse are read DIRECTLY from their keys via input_key_held in
+// apply_button_input_car (W and S are opposite ends of the same WASD stick
+// axis, so reading them as mask bits would cancel when both are held). So no
+// KB accelerate/brake/reverse masks are needed here. Only the siren cancel
+// sentinel below is mask-based.
 // "Siren cancel" sentinel for vehicle.cpp::pedals InputDone tagging. Siren
 // itself is read via input_key_press_pending(ACT_CAR_SIREN_KKEY) — direct
 // E-key read, NOT via this mask. The mask bit only serves as a unique
 // identifier so do_car_input's `move_cancel == INPUT_CAR_KB_SIREN` check
-// can distinguish "siren just fired" from "accel / decel just fired".
+// can distinguish "siren just fired" from any other move_cancel value.
 // INPUT_MASK_SELECT (Tab inventory cycle) is unused in-car (can't cycle
 // weapons while driving) so using it here has no observable side effect.
 #define INPUT_CAR_KB_SIREN (INPUT_MASK_SELECT)
 //
-// Gamepad: R2=accel, L2=brake, Triangle=siren. Cross/Square no longer
-// bound to accel/brake — gas and brake live on the analog triggers
-// only (see apply_button_input_car R2/L2 branch).
-// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PSX variant) —
-// original PSX mapping had Cross as accelerate (INPUT_MASK_JUMP) but we
-// deliberately dropped that to free Cross for other uses.
-#define INPUT_CAR_PAD_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)
-// uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h, PSX variant)
-#define INPUT_CAR_PAD_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_PUNCH)
-// uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h, PSX variant)
-#define INPUT_CAR_PAD_GOFASTER (INPUT_CAR_PAD_ACCELERATE | INPUT_CAR_PAD_DECELERATE)
+// Gamepad gas/brake/reverse are read directly via input_btn_held (R2 / L1 /
+// L2) in apply_button_input_car — they don't go through input-mask bits, so
+// no PAD accelerate/brake/reverse masks are needed. Only the siren cancel
+// sentinel below is mask-based (same role as INPUT_CAR_KB_SIREN).
 // uc_orig: INPUT_CAR_SIREN (fallen/Headers/interfac.h, PSX variant)
 #define INPUT_CAR_PAD_SIREN (INPUT_MASK_KICK)
 

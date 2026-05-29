@@ -909,12 +909,13 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
     if (p_thing->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
         Thing* p_vehicle = TO_THING(p_thing->Genus.Person->InCar);
 
-        if (p_vehicle->Genus.Vehicle->GrabAction && (p_vehicle->Velocity > 5)) {
-            return 0; // button grabbed by car
-        }
+        // Max speed (signed Velocity units) at which the driver may bail out.
+        // The original effectively required a dead stop; OpenChaos lets you step
+        // out while still moving slowly. Tunable — raise for an easier exit.
+        constexpr SLONG CAR_EXIT_MAX_SPEED = 250;
 
-        if (abs(p_vehicle->Velocity) >= 50) {
-            return 0; // moving too fast
+        if (abs(p_vehicle->Velocity) >= CAR_EXIT_MAX_SPEED) {
+            return 0; // moving too fast to step out
         }
 
         if (p_vehicle->Genus.Vehicle->Skid >= 3) // SKID_START defined in vehicle.cpp!
@@ -3750,8 +3751,11 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     veh->DControl = 0;
 
-    // Keyboard (new layout): W=accel, Space=brake, A/D=steer, E=siren.
-    // Gamepad: R2=accel, L2=brake, Left stick X=steer (Y ignored), Triangle=siren.
+    // Three independent in-car controls — gas, brake, reverse:
+    //   Keyboard: W=gas, Space=brake, S=reverse, A/D=steer, E=siren.
+    //   Gamepad:  R2=gas, L1=brake, L2=reverse, stick X=steer (Y ignored),
+    //             Triangle=siren.
+    //
     // VEH_FASTER: always-on, unconditionally, no input gating. The flag
     // historically had keyboard and gamepad binding chords to toggle it,
     // but in manual testing no perceptible vehicle behavior change was
@@ -3761,43 +3765,42 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // does something undesirable when always-on, gate it here.
     veh->DControl |= VEH_FASTER;
 
+    bool ctl_accel;
+    bool ctl_brake;
+    bool ctl_reverse;
     if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
-        if (input & INPUT_CAR_KB_ACCELERATE)
-            veh->DControl |= VEH_ACCEL;
-        else if (input & INPUT_CAR_KB_DECELERATE)
-            veh->DControl |= VEH_DECEL;
+        // Read W / S / Space DIRECTLY as independent gas / reverse / brake
+        // keys. We must NOT go through the WASD analog-stick bits here: W and
+        // S are opposite ends of the same stick Y axis, so holding BOTH cancels
+        // to centre (neither FORWARDS nor BACKWARDS) — which made W+S do
+        // nothing instead of reversing. Steering (A/D) still rides the stick X
+        // axis read at the top of this function. Gated by input_gameplay_enabled
+        // so the F1 debug modifier suppresses driving, same as the stick path.
+        const bool gameplay = input_gameplay_enabled();
+        ctl_accel   = gameplay && input_key_held(ACT_CAR_ACCEL_KKEY);   // W
+        ctl_reverse = gameplay && input_key_held(ACT_CAR_REVERSE_KKEY); // S
+        ctl_brake   = gameplay && input_key_held(ACT_CAR_BRAKE_KKEY);   // Space
     } else {
-        // R2 = accelerate, L2 = brake. Left stick is STEERING ONLY (X
-        // axis); stick Y is intentionally ignored for gas/brake.
-        //
-        // Why: the previous mapping had stick-forward = gas and stick-
-        // back = brake (via INPUT_CAR_PAD_ACCELERATE / DECELERATE which
-        // include INPUT_MASK_FORWARDS / INPUT_MASK_BACKWARDS bits set
-        // from stick deflection). Players often slightly pull the stick
-        // back while turning, or the stick drifts past the deadzone on
-        // its own — the car then auto-brakes mid-corner, breaking
-        // driving feel. Likely cause of the "car brakes by itself" bug
-        // tracked in known_issues_and_bugs_1_0.md (Gameplay section).
-        //
-        // Face buttons (Cross / Square) for gas/brake were also dropped
-        // here as part of the same simplification — modern controllers
-        // use triggers for analog gas/brake, and the on-foot semantics
-        // of those face buttons (jump / punch) shouldn't leak into the
-        // car context.
-        //
-        // rgbButtons[15/16] are the DIGITAL trigger bits (set when
-        // analog trigger crosses ~half-deflection inside the gamepad
-        // layer); btn_held below reads exactly those bits, not the
-        // analog uint8_t triggers. Analog trigger position is read
-        // separately in vehicle.cpp for proportional accel/brake force.
-        bool r2 = input_btn_held(ACT_CAR_ACCEL_GBTN);
-        bool l2 = input_btn_held(ACT_CAR_BRAKE_GBTN);
-
-        if (r2)
-            veh->DControl |= VEH_ACCEL;
-        else if (l2)
-            veh->DControl |= VEH_DECEL;
+        // Triggers/bumpers read as digital bits here. Analog trigger position
+        // (for proportional gas) is read separately in vehicle.cpp.
+        // Left stick is STEERING ONLY (X axis); stick Y is intentionally
+        // ignored for gas/brake — the previous stick-Y mapping auto-braked
+        // mid-corner on slight pull-back / drift ("car brakes by itself").
+        ctl_accel   = input_btn_held(ACT_CAR_ACCEL_GBTN);   // R2
+        ctl_brake   = input_btn_held(ACT_CAR_BRAKE_GBTN);   // L1
+        ctl_reverse = input_btn_held(ACT_CAR_REVERSE_GBTN); // L2
     }
+
+    // Set every held control; pedals() resolves the priority brake > reverse
+    // > gas. Setting all bits (rather than an else-if chain) is what makes
+    // simultaneous presses behave: gas+brake -> brake wins, gas+reverse ->
+    // reverse wins (the old else-if let gas mask the brake — BUG-6).
+    if (ctl_accel)
+        veh->DControl |= VEH_ACCEL;
+    if (ctl_reverse)
+        veh->DControl |= VEH_REVERSE;
+    if (ctl_brake)
+        veh->DControl |= VEH_DECEL;
 
     // Siren toggle: edge-triggered via input_frame's sticky press_pending.
     // do_car_input reads VEH_SIREN and calls siren(veh, !veh->Siren) — without
@@ -4173,9 +4176,18 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (input_btn_held(ACT_FOOT_CAM_TOGGLE_GBTN)) {
-                    input |= INPUT_MASK_CAMERA;
-                    g_dwLastInputChangeTime = dwCurrentTime;
+                // L1 doubles as camera-type toggle on foot, but in the car L1
+                // is the BRAKE — suppress the camera toggle while driving so
+                // braking doesn't switch camera / force it behind every tap.
+                // (Aim, also on L1, is already gated by the driver's State.)
+                {
+                    Thing* p_drv = NET_PERSON(0);
+                    const bool drv_driving = p_drv && p_drv->Genus.Person
+                        && (p_drv->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (!drv_driving && input_btn_held(ACT_FOOT_CAM_TOGGLE_GBTN)) {
+                        input |= INPUT_MASK_CAMERA;
+                        g_dwLastInputChangeTime = dwCurrentTime;
+                    }
                 }
 
                 // L2/R2 no longer map to camera rotation on gamepad — right stick handles camera.

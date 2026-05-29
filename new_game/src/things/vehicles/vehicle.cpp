@@ -28,7 +28,7 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "game/input_actions.h"
-#include "game/action_map/act_car.h" // ACT_CAR_ACCEL_GTRIG / ACT_CAR_BRAKE_GTRIG
+#include "game/action_map/act_car.h" // ACT_CAR_ACCEL_GTRIG, ACT_CAR_*_GBTN
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_trigger_raw
@@ -769,6 +769,11 @@ void reinit_vehicle(Thing* p_thing)
     vp->Health = 300;
     vp->Siren = 0;
     vp->GrabAction = 0;
+    vp->GasLatch = 0;
+    vp->RevLatch = 0;
+    vp->GasTimer = 0;
+    vp->RevTimer = 0;
+    vp->Animator = 0;
     vp->LastSmokeSpawn = 0;
 
     for (int ii = 0; ii < 6; ii++) {
@@ -952,7 +957,10 @@ void draw_car(Thing* p_car)
 
         case -2:
             p_car->Genus.Vehicle->Brakelight = 0;
-            if (p_car->Genus.Vehicle->DControl & VEH_DECEL)
+            // Reverse lamp: shown while actively reversing. Original keyed this
+            // on VEH_DECEL (brake+reverse were one button); reverse now has its
+            // own VEH_REVERSE bit (player reverse key + AI reverse).
+            if (p_car->Genus.Vehicle->DControl & VEH_REVERSE)
                 colour = 0x303030;
             break;
 
@@ -2437,6 +2445,10 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 {
     SLONG inc = TICK_RATIO;
 
+    // Max wheel deflection this tick. Full lock by default (and for AI); for the
+    // player it shrinks with speed so high-speed turns aren't razor-sharp.
+    SLONG wheel_limit = WHEELTIME << TICK_SHIFT;
+
     if (!(veh->Flags & FLAG_FURN_DRIVING) || (veh->Flags & FLAG_VEH_IN_AIR)) {
         // No driver or airborne: bring wheel toward centre.
         if (veh->Wheel > inc)
@@ -2447,18 +2459,38 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
             veh->Wheel = 0;
     } else {
         if (player) {
-            velocity = abs(velocity);
+            const SLONG abs_vel = abs(velocity);
 
+            // OpenChaos: speed-sensitive max steering (player only). Scale the
+            // wheel limit from full lock at rest down to VEH_STEER_LIMIT_MIN/256
+            // at VEH_STEER_LIMIT_SPEED and above. AI keeps full lock (it never
+            // reaches this branch with player=true).
+            {
+                // Full lock below FREE_SPEED; above it, ease the limit off
+                // quadratically toward MIN at SPEED. Only high speed is reduced.
+                if (abs_vel > VEH_STEER_LIMIT_FREE_SPEED) {
+                    const SLONG span = VEH_STEER_LIMIT_SPEED - VEH_STEER_LIMIT_FREE_SPEED;
+                    SLONG t = abs_vel - VEH_STEER_LIMIT_FREE_SPEED;
+                    if (t > span)
+                        t = span;
+                    const SLONG tt = (t * t) / span; // quadratic ease-in over the span
+                    const SLONG factor = 256 - (((256 - VEH_STEER_LIMIT_MIN) * tt) / span);
+                    wheel_limit = ((WHEELTIME << TICK_SHIFT) * factor) >> 8;
+                }
+                // else: wheel_limit stays at full lock (set above).
+            }
+
+            velocity = abs_vel;
             if (velocity > 1000)
                 velocity = 1000;
 
             if (veh->IsAnalog) {
                 veh->Wheel = (veh->Steering * (700 - (velocity >> 1))) >> (3);
 
-                if (veh->Wheel > (WHEELTIME << TICK_SHIFT)) {
-                    veh->Wheel = WHEELTIME << TICK_SHIFT;
-                } else if (veh->Wheel < -(WHEELTIME << TICK_SHIFT)) {
-                    veh->Wheel = -(WHEELTIME << TICK_SHIFT);
+                if (veh->Wheel > wheel_limit) {
+                    veh->Wheel = wheel_limit;
+                } else if (veh->Wheel < -wheel_limit) {
+                    veh->Wheel = -wheel_limit;
                 }
                 goto steering_done;
             } else {
@@ -2473,16 +2505,16 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
                 else
                     veh->Wheel += inc;
 
-                if (veh->Wheel > (WHEELTIME << TICK_SHIFT))
-                    veh->Wheel = WHEELTIME << TICK_SHIFT;
+                if (veh->Wheel > wheel_limit)
+                    veh->Wheel = wheel_limit;
             } else if (veh->Steering < 0) {
                 if (veh->Wheel > 0)
                     veh->Wheel = 0;
                 else
                     veh->Wheel -= inc;
 
-                if (veh->Wheel < -(WHEELTIME << TICK_SHIFT))
-                    veh->Wheel = -(WHEELTIME << TICK_SHIFT);
+                if (veh->Wheel < -wheel_limit)
+                    veh->Wheel = -wheel_limit;
             } else {
                 if (veh->Wheel > 0)
                     veh->Wheel >>= 1;
@@ -2502,68 +2534,51 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction, UWORD& move_cancel, SWORD& accel, Thing* p_thing)
 {
 
-    if (veh->DControl & VEH_ACCEL)
+    // Cancelling a skid happens only when gas is the EFFECTIVE control. Brake
+    // and reverse take priority over gas, so a held gas must NOT wipe the skid
+    // while the player is actually braking (original couldn't hold gas+brake
+    // at once; now they can, so this gate keeps the brake skid alive).
+    if ((veh->DControl & VEH_ACCEL) && !(veh->DControl & (VEH_DECEL | VEH_REVERSE)))
         veh->Skid = 0;
 
-    // Gate Darci's exit condition.
-    if (veh->DControl & (VEH_ACCEL | VEH_DECEL)) {
+    // Release the throttle hold + pause timer the moment its key is let go, so
+    // a release+re-press at zero speed drives the other way immediately.
+    if (!(veh->DControl & VEH_REVERSE)) {
+        veh->RevLatch = 0;
+        veh->RevTimer = 0;
+    }
+    if (!(veh->DControl & VEH_ACCEL)) {
+        veh->GasLatch = 0;
+        veh->GasTimer = 0;
+    }
+
+    // Gate Darci's exit condition: any pedal held marks the action grabbed.
+    if (veh->DControl & (VEH_ACCEL | VEH_DECEL | VEH_REVERSE)) {
         veh->GrabAction = 1;
     } else if (!(veh->DControl & VEH_FASTER)) {
         veh->GrabAction = 0;
     }
 
+    // The "press twice" hold (see Vehicle::RevLatch / GasLatch) is player-only;
+    // AI never latches, so bots get a seamless brake-then-reverse crossover.
+    const bool is_player = is_driven_by_player(p_thing);
+
+    // Priority: brake > reverse > gas (else-if order). The brake key is the
+    // original "brake" half (with skid). The reverse key decelerates forward
+    // motion WITHOUT skid (it's not a hard brake) and then drives backwards,
+    // which keeps the original reverse side effects (rear-end lift, reverse
+    // lights, reverse engine sound). Gas is the original forward throttle.
     if (!(veh->Flags & FLAG_FURN_DRIVING)) {
         // No driver: coast to stop with strong friction.
         siren(veh, 0);
         veh->Dir = 0;
         friction -= 4;
-    } else if (veh->DControl & VEH_ACCEL) {
-
-        if (veh->Dir < 0) {
-            // Braking while in reverse.
-            veh->Dir = -1;
-            friction -= 4;
-            accel = vinfo->SoftBrake;
-            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_ACCELERATE : INPUT_CAR_PAD_ACCELERATE;
-        } else {
-            veh->Dir = +2;
-            accel = vinfo->FwdAccel;
-            if (veh->DControl & VEH_FASTER) {
-                if (velocity < VEH_SPEED_LIMIT)
-                    accel <<= 1;
-                else if (velocity < VEH_SPEED_LIMIT * 2)
-                    accel += (accel >> 1);
-            } else {
-                if (velocity >= VEH_SPEED_LIMIT)
-                    accel = 0;
-            }
-
-            // Analog throttle: scale accel by R2 trigger position (gamepad only).
-            // Full press = full accel, partial press = proportional.
-            // Cross button always gives full accel (digital).
-            const int r2 = input_trigger_raw(ACT_CAR_ACCEL_GTRIG);
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
-            }
-
-            if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
-                veh->Smokin = 1;
-            }
-        }
     } else if (veh->DControl & VEH_DECEL) {
-        if ((veh->Dir > 0) || (velocity > 200)) {
-            // Braking while going forwards.
+        // BRAKE — hard brake with skid while going forwards; never reverses.
+        if ((veh->Dir > 0) || (velocity > VEH_BRAKE_SPEED)) {
             veh->Dir = +1;
             friction -= 4;
             accel = -vinfo->SoftBrake;
-            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_DECELERATE : INPUT_CAR_PAD_DECELERATE;
-
-            // Analog brake: scale braking force by L2 trigger position (gamepad only).
-            // Square button always gives full brake (digital).
-            const int l2 = input_trigger_raw(ACT_CAR_BRAKE_GTRIG);
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && l2 > 0 && l2 < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * l2) / 255);
-            }
 
             if (!veh->Skid) {
                 if ((veh->DControl & VEH_FASTER) && (velocity > 1600))
@@ -2585,9 +2600,73 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
                 }
             }
         } else {
-            // Accelerating backwards.
+            // Slow/stopped (or braking a backward roll) — no skid: gentle stop.
+            friction -= VEH_SOFT_DECEL_FRICTION_DROP;
+            if ((veh->Dir == +1) || (veh->Dir == -1))
+                veh->Dir = 0;
+        }
+    } else if (veh->DControl & VEH_REVERSE) {
+        // REVERSE — overrides gas. While moving forwards, GENTLY decelerate (no
+        // skid); once stopped and still held, pause ~0.5 s, then drive backwards
+        // on its own. Release resets the pause (re-press reverses at once).
+        if ((veh->Dir > 0) || (velocity > VEH_BRAKE_SPEED)) {
+            veh->Dir = +1;
+            friction -= VEH_THROTTLE_DECEL_FRICTION_DROP;
+            accel = -VEH_THROTTLE_DECEL_CONST;
+            if (is_player) {
+                veh->RevLatch = 1;
+                veh->RevTimer = 0;
+            }
+        } else if (is_player && veh->RevLatch && veh->RevTimer < VEH_THROTTLE_HOLD_TICKS) {
+            // Stopped after braking, still held: count the pause, hold at zero.
+            veh->Dir = 0;
+            friction -= 4;
+            veh->RevTimer++;
+        } else {
+            // Pause elapsed, fresh press at rest, or already reversing: drive
+            // backwards (rear-end lift + reverse lights/sound, as the original).
             veh->Dir = -2;
             accel = -vinfo->BkAccel;
+        }
+    } else if (veh->DControl & VEH_ACCEL) {
+        // GAS — lowest priority. While rolling backwards, GENTLY decelerate (no
+        // skid); once stopped and still held, pause ~0.5 s, then drive forwards.
+        if (veh->Dir < 0) {
+            veh->Dir = -1;
+            friction -= VEH_THROTTLE_DECEL_FRICTION_DROP;
+            accel = VEH_THROTTLE_DECEL_CONST;
+            if (is_player) {
+                veh->GasLatch = 1;
+                veh->GasTimer = 0;
+            }
+        } else if (is_player && veh->GasLatch && veh->GasTimer < VEH_THROTTLE_HOLD_TICKS) {
+            // Stopped after braking the reverse, still held: pause at zero.
+            veh->Dir = 0;
+            friction -= 4;
+            veh->GasTimer++;
+        } else {
+            veh->Dir = +2;
+            accel = vinfo->FwdAccel;
+            if (veh->DControl & VEH_FASTER) {
+                if (velocity < VEH_SPEED_LIMIT)
+                    accel <<= 1;
+                else if (velocity < VEH_SPEED_LIMIT * 2)
+                    accel += (accel >> 1);
+            } else {
+                if (velocity >= VEH_SPEED_LIMIT)
+                    accel = 0;
+            }
+
+            // Analog throttle: scale accel by R2 trigger position (gamepad
+            // only). Full press = full accel, partial = proportional.
+            const int r2 = input_trigger_raw(ACT_CAR_ACCEL_GTRIG);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
+            }
+
+            if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
+                veh->Smokin = 1;
+            }
         }
     } else {
         // Engine braking only.
@@ -2667,14 +2746,14 @@ static void do_car_input(Thing* p_thing)
         bool stopped = false;
 
         if ((veh->Dir == +2) || (veh->Dir == -2)) {
-            if (!accel && (newmag < 10))
+            if (!accel && (newmag < VEH_STOP_SPEED))
                 stopped = true;
         } else if ((veh->Dir == +1) || (veh->Dir == -1)) {
-            if ((newmag < 10) || (newmag > oldmag))
+            if ((newmag < VEH_STOP_SPEED) || (newmag > oldmag))
                 stopped = true;
         } else {
             ASSERT(accel == 0);
-            if (newmag < 10)
+            if (newmag < VEH_STOP_SPEED)
                 stopped = true;
         }
 
@@ -2751,7 +2830,9 @@ static void do_car_input(Thing* p_thing)
             veh->Skid = 0;
         }
 
-        veh->Dir = (veh->DControl & VEH_DECEL) ? +1 : 0;
+        // Skid ending while still braking (either the brake or reverse key)
+        // keeps decelerating-forward direction; otherwise stopped.
+        veh->Dir = (veh->DControl & (VEH_DECEL | VEH_REVERSE)) ? +1 : 0;
 
         veh->Smokin = 1;
     }
@@ -2892,7 +2973,9 @@ static void do_car_input(Thing* p_thing)
             else
                 state = VEH_FWD_DECEL;
         } else {
-            if ((veh->DControl & VEH_DECEL) && !veh->Skid)
+            // Reverse-accelerate engine sound: active reverse is now its own
+            // VEH_REVERSE bit (was VEH_DECEL when brake+reverse shared a button).
+            if ((veh->DControl & VEH_REVERSE) && !veh->Skid)
                 state = VEH_REV_ACCEL;
             else
                 state = VEH_REV_DECEL;
@@ -3000,8 +3083,35 @@ static void process_car(Thing* p_car)
     vp = p_car->Genus.Vehicle;
     info = &veh_info[vp->Type];
 
+    // OpenChaos: keep the enter-reservation honest. FLAG_VEH_ANIMATING is set
+    // while a person plays the ENTER animation (Animator = that person). The
+    // moment they stop entering — completed, killed, knocked into recoil, or
+    // ANY other state change — release the reservation so the car never gets
+    // stuck "occupied". A person either ends up properly inside (handled by
+    // set_person_in_vehicle, which clears the flag) or is detached as "out".
     if (vp->Flags & FLAG_VEH_ANIMATING) {
-        // Reserved for animated car sequences (not active in this build).
+        Thing* p_anim = vp->Animator ? TO_THING(vp->Animator) : nullptr;
+        const bool still_entering = p_anim
+            && p_anim->Class == CLASS_PERSON
+            && p_anim->Genus.Person->InCar == THING_NUMBER(p_car)
+            && p_anim->SubState == SUB_STATE_ENTERING_VEHICLE;
+
+        if (!still_entering) {
+            vp->Flags &= ~FLAG_VEH_ANIMATING;
+            // If the animator was interrupted before reaching the seat, detach
+            // it so it's cleanly "out" (no stale InCar on a killed/recoiled
+            // person). A person who actually made it in is INSIDE/driving and
+            // is left untouched.
+            if (p_anim
+                && p_anim->Class == CLASS_PERSON
+                && p_anim->Genus.Person->InCar == THING_NUMBER(p_car)
+                && p_anim->SubState != SUB_STATE_INSIDE_VEHICLE
+                && !(p_anim->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
+                p_anim->Genus.Person->InCar = 0;
+                p_anim->Genus.Person->Flags &= ~(FLAG_PERSON_DRIVING | FLAG_PERSON_PASSENGER);
+            }
+            vp->Animator = 0;
+        }
     }
 
     make_car_matrix(vp);
