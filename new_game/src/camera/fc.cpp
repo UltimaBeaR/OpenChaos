@@ -920,6 +920,16 @@ void FC_process()
     static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
     static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
 
+    // Aim (over-the-shoulder / first-person) entry ramp, per cam. On entry the
+    // camera EASES into the aim pose (gradual zoom like the gamepad), then the
+    // ease RATE ramps up to a full snap so sustained mouse-look is responsive.
+    // Ramping the rate (instead of an ease→snap switch) means there is no
+    // residual jump at the hand-off — the rate is already ~snap by the time the
+    // delta is tiny. s_prev_aim: was the camera in aim last tick? s_aim_ramp:
+    // 0 (full ease, 0.25/tick) → 256 (full snap), Q8. Reset on aim exit.
+    static UBYTE s_prev_aim[FC_MAX_CAMS] = {};
+    static SLONG s_aim_ramp[FC_MAX_CAMS] = {};
+
     const bool cutscene_active = (EWAY_cam_active != 0) || PLAYCUTS_playing;
 
     for (cam = 0; cam < FC_MAX_CAMS; cam++) {
@@ -1844,7 +1854,37 @@ void FC_process()
         dy = fc->want_y - fc->y;
         dz = fc->want_z - fc->z;
 
-        if (QDIST3(abs(dx), abs(dy), abs(dz)) > 0x800) {
+        // Aim pose (toonear with the 0x90000 sentinel — distinct from
+        // wall-collision toonear). On entry s_aim_ramp starts at 0 (ease rate
+        // 0.25/tick = gradual zoom, like the gamepad) and climbs to 256 (snap),
+        // so the camera glides into the pose and then mouse-look is responsive,
+        // with no residual jump at the hand-off. AUTO ignores this (always
+        // smooth via its own path below).
+        constexpr SLONG AIM_RAMP_STEP    = 22;  // ~12 ticks ease → snap
+        constexpr SLONG AIM_RATE_BASE_Q8 = 64;  // 0.25/tick at entry start
+        const bool aim_now = (fc->toonear && fc->toonear_dist == 0x90000);
+        if (!aim_now || !s_prev_aim[cam]) {
+            s_aim_ramp[cam] = 0;
+        } else if (s_aim_ramp[cam] < 256) {
+            s_aim_ramp[cam] += AIM_RAMP_STEP;
+            if (s_aim_ramp[cam] > 256) {
+                s_aim_ramp[cam] = 256;
+            }
+        }
+        s_prev_aim[cam] = aim_now ? 1 : 0;
+        // Per-tick ease fraction (Q8): AIM_RATE_BASE_Q8 (0.25) → 256 (1.0=snap).
+        const SLONG aim_rate_q8 = AIM_RATE_BASE_Q8 + s_aim_ramp[cam] * (256 - AIM_RATE_BASE_Q8) / 256;
+
+        if (camera_is_manual() && aim_now) {
+            // Manual aim: ease position toward the over-the-shoulder pose at the
+            // aim ramp rate (gradual on entry → snap once ramped up), in
+            // lockstep with the angle below. No 0x800 dead-zone, so slow
+            // mouse-look doesn't stutter. Character is rooted while aiming, so
+            // there's no translation being smoothed away here.
+            fc->x += (SLONG)(((int64_t)dx * aim_rate_q8) >> 8);
+            fc->z += (SLONG)(((int64_t)dz * aim_rate_q8) >> 8);
+            fc->y += (SLONG)(((int64_t)dy * aim_rate_q8) >> 8);
+        } else if (QDIST3(abs(dx), abs(dy), abs(dz)) > 0x800) {
             // Position smoothing — camera following the character.
             // ALWAYS on in BOTH modes (rubberness does NOT scale this):
             // even in MANUAL the camera should smoothly follow jumps,
@@ -1889,7 +1929,23 @@ void FC_process()
         // the programmatic entry rotation eases the same way it does on the
         // gamepad (AUTO). Without this the snap makes the lock-rotation look
         // abrupt on KBM.
-        if (camera_is_manual() && !entering_vehicle_scene) {
+        if (camera_is_manual() && aim_now) {
+            // Manual aim: ease angle at the aim ramp rate, in lockstep with the
+            // position above (gradual on entry → snap once ramped). Wrap-safe
+            // signed deltas, then scale by the Q8 rate.
+            SLONG dyaw   = fc->want_yaw   - fc->yaw;
+            SLONG dpitch = fc->want_pitch - fc->pitch;
+            SLONG droll  = fc->want_roll  - fc->roll;
+            dyaw   &= (2048 << 8) - 1;
+            dpitch &= (2048 << 8) - 1;
+            droll  &= (2048 << 8) - 1;
+            if (dyaw   > (1024 << 8)) dyaw   -= (2048 << 8);
+            if (dpitch > (1024 << 8)) dpitch -= (2048 << 8);
+            if (droll  > (1024 << 8)) droll  -= (2048 << 8);
+            fc->yaw   += (SLONG)(((int64_t)dyaw   * aim_rate_q8) >> 8);
+            fc->pitch += (SLONG)(((int64_t)dpitch * aim_rate_q8) >> 8);
+            fc->roll  += (SLONG)(((int64_t)droll  * aim_rate_q8) >> 8);
+        } else if (camera_is_manual() && !entering_vehicle_scene) {
             fc->yaw   = fc->want_yaw;
             fc->pitch = fc->want_pitch;
             fc->roll  = fc->want_roll;

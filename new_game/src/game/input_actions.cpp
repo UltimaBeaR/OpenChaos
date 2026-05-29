@@ -46,6 +46,7 @@
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active (aim mouse-look)
 #include "game/game_globals.h"
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/console/console.h" // CONSOLE_text_at
@@ -4610,6 +4611,32 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                 if (input_key_held(ACT_FOOT_AIM_LOOK_RIGHT_KKEY)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
+            }
+
+            // Mouse-look in aim (KBM): mouse motion rotates the character
+            // (yaw) and pitches the look — the mouse counterpart of the right
+            // stick above. CONSUMING the mouse here also drains the relative-
+            // motion accumulator so it can't pile up while aiming and burst out
+            // as a camera jerk the moment aim is released (the non-aim camera
+            // mouse-orbit in fc.cpp is gated off while toonear). The camera
+            // then follows the new facing via FC_position_for_lookaround + the
+            // camera-mode angle smoothing — snappy in MANUAL, rubberness-
+            // smoothed in AUTO — so it matches normal mouse-look.
+            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE
+                && input_gameplay_enabled() && mouse_capture_is_active()) {
+                SLONG mdx = 0, mdy = 0;
+                input_mouse_consume_rel(&mdx, &mdy);
+                // Starting sensitivities (Q8 game-units per pixel) — tune by
+                // feel; ~matches the non-aim mouse-orbit yaw scale (~0.8 u/px).
+                constexpr SLONG MOUSE_AIM_YAW_Q8   = 205;
+                constexpr SLONG MOUSE_AIM_PITCH_Q8 = 96;
+                // Yaw: mouse right → turn right (Angle decreases) — same sign
+                // as the right stick above.
+                p_person->Draw.Tweened->Angle =
+                    (p_person->Draw.Tweened->Angle - (mdx * MOUSE_AIM_YAW_Q8 / 256)) & 2047;
+                // Pitch: mouse up → look up (non-inverted). look_pitch
+                // increases = look up (matches the stick).
+                look_pitch += (mdy * MOUSE_AIM_PITCH_Q8 / 256);
             }
         }
 
