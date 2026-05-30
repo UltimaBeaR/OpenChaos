@@ -411,6 +411,12 @@ SLONG GAMEMENU_process()
 
                 case X_ABANDON_GAME:
                     GAMEMENU_initialise(GAMEMENU_MENU_TYPE_SURE);
+                    // Default the confirmation to "Okay" (first item) instead of
+                    // the selection carried over from the Abandon entry, which
+                    // clamps onto "Cancel". Matches the main-menu quit prompt,
+                    // which also defaults to Okay. (Menu→menu transitions don't
+                    // reset the selection, so set it explicitly here.)
+                    GAMEMENU_menu_selection = 1;
                     break;
 
                 case X_OKAY:
