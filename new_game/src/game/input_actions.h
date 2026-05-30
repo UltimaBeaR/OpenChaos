@@ -87,6 +87,17 @@ struct Thing;
 #define INPUT_MASK_STEP_LEFT (1 << INPUT_STEP_LEFT)
 // uc_orig: INPUT_MASK_STEP_RIGHT (fallen/Headers/interfac.h)
 #define INPUT_MASK_STEP_RIGHT (1 << INPUT_STEP_RIGHT)
+
+// OpenChaos: SPRINT and STEALTH split off the old single ACTION button onto
+// their own buttons (see act_foot.h). They need their own bits in the per-tick
+// Input word (so the action dispatch and replays stay deterministic), but bits
+// 18-31 are the packed analog stick and there are no spare button bits — except
+// STEP_LEFT/STEP_RIGHT (the sidestep inputs), which are dead in the WASD+mouse
+// scheme (only commented-out references remain). Reuse those two bits.
+#define INPUT_SPRINT       INPUT_STEP_LEFT
+#define INPUT_STEALTH      INPUT_STEP_RIGHT
+#define INPUT_MASK_SPRINT  INPUT_MASK_STEP_LEFT
+#define INPUT_MASK_STEALTH INPUT_MASK_STEP_RIGHT
 // Covers only the 18 digital button bits (0-17); bits 18-31 hold analog axis data.
 // uc_orig: INPUT_MASK_ALL_BUTTONS (fallen/Headers/interfac.h)
 #define INPUT_MASK_ALL_BUTTONS (0x3ffff)

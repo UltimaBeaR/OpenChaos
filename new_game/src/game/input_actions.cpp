@@ -1400,45 +1400,12 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         }
     }
 
-    if (p_thing->State == STATE_IDLE || p_thing->State == STATE_MOVEING) {
-
-        if (p_thing->State == STATE_IDLE || p_thing->State == STATE_GUN) {
-            //
-            // failed to do any of the other stuff (pickup/flick switch/enter car/...), so croutch
-            //
-            switch (p_thing->SubState) {
-            case 0:
-                set_person_croutch(p_thing);
-                return 0; //  we need to hold this down so dont use up the action button //INPUT_MASK_ACTION;
-                break;
-            case SUB_STATE_IDLE_CROUTCH:
-            case SUB_STATE_IDLE_CROUTCHING:
-                return (0);
-                break;
-            }
-        }
-
-        if (p_thing->State == STATE_MOVEING) {
-            //
-            // failed to do any of the other stuff (pickup/flick switch/enter car/...), so croutch
-            //
-            switch (p_thing->SubState) {
-            case SUB_STATE_RUNNING:
-                if ((p_thing->Genus.Person->Stamina > 3) && (p_thing->Genus.Person->PersonType != PERSON_ROPER)) {
-                    p_thing->Genus.Person->Mode = PERSON_MODE_SPRINT;
-                    return (0);
-                }
-                break;
-            case SUB_STATE_WALKING:
-                p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
-                break;
-            }
-        }
-    } else if (p_thing->State == STATE_GUN) {
-        set_person_croutch(p_thing);
-        return (0);
-    }
-
+    // OpenChaos: the old sprint (moving → PERSON_MODE_SPRINT) and stealth-crouch
+    // (idle/gun → set_person_croutch) fallbacks used to live here, so the single
+    // ACTION button did all three. They were split onto their own buttons and now
+    // live in the central input dispatch (see INPUT_MASK_SPRINT / INPUT_MASK_-
+    // STEALTH). do_an_action is now purely the interaction multitool: if none of
+    // the interactions above matched, it does nothing.
     return (0); // INPUT_MASK_ACTION);
 }
 
@@ -2921,22 +2888,52 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
         }
     }
 
+    // Min stamina (Stamina units) to START a sprint — original threshold.
+    constexpr SLONG PERSON_SPRINT_MIN_STAMINA = 3;
+
+    // USE — interaction multitool (Square / F). The old sprint and crouch
+    // fallbacks that used to live at the tail of do_an_action are split out onto
+    // their own buttons below, so do_an_action is now pure "interact".
     if (input & INPUT_MASK_ACTION) {
         processed |= do_an_action(p_person, input);
         input &= ~processed;
+    }
 
-    } else {
-
-        {
-            if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
+    // SPRINT (Circle / Shift) — hold while running to sprint; release drops back
+    // to a normal run.
+    if (input & INPUT_MASK_SPRINT) {
+        if (p_person->State == STATE_MOVEING) {
+            if (p_person->SubState == SUB_STATE_RUNNING) {
+                if (p_person->Genus.Person->Stamina > PERSON_SPRINT_MIN_STAMINA
+                    && p_person->Genus.Person->PersonType != PERSON_ROPER)
+                    p_person->Genus.Person->Mode = PERSON_MODE_SPRINT;
+            } else if (p_person->SubState == SUB_STATE_WALKING) {
                 p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+            }
         }
+    } else {
+        if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
+            p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+    }
 
+    // STEALTH (Triangle / C) — hold to crouch (stealth pose); release to stand.
+    // Pure crouch: arrest stays on the USE button (do_an_action), so crouching
+    // next to a suspect no longer arrests them.
+    if (input & INPUT_MASK_STEALTH) {
+        if (p_person->State == STATE_IDLE && p_person->SubState == 0)
+            set_person_croutch(p_person);
+        else if (p_person->State == STATE_GUN)
+            set_person_croutch(p_person);
+    } else {
         if (p_person->SubState == SUB_STATE_IDLE_CROUTCHING) {
-            MSG_add("no action so stand up");
+            MSG_add("no stealth so stand up");
             set_person_idle_uncroutch(p_person);
         }
     }
+
+    // SPRINT/STEALTH were handled directly above — drop their bits so the action
+    // tree below (find_best_action_from_tree) never sees them.
+    input &= ~(INPUT_MASK_SPRINT | INPUT_MASK_STEALTH);
 
     if (p_person->State == STATE_CARRY) {
         if (p_person->SubState == SUB_STATE_PICKUP_CARRY || p_person->SubState == SUB_STATE_DROP_CARRY) {
@@ -4196,7 +4193,7 @@ ULONG get_hardware_input(UWORD type)
                 // Triangle. INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while
                 // driving the triangle press emits INPUT_MASK_KICK to flip
                 // the siren / lights. INPUT_MASK_CANCEL (widget-UI back-out)
-                // now comes from Circle (see ACT_FOOT_ACTION_GBTN block below)
+                // now comes from Circle (see ACT_FOOT_SPRINT_GBTN block below)
                 // — modern PlayStation convention: Cross confirms, Circle cancels.
                 if (input_btn_held(ACT_CAR_SIREN_GBTN)) {
                     Thing* p_darci = NET_PERSON(0);
@@ -4332,19 +4329,31 @@ ULONG get_hardware_input(UWORD type)
                     }
                 }
 
-                // Circle / B — ACTION (interact / get-in-or-out of car / pick
-                // up items) AND widget-UI CANCEL (back-out of in-game dialogs
-                // like the form_leave_map "Leave area?" prompt). Fires both on
-                // foot and while driving (the get-out-of-car flow consumes
-                // ACTION). No `!driving` gate here: an L2-bound ACTION couldn't
-                // coexist with the in-car brake (every brake tap would fire
-                // ACTION mid-drive), but Circle doesn't double as a vehicle
-                // control, so it can fire freely. INPUT_MASK_CANCEL is read
-                // by widget.cpp::FORM_Process to dismiss in-game forms; on
-                // foot it harmlessly coexists with ACTION (no widget dialog
-                // → mask is ignored).
-                if (input_btn_held(ACT_FOOT_ACTION_GBTN)) {
-                    input |= INPUT_MASK_ACTION | INPUT_MASK_CANCEL;
+                // Square / X — USE (the interaction multitool: get-in-or-out of
+                // car, pick up, search, arrest, levers, ...). Fires both on foot
+                // and while driving (the get-out-of-car flow consumes it).
+                if (input_btn_held(ACT_FOOT_USE_GBTN)) {
+                    input |= INPUT_MASK_ACTION;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // Circle / B — SPRINT (hold while running) AND widget-UI CANCEL
+                // (back-out of in-game dialogs like the form_leave_map "Leave
+                // area?" prompt). CANCEL stays on Circle (the PlayStation "back"
+                // button); INPUT_MASK_CANCEL is read by widget.cpp::FORM_Process
+                // to dismiss in-game forms and harmlessly coexists with SPRINT on
+                // foot (no widget dialog → mask is ignored).
+                if (input_btn_held(ACT_FOOT_SPRINT_GBTN)) {
+                    input |= INPUT_MASK_SPRINT | INPUT_MASK_CANCEL;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // Triangle / Y — STEALTH (hold to crouch). On-foot only behaviour;
+                // while driving Triangle is the car siren (separate act_car map),
+                // and the dispatch ignores STEALTH unless idle/gun, so setting the
+                // bit here is harmless in the car.
+                if (input_btn_held(ACT_FOOT_STEALTH_GBTN)) {
+                    input |= INPUT_MASK_STEALTH;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
@@ -4569,9 +4578,14 @@ ULONG get_hardware_input(UWORD type)
         if (input_mouse_btn_held(ACT_FOOT_KICK_MBTN))
             input |= INPUT_MASK_KICK;
 
-        if (input_key_held(ACT_FOOT_ACTION_KKEY)) {
+        // F = USE (interaction multitool), Shift = SPRINT (hold while running),
+        // C = STEALTH (hold to crouch). See act_foot.h.
+        if (input_key_held(ACT_FOOT_USE_KKEY))
             input |= INPUT_MASK_ACTION;
-        }
+        if (input_key_held(ACT_FOOT_SPRINT_KKEY))
+            input |= INPUT_MASK_SPRINT;
+        if (input_key_held(ACT_FOOT_STEALTH_KKEY))
+            input |= INPUT_MASK_STEALTH;
     }
 
     if (input) {

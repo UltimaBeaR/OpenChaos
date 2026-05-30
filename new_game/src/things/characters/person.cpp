@@ -5809,13 +5809,12 @@ void set_person_arrest(Thing* p_person, SLONG s_index)
 void set_person_croutch(Thing* p_person)
 {
     SLONG anim;
-    SLONG index;
 
-    if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
-        set_person_arrest(p_person, index);
-        return;
-    }
-
+    // OpenChaos: arrest used to live here too (crouch next to a suspect →
+    // arrest), but it only ever fired for the player and was already unreachable
+    // via the action button (do_an_action handles arrest first and returns). Now
+    // that stealth-crouch is its own button, arrest must NOT ride along with it —
+    // it stays solely on the USE button (do_an_action). Plain crouch only.
     set_generic_person_state_function(p_person, STATE_IDLE);
     if (person_has_gun_out(p_person)) {
         if (person_holding_2handed(p_person)) {

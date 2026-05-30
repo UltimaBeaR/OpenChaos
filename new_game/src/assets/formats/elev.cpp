@@ -1973,7 +1973,9 @@ SLONG ELEV_game_init(
     input_key_force_release(ACT_FOOT_INVENTORY_KKEY);
     // PUNCH / KICK / AIM moved to mouse buttons — keyboard force_release
     // calls removed. Mouse-button equivalents to be added in step 5.
-    input_key_force_release(ACT_FOOT_ACTION_KKEY);
+    input_key_force_release(ACT_FOOT_SPRINT_KKEY);
+    input_key_force_release(ACT_FOOT_STEALTH_KKEY);
+    input_key_force_release(ACT_FOOT_USE_KKEY);
     input_key_force_release(ACT_BANG_SHOW_VERSION_KKEY);
     input_key_force_release(ACT_FOOT_MOVE_LEFT_KKEY);
     input_key_force_release(ACT_FOOT_MOVE_RIGHT_KKEY);

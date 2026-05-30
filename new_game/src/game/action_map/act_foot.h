@@ -74,17 +74,24 @@ constexpr int ACT_FOOT_MOVE_Y_VAXIS = VAXIS_Y;
 // PUNCH: LMB (mouse) + analog R2 trigger via weapon_feel. KKEY binding
 // removed (was Z) — punch is mouse-only on keyboard layout.
 // KICK: RMB (mouse) + gamepad R1. KKEY binding removed (was X).
-// ACTION (interact / get in or out of vehicle / pick up / sprint hold):
-// keyboard Left Shift + Circle/B. Shift hold while moving = sprint
-// (same semantic as holding Circle on gamepad).
+// The old single ACTION button was split into three (OpenChaos):
+//   SPRINT  — hold while running to sprint. Keyboard Left Shift / gamepad Circle.
+//   STEALTH — hold to crouch (stealth pose). Keyboard C / gamepad Triangle.
+//   USE     — the interaction multitool (get in/out of vehicle, pick up, search,
+//             arrest, levers, grapple, ...). Keyboard F / gamepad Square.
+// SPRINT keeps Circle's widget-CANCEL role (back out of in-game forms).
 // JUMP: keyboard SPACE + Cross/A.
 
-constexpr int ACT_FOOT_ACTION_KKEY = KKEY_LEFT_SHIFT;
-constexpr int ACT_FOOT_JUMP_KKEY   = KKEY_SPACE;
+constexpr int ACT_FOOT_SPRINT_KKEY  = KKEY_LEFT_SHIFT;
+constexpr int ACT_FOOT_STEALTH_KKEY = KKEY_C;
+constexpr int ACT_FOOT_USE_KKEY     = KKEY_F;
+constexpr int ACT_FOOT_JUMP_KKEY    = KKEY_SPACE;
 
-constexpr int ACT_FOOT_JUMP_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
-constexpr int ACT_FOOT_ACTION_GBTN = GBTN_EAST;  // DS: Circle, Xbox: B
-constexpr int ACT_FOOT_KICK_GBTN   = GBTN_R1;    // DS: R1, Xbox: RB
+constexpr int ACT_FOOT_JUMP_GBTN    = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_FOOT_SPRINT_GBTN  = GBTN_EAST;  // DS: Circle, Xbox: B
+constexpr int ACT_FOOT_STEALTH_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
+constexpr int ACT_FOOT_USE_GBTN     = GBTN_WEST;  // DS: Square, Xbox: X
+constexpr int ACT_FOOT_KICK_GBTN    = GBTN_R1;    // DS: R1, Xbox: RB
 
 // Analog R2 trigger drives the punch / shoot path (weapon_feel). Read as
 // input_trigger_raw(GTRIG_R2) inside get_hardware_input.
