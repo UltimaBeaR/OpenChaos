@@ -1614,9 +1614,9 @@ static int l2_regime = L2_REGIME_NONE;
 // the ✕ backflip, which uses the FROZEN camera + character frame snapshotted at
 // L2-press (g_l2_tap_cam_snap / g_l2_tap_char_snap). Reset to 0 on L2 release.
 //
-// L2_ROLL_WINDOW_TICKS = 6 ticks at 20 Hz ≈ 300 ms — the longest an L2 press
+// L2_ROLL_WINDOW_TICKS = 10 ticks at 20 Hz ≈ 500 ms — the longest an L2 press
 // can last and still count as a tap; a longer press is treated as a hold.
-static constexpr SLONG L2_ROLL_WINDOW_TICKS = 6; // ~300 ms at 20 Hz
+static constexpr SLONG L2_ROLL_WINDOW_TICKS = 10; // ~500 ms at 20 Hz
 static SLONG g_l2_engage_window_ticks = 0;
 
 // L2 ROLL request. Set by the L2 machine (get_hardware_input) on the L2 release
@@ -1631,14 +1631,34 @@ static SLONG g_l2_engage_window_ticks = 0;
 //                           facing-512 for right; see SUB_STATE_FLIPING), so the
 //                           dispatch snaps facing to target∓512 to send the
 //                           motion toward target. The two candidates are 180°
-//                           apart, so the side is chosen to keep the character's
-//                           toward/away-from-camera orientation across the roll.
+//                           apart; the side is chosen to keep the character's
+//                           toward/away-from-camera orientation, falling back to
+//                           the last movement near the camera axis (see
+//                           compute_l2_roll_dir).
 // Deliberately NOT routed through INPUT_MASK_JUMP: the request only ever fires a
 // flip in a jump-capable state and is dropped otherwise, so L2 can never produce
 // an actual jump. Reset to 0 every tick at the top of the L2 machine.
 static SLONG g_l2_roll_request = 0;
 static SLONG g_l2_roll_target_angle = 0;
 static SLONG g_l2_roll_flip_dir = 0;
+
+// Last steering side: -1 = left, +1 = right, 0 = none. Two sources feed the same
+// sign so keyboard and mouse stay consistent (read by compute_l2_roll_dir to
+// break the near-camera-axis tie):
+//   1. Lateral stick component (A/D, W+D, gamepad tilt) — direct intent, holds
+//      through release. It also SUPPRESSES source 2 for a short while, so the
+//      "return to straight" turn after releasing a key (the character rotating
+//      back to forward) doesn't flip the sign the wrong way.
+//   2. The character's actual TURN (world-frame facing rotation) — captures
+//      camera/mouse steering while running pure-forward (the character turns to
+//      follow the camera even though the stick stays pure-forward). Used only
+//      when there's been no recent lateral input.
+static SLONG g_l2_last_side_sign = 0;
+static constexpr SLONG L2_LEAN_MIN_RAW = 8192;     // clear lateral lean (raw camera-frame X, ±32768)
+// Net accumulated facing change (2048 = 360°) that registers a turn — accumulating
+// per-tick deltas catches slow, gradual mouse steering that never spikes in one tick.
+static constexpr SLONG L2_TURN_ACCUM_THRESH = 32;  // ≈ 5.6° net turn
+static constexpr SLONG L2_LATERAL_HOLD_TICKS = 15; // suppress the turn source this long after a lateral input
 
 // Snapshot of camera and character angle at the moment L2 transitioned
 // from not-held → held. Used by the tap-window tactical action path so
@@ -1677,9 +1697,17 @@ static SLONG l2_angle_abs_diff(SLONG a, SLONG b)
 // any scale). Fills *out_target with the WORLD direction the roll should travel
 // (stick angle + camera yaw) and *out_flip with the flip animation side
 // (0 = left, 1 = right). The flip moves perpendicular to facing, so the caller
-// snaps facing to out_target∓512; the two candidate facings are 180° apart, so
-// the side is chosen to KEEP p_person's toward/away-from-camera orientation
-// across the roll. Returns false if the stick is centred (no direction).
+// snaps facing to out_target∓512; the two candidate facings are 180° apart.
+//
+// Flip-side choice: normally pick it to KEEP p_person's toward/away-from-camera
+// orientation across the roll. BUT when the roll travels nearly straight
+// toward/away from the camera (target within ROLL_FLIP_CAM_AXIS_BUFFER of the
+// camera view axis), both candidate facings sit symmetrically on the screen-left
+// / screen-right sides — toward/away can't disambiguate, and a fixed pick looks
+// wrong. In that buffer zone fall back to the last left/right movement
+// (g_l2_last_side_sign): left input → left flip, right input → right flip.
+//
+// Returns false if the stick is centred (no direction).
 static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
                                 SLONG* out_target, SLONG* out_flip)
 {
@@ -1697,8 +1725,165 @@ static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
         l2_angle_abs_diff(face_left, cam) < l2_angle_abs_diff(face_right, cam);
     *out_target = target;
     // XNOR: keep away when facing away, keep toward when facing toward.
-    *out_flip = (faces_away == left_is_away) ? 0 : 1;
+    SLONG flip = (faces_away == left_is_away) ? 0 : 1;
+
+    // Buffer zone around the camera view axis (roll ~straight toward/away from
+    // the camera): the away/toward test is ambiguous there, so disambiguate by
+    // the last left/right movement instead. ~20° (2048 = 360°).
+    constexpr SLONG ROLL_FLIP_CAM_AXIS_BUFFER = 114; // ≈ 20°
+    const SLONG roll_vs_cam = l2_angle_abs_diff(target, cam); // 0 = away, 1024 = toward
+    const bool near_cam_axis =
+        (roll_vs_cam < ROLL_FLIP_CAM_AXIS_BUFFER)
+        || (roll_vs_cam > 1024 - ROLL_FLIP_CAM_AXIS_BUFFER);
+    if (near_cam_axis && g_l2_last_side_sign != 0)
+        flip = (g_l2_last_side_sign < 0) ? 1 : 0; // inverted inside the buffer (by feel)
+
+    *out_flip = flip;
     return true;
+}
+
+// Shared L2 / Ctrl tactical-mode machine: TAP-RELEASE ROLL + HOLD BACK-WALK.
+// Driven from a single trigger-engaged flag plus the camera-frame stick offset
+// (dx_c = right+, dy_c = back+; stick_in_deadzone = stick centred). Called once
+// per physics tick by whichever input device is active — gamepad (L2 + analog
+// stick) or keyboard (Ctrl + WASD-emulated stick) — so both share identical
+// behaviour and state. p_pc = the player character (NET_PERSON(0)).
+//
+// Outputs (file-scope): g_l2_roll_request/_target_angle/_flip_dir (the roll,
+// fired by the dispatch in apply_button_input / _fight), l2_regime + m_bForceWalk
+// (the back-walk, applied in player_turn_left_right_analogue), g_l2_is_held, and
+// the tap window + snapshots (read by the ✕ backflip path).
+static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
+                                bool stick_in_deadzone, Thing* p_pc)
+{
+    static bool prev_engaged = false;
+    const bool was_engaged = prev_engaged;
+    prev_engaged = engaged;
+
+    // One-shot roll request: cleared every tick; set below only on the exact
+    // release tick of a quick tap with the stick deflected.
+    g_l2_roll_request = 0;
+
+    // Mirror engaged state for external readers (camera get-behind gate, etc.).
+    g_l2_is_held = engaged;
+
+    // Track the last steering side (g_l2_last_side_sign) from two sources — see
+    // that global's comment for the full rationale. Source 1 is the direct
+    // lateral stick input; source 2 is the character's actual turn (camera/mouse
+    // steering), skipped briefly after lateral input and while flipping so the
+    // return-to-straight turn / the roll's own facing snap don't corrupt it.
+    // (+angle = char's left, see SUB_STATE_FLIPING in person.cpp.)
+    {
+        static SLONG prev_face = -1;
+        static SLONG turn_accum = 0;
+        static SLONG lateral_hold = 0;
+        if (stick_in_deadzone) {
+            // Not moving → forget everything.
+            g_l2_last_side_sign = 0;
+            turn_accum = 0;
+            lateral_hold = 0;
+            prev_face = -1;
+        } else {
+            // Source 1: lateral stick component (direct, holds through release).
+            if (abs(dx_c) > L2_LEAN_MIN_RAW) {
+                g_l2_last_side_sign = (dx_c < 0) ? -1 : +1;
+                lateral_hold = L2_LATERAL_HOLD_TICKS;
+            } else if (lateral_hold > 0) {
+                --lateral_hold;
+            }
+
+            // Source 2: the character's actual turn (camera/mouse steering),
+            // only when no recent lateral input (so the post-release return turn
+            // doesn't flip the sign).
+            if (lateral_hold == 0 && p_pc && p_pc->Draw.Tweened
+                && p_pc->SubState != SUB_STATE_FLIPING) {
+                const SLONG face = p_pc->Draw.Tweened->Angle & 2047;
+                if (prev_face >= 0) {
+                    SLONG d = (face - prev_face) & 2047;
+                    if (d > 1024)
+                        d -= 2048; // signed turn this tick, [-1024, 1024]
+                    turn_accum += d;
+                    // Register a side once the NET turn passes the threshold, then
+                    // reset (gradual steering accumulates; a reversal cancels).
+                    if (turn_accum > L2_TURN_ACCUM_THRESH) {
+                        g_l2_last_side_sign = -1; // net turn left
+                        turn_accum = 0;
+                    } else if (turn_accum < -L2_TURN_ACCUM_THRESH) {
+                        g_l2_last_side_sign = +1; // net turn right
+                        turn_accum = 0;
+                    }
+                }
+                prev_face = face;
+            } else {
+                prev_face = -1; // re-baseline (skip during the lateral-hold / flip)
+                turn_accum = 0;
+            }
+        }
+    }
+
+    // Tap window. Opens on the engage edge (snapshotting the camera/character
+    // frame for the ✕ backflip path), closes on release, ticks down otherwise.
+    // Capture its pre-update value first — the update zeroes it on release, and
+    // the tap-vs-hold test below needs to know it was still open at release.
+    const SLONG window_before = g_l2_engage_window_ticks;
+    if (!was_engaged && engaged) {
+        g_l2_engage_window_ticks = L2_ROLL_WINDOW_TICKS;
+        g_l2_tap_cam_snap = get_camera_angle();
+        if (p_pc && p_pc->Draw.Tweened)
+            g_l2_tap_char_snap = p_pc->Draw.Tweened->Angle;
+        else
+            g_l2_tap_char_snap = g_l2_tap_cam_snap;
+    } else if (!engaged) {
+        g_l2_engage_window_ticks = 0;
+    } else if (g_l2_engage_window_ticks > 0) {
+        --g_l2_engage_window_ticks;
+    }
+
+    // Char-frame stick (camera-considered) for the back-zone test.
+    SLONG dx_p = dx_c, dy_p = dy_c;
+    if (p_pc && p_pc->Draw.Tweened)
+        stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
+            p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
+    const bool stick_in_back_cone = (dy_p > 0);
+
+    // TAP-RELEASE ROLL: on the release edge, if it was a quick tap (window still
+    // open) and the stick is deflected, roll toward the stick's world direction.
+    if (was_engaged && !engaged && window_before > 0 && !stick_in_deadzone) {
+        SLONG t, f;
+        if (compute_l2_roll_dir(p_pc, dx_c, dy_c, &t, &f)) {
+            g_l2_roll_target_angle = t;
+            g_l2_roll_flip_dir = f;
+            g_l2_roll_request = 1;
+        }
+    }
+
+    // HOLD back-walk state machine. Engaged while the trigger is HELD; the
+    // tap-release roll above is independent of it.
+    //  - just engaged → ARMED (await a deflection).
+    //  - ARMED + deflection into the back zone (rear semicircle, dy_p > 0)
+    //    → STICKY_BACK (camera-relative back-walk).
+    //  - ARMED + any other deflection → STICKY_PASS: ignore the trigger, normal
+    //    movement.
+    //  - either sticky mode re-arms when the stick re-centres.
+    //  - release ends everything.
+    enum { L2_OFF, L2_ARMED, L2_STICKY_BACK, L2_STICKY_PASS };
+    static int l2_state = L2_OFF;
+    if (!engaged)
+        l2_state = L2_OFF;
+    else if (!was_engaged)
+        l2_state = L2_ARMED;
+
+    if (l2_state == L2_ARMED && !stick_in_deadzone)
+        l2_state = stick_in_back_cone ? L2_STICKY_BACK : L2_STICKY_PASS;
+    else if ((l2_state == L2_STICKY_BACK || l2_state == L2_STICKY_PASS) && stick_in_deadzone)
+        l2_state = L2_ARMED;
+
+    if (l2_state == L2_STICKY_BACK) {
+        l2_regime = L2_REGIME_BACKWARD;
+        m_bForceWalk = UC_TRUE;
+    } else {
+        l2_regime = L2_REGIME_NONE;
+    }
 }
 
 
@@ -3991,139 +4176,29 @@ ULONG get_hardware_input(UWORD type)
                 // threshold constants below. l2_engaged is driven to false when
                 // input_trigger_raw returns 0 (no pad).
                 {
+                    // L2 analog trigger → engaged flag with hysteresis: engage at
+                    // the BOTTOM of travel (~88%), release on a short ease-up
+                    // (~78%) — same feel as the R2 bare-hand punch (weapon_feel
+                    // melee fire 225 / reset 200, raw 0..255). The shared
+                    // process_l2_tactical machine then does the rest, identically
+                    // to the keyboard Ctrl path. Operators mirror weapon_feel
+                    // (> fire / <= reset).
                     static bool l2_engaged = false;
-                    // l2_regime is a file-scope static (declared near
-                    // player_turn_left_right_analogue) so the analog turn
-                    // handler can read it for walk_back force-keep in
-                    // BACKWARD regime.
-
-                    // One-shot roll request: cleared every tick so a stale
-                    // request can never fire a delayed roll. Set below only on
-                    // the exact tick L2 is tapped-released with the stick deflected.
-                    g_l2_roll_request = 0;
-
                     const SLONG l2_raw = input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG);
-                    const bool l2_was_engaged = l2_engaged;
-                    // Engage at the BOTTOM of the trigger travel, not near the
-                    // top — the player presses L2 most of the way down for it to
-                    // register, and easing up a little releases it. Same feel and
-                    // mechanism as the R2 bare-hand punch (melee profile in
-                    // weapon_feel: fire 225 / reset 200, raw 0..255): a high fire
-                    // point ("almost at the end") with a short release stroke, so
-                    // a deliberate jam-to-the-bottom tap reads cleanly. Comparison
-                    // operators mirror weapon_feel (> fire / <= reset).
                     constexpr SLONG L2_ENGAGE_THRESHOLD  = 225; // ~88% — near end of travel
                     constexpr SLONG L2_RELEASE_THRESHOLD = 200; // ~78% — short release stroke
                     if (!l2_engaged && l2_raw > L2_ENGAGE_THRESHOLD)
                         l2_engaged = true;
                     else if (l2_engaged && l2_raw <= L2_RELEASE_THRESHOLD)
                         l2_engaged = false;
-                    // Mirror to the file-scope flag for external readers
-                    // (camera get-behind gate, etc.).
-                    g_l2_is_held = l2_engaged;
 
-                    // Window value BEFORE this tick's update — used on the L2
-                    // release edge below to tell a quick TAP (released while the
-                    // window was still open) from a HOLD. The update zeroes the
-                    // window on release, so capture it first.
-                    const SLONG l2_window_before = g_l2_engage_window_ticks;
-
-                    // Tap window — opens on L2 press transition, closes
-                    // on L2 release, ticks down naturally otherwise. On
-                    // open we snapshot the camera/character frame so the
-                    // tactical action path (apply_button_input) can
-                    // interpret stick + compute backflip target relative
-                    // to the frame the player committed to at L2-press,
-                    // not the live frame.
-                    if (!l2_was_engaged && l2_engaged) {
-                        g_l2_engage_window_ticks = L2_ROLL_WINDOW_TICKS;
-                        g_l2_tap_cam_snap = get_camera_angle();
-                        {
-                            Thing* p_pc = NET_PERSON(0);
-                            if (p_pc && p_pc->Draw.Tweened)
-                                g_l2_tap_char_snap = p_pc->Draw.Tweened->Angle;
-                            else
-                                g_l2_tap_char_snap = g_l2_tap_cam_snap; // identity fallback
-                        }
-                    } else if (!l2_engaged) {
-                        g_l2_engage_window_ticks = 0;
-                    } else if (g_l2_engage_window_ticks > 0) {
-                        --g_l2_engage_window_ticks;
-                    }
-
-                    // Stick vectors: raw (controller frame) for the centre /
-                    // deadzone test, and character-relative (camera+char
-                    // transform) for the back-cone test below.
+                    // Camera-frame stick offset for the shared machine.
                     const SLONG dx_c = axis_x - AXIS_CENTRE;
                     const SLONG dy_c = axis_y - AXIS_CENTRE;
                     const bool stick_in_deadzone =
                         (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
 
-                    SLONG dx_p = dx_c, dy_p = dy_c;
-                    {
-                        Thing* p_pc = NET_PERSON(0);
-                        if (p_pc && p_pc->Draw.Tweened)
-                            stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
-                                p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
-                    }
-                    // BACK zone (char frame, camera-considered): the whole rear
-                    // semicircle — any stick deflection with a backward component
-                    // (dy_p > 0). This is a 180° zone (±90° from straight back).
-                    const bool stick_in_back_cone = (dy_p > 0);
-
-                    // TAP-RELEASE ROLL. A quick L2 TAP (not a hold): on the L2
-                    // RELEASE edge, if the window was still open (a tap) and the
-                    // stick is deflected at all (any direction but centre), roll
-                    // toward the stick's WORLD direction — camera-considered and
-                    // independent of how the character rotated to follow the stick
-                    // (so "stick points there → roll there", not a fixed
-                    // left/right relative to the current facing).
-                    if (l2_was_engaged && !l2_engaged && l2_window_before > 0
-                        && !stick_in_deadzone) {
-                        SLONG t, f;
-                        if (compute_l2_roll_dir(NET_PERSON(0), dx_c, dy_c, &t, &f)) {
-                            g_l2_roll_target_angle = t;
-                            g_l2_roll_flip_dir = f;
-                            g_l2_roll_request = 1;
-                        }
-                    }
-
-                    // HOLD back-walk state machine — drives l2_regime for the
-                    // camera-relative walk-back. Engaged while L2 is HELD; the
-                    // tap-release roll above is independent of it.
-                    //  - L2 just pressed → ARMED (await a deflection).
-                    //  - ARMED + deflection INSIDE the back zone (rear semicircle,
-                    //    dy_p > 0) → STICKY_BACK (camera-relative back-walk).
-                    //  - ARMED + any other deflection → STICKY_PASS: ignore L2,
-                    //    pass through to default movement (the character runs).
-                    //  - Either sticky mode re-arms when the stick re-centres.
-                    //  - L2 release ends everything.
-                    // When NOT in STICKY_BACK, L2 does NOTHING to movement:
-                    // `input` is left untouched, so the character moves exactly as
-                    // if L2 were not held.
-                    enum { L2_OFF, L2_ARMED, L2_STICKY_BACK, L2_STICKY_PASS };
-                    static int l2_state = L2_OFF;
-                    if (!l2_engaged)
-                        l2_state = L2_OFF;
-                    else if (!l2_was_engaged)
-                        l2_state = L2_ARMED; // L2 just pressed → await a stick move
-
-                    if (l2_state == L2_ARMED && !stick_in_deadzone)
-                        l2_state = stick_in_back_cone ? L2_STICKY_BACK : L2_STICKY_PASS;
-                    else if ((l2_state == L2_STICKY_BACK || l2_state == L2_STICKY_PASS) && stick_in_deadzone)
-                        l2_state = L2_ARMED; // re-centred → re-arm
-
-                    if (l2_state == L2_STICKY_BACK) {
-                        l2_regime = L2_REGIME_BACKWARD;
-                        m_bForceWalk = UC_TRUE;
-                        // Camera-relative backing (player_relative stays 0):
-                        // walk_back entry/exit handled in
-                        // player_turn_left_right_analogue.
-                    } else {
-                        l2_regime = L2_REGIME_NONE;
-                        // ARMED / STICKY_PASS / OFF → leave input untouched
-                        // (normal movement).
-                    }
+                    process_l2_tactical(l2_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
                 }
 
                 if (input_btn_held(ACT_FOOT_JUMP_GBTN)) {
@@ -4434,6 +4509,23 @@ ULONG get_hardware_input(UWORD type)
             input |= WASD_AXIS_CENTRE_PACKED << 18;
             input |= WASD_AXIS_CENTRE_PACKED << 25;
             analogue = 0;
+        }
+
+        // Keyboard L2 equivalent — Ctrl + WASD drive the SAME tactical-mode
+        // machine as the gamepad's L2 + stick: tap Ctrl → roll toward the WASD
+        // direction, hold Ctrl → camera-relative back-walk. Gated on KBM being
+        // the active device so it never fights the gamepad path. WASD maps to a
+        // camera-frame stick offset; only the 8-way direction and "anything held"
+        // matter to the machine, so a fixed full deflection per held axis is fine.
+        if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            const bool ctrl_engaged = input_key_held(ACT_FOOT_TACTICAL_MODE_KKEY);
+            const SLONG kb_vx = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
+            const SLONG kb_vy = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+            constexpr SLONG KB_DEFLECTION = 32768; // full per-axis (well past deadzone)
+            const SLONG dx_c = kb_vx * KB_DEFLECTION;
+            const SLONG dy_c = kb_vy * KB_DEFLECTION;
+            const bool stick_in_deadzone = (kb_vx == 0 && kb_vy == 0);
+            process_l2_tactical(ctrl_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
         }
 
         // Tanky-arrow reference implementation — kept here commented in
