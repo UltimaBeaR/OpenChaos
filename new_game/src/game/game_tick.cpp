@@ -959,21 +959,51 @@ SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
 //             fist → bat → knife → fist, owned-only)
 // R3 cycle path is left untouched.
 
-// Returns the SpecialType currently equipped by Darci. Synthesises
-// SPECIAL_GUN for the pistol (which has no Thing in SpecialList — it sits
-// in FLAGS_HAS_GUN/FLAG_PERSON_GUN_OUT). Returns SPECIAL_NONE for an empty
-// hand (fist / nothing drawn). Used by the D-pad weapon select to detect
-// "already equipped" (no-op) and melee-toggle state.
-static SLONG dpad_current_weapon_type(Thing* darci)
+// The special Thing Darci is CURRENTLY using OR actively drawing (NULL when on
+// the pistol or fists). Prefers the committed SpecialUse; while a special draw
+// is mid-animation SpecialUse is still 0, so falls back to the in-progress draw
+// target (SpecialDraw during SubState DRAW_ITEM). Callers needing the item's
+// ammo/timer use this so the readout matches the just-selected weapon.
+//
+// Weapon draws are NOT instant: set_person_draw_item/set_person_draw_gun clear
+// the old SpecialUse/GUN_OUT immediately but only commit the NEW SpecialUse on
+// draw-animation frame 3 (GUN_OUT a frame or so after the draw starts). Reading
+// only the committed state therefore reports "fists" for the first frames of
+// every special draw — which makes the popup highlight (and the panel weapon
+// icon) flicker through the fist, breaks the "already in hand" no-op check
+// (re-pressing the same weapon restarts its draw), and corrupts the scroll
+// position (computed from a stale "fist"). SpecialDraw is set on the same frame
+// the weapon is selected, so consulting it removes all of that.
+Thing* CONTROLS_current_special_thing(Thing* darci)
 {
-    if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+    auto* p = darci->Genus.Person;
+    // SubState lives on the Thing; SpecialUse/SpecialDraw on the Person genus.
+    if (p->SpecialUse)
+        return TO_THING(p->SpecialUse);
+    if (darci->SubState == SUB_STATE_DRAW_ITEM && p->SpecialDraw)
+        return TO_THING(p->SpecialDraw);
+    return NULL;
+}
+
+// Returns the SpecialType Darci is CURRENTLY using OR actively drawing.
+// Synthesises SPECIAL_GUN for the pistol (which has no Thing in SpecialList —
+// it sits in FLAGS_HAS_GUN/FLAG_PERSON_GUN_OUT). Returns SPECIAL_NONE for an
+// empty hand (fist / nothing drawn). Single "current weapon" reader shared by
+// the equip path, the scroll, the popup highlight and the panel weapon icon.
+// See CONTROLS_current_special_thing for the in-progress-draw rationale.
+SLONG CONTROLS_current_weapon_type(Thing* darci)
+{
+    auto* p = darci->Genus.Person;
+
+    // Pistol: GUN_OUT commits ~instantly; DRAW_GUN covers the very first frame.
+    if ((p->Flags & FLAG_PERSON_GUN_OUT) || darci->SubState == SUB_STATE_DRAW_GUN)
         return SPECIAL_GUN;
-    if (!darci->Genus.Person->SpecialUse)
-        return SPECIAL_NONE;
-    Thing* p_su = TO_THING(darci->Genus.Person->SpecialUse);
-    if (!p_su)
-        return SPECIAL_NONE;
-    return p_su->Genus.Special->SpecialType;
+
+    Thing* p_special = CONTROLS_current_special_thing(darci);
+    if (p_special)
+        return p_special->Genus.Special->SpecialType;
+
+    return SPECIAL_NONE;
 }
 
 // Walks Darci's SpecialList counting drawable items (matching
@@ -1108,7 +1138,7 @@ static void controls_equip(Thing* darci, Thing* player, SLONG token)
 {
     controls_show_popup(darci, player);
 
-    if (token == dpad_current_weapon_type(darci))
+    if (token == CONTROLS_current_weapon_type(darci))
         return; // already in hand — popup feedback only
 
     if (token == SPECIAL_NONE) {
@@ -1135,7 +1165,7 @@ static void controls_dpad_select_melee(Thing* darci, Thing* player)
     constexpr SLONG cycle[] = { SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
     constexpr SLONG cycle_len = (SLONG)(sizeof(cycle) / sizeof(cycle[0]));
 
-    const SLONG cur = dpad_current_weapon_type(darci);
+    const SLONG cur = CONTROLS_current_weapon_type(darci);
     SLONG idx = -1; // position of the current weapon in the cycle (-1 = none)
     for (SLONG i = 0; i < cycle_len; ++i)
         if (cycle[i] == cur) { idx = i; break; }
@@ -1183,7 +1213,7 @@ static void weapon_arm_last(Thing* darci, Thing* player)
 // fists arm on PRESS, a held weapon disarms on RELEASE.)
 static void weapon_disarm_or_last(Thing* darci, Thing* player)
 {
-    if (dpad_current_weapon_type(darci) != SPECIAL_NONE)
+    if (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE)
         controls_equip(darci, player, SPECIAL_NONE); // disarm
     else
         weapon_arm_last(darci, player);
@@ -1201,7 +1231,7 @@ static void weapon_scroll(Thing* darci, Thing* player, SBYTE dir)
         return;
     }
 
-    SLONG idx = controls_weapon_list_index_of(darci, dpad_current_weapon_type(darci));
+    SLONG idx = controls_weapon_list_index_of(darci, CONTROLS_current_weapon_type(darci));
     if (idx < 0)
         idx = 0;
     idx += dir;
@@ -1665,7 +1695,7 @@ void process_controls(void)
             // Per-frame: remember the current non-fist weapon for the disarm/
             // re-arm toggle and the empty-hand scroll start.
             {
-                const SLONG cur_t = dpad_current_weapon_type(darci);
+                const SLONG cur_t = CONTROLS_current_weapon_type(darci);
                 if (cur_t != SPECIAL_NONE)
                     g_weapon_last_type = cur_t;
             }
@@ -1680,7 +1710,7 @@ void process_controls(void)
             static bool s_r3_press_armed = false; // had a weapon in hand at R3 press
             if (input_btn_just_pressed(ACT_FOOT_INVENTORY_GBTN)) {
                 s_r3_scroll_used = false;
-                s_r3_press_armed = (dpad_current_weapon_type(darci) != SPECIAL_NONE);
+                s_r3_press_armed = (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE);
                 if (s_r3_press_armed) {
                     // Weapon in hand: just show the popup (current highlighted).
                     // The disarm happens on RELEASE (so you can scroll instead).

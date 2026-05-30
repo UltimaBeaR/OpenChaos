@@ -253,11 +253,6 @@ void actually_fire_gun(Thing* p_person);
 // uc_orig: set_person_running_shoot (fallen/Source/Person.cpp)
 void set_person_running_shoot(Thing* p_person);
 
-// Returns the best special weapon type with ammo the person is carrying.
-// Returns SPECIAL_NONE if no viable weapon found.
-// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
-SLONG get_persons_best_weapon_with_ammo(Thing* p_person);
-
 // Returns true if NPC should hold fire due to an active cutscene.
 // uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
 SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target);

@@ -1351,13 +1351,11 @@ void PANEL_inventory(Thing* darci, Thing* player)
     // is the last entry; it's highlighted only when nothing is equipped.
     draw_count = (UBYTE)CONTROLS_build_weapon_list(darci, draw_list, (SLONG)sizeof(draw_list));
 
-    // Highlight follows the currently-equipped TYPE (SPECIAL_NONE == fist).
-    if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-        sel = SPECIAL_GUN;
-    else if (darci->Genus.Person->SpecialUse)
-        sel = TO_THING(darci->Genus.Person->SpecialUse)->Genus.Special->SpecialType;
-    else
-        sel = SPECIAL_NONE;
+    // Highlight follows the current/just-selected TYPE (SPECIAL_NONE == fist).
+    // CONTROLS_current_weapon_type accounts for the in-progress draw, so the
+    // highlight lands on the selected weapon immediately instead of flickering
+    // through the fist for the first frames of every draw animation.
+    sel = CONTROLS_current_weapon_type(darci);
 
     if (player->Genus.Player->ItemFocus == -1)
         return;
@@ -1473,15 +1471,22 @@ void PANEL_last(void)
         if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
             sprite = PANEL_LSPRITE_LOW_GEAR;
         } else {
-            if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+            // Use the current/just-selected weapon (in-progress-draw aware) so
+            // the big panel icon matches the popup and doesn't flash the fist
+            // for the first frames of a draw. CONTROLS_current_special_thing
+            // yields the item Thing (committed SpecialUse or the in-progress
+            // draw target) the ammo/timer readout below needs.
+            const SLONG cur_type = CONTROLS_current_weapon_type(darci);
+            Thing* p_cur_special = CONTROLS_current_special_thing(darci);
+            if (cur_type == SPECIAL_GUN) {
                 sprite = PANEL_LSPRITE_PISTOL;
                 if (darci->Genus.Person->ammo_packs_pistol) {
                     sprintf(text, "%d\\%d", darci->Genus.Person->Ammo, darci->Genus.Person->ammo_packs_pistol / 15);
                 } else {
                     sprintf(text, "%d", darci->Genus.Person->Ammo);
                 }
-            } else if (darci->Genus.Person->SpecialUse) {
-                Thing* p_special = TO_THING(darci->Genus.Person->SpecialUse);
+            } else if (p_cur_special) {
+                Thing* p_special = p_cur_special;
 
                 switch (p_special->Genus.Special->SpecialType) {
                 case SPECIAL_SHOTGUN:

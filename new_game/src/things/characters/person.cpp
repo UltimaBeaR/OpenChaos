@@ -3909,47 +3909,6 @@ void set_person_running_shoot(Thing* p_person)
     }
 }
 
-// Returns the best weapon type (with ammo) from the person's inventory.
-// Priority: AK47 > shotgun > gun > bat > knife.
-// Returns SPECIAL_NONE if no viable weapon found.
-// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
-SLONG get_persons_best_weapon_with_ammo(Thing* p_person)
-{
-    Thing* p_special;
-
-    static UBYTE weapon_order[5] = {
-        SPECIAL_AK47,
-        SPECIAL_SHOTGUN,
-        SPECIAL_GUN,
-        SPECIAL_BASEBALLBAT,
-        SPECIAL_KNIFE
-    };
-
-    SLONG i;
-
-    for (i = 0; i < 5; i++) {
-        if (i == 2) {
-            if (p_person->Flags & FLAGS_HAS_GUN) {
-                if (p_person->Genus.Person->Ammo) {
-                    return SPECIAL_GUN;
-                }
-            }
-        } else {
-            if (p_special = person_has_special(p_person, weapon_order[i])) {
-                if (i < 2) {
-                    if (p_special->Genus.Special->ammo) {
-                        return weapon_order[i];
-                    }
-                } else {
-                    return weapon_order[i];
-                }
-            }
-        }
-    }
-
-    return SPECIAL_NONE;
-}
-
 // Returns UC_TRUE if a cutscene is in progress and the NPC should not shoot p_target.
 // uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
 SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target)
@@ -4095,25 +4054,12 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
 
-        if (p_person->Genus.Person->PlayerID && ammo != HAD_TO_CHANGE_CLIP) {
-            // Auto-switch to best available weapon.
-            SLONG special = get_persons_best_weapon_with_ammo(p_person);
-
-            if (special) {
-                if (special == SPECIAL_GUN) {
-                    set_person_draw_gun(p_person);
-                } else {
-                    set_person_draw_item(p_person, special);
-                }
-            } else {
-                if (p_person->Genus.Person->SpecialUse) {
-                    set_person_item_away(p_person);
-                } else {
-                    set_person_gun_away(p_person);
-                }
-            }
-        }
-
+        // OpenChaos: the player's gun no longer auto-switches when the magazine
+        // runs dry — it just dry-clicks and stays equipped, leaving the weapon
+        // change to the player. (A firearm out of ammo remains in the inventory,
+        // so there is nothing to fall back FROM; the grenade "last one thrown →
+        // empty hands" case is handled in SPECIAL_throw_grenade, which clears
+        // SpecialUse directly.) NPCs never reached this branch (PlayerID gate).
         return;
     }
 
