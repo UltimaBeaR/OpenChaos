@@ -168,17 +168,19 @@ constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 
 constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS  = GAXIS_RIGHT;
 
-// ---- First-person aim (L1 / MMB held) --------------------------------------
-// Holding L1 on gamepad or the middle mouse button enters first-person aim
-// mode. Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as camera-toggle
-// press (edge) and aim modifier (hold). Two distinct ACT constants for the
-// two semantics on the same button.
+// ---- Zoom / back-walk modifier (L1 / E held) -------------------------------
+// Holding L1 on gamepad or E on keyboard enters the zoom/back-walk modifier
+// (process_zoomwalk): from a standstill it's the zoom/look pose; with the stick
+// it's back-walk. Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as
+// camera-toggle press (edge) and modifier (hold). Two distinct ACT constants for
+// the two semantics on the same button. (Middle mouse is intentionally NOT bound
+// here — reserved for weapon switching.)
 
 constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
-constexpr int ACT_FOOT_AIM_MBTN = MBTN_MIDDLE;
+constexpr int ACT_FOOT_AIM_KKEY = KKEY_E;
 
 // In the zoom/look pose the RIGHT stick steers look yaw / pitch. The LEFT stick
-// is reserved for movement (touching it leaves zoom for the slow-walk mode — see
+// is reserved for movement (touching it leaves zoom for the back-walk mode — see
 // process_zoomwalk), so it no longer doubles as a look source. Passed as a
 // stick-id arg in input_actions.cpp's aim block.
 constexpr int ACT_FOOT_AIM_LOOK_GAXIS = GAXIS_RIGHT;

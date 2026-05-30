@@ -1596,27 +1596,26 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     return (angle);
 }
 
-// L2 modifier regime — written in get_hardware_input (the STICKY_BACK state of
-// the back-walk machine), read by player_turn_left_right_analogue to force
-// walk_back entry/exit. Only NONE / BACKWARD are used in the current scheme.
+// Back-walk regime — written in get_hardware_input (the STICKY_BACK state of the
+// back-walk machine, which lives on the ZOOM/BACK-WALK modifier — gamepad L1 /
+// keyboard E), read by player_turn_left_right_analogue to force walk_back
+// entry/exit. Only NONE / ACTIVE are used.
 enum {
-    L2_REGIME_NONE = 0,
-    L2_REGIME_BACKWARD,
+    BACKWALK_REGIME_NONE = 0,
+    BACKWALK_REGIME_ACTIVE,
 };
-static int l2_regime = L2_REGIME_NONE;
+static int g_backwalk_regime = BACKWALK_REGIME_NONE;
 
-// L2 tap-window counter. Set to L2_ROLL_WINDOW_TICKS when L2 transitions
-// from not-held → held. Decremented each tick in get_hardware_input. It marks
-// the "quick tap" interval: if L2 is RELEASED while it is still > 0 with the
-// stick leaned to a side, a SIDE ROLL fires (the L2 machine posts
+// L2/Ctrl tap-window counter. Set to L2_ROLL_WINDOW_TICKS when the modifier
+// transitions from not-held → held. Decremented each tick in get_hardware_input.
+// It marks the "quick tap" interval: if the modifier is RELEASED while it is
+// still > 0 with the stick deflected, a ROLL fires (the machine posts
 // g_l2_roll_request, which the roll dispatch fires as a flip — no ✕, no jump).
-// If L2 is instead HELD past the window, no roll fires on the eventual release
-// and the hold back-walk algorithm runs as usual. The window also still gates
-// the ✕ backflip, which uses the FROZEN camera + character frame snapshotted at
-// L2-press (g_l2_tap_cam_snap / g_l2_tap_char_snap). Reset to 0 on L2 release.
+// If the modifier is instead HELD past the window, no roll fires and the hold
+// SLOW-WALK runs as usual. Reset to 0 on release.
 //
-// L2_ROLL_WINDOW_TICKS = 10 ticks at 20 Hz ≈ 500 ms — the longest an L2 press
-// can last and still count as a tap; a longer press is treated as a hold.
+// L2_ROLL_WINDOW_TICKS = 10 ticks at 20 Hz ≈ 500 ms — the longest a press can
+// last and still count as a tap; a longer press is treated as a hold.
 static constexpr SLONG L2_ROLL_WINDOW_TICKS = 10; // ~500 ms at 20 Hz
 static SLONG g_l2_engage_window_ticks = 0;
 
@@ -1661,82 +1660,117 @@ static constexpr SLONG L2_LEAN_MIN_RAW = 8192;     // clear lateral lean (raw ca
 static constexpr SLONG L2_TURN_ACCUM_THRESH = 32;  // ≈ 5.6° net turn
 static constexpr SLONG L2_LATERAL_HOLD_TICKS = 15; // suppress the turn source this long after a lateral input
 
-// Snapshot of camera and character angle at the moment L2 transitioned
-// from not-held → held. Used by the tap-window tactical action path so
-// stick interpretation stays anchored to the frame the player committed
-// to when they pressed L2 — even if the camera rotates (right stick) or
-// the character rotates (continued walking) during the window. After
-// the window expires the snapshots are no longer read, so their values
-// after that point are irrelevant.
-static SLONG g_l2_tap_cam_snap  = 0;
-static SLONG g_l2_tap_char_snap = 0;
-
-// L2-held flag (file-scope copy of the hysteresis state kept inside
-// get_hardware_input). Updated alongside the local l2_engaged static
-// so other modules — most importantly the camera (fc.cpp get-behind
-// gate) — can read whether L2 is currently engaged without re-running
-// the hysteresis logic. Accessed externally via input_l2_is_held().
-static bool g_l2_is_held = false;
+// Back-walk-modifier held flag (gamepad L1 / keyboard E). Set by the zoom/
+// back-walk machine (process_zoomwalk) each tick. Read by other modules that
+// need to know the player is in the back-walk modifier — the camera (fc.cpp:
+// suppress auto get-behind so it doesn't swing behind while retreating) and
+// collision (collide.cpp: lenient bump-into-bench sit while walking backward).
+// Accessed externally via input_backwalk_held().
+static bool g_backwalk_held = false;
 
 // OpenChaos: see input_actions.h for purpose.
-bool input_l2_is_held(void)
+bool input_backwalk_held(void)
 {
-    return g_l2_is_held;
+    return g_backwalk_held;
 }
 
-// Zoom-walk modifier mode — written once per tick by process_zoomwalk (called
-// from get_hardware_input for whichever input device is active), read by
+// Zoom / back-walk modifier mode — written once per tick by process_zoomwalk
+// (called from get_hardware_input for whichever input device is active), read by
 // apply_button_input_first_person to decide whether to run the zoom/look pose.
-// The modifier (bound via ACT_FOOT_AIM_* — currently a gamepad button / middle
-// mouse) is a HOLD with two mutually exclusive modes for the duration of one
-// hold:
-//   ZOOM     — entered only from a standstill with the stick/WASD untouched: the
-//              existing aim/look pose (camera pulls close, character pivots in
-//              place via mouse / right stick). The instant the stick/WASD is
-//              touched it latches to SLOWWALK for the rest of the hold; it never
-//              returns to zoom until the modifier is released and re-pressed.
-//   SLOWWALK — entered when the modifier is pressed while already moving, or when
-//              the stick is touched during zoom. Drives the slow camera-relative
-//              step (m_bForceWalk) through the normal movement dispatcher. No
-//              back-walk, no in-place crank — just a slow walk toward the stick.
+// The modifier (bound via ACT_FOOT_AIM_* — gamepad L1 / keyboard E) is a HOLD
+// with two mutually exclusive modes for the duration of one hold:
+//   ZOOM — entered only from a standstill with the stick/WASD untouched: the
+//          aim/look pose (camera pulls close, character pivots in place via mouse
+//          / right stick). The instant the stick/WASD is touched it latches to
+//          WALK for the rest of the hold; it never returns to zoom until the
+//          modifier is released and re-pressed.
+//   WALK — entered when the modifier is pressed while already moving, or when the
+//          stick is touched during zoom. Runs the BACK-WALK machine: a deflection
+//          into the rear semicircle walks the character backward (camera-relative,
+//          tank-turn); any other deflection is normal movement; re-centring
+//          re-arms. No zoom, no in-place crank.
 enum {
     ZOOMWALK_OFF = 0,
     ZOOMWALK_ZOOM,
-    ZOOMWALK_SLOWWALK,
+    ZOOMWALK_WALK,
 };
 static int g_zoomwalk_mode = ZOOMWALK_OFF;
 
-// Shared zoom-walk machine: ZOOM (standstill look pose) ↔ SLOWWALK (slow step).
-// Called once per tick from get_hardware_input by whichever input device is
-// active (gamepad button / KBM middle mouse), mirroring the L2 machine. Updates
-// g_zoomwalk_mode and raises m_bForceWalk while in SLOWWALK.
-//   engaged      : the modifier (ACT_FOOT_AIM_*) is currently held down.
-//   stick_active : the movement stick / WASD is deflected past the deadzone.
-//   p_pc         : player's person Thing (may be null) — used to detect that the
-//                  character was already moving when the modifier was pressed.
-static void process_zoomwalk(bool engaged, bool stick_active, Thing* p_pc)
+// Shared zoom / back-walk machine: ZOOM (standstill look pose) ↔ WALK (back-walk
+// machine). Called once per tick from get_hardware_input by whichever input
+// device is active (gamepad L1 / keyboard E). Updates g_zoomwalk_mode, sets
+// g_backwalk_held, and drives g_backwalk_regime + m_bForceWalk while walking
+// backward. Camera-frame stick offset: dx_c = right+, dy_c = back+;
+// stick_in_deadzone = stick centred. p_pc = the player character.
+static void process_zoomwalk(bool engaged, SLONG dx_c, SLONG dy_c,
+                             bool stick_in_deadzone, Thing* p_pc)
 {
+    static bool prev_engaged = false;
+    const bool was_engaged = prev_engaged;
+    prev_engaged = engaged;
+
+    // BACK-WALK sticky sub-state (used only in WALK):
+    //  - ARMED (stick centred) → await a deflection.
+    //  - ARMED + deflection into the rear semicircle (char-frame dy_p > 0)
+    //    → STICKY_BACK (camera-relative back-walk).
+    //  - ARMED + any other deflection → STICKY_PASS (normal movement).
+    //  - either sticky mode re-arms when the stick re-centres.
+    // Reset to ARMED on the engage edge so a fresh hold always starts disarmed
+    // (a previous hold that ended in STICKY_BACK must not carry over).
+    enum { BW_ARMED, BW_STICKY_BACK, BW_STICKY_PASS };
+    static int bw_state = BW_ARMED;
+    if (!was_engaged)
+        bw_state = BW_ARMED;
+
+    g_backwalk_held = engaged;
+
     if (!engaged) {
         g_zoomwalk_mode = ZOOMWALK_OFF;
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
         return;
     }
+
+    const bool stick_active = !stick_in_deadzone;
 
     if (g_zoomwalk_mode == ZOOMWALK_OFF) {
         // First held tick: decide the mode for this whole hold. Touching the
         // stick or already being on the move means the player wants to walk,
         // not to zoom; a clean standstill with a neutral stick enters zoom.
         const bool moving = p_pc && (p_pc->State == STATE_MOVEING);
-        g_zoomwalk_mode = (stick_active || moving) ? ZOOMWALK_SLOWWALK : ZOOMWALK_ZOOM;
+        g_zoomwalk_mode = (stick_active || moving) ? ZOOMWALK_WALK : ZOOMWALK_ZOOM;
     } else if (g_zoomwalk_mode == ZOOMWALK_ZOOM) {
-        // The moment the stick is touched in zoom, latch to slow walk for the
-        // rest of the hold (zoom never auto-resumes — needs a fresh press).
+        // The moment the stick is touched in zoom, latch to walk for the rest of
+        // the hold (zoom never auto-resumes — needs a fresh press).
         if (stick_active)
-            g_zoomwalk_mode = ZOOMWALK_SLOWWALK;
+            g_zoomwalk_mode = ZOOMWALK_WALK;
     }
-    // SLOWWALK stays latched until the modifier is released (handled above).
+    // WALK stays latched until the modifier is released (handled above). Outside
+    // WALK (zoom or just-pressed-standstill) there's no back-walk: re-arm and
+    // clear the regime.
+    if (g_zoomwalk_mode != ZOOMWALK_WALK) {
+        bw_state = BW_ARMED;
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
+        return;
+    }
 
-    if (g_zoomwalk_mode == ZOOMWALK_SLOWWALK)
+    // Char-frame stick (camera-considered) for the rear-zone test.
+    SLONG dx_p = dx_c, dy_p = dy_c;
+    if (p_pc && p_pc->Draw.Tweened)
+        stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
+            p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
+    const bool stick_in_back_cone = (dy_p > 0);
+
+    if (stick_in_deadzone)
+        bw_state = BW_ARMED;
+    else if (bw_state == BW_ARMED)
+        bw_state = stick_in_back_cone ? BW_STICKY_BACK : BW_STICKY_PASS;
+
+    if (bw_state == BW_STICKY_BACK) {
+        g_backwalk_regime = BACKWALK_REGIME_ACTIVE;
         m_bForceWalk = UC_TRUE;
+    } else {
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
+    }
 }
 
 // Absolute angular distance between two game angles (0..2047, 2048 = 360°).
@@ -1806,9 +1840,9 @@ static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
 // behaviour and state. p_pc = the player character (NET_PERSON(0)).
 //
 // Outputs (file-scope): g_l2_roll_request/_target_angle/_flip_dir (the roll,
-// fired by the dispatch in apply_button_input / _fight), l2_regime + m_bForceWalk
-// (the back-walk, applied in player_turn_left_right_analogue), g_l2_is_held, and
-// the tap window + snapshots (read by the ✕ backflip path).
+// fired by the dispatch in apply_button_input / _fight), m_bForceWalk (the slow
+// walk, applied in the normal movement path) and the tap window. Back-walk is
+// NOT here — it lives on the separate zoom/back-walk modifier (process_zoomwalk).
 static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
                                 bool stick_in_deadzone, Thing* p_pc)
 {
@@ -1819,9 +1853,6 @@ static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
     // One-shot roll request: cleared every tick; set below only on the exact
     // release tick of a quick tap with the stick deflected.
     g_l2_roll_request = 0;
-
-    // Mirror engaged state for external readers (camera get-behind gate, etc.).
-    g_l2_is_held = engaged;
 
     // Track the last steering side (g_l2_last_side_sign) from two sources — see
     // that global's comment for the full rationale. Source 1 is the direct
@@ -1877,30 +1908,18 @@ static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
         }
     }
 
-    // Tap window. Opens on the engage edge (snapshotting the camera/character
-    // frame for the ✕ backflip path), closes on release, ticks down otherwise.
-    // Capture its pre-update value first — the update zeroes it on release, and
-    // the tap-vs-hold test below needs to know it was still open at release.
+    // Tap window. Opens on the engage edge, closes on release, ticks down
+    // otherwise. Capture its pre-update value first — the update zeroes it on
+    // release, and the tap-vs-hold test below needs to know it was still open at
+    // release.
     const SLONG window_before = g_l2_engage_window_ticks;
     if (!was_engaged && engaged) {
         g_l2_engage_window_ticks = L2_ROLL_WINDOW_TICKS;
-        g_l2_tap_cam_snap = get_camera_angle();
-        if (p_pc && p_pc->Draw.Tweened)
-            g_l2_tap_char_snap = p_pc->Draw.Tweened->Angle;
-        else
-            g_l2_tap_char_snap = g_l2_tap_cam_snap;
     } else if (!engaged) {
         g_l2_engage_window_ticks = 0;
     } else if (g_l2_engage_window_ticks > 0) {
         --g_l2_engage_window_ticks;
     }
-
-    // Char-frame stick (camera-considered) for the back-zone test.
-    SLONG dx_p = dx_c, dy_p = dy_c;
-    if (p_pc && p_pc->Draw.Tweened)
-        stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
-            p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
-    const bool stick_in_back_cone = (dy_p > 0);
 
     // TAP-RELEASE ROLL: on the release edge, if it was a quick tap (window still
     // open) and the stick is deflected, roll toward the stick's world direction.
@@ -1913,33 +1932,13 @@ static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
         }
     }
 
-    // HOLD back-walk state machine. Engaged while the trigger is HELD; the
-    // tap-release roll above is independent of it.
-    //  - just engaged → ARMED (await a deflection).
-    //  - ARMED + deflection into the back zone (rear semicircle, dy_p > 0)
-    //    → STICKY_BACK (camera-relative back-walk).
-    //  - ARMED + any other deflection → STICKY_PASS: ignore the trigger, normal
-    //    movement.
-    //  - either sticky mode re-arms when the stick re-centres.
-    //  - release ends everything.
-    enum { L2_OFF, L2_ARMED, L2_STICKY_BACK, L2_STICKY_PASS };
-    static int l2_state = L2_OFF;
-    if (!engaged)
-        l2_state = L2_OFF;
-    else if (!was_engaged)
-        l2_state = L2_ARMED;
-
-    if (l2_state == L2_ARMED && !stick_in_deadzone)
-        l2_state = stick_in_back_cone ? L2_STICKY_BACK : L2_STICKY_PASS;
-    else if ((l2_state == L2_STICKY_BACK || l2_state == L2_STICKY_PASS) && stick_in_deadzone)
-        l2_state = L2_ARMED;
-
-    if (l2_state == L2_STICKY_BACK) {
-        l2_regime = L2_REGIME_BACKWARD;
+    // HOLD SLOW-WALK: while the modifier is HELD with the stick deflected, force
+    // a slow camera-relative walk (m_bForceWalk caps the run to walk speed +
+    // plays the step anim; direction comes from the normal movement path). The
+    // tap-release roll above is independent — a quick tap rolls instead. Any
+    // stick direction slow-walks that way (back-walk is a different modifier).
+    if (engaged && !stick_in_deadzone)
         m_bForceWalk = UC_TRUE;
-    } else {
-        l2_regime = L2_REGIME_NONE;
-    }
 }
 
 
@@ -1988,10 +1987,10 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
     // CAMERA-RELATIVE (player_relative stays 0): the walk_back target is in
     // world space, so the character converges toward a fixed backing direction,
     // and rotating the stick around the rim steers where it backs. We force-
-    // enter walk_back here when the regime becomes BACKWARD (the sticky back-
+    // enter walk_back here when the regime becomes ACTIVE (the sticky back-
     // walk latch in get_hardware_input), and force-exit on regime change (stick
-    // returned to centre / L2 released) so the character doesn't get stuck.
-    if (l2_regime == L2_REGIME_BACKWARD) {
+    // returned to centre / modifier released) so the character doesn't get stuck.
+    if (g_backwalk_regime == BACKWALK_REGIME_ACTIVE) {
         // Allow force-entry from any normal locomotion state. STATE_IDLE
         // alone misses the deceleration window (State still MOVEING when
         // player engages L2+back fast after a run). STATE_GUN must also be
@@ -2138,14 +2137,14 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
                         }
 
                     } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
-                        // L2 BACKWARD regime: keep character in walk_back even when
+                        // Back-walk regime: keep character in walk_back even when
                         // stick angle pulls dangle below the exit threshold.
                         // Without this gate, rotating the stick from straight back
                         // toward forward (e.g. full circle) drops |dangle| below
                         // 600 and the engine switches to forward running mid-back-
                         // walk — user perceives "stick forward → suddenly walking
                         // forward" mid-backing.
-                        if (l2_regime != L2_REGIME_BACKWARD && abs(dangle) > 600) {
+                        if (g_backwalk_regime != BACKWALK_REGIME_ACTIVE && abs(dangle) > 600) {
                             set_person_running(p_thing);
                             return (0);
                         }
@@ -2952,9 +2951,9 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
         // OpenChaos: char-relative stand-up override. While sitting,
         // the player's stand-up intent is "stick in the direction the
-        // character is facing", not "stick UP in camera frame". When
-        // L2 is held the entire stand-up path is blocked (explicit
-        // tactical mode). Otherwise:
+        // character is facing", not "stick UP in camera frame". While the
+        // back-walk modifier is held the entire stand-up path is blocked
+        // (you backed into the bench and are still holding it). Otherwise:
         //   - char-rel forward + raw FORWARDS not set (e.g. char faces
         //     camera so player pushes stick DOWN = char-forward):
         //     action_sit table didn't return UNSIT, so force it here.
@@ -2962,7 +2961,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
         //     (raw FORWARDS held but stick is actually char-back):
         //     suppress the unsit.
         if (p_person->Genus.Person->Action == ACTION_SIT_BENCH
-            && !input_l2_is_held()) {
+            && !input_backwalk_held()) {
             const bool char_fwd = input_is_char_rel_forward(p_person, input);
             if (char_fwd) {
                 new_action = ACTION_UNSIT;
@@ -2997,13 +2996,13 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             input_used = 0;
             break;
         case ACTION_UNSIT:
-            // OpenChaos: while L2 is held the player is in "tactical"
-            // walk mode — the same stick they used to back into the
-            // chair is typically still held, which the action_sit
-            // table would otherwise read as a stand-up command. Just
-            // block unsit until L2 is released; nothing else is
-            // affected because L2 isn't held during normal play.
-            if (input_l2_is_held()) {
+            // OpenChaos: while the back-walk modifier is held the same
+            // stick they used to back into the chair is typically still
+            // held, which the action_sit table would otherwise read as a
+            // stand-up command. Just block unsit until the modifier is
+            // released; nothing else is affected because it isn't held
+            // during normal play.
+            if (input_backwalk_held()) {
                 input_used = 0;
                 break;
             }
@@ -3073,62 +3072,12 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
                 break;
             case ACTION_STANDING_JUMP:
-                // L2 + ✕ BACKFLIP — TAP-WINDOW gated. Within the L2 window
-                // (g_l2_engage_window_ticks), ✕ with the stick pushed back fires a
-                // backflip toward the snap-frame stick direction (g_l2_tap_cam_snap
-                // / g_l2_tap_char_snap — the press-time frame, so the flight stays
-                // stable if the camera spins during the window).
-                //
-                // SIDE ROLLS do NOT come through here — they are posted via
-                // g_l2_roll_request and fired earlier (no ✕, never a jump). Pure
-                // forward / no direction falls through to a normal jump.
-                //
-                // The window is consumed inside this block so it can't re-trigger.
-                //
-                // OUTSIDE the window: BACKWARD regime + ✕ → backflip toward the
-                // live stick direction. All other cases fall through below.
-                if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
-                    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
-                    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
-                    // Backflip uses the press-time SNAPSHOT frame.
-                    SLONG dx_p, dy_p;
-                    stick_camera_to_char_frame(raw_dx, raw_dy,
-                        g_l2_tap_cam_snap, g_l2_tap_char_snap,
-                        &dx_p, &dy_p);
-                    g_l2_engage_window_ticks = 0; // consume window
-                    // Packed ±127 scale: deadzone packs to 0, smallest real value
-                    // ~32; 16 is half of that — above noise, below real input.
-                    constexpr SLONG kPackedThreshold = 16;
-                    const bool has_back_p = (dy_p > kPackedThreshold);
-                    if (has_back_p) {
-                        if (should_person_backflip(p_person)) {
-                            // Snap facing so backflip motion goes toward
-                            // stick direction in the SNAPSHOTTED world
-                            // frame. Same +1024 trick as the legacy
-                            // backflip path (projectile_move_thing with
-                            // Velocity=-32 moves 180° opposite of facing).
-                            // Using g_l2_tap_cam_snap keeps the intended
-                            // flight direction stable: if the camera spun
-                            // between L2-press and ✕, the player still
-                            // flies toward the world point they were
-                            // aiming at when they committed.
-                            SLONG target_angle = Arctan(-raw_dx, raw_dy) + g_l2_tap_cam_snap + 1024;
-                            target_angle = (target_angle + 2048) & 2047;
-                            p_person->Draw.Tweened->Angle = target_angle;
-                            set_person_standing_jump_backwards(p_person);
-                        } else {
-                            set_person_standing_jump(p_person); // blocked → vertical jump
-                        }
-                        break;
-                    }
-                    // Pure forward / no direction in snap frame → fall
-                    // through to the source-aware path below.
-                }
-                // Outside the tap window: BACKWARD regime + ✕ → backflip
-                // toward the LIVE stick direction. Lets the player commit
-                // to walk-back and still flip out of it without re-tapping
-                // L2 first. Standard +1024 facing snap.
-                if (should_i_jump(p_person) && l2_regime == L2_REGIME_BACKWARD) {
+                // ✕ during BACK-WALK → backflip toward the live stick direction.
+                // The player commits to walk-back (zoom/back-walk modifier — L1 /
+                // E) and flips out of it with jump. Side rolls do NOT come through
+                // here (posted via g_l2_roll_request, never a jump). Standard
+                // +1024 facing snap.
+                if (should_i_jump(p_person) && g_backwalk_regime == BACKWALK_REGIME_ACTIVE) {
                     if (should_person_backflip(p_person)) {
                         const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
                         const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
@@ -3142,7 +3091,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                     break;
                 }
 
-                // Source-aware fallback (no L2 tactical regime active).
+                // Source-aware fallback (not back-walking).
                 //
                 // Analog stick (analogue == 1): light side / back stick taps produced
                 // unwanted rolls / backflips — including right after a climb (player
@@ -3243,37 +3192,10 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                     p_person->Genus.Person->Flags &= ~FLAG_PERSON_SLIDING;
                     MFX_stop(THING_NUMBER(p_person), S_SLIDE_START);
                 }
-                // L2 + ✕ BACKFLIP — same tap-window logic as ACTION_STANDING_JUMP
-                // (see that case for full comment). Needed here because when the
-                // character is in SUB_STATE_RUNNING the action_run table picks
-                // ACTION_RUNNING_JUMP (not ACTION_STANDING_JUMP), e.g. during
-                // SPRINT. Side rolls do NOT come through here (posted via
-                // g_l2_roll_request); only the ✕ backflip does.
-                if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
-                    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
-                    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
-                    // Backflip uses the press-time SNAPSHOT frame.
-                    SLONG dx_p, dy_p;
-                    stick_camera_to_char_frame(raw_dx, raw_dy,
-                        g_l2_tap_cam_snap, g_l2_tap_char_snap,
-                        &dx_p, &dy_p);
-                    g_l2_engage_window_ticks = 0; // consume window
-                    constexpr SLONG kPackedThreshold = 16;
-                    const bool has_back_p = (dy_p > kPackedThreshold);
-                    if (has_back_p) {
-                        if (should_person_backflip(p_person)) {
-                            SLONG target_angle = Arctan(-raw_dx, raw_dy) + g_l2_tap_cam_snap + 1024;
-                            target_angle = (target_angle + 2048) & 2047;
-                            p_person->Draw.Tweened->Angle = target_angle;
-                            set_person_standing_jump_backwards(p_person);
-                        } else {
-                            set_person_standing_jump(p_person);
-                        }
-                        break;
-                    }
-                    // Pure forward / no direction in snap frame → fall
-                    // through to normal running jump.
-                }
+                // No ✕ backflip here: back-walk caps velocity to walk speed, so a
+                // jump while backing resolves to ACTION_STANDING_JUMP (handled
+                // there). Side rolls never come through here either (posted via
+                // g_l2_roll_request, never a jump).
                 if (should_i_jump(p_person)) {
                     // OpenChaos: snap facing to stick+camera direction when
                     // the character JUST transitioned from IDLE → MOVEING
@@ -3387,14 +3309,14 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
         } else {
             if (p_person->Genus.Person->Action == ACTION_SIT_BENCH) {
                 // OpenChaos: stand-up via this path uses the same gates
-                // as the action_sit / ACTION_UNSIT dispatch above —
-                // L2 hold blocks stand-up entirely; otherwise the input
-                // must be CHAR-RELATIVE forward, not raw camera-frame
-                // forward. Without char-rel the raw stick UP held to
-                // back into the bench (= char-back when char faces the
-                // camera) would yank her out of the sit animation one
+                // as the action_sit / ACTION_UNSIT dispatch above — the
+                // back-walk modifier hold blocks stand-up entirely;
+                // otherwise the input must be CHAR-RELATIVE forward, not
+                // raw camera-frame forward. Without char-rel the raw stick
+                // UP held to back into the bench (= char-back when char
+                // faces the camera) would yank her out of the sit anim one
                 // tick after set_person_sit_down.
-                if (!input_l2_is_held()
+                if (!input_backwalk_held()
                     && input_is_char_rel_forward(p_person, input)) {
                     input_used |= INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
 
@@ -4201,7 +4123,7 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // L2 on-foot tactical modifier: ROLL (quick tap) + BACK-WALK
+                // L2 on-foot tactical modifier: ROLL (quick tap) + SLOW-WALK
                 // (hold).
                 //
                 // ROLL: a quick L2 TAP (press + release within the window) with
@@ -4217,18 +4139,11 @@ ULONG get_hardware_input(UWORD type)
                 // on the release edge; the roll dispatch fires the flip — never a
                 // jump.
                 //
-                // BACK-WALK uses the CHARACTER-RELATIVE frame: the raw (camera-
-                // frame) stick is rotated into the character's frame
-                // (stick_camera_to_char_frame below) so "toward the character's
-                // back" is detected regardless of where the camera points.
-                //
-                // BACK-WALK regime (L2 HELD past the window): a deflection into
-                // the rear semicircle
-                // (dy_p > 0) latches a sticky walk-backwards, held until the
-                // stick re-centres (then it re-arms). Movement is camera-relative
-                // (player_relative=0): walk_back entry/exit is forced in
-                // player_turn_left_right_analogue when l2_regime ==
-                // L2_REGIME_BACKWARD; set_person_walk_backwards sets Velocity = -5.
+                // SLOW-WALK (L2 HELD past the window with the stick deflected):
+                // m_bForceWalk caps the run to walk speed + plays the step anim;
+                // direction comes from the normal camera-relative movement path.
+                // Any stick direction slow-walks that way. (Back-walk is NOT here —
+                // it's on the separate zoom/back-walk modifier below.)
                 //
                 // Hysteresis on the L2 trigger value engages near the BOTTOM of
                 // travel (~88 %) and releases on a short ease-up (~78 %) — see the
@@ -4259,10 +4174,10 @@ ULONG get_hardware_input(UWORD type)
 
                     process_l2_tactical(l2_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
 
-                    // Zoom-walk modifier (zoom ↔ slow walk): held = zoom from a
-                    // standstill, or slow camera-relative step once the stick is
-                    // touched / while already moving. See process_zoomwalk.
-                    process_zoomwalk(input_btn_held(ACT_FOOT_AIM_GBTN), !stick_in_deadzone, NET_PERSON(0));
+                    // Zoom / back-walk modifier (L1): held from a standstill =
+                    // zoom; held + stick = back-walk (rear stick → walk backward).
+                    // See process_zoomwalk.
+                    process_zoomwalk(input_btn_held(ACT_FOOT_AIM_GBTN), dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
                 }
 
                 if (input_btn_held(ACT_FOOT_JUMP_GBTN)) {
@@ -4319,10 +4234,10 @@ ULONG get_hardware_input(UWORD type)
                 }
 
                 // This button doubles as camera-type toggle / force-behind, but
-                // ONLY when the zoom-walk modifier enters the ZOOM mode
+                // ONLY when the zoom/back-walk modifier enters the ZOOM mode
                 // (standstill). Gating on g_zoomwalk_mode keeps the camera
                 // snap-to-back exclusive to zoom entry — pressing it on the move
-                // enters slow-walk (process_zoomwalk) and must NOT jerk the
+                // enters back-walk (process_zoomwalk) and must NOT jerk the
                 // camera behind the character. In the car this button is the
                 // BRAKE, so the driving guard suppresses it there too.
                 // g_zoomwalk_mode is computed just above (machine runs before
@@ -4582,10 +4497,10 @@ ULONG get_hardware_input(UWORD type)
 
         // Keyboard L2 equivalent — Ctrl + WASD drive the SAME tactical-mode
         // machine as the gamepad's L2 + stick: tap Ctrl → roll toward the WASD
-        // direction, hold Ctrl → camera-relative back-walk. Gated on KBM being
-        // the active device so it never fights the gamepad path. WASD maps to a
-        // camera-frame stick offset; only the 8-way direction and "anything held"
-        // matter to the machine, so a fixed full deflection per held axis is fine.
+        // direction, hold Ctrl → slow-walk. Gated on KBM being the active device
+        // so it never fights the gamepad path. WASD maps to a camera-frame stick
+        // offset; only the 8-way direction and "anything held" matter to the
+        // machine, so a fixed full deflection per held axis is fine.
         if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
             const bool ctrl_engaged = input_key_held(ACT_FOOT_TACTICAL_MODE_KKEY);
             const SLONG kb_vx = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
@@ -4596,12 +4511,13 @@ ULONG get_hardware_input(UWORD type)
             const bool stick_in_deadzone = (kb_vx == 0 && kb_vy == 0);
             process_l2_tactical(ctrl_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
 
-            // Zoom-walk modifier on KBM = middle mouse (ACT_FOOT_AIM_MBTN).
-            // Gated by input_gameplay_enabled() to match the MMB read in
-            // apply_button_input_first_person, so F1-debug suppresses both
-            // consistently. WASD deflection is the "stick touched" signal.
-            const bool mmb_held = input_gameplay_enabled() && input_mouse_btn_held(ACT_FOOT_AIM_MBTN);
-            process_zoomwalk(mmb_held, !stick_in_deadzone, NET_PERSON(0));
+            // Zoom / back-walk modifier on KBM = E key (ACT_FOOT_AIM_KKEY): held
+            // from a standstill = zoom (mouse rotates), held + WASD = back-walk.
+            // The keyboard counterpart of the gamepad's L1. Gated by
+            // input_gameplay_enabled() so F1-debug suppresses it (matches the
+            // first-person zoom pose gate).
+            const bool e_held = input_gameplay_enabled() && input_key_held(ACT_FOOT_AIM_KKEY);
+            process_zoomwalk(e_held, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
         }
 
         // Tanky-arrow reference implementation — kept here commented in

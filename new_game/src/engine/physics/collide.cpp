@@ -3,7 +3,7 @@
 
 #include "things/core/thing.h"
 #include "game/game_types.h"
-#include "game/input_actions.h" // input_l2_is_held (lenient sit-on-bench while L2 held)
+#include "game/input_actions.h" // input_backwalk_held (lenient sit-on-bench while back-walking)
 #include "map/pap_globals.h"
 #include "map/level_pools.h"
 #include "things/core/statedef.h"
@@ -1876,16 +1876,16 @@ SLONG collide_against_objects(
                                             // character via the analog rotation
                                             // handler, so char.Angle often misses
                                             // the strict ±220 (~±38°) cone when
-                                            // bumping the bench → no sit. While
-                                            // L2 is held: accept ±90° and snap
-                                            // char.Angle to the bench yaw so the
-                                            // sit animation plays from the right
-                                            // pose. Without L2 the strict cone is
-                                            // preserved unchanged (keyboard back
-                                            // doesn't rotate so it's aligned).
-                                            const bool l2_held = input_l2_is_held();
-                                            if (l2_held) {
-                                                // L2-back-walk: bump-into-bench is
+                                            // bumping the bench → no sit. While the
+                                            // back-walk modifier is held: accept
+                                            // ±90° and snap char.Angle to the bench
+                                            // yaw so the sit animation plays from
+                                            // the right pose. Without it the strict
+                                            // cone is preserved unchanged (keyboard
+                                            // back doesn't rotate so it's aligned).
+                                            const bool backwalk_held = input_backwalk_held();
+                                            if (backwalk_held) {
+                                                // Back-walk: bump-into-bench is
                                                 // already a deliberate intent — snap
                                                 // angle and sit unconditionally.
                                                 p_thing->Draw.Tweened->Angle = oi->yaw;
@@ -1973,7 +1973,7 @@ SLONG collide_against_objects(
 
                                                 SLONG dprod = lx * dx + dz * lz >> 8;
 
-                                                if (input_l2_is_held()) {
+                                                if (input_backwalk_held()) {
                                                     p_thing->Draw.Tweened->Angle = Arctan(dx, dz) & 2047;
                                                     set_person_sit_down(p_thing);
                                                     return ans;
