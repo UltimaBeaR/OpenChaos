@@ -1826,7 +1826,21 @@ void FC_process()
         // radius) like it does on the gamepad. Without it, want is pulled in a
         // straight chord to the behind point and the camera cuts directly
         // across instead of arcing round.
-        const bool min_clamp_enabled = camera_is_auto() || entering_vehicle_scene;
+        //
+        // EXCEPTION — driving: keep the min-clamp ON while the player is in a car
+        // (even in MANUAL). Otherwise, when the car drives INTO the camera (focus
+        // translating toward want faster than want escapes — e.g. accelerating
+        // with the camera facing the car's front, or reversing into it), want's
+        // XZ distance shrinks below target and, with no min-clamp to push it back
+        // out, stays permanently shrunk → the camera is "rammed" into the car and
+        // never recovers its distance. Matches AUTO/gamepad driving behaviour.
+        // Cost: no manual vertical-orbit shrink while driving on KBM (acceptable —
+        // driving framing is horizontal, same as on the pad).
+        const bool driving = fc->focus
+            && fc->focus->Class == CLASS_PERSON
+            && fc->focus->Genus.Person
+            && fc->focus->Genus.Person->InCar;
+        const bool min_clamp_enabled = camera_is_auto() || entering_vehicle_scene || driving;
         if (min_clamp_enabled && dist < FC_DIST_MIN) {
             if (!fc->toonear) {
                 ddist = FC_DIST_MIN - dist;
