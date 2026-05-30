@@ -930,6 +930,13 @@ void FC_process()
     static UBYTE s_prev_aim[FC_MAX_CAMS] = {};
     static SLONG s_aim_ramp[FC_MAX_CAMS] = {};
 
+    // Zoom-OUT ramp: ticks remaining in the "leaving the aim pose" window. While
+    // > 0 the camera eases back out at a gentler fixed rate (UNZOOM_RATE_Q8)
+    // instead of the default follow, so the un-zoom doesn't feel abrupt — and
+    // looks the same whether the character is standing (just released the
+    // modifier) or walking (pushed the stick to leave zoom). Both camera modes.
+    static SLONG s_unzoom_ticks[FC_MAX_CAMS] = {};
+
     const bool cutscene_active = (EWAY_cam_active != 0) || PLAYCUTS_playing;
 
     for (cam = 0; cam < FC_MAX_CAMS; cam++) {
@@ -1862,6 +1869,11 @@ void FC_process()
         // smooth via its own path below).
         constexpr SLONG AIM_RAMP_STEP    = 22;  // ~12 ticks ease → snap
         constexpr SLONG AIM_RATE_BASE_Q8 = 64;  // 0.25/tick at entry start
+        // Zoom-OUT ease: gentler than the default follow (>>2 = 0.25/tick = 64),
+        // applied for UNZOOM_WINDOW_TICKS after leaving the aim pose so the
+        // camera glides back out instead of snapping. Tune by feel.
+        constexpr SLONG UNZOOM_RATE_Q8     = 32; // 0.125/tick — ~half the default follow
+        constexpr SLONG UNZOOM_WINDOW_TICKS = 20; // ~1 s at 20 Hz — covers the visible pull-back
         const bool aim_now = (fc->toonear && fc->toonear_dist == 0x90000);
         if (!aim_now || !s_prev_aim[cam]) {
             s_aim_ramp[cam] = 0;
@@ -1870,6 +1882,16 @@ void FC_process()
             if (s_aim_ramp[cam] > 256) {
                 s_aim_ramp[cam] = 256;
             }
+        }
+        // Zoom-out window: start it the tick we leave the aim pose, tick it down
+        // afterwards, keep it cleared while still in aim (so re-entering zoom
+        // doesn't carry over the gentle rate).
+        if (aim_now) {
+            s_unzoom_ticks[cam] = 0;
+        } else if (s_prev_aim[cam]) {
+            s_unzoom_ticks[cam] = UNZOOM_WINDOW_TICKS;
+        } else if (s_unzoom_ticks[cam] > 0) {
+            s_unzoom_ticks[cam]--;
         }
         s_prev_aim[cam] = aim_now ? 1 : 0;
         // Per-tick ease fraction (Q8): AIM_RATE_BASE_Q8 (0.25) → 256 (1.0=snap).
@@ -1896,7 +1918,14 @@ void FC_process()
             // so the camera orbits behind quickly enough to hide Darci emerging
             // before the climb-out anim shows her through the car body — but
             // not as snappy as a flat >>1.
-            if (exiting_vehicle_scene) {
+            if (s_unzoom_ticks[cam] > 0) {
+                // Leaving the aim pose — ease XZ back out gently (UNZOOM_RATE_Q8)
+                // so the un-zoom is smooth and the same whether the character is
+                // standing or walking. Y keeps its default rate (the pull-back
+                // that felt abrupt is horizontal).
+                fc->x += (SLONG)(((int64_t)dx * UNZOOM_RATE_Q8) >> 8);
+                fc->z += (SLONG)(((int64_t)dz * UNZOOM_RATE_Q8) >> 8);
+            } else if (exiting_vehicle_scene) {
                 fc->x += (dx >> 2) + (dx >> 3);
                 fc->z += (dz >> 2) + (dz >> 3);
             } else {

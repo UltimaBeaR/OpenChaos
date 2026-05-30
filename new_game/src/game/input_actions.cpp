@@ -1683,6 +1683,61 @@ bool input_l2_is_held(void)
     return g_l2_is_held;
 }
 
+// Zoom-walk modifier mode — written once per tick by process_zoomwalk (called
+// from get_hardware_input for whichever input device is active), read by
+// apply_button_input_first_person to decide whether to run the zoom/look pose.
+// The modifier (bound via ACT_FOOT_AIM_* — currently a gamepad button / middle
+// mouse) is a HOLD with two mutually exclusive modes for the duration of one
+// hold:
+//   ZOOM     — entered only from a standstill with the stick/WASD untouched: the
+//              existing aim/look pose (camera pulls close, character pivots in
+//              place via mouse / right stick). The instant the stick/WASD is
+//              touched it latches to SLOWWALK for the rest of the hold; it never
+//              returns to zoom until the modifier is released and re-pressed.
+//   SLOWWALK — entered when the modifier is pressed while already moving, or when
+//              the stick is touched during zoom. Drives the slow camera-relative
+//              step (m_bForceWalk) through the normal movement dispatcher. No
+//              back-walk, no in-place crank — just a slow walk toward the stick.
+enum {
+    ZOOMWALK_OFF = 0,
+    ZOOMWALK_ZOOM,
+    ZOOMWALK_SLOWWALK,
+};
+static int g_zoomwalk_mode = ZOOMWALK_OFF;
+
+// Shared zoom-walk machine: ZOOM (standstill look pose) ↔ SLOWWALK (slow step).
+// Called once per tick from get_hardware_input by whichever input device is
+// active (gamepad button / KBM middle mouse), mirroring the L2 machine. Updates
+// g_zoomwalk_mode and raises m_bForceWalk while in SLOWWALK.
+//   engaged      : the modifier (ACT_FOOT_AIM_*) is currently held down.
+//   stick_active : the movement stick / WASD is deflected past the deadzone.
+//   p_pc         : player's person Thing (may be null) — used to detect that the
+//                  character was already moving when the modifier was pressed.
+static void process_zoomwalk(bool engaged, bool stick_active, Thing* p_pc)
+{
+    if (!engaged) {
+        g_zoomwalk_mode = ZOOMWALK_OFF;
+        return;
+    }
+
+    if (g_zoomwalk_mode == ZOOMWALK_OFF) {
+        // First held tick: decide the mode for this whole hold. Touching the
+        // stick or already being on the move means the player wants to walk,
+        // not to zoom; a clean standstill with a neutral stick enters zoom.
+        const bool moving = p_pc && (p_pc->State == STATE_MOVEING);
+        g_zoomwalk_mode = (stick_active || moving) ? ZOOMWALK_SLOWWALK : ZOOMWALK_ZOOM;
+    } else if (g_zoomwalk_mode == ZOOMWALK_ZOOM) {
+        // The moment the stick is touched in zoom, latch to slow walk for the
+        // rest of the hold (zoom never auto-resumes — needs a fresh press).
+        if (stick_active)
+            g_zoomwalk_mode = ZOOMWALK_SLOWWALK;
+    }
+    // SLOWWALK stays latched until the modifier is released (handled above).
+
+    if (g_zoomwalk_mode == ZOOMWALK_SLOWWALK)
+        m_bForceWalk = UC_TRUE;
+}
+
 // Absolute angular distance between two game angles (0..2047, 2048 = 360°).
 // Result in 0..1024.
 static SLONG l2_angle_abs_diff(SLONG a, SLONG b)
@@ -4199,6 +4254,11 @@ ULONG get_hardware_input(UWORD type)
                         (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
 
                     process_l2_tactical(l2_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+
+                    // Zoom-walk modifier (zoom ↔ slow walk): held = zoom from a
+                    // standstill, or slow camera-relative step once the stick is
+                    // touched / while already moving. See process_zoomwalk.
+                    process_zoomwalk(input_btn_held(ACT_FOOT_AIM_GBTN), !stick_in_deadzone, NET_PERSON(0));
                 }
 
                 if (input_btn_held(ACT_FOOT_JUMP_GBTN)) {
@@ -4254,15 +4314,20 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // L1 doubles as camera-type toggle on foot, but in the car L1
-                // is the BRAKE — suppress the camera toggle while driving so
-                // braking doesn't switch camera / force it behind every tap.
-                // (Aim, also on L1, is already gated by the driver's State.)
+                // This button doubles as camera-type toggle / force-behind, but
+                // ONLY when the zoom-walk modifier enters the ZOOM mode
+                // (standstill). Gating on g_zoomwalk_mode keeps the camera
+                // snap-to-back exclusive to zoom entry — pressing it on the move
+                // enters slow-walk (process_zoomwalk) and must NOT jerk the
+                // camera behind the character. In the car this button is the
+                // BRAKE, so the driving guard suppresses it there too.
+                // g_zoomwalk_mode is computed just above (machine runs before
+                // this block), and ZOOM implies the button is held.
                 {
                     Thing* p_drv = NET_PERSON(0);
                     const bool drv_driving = p_drv && p_drv->Genus.Person
                         && (p_drv->Genus.Person->Flags & FLAG_PERSON_DRIVING);
-                    if (!drv_driving && input_btn_held(ACT_FOOT_CAM_TOGGLE_GBTN)) {
+                    if (!drv_driving && g_zoomwalk_mode == ZOOMWALK_ZOOM) {
                         input |= INPUT_MASK_CAMERA;
                         g_dwLastInputChangeTime = dwCurrentTime;
                     }
@@ -4526,6 +4591,13 @@ ULONG get_hardware_input(UWORD type)
             const SLONG dy_c = kb_vy * KB_DEFLECTION;
             const bool stick_in_deadzone = (kb_vx == 0 && kb_vy == 0);
             process_l2_tactical(ctrl_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+
+            // Zoom-walk modifier on KBM = middle mouse (ACT_FOOT_AIM_MBTN).
+            // Gated by input_gameplay_enabled() to match the MMB read in
+            // apply_button_input_first_person, so F1-debug suppresses both
+            // consistently. WASD deflection is the "stick touched" signal.
+            const bool mmb_held = input_gameplay_enabled() && input_mouse_btn_held(ACT_FOOT_AIM_MBTN);
+            process_zoomwalk(mmb_held, !stick_in_deadzone, NET_PERSON(0));
         }
 
         // Tanky-arrow reference implementation — kept here commented in
@@ -4610,12 +4682,14 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    // Aim modifier: gamepad L1 hold OR middle mouse button hold.
-    // MMB read is gated by input_gameplay_enabled() so F1-debug suppresses
-    // keyboard-side aim (MMB is mouse, but it's a gameplay-input source);
-    // gamepad L1 stays unconditional.
-    if (input_btn_held(ACT_FOOT_AIM_GBTN)
-        || (input_gameplay_enabled() && input_mouse_btn_held(ACT_FOOT_AIM_MBTN))) {
+    // Zoom/look pose is active only while the zoom-walk modifier is in ZOOM mode
+    // (see process_zoomwalk, driven from get_hardware_input). The machine enters
+    // ZOOM only from a standstill with a neutral stick; the instant the stick is
+    // touched it latches to SLOWWALK, fpm goes false here, and the normal
+    // movement dispatcher runs the slow camera-relative step instead. The held
+    // state of the modifier (incl. the input_gameplay_enabled gate for MMB) is
+    // already folded into g_zoomwalk_mode by the machine.
+    if (g_zoomwalk_mode == ZOOMWALK_ZOOM) {
         fpm = UC_TRUE;
     }
 
@@ -4639,13 +4713,12 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             look_pitch &= 2047;
         }
 
-        // Aim-mode look is now driven by the RIGHT stick (gamepad) and the
-        // arrow keys (keyboard). LEFT stick is left free to drive movement
-        // via the standard INPUT_MASK_MOVE path below — the player can walk
-        // while aiming. Pre-rework the LEFT stick was repurposed as the
-        // look stick (FORWARDS/BACKWARDS/LEFT/RIGHT bits drove pitch + yaw)
-        // and movement was force-cleared in this scope; that conflicted with
-        // the natural FPS-style "left=move, right=look" layout.
+        // Zoom-mode look is driven by the RIGHT stick (gamepad), the mouse and
+        // the arrow keys (keyboard). The LEFT stick / WASD does NOT look here:
+        // touching it leaves zoom for the slow-walk mode (process_zoomwalk),
+        // so zoom is always a rooted pose with a neutral movement stick. (The
+        // INPUT_MASK_MOVE clear further down keeps the pose rooted for the tick
+        // the transition is detected.)
         //
         // Vertical inverted to match the non-aim camera convention: in non-
         // aim mode right-stick UP raises the orbital camera (so the view
@@ -4657,29 +4730,19 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             constexpr SLONG STICK_PITCH_MAX = 13; // per-frame pitch step at full deflection
             constexpr SLONG STICK_YAW_MAX = 32; // per-frame angle delta at full deflection
 
-            // Gamepad sticks — both LEFT and RIGHT drive yaw + pitch in aim
-            // mode. Right stick takes priority per-axis: if the right stick
-            // is past the deadzone on a given axis we use the right axis,
-            // otherwise we fall back to the left axis. This way deflecting
-            // both sticks doesn't sum their rates — only the dominant input
-            // is applied. (Per-axis pick rather than per-stick so the player
-            // can e.g. yaw with one stick and pitch with the other if they
-            // want.) Left stick is also still used for movement via
-            // INPUT_MASK_MOVE — these coexist: left stick LEFT both rotates
-            // AND moves the character.
+            // Gamepad sticks — only the RIGHT stick drives yaw + pitch in the
+            // zoom/look pose. The LEFT stick is reserved for movement: touching
+            // it leaves zoom for the slow-walk mode (process_zoomwalk), so
+            // it must NOT also crank the look here — that was the duplicate
+            // rotation we removed. (Pre-rework the left stick was a second look
+            // source via a per-axis fallback; that is gone now.)
             //
-            // Only consume sticks while a controller is the active input
-            // device, so an idle stick on a connected controller doesn't
-            // fight keyboard input. Left stick uses _raw to skip the D-Pad
-            // override (D-Pad doesn't drive on-foot movement in OpenChaos).
+            // Only consume the stick while a controller is the active input
+            // device, so an idle stick on a connected controller doesn't fight
+            // keyboard input.
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                const SLONG sx_r = (SLONG)input_stick_x_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
-                const SLONG sy_r = (SLONG)input_stick_y_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
-                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(ACT_FOOT_AIM_LOOK_ALT_GAXIS) - 32768;
-                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(ACT_FOOT_AIM_LOOK_ALT_GAXIS) - 32768;
-
-                const SLONG sx = (abs(sx_r) > STICK_DEAD) ? sx_r : sx_l;
-                const SLONG sy = (abs(sy_r) > STICK_DEAD) ? sy_r : sy_l;
+                const SLONG sx = (SLONG)input_stick_x_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
+                const SLONG sy = (SLONG)input_stick_y_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
 
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)

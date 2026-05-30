@@ -177,12 +177,11 @@ constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS  = GAXIS_RIGHT;
 constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
 constexpr int ACT_FOOT_AIM_MBTN = MBTN_MIDDLE;
 
-// In aim mode BOTH sticks steer the look yaw / pitch: the right stick is
-// primary, the left stick is the per-axis fallback (and that same left stick
-// still drives movement — see ACT_FOOT_MOVE_GAXIS, same physical stick, two
-// semantics). Passed as stick-id args in input_actions.cpp's aim block.
-constexpr int ACT_FOOT_AIM_LOOK_GAXIS     = GAXIS_RIGHT;
-constexpr int ACT_FOOT_AIM_LOOK_ALT_GAXIS = GAXIS_LEFT;
+// In the zoom/look pose the RIGHT stick steers look yaw / pitch. The LEFT stick
+// is reserved for movement (touching it leaves zoom for the slow-walk mode — see
+// process_zoomwalk), so it no longer doubles as a look source. Passed as a
+// stick-id arg in input_actions.cpp's aim block.
+constexpr int ACT_FOOT_AIM_LOOK_GAXIS = GAXIS_RIGHT;
 
 // ---- First-person look (arrow keys while aiming) ---------------------------
 // While in first-person aim, the arrow keys steer pitch / yaw of the look
