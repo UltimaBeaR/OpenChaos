@@ -5,6 +5,7 @@
 #include "engine/input/gamepad.h" // gamepad_poll
 #include "engine/input/mouse_globals.h" // MouseX/MouseY for input_mouse_x/y
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
+#include "engine/io/oc_config.h" // OC_CONFIG_get_float (stick deadzones)
 #include "engine/core/types.h" // BOOL
 #include "engine/debug/input_debug/input_debug.h" // input_debug_is_active
 #include "game/action_map/input_codes.h" // GAXIS_* / GDIR_*
@@ -127,20 +128,25 @@ UBYTE s_stick_dir_repeat_armed[INPUT_STICK_COUNT][INPUT_DIR_COUNT];
 constexpr uint64_t INPUT_REPEAT_INITIAL_MS = 400;
 constexpr uint64_t INPUT_REPEAT_PERIOD_MS  = 150;
 
-// Stick deadzone in raw 0..65535 units (center 32768). 8192 = ~25%.
-// Picked to match the existing gamemenu.cpp threshold (GM_NOISE_TOLERANCE
-// = 4096) but doubled, since input_frame is meant for general use including
-// game movement which needs slightly more deadzone to avoid drift.
+// Stick raw center. STICK_RAW_DEADZONE is the deadzone for the CONTINUOUS stick
+// output (apply_stick_deadzone → input_stick_x/y). 8192 = ~25%.
 constexpr int STICK_RAW_CENTER   = 32768;
 constexpr int STICK_RAW_DEADZONE = 8192;
 
-// Virtual-direction thresholds in RAW 0..65535 units, distance from center
-// (32768). Independent of the continuous-output deadzone — virtual directions
-// are designed for menu navigation where sensitivity should match the
-// original gamemenu.cpp threshold (GM_NOISE_TOLERANCE = 4096 from center).
-// Hysteresis (release < press) prevents flicker on stick wobble at boundary.
-constexpr int STICK_DIR_PRESS_RAW   = 4096; // matches gamemenu.cpp behavior
-constexpr int STICK_DIR_RELEASE_RAW = 2048; // half — hysteresis
+// Configurable stick deadzones, RAW units (distance from center 32768). Loaded
+// from config in input_frame_init (gamepad section, stored as a fraction 0..1):
+//   s_gameplay_deadzone_raw : in-game movement/aim deadzone — exposed via
+//                             input_gameplay_deadzone_raw() for input_actions'
+//                             get_hardware_input (the old NOISE_TOLERANCE).
+//   s_menu_dir_press_raw    : menu-navigation virtual-direction threshold;
+//                             s_menu_dir_release_raw is half of it (hysteresis
+//                             against stick wobble at the boundary).
+// Defaults correspond to a 0.25 fraction (8192 raw). The menu threshold used to
+// be 4096 (a 0.125 fraction) — raised so controller drift doesn't auto-scroll
+// menus when the stick is left untouched.
+int s_gameplay_deadzone_raw = 8192;
+int s_menu_dir_press_raw    = 8192;
+int s_menu_dir_release_raw  = 4096;
 
 // Map raw 0..65535 (center 32768) to float [-1.0, 1.0] with deadzone applied.
 float apply_stick_deadzone(int raw)
@@ -171,7 +177,7 @@ bool dir_in_range(InputStickDir dir) { return SLONG(dir) >= 0 && SLONG(dir) < IN
 //                  (e.g. right or down), false if delta < -threshold (left/up).
 bool compute_dir(bool already_pressed, int raw_axis, bool positive_dir)
 {
-    int threshold = already_pressed ? STICK_DIR_RELEASE_RAW : STICK_DIR_PRESS_RAW;
+    int threshold = already_pressed ? s_menu_dir_release_raw : s_menu_dir_press_raw;
     int delta = raw_axis - STICK_RAW_CENTER;
     return positive_dir ? (delta > threshold) : (delta < -threshold);
 }
@@ -204,6 +210,27 @@ void input_frame_init()
     memset(s_btns_repeat_armed, 0, sizeof(s_btns_repeat_armed));
     memset(s_stick_dir_repeat_armed, 0, sizeof(s_stick_dir_repeat_armed));
     s_last_key = 0;
+
+    // Load stick deadzones from config. Stored as a fraction 0..1 of full
+    // deflection; converted to RAW (× center). Clamped to [0, 0.9] so the stick
+    // can never be fully dead. Runs after OC_CONFIG_load (config is read by the
+    // surrounding host setup before this init).
+    auto frac_to_raw = [](float f) -> int {
+        if (f < 0.0f) f = 0.0f;
+        if (f > 0.9f) f = 0.9f;
+        return (int)(f * STICK_RAW_CENTER);
+    };
+    s_gameplay_deadzone_raw = frac_to_raw(OC_CONFIG_get_float("gamepad", "gameplay_stick_deadzone", 0.25f));
+    s_menu_dir_press_raw    = frac_to_raw(OC_CONFIG_get_float("gamepad", "menu_stick_deadzone", 0.25f));
+    s_menu_dir_release_raw  = s_menu_dir_press_raw / 2; // half — hysteresis
+}
+
+// In-game stick deadzone (RAW units, distance from center 32768), from the
+// gamepad.gameplay_stick_deadzone config fraction. Consumed by input_actions'
+// get_hardware_input as the movement/aim deadzone (the old NOISE_TOLERANCE).
+int input_gameplay_deadzone_raw()
+{
+    return s_gameplay_deadzone_raw;
 }
 
 void input_frame_update()

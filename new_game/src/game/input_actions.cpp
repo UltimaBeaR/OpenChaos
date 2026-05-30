@@ -79,8 +79,9 @@ extern SLONG find_searchable_person(Thing* p_person);
 //   - dangling stick handling (pure-vertical → pull up / drop, else → side
 //     traverse)
 //
-// The ratio is paired with NOISE_TOLERANCE (8192 raw, defined inside
-// get_hardware_input) for the "stick past deadzone" test.
+// The ratio is paired with NOISE_TOLERANCE (the in-game stick deadzone, read
+// from config in get_hardware_input; default 8192 raw) for the "stick past
+// deadzone" test.
 #define STICK_AXIS_DOMINANCE_RATIO 2
 
 // OpenChaos: rotate a camera-relative stick vector (raw_dx, raw_dy) into the
@@ -4114,14 +4115,17 @@ ULONG get_hardware_input(UWORD type)
 
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
-    // Deadzone constants for the analogue stick: raw axis 0..65535, centre 32768.
-    // Threshold is wider than the input_stick_held menu threshold (4096 from
-    // centre) — gameplay needs more deadzone than menu nav so light drift
-    // doesn't produce spurious INPUT_MASK_FORWARDS / INPUT_MASK_MOVE bits.
+    // Deadzone for the analogue stick: raw axis 0..65535, centre 32768. The
+    // deadzone width (NOISE_TOLERANCE) is now read from config at startup
+    // (gamepad.gameplay_stick_deadzone, a 0..1 fraction) instead of a hardcoded
+    // 8192 — input_gameplay_deadzone_raw() returns the raw value (default 0.25 =
+    // 8192, unchanged). Menu navigation has its own, separately-configured
+    // threshold (gamepad.menu_stick_deadzone) so the two can be tuned apart.
+    // AXIS_MIN/MAX bracket the centre by the deadzone.
 #define AXIS_CENTRE 32768
-#define NOISE_TOLERANCE 8192
-#define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
-#define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
+    const SLONG NOISE_TOLERANCE = input_gameplay_deadzone_raw();
+    const SLONG AXIS_MIN = AXIS_CENTRE - NOISE_TOLERANCE;
+    const SLONG AXIS_MAX = AXIS_CENTRE + NOISE_TOLERANCE;
 
     // gamepad_state is filled by input_frame_update() → gamepad_poll() each
     // render frame; we read it through the input_frame API below.

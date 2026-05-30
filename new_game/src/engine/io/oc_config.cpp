@@ -44,7 +44,12 @@ static void build_defaults_and_migrate(const char* ini_path)
         { "keyboard", { { "left", 203 }, { "right", 205 }, { "forward", 200 }, { "back", 208 }, { "punch", 44 }, { "kick", 45 }, { "action", 46 }, { "run", 47 }, { "jump", 57 }, { "start", 15 }, { "select", 28 }, { "camera", 207 }, { "cam_left", 211 }, { "cam_right", 209 }, { "1stperson", 30 } } },
         { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true } } },
         { "game", { { "scanner_follows", true } } },
-        { "movie", { { "play_movie", true } } }
+        { "movie", { { "play_movie", true } } },
+        // Stick deadzones as a fraction 0..1 of full deflection (center→edge).
+        // gameplay = in-game movement/aim deadzone (raw 8192 = 0.25, unchanged).
+        // menu = menu-navigation virtual-direction threshold (was raw 4096;
+        // raised to 0.25 so controller drift doesn't auto-scroll menus).
+        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 } } }
     };
 
     // Migrate integer value from config.ini (only if the key actually exists there).

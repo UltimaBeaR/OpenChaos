@@ -140,6 +140,12 @@ bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir);
 float input_stick_x(InputStickId stick);
 float input_stick_y(InputStickId stick);
 
+// In-game stick deadzone in RAW units (distance from center 32768), from the
+// gamepad.gameplay_stick_deadzone config fraction (0..1). Used by get_hardware_input
+// as the movement/aim deadzone. Menu navigation has its own (larger) threshold
+// configured separately via gamepad.menu_stick_deadzone.
+int input_gameplay_deadzone_raw();
+
 // ---- Triggers ---------------------------------------------------------------
 // trigger_idx: 15 = L2, 16 = R2 (matches rgbButtons indices for digital path).
 // Returns float [0.0, 1.0].
@@ -212,9 +218,9 @@ bool input_dpad_active();
 //   - Level-trigger digital movement flags (LEFT/RIGHT/FORWARDS/BACKWARDS)
 //     where the same threshold applies for both stick and D-Pad-as-stick.
 // Distinct from input_stick_x/y (float -1..1, deadzone applied — for
-// proportional movement) and from input_stick_held (pre-override raw + 4096
-// menu threshold — for menu nav where stick + D-Pad must be independent
-// signals for antagonist suppression).
+// proportional movement) and from input_stick_held (pre-override raw + the
+// configurable menu threshold, gamepad.menu_stick_deadzone — for menu nav where
+// stick + D-Pad must be independent signals for antagonist suppression).
 int input_stick_x_axis(InputStickId stick);
 int input_stick_y_axis(InputStickId stick);
 

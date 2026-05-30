@@ -23,8 +23,9 @@
 #include "game/action_map/act_menu.h" // ACT_MENU_*
 
 // Stick navigation thresholds and auto-repeat live in input_frame
-// (STICK_DIR_PRESS_RAW / RELEASE_RAW + INPUT_REPEAT_INITIAL_MS / PERIOD_MS).
-// Single source of truth — same cadence across every menu now.
+// (s_menu_dir_press_raw / release — from config gamepad.menu_stick_deadzone —
+// + INPUT_REPEAT_INITIAL_MS / PERIOD_MS). Single source of truth — same cadence
+// and deadzone across every menu now.
 
 // Menu type constants — file private.
 // uc_orig: GAMEMENU_MENU_TYPE_NONE (fallen/Source/gamemenu.cpp)
