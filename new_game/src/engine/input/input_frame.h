@@ -170,6 +170,12 @@ bool input_mouse_btn_just_released(SLONG mbtn_idx);
 bool input_mouse_btn_press_pending(SLONG mbtn_idx);
 void input_mouse_btn_consume(SLONG mbtn_idx);
 
+// Read and reset the accumulated vertical wheel-scroll notches since the last
+// consume. > 0 = net scroll up (away from user), < 0 = net scroll down. One
+// notch is typically ±1. Consume-based, so call it once per frame where you
+// act on scroll.
+SLONG input_mouse_wheel_consume();
+
 // ---- Mouse motion / position ------------------------------------------------
 // Wrappers around mouse_globals (cursor position) filled by mouse.cpp from
 // SDL3 events. Single source of truth for mouse reads.
@@ -330,6 +336,9 @@ void input_frame_on_key_up(UBYTE scancode);
 // declined to consume the click. button is in MBTN_LEFT/MIDDLE/RIGHT (0/1/2).
 void input_frame_on_mouse_button_down(SLONG mbtn_idx);
 void input_frame_on_mouse_button_up(SLONG mbtn_idx);
+// Called from host.cpp::on_mouse_wheel. dy is the SDL wheel delta (notches),
+// > 0 = up/away, < 0 = down/toward.
+void input_frame_on_mouse_wheel(SLONG dy);
 
 // ---- Debug modifier / gameplay gating ---------------------------------------
 //

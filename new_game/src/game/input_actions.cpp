@@ -4081,8 +4081,14 @@ ULONG get_hardware_input(UWORD type)
                 // no character movement here. D-Pad buttons themselves are
                 // still readable via input_btn_held(11..14) for menu nav and
                 // any other consumer that wants them.
-                const SLONG axis_x = input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
-                const SLONG axis_y = input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
+                // While R3 (inventory) is held the left stick is repurposed as
+                // the weapon-popup scroll (read separately via the stick virtual-
+                // direction in process_controls), so suppress its on-foot
+                // movement here — otherwise the character would run while the
+                // player browses weapons. R3 isn't reachable in the car.
+                const bool r3_inventory_held = input_btn_held(ACT_FOOT_INVENTORY_GBTN);
+                const SLONG axis_x = r3_inventory_held ? (SLONG)AXIS_CENTRE : input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
+                const SLONG axis_y = r3_inventory_held ? (SLONG)AXIS_CENTRE : input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
 
                 if (input_gamepad_connected()) {
                     // Analog stick mode: pack position into bits 18-31.
@@ -4966,80 +4972,9 @@ void process_hardware_level_input_for_player(Thing* p_player)
     input &= ~(p_player->Genus.Player->InputDone);
 
     if (!no_control) {
-        if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
-            // Can't draw weapons while driving.
-        } else {
-            // Keyboard weapon hotkeys (1..8). Edge-detect via sticky
-            // press_pending — apply_button_input runs on the physics tick
-            // (~20 Hz) but presses can land on any render frame (60+ Hz),
-            // so a single just_pressed edge can fall between two physics
-            // ticks and vanish before this code reads it. press_pending
-            // latches the rising edge until explicit consume, so the
-            // press survives across the tick-gap. Same pattern the camera
-            // and pause-toggle keys already use.
-            //
-            // Consume happens up-front whether or not the action actually
-            // fires (e.g. weapon not in inventory) — matches the original
-            // just_pressed semantic where a press is "spent" on the tick
-            // it's read, not queued.
-            if (can_darci_change_weapon(p_person) && input_gameplay_enabled()) {
-                const bool pressed_holster    = input_key_press_pending(ACT_FOOT_WEAPON_HOLSTER_KKEY);
-                const bool pressed_pistol     = input_key_press_pending(ACT_FOOT_WEAPON_PISTOL_KKEY);
-                const bool pressed_shotgun    = input_key_press_pending(ACT_FOOT_WEAPON_SHOTGUN_KKEY);
-                const bool pressed_ak47       = input_key_press_pending(ACT_FOOT_WEAPON_AK47_KKEY);
-                const bool pressed_grenade    = input_key_press_pending(ACT_FOOT_WEAPON_GRENADE_KKEY);
-                const bool pressed_explosives = input_key_press_pending(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY);
-                const bool pressed_knife      = input_key_press_pending(ACT_FOOT_WEAPON_KNIFE_KKEY);
-                const bool pressed_bat        = input_key_press_pending(ACT_FOOT_WEAPON_BAT_KKEY);
-
-                input_key_consume(ACT_FOOT_WEAPON_HOLSTER_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_PISTOL_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_SHOTGUN_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_AK47_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_GRENADE_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_EXPLOSIVES_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_KNIFE_KKEY);
-                input_key_consume(ACT_FOOT_WEAPON_BAT_KKEY);
-
-                if (pressed_holster) {
-                    if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
-                        set_person_gun_away(p_person);
-                    }
-                }
-
-                if (pressed_pistol) {
-                    if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
-                        if (p_person->Flags & FLAGS_HAS_GUN) {
-                            if (p_person->Genus.Person->SpecialUse) {
-                                set_person_item_away(p_person);
-                            }
-
-                            set_person_draw_gun(p_person);
-                        }
-                    }
-                }
-
-                SLONG special_type = SPECIAL_NONE;
-
-                if (pressed_shotgun)    special_type = SPECIAL_SHOTGUN;
-                if (pressed_ak47)       special_type = SPECIAL_AK47;
-                if (pressed_grenade)    special_type = SPECIAL_GRENADE;
-                if (pressed_explosives) special_type = SPECIAL_EXPLOSIVES;
-                if (pressed_knife)      special_type = SPECIAL_KNIFE;
-                if (pressed_bat)        special_type = SPECIAL_BASEBALLBAT;
-
-                if (special_type) {
-                    if (person_has_special(p_person, special_type)) {
-                        if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
-                            set_person_gun_away(p_person);
-                        }
-
-                        set_person_draw_item(p_person, special_type);
-                    } else {
-                    }
-                }
-            }
-        }
+        // Weapon switching (keyboard 1-4 + Tab melee, MMB disarm, mouse wheel
+        // scroll, gamepad D-pad / R3) is handled centrally in
+        // game_tick.cpp::process_controls — not here.
 
         if (!apply_button_input_first_person(p_player, p_person, input, &processed)) {
 

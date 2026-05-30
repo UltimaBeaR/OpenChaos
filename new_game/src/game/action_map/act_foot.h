@@ -113,37 +113,41 @@ constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
 constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
 constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
 
-// ---- Inventory / weapon cycle (R3 / Tab) -----------------------------------
-// Opens / advances the inventory wheel popup. Read in
-// game_tick.cpp::process_controls AND in input_actions.cpp::get_hardware_input
-// (the latter sets INPUT_MASK_SELECT from R3 hold).
+// ---- Weapon: disarm / last-weapon + inventory scroll (R3 / MMB / wheel) ----
+// R3 (gamepad) and middle mouse (KBM) toggle disarm ↔ last weapon. R3 also acts
+// as a modifier: holding R3 + D-pad ↑/↓ scrolls the inventory popup (and then
+// the R3 release does NOT fire disarm — see process_controls). Mouse wheel
+// scrolls the popup directly. INPUT_MASK_SELECT is still set from R3/Tab hold in
+// get_hardware_input for the car-siren / cutscene-skip / map-quit paths.
+// All read in game_tick.cpp::process_controls.
 
-constexpr int ACT_FOOT_INVENTORY_KKEY = KKEY_TAB;
-constexpr int ACT_FOOT_INVENTORY_GBTN = GBTN_R3; // DS: R3, Xbox: RSB
+constexpr int ACT_FOOT_INVENTORY_KKEY      = KKEY_TAB;      // legacy SELECT mask (car/map/skip)
+constexpr int ACT_FOOT_INVENTORY_GBTN      = GBTN_R3;       // DS: R3, Xbox: RSB
+constexpr int ACT_FOOT_WEAPON_DISARM_MBTN  = MBTN_MIDDLE;   // disarm ↔ last weapon (KBM)
 
-// ---- Weapon select: keyboard digit hotkeys ---------------------------------
-// Direct weapon switch. KKEY_1 holsters (gun away), KKEY_2 draws pistol, the
-// rest pick a specific SpecialUse weapon. Read in
-// input_actions.cpp::apply_button_input.
+// ---- Weapon select: keyboard digit hotkeys + Tab melee ---------------------
+// Direct weapon switch (1..4) + Tab = melee toggle (fist ↔ bat ↔ knife, like
+// D-pad down). Read in game_tick.cpp::process_controls. Rarely-used items
+// (explosives etc.) have no hotkey — reach them via the wheel/R3 scroll.
 
-constexpr int ACT_FOOT_WEAPON_HOLSTER_KKEY     = KKEY_1;
-constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY      = KKEY_2;
-constexpr int ACT_FOOT_WEAPON_SHOTGUN_KKEY     = KKEY_3;
-constexpr int ACT_FOOT_WEAPON_AK47_KKEY        = KKEY_4;
-constexpr int ACT_FOOT_WEAPON_GRENADE_KKEY     = KKEY_5;
-constexpr int ACT_FOOT_WEAPON_EXPLOSIVES_KKEY  = KKEY_6;
-constexpr int ACT_FOOT_WEAPON_KNIFE_KKEY       = KKEY_7;
-constexpr int ACT_FOOT_WEAPON_BAT_KKEY         = KKEY_8;
+constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY  = KKEY_1;
+constexpr int ACT_FOOT_WEAPON_AK47_KKEY    = KKEY_2;
+constexpr int ACT_FOOT_WEAPON_SHOTGUN_KKEY = KKEY_3;
+constexpr int ACT_FOOT_WEAPON_GRENADE_KKEY = KKEY_4;
+constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_TAB;
 
 // ---- Weapon select: D-pad on gamepad ---------------------------------------
-// Direct weapon select via D-pad. Read in game_tick.cpp::process_controls,
-// gated by !cheat_combo_active so the cheat-direction selector (Select + L1
-// + L2 + DPad) doesn't double-fire weapon switch.
+// Direct weapon select via D-pad (only when R3 is NOT held — R3+↑/↓ is the
+// inventory scroll instead). Read in game_tick.cpp::process_controls, gated by
+// !cheat_combo_active so the cheat-direction selector (Select + L1 + L2 + DPad)
+// doesn't double-fire weapon switch.
+//   ↑ pistol, ← AK47, → shotgun, ↓ melee toggle, ↑+→ (diagonal) grenade.
 
 constexpr int ACT_FOOT_WEAPON_PISTOL_GBTN       = GBTN_DPAD_UP;
 constexpr int ACT_FOOT_WEAPON_AK47_GBTN         = GBTN_DPAD_LEFT;
 constexpr int ACT_FOOT_WEAPON_SHOTGUN_GBTN      = GBTN_DPAD_RIGHT;
 constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN  = GBTN_DPAD_DOWN;
+// Grenade = ↑ + → pressed together (no dedicated button — combines the two).
 
 // ---- Camera toggle (gamepad-only) ------------------------------------------
 // Gamepad L1 sets INPUT_MASK_CAMERA (cycle next camera mode). Keyboard

@@ -354,6 +354,23 @@ void input_frame_on_mouse_button_up(SLONG mbtn_idx)
     s_mbtns_event_held[mbtn_idx] = 0;
 }
 
+// Accumulated vertical wheel notches since the last consume. Filled from SDL
+// wheel events (host.cpp), drained by input_mouse_wheel_consume. Consume-based
+// like the relative-motion delta, not per-frame-reset.
+static SLONG s_mouse_wheel_accum = 0;
+
+void input_frame_on_mouse_wheel(SLONG dy)
+{
+    s_mouse_wheel_accum += dy;
+}
+
+SLONG input_mouse_wheel_consume()
+{
+    const SLONG v = s_mouse_wheel_accum;
+    s_mouse_wheel_accum = 0;
+    return v;
+}
+
 // ---- Keyboard ---------------------------------------------------------------
 
 bool input_key_held(SLONG kb_code)

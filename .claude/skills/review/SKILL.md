@@ -50,6 +50,22 @@ This is especially dangerous in mass operations. Never delete lines in bulk with
 - No broken control flow from removed lines
 - String/path literals correct
 
+### Reuse / no unjustified duplication
+
+Scan the changed code for the same logic repeated across several cases — multiple
+paths that each do "the same thing" (e.g. open the popup + equip a weapon copied
+into five different handlers). That belongs in ONE place (or a small set of
+shared helpers) that every case calls, not copy-pasted per case. Watch for:
+
+- The same sequence of calls repeated with only the arguments differing → extract a helper taking those arguments.
+- Two functions identical except one extra step → make one call the other.
+- A "do X" path and a "show X without doing it" path → usually the same primitive, parameterised.
+
+*Why:* duplicated logic drifts — a fix or tweak lands in one copy and silently
+not the others, and the cases diverge over time. One shared path means one place
+to change and one behaviour to reason about. Reuse to the maximum; keep things
+separate only when consolidating would genuinely obscure intent.
+
 ### Documentation consistency
 - If you changed behavior during the session (e.g. added then reverted something, changed approach) — re-read ALL documentation updates made in the same session and verify they describe the **final** state, not an intermediate one
 - Common mistake: doc says "ASSERT replaced with skip" but code still has ASSERT because it was restored later. The doc was written for an intermediate state and never updated after the final change

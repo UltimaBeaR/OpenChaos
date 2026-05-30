@@ -769,6 +769,12 @@ bool sdl3_poll_events()
             break;
         }
 
+        case SDL_EVENT_MOUSE_WHEEL:
+            // e.wheel.y: +1 per notch up (away), -1 per notch down (toward).
+            if (s_callbacks.on_mouse_wheel && e.wheel.y != 0)
+                s_callbacks.on_mouse_wheel((int)e.wheel.y);
+            break;
+
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
             if (s_callbacks.on_focus_gained)
                 s_callbacks.on_focus_gained();

@@ -124,6 +124,10 @@ struct SDL3_Callbacks {
     // keep flowing — that's how the mouse camera reads infinite motion.
     void (*on_mouse_move)(int x, int y, int xrel, int yrel);
     void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=middle, 2=right (MBTN_*)
+    // Vertical mouse-wheel scroll. dy > 0 = scroll up / away from user,
+    // dy < 0 = scroll down / toward user (SDL convention). One notch is
+    // typically ±1. May be null if the host doesn't consume scroll.
+    void (*on_mouse_wheel)(int dy);
     void (*on_focus_gained)();
     void (*on_focus_lost)();
     void (*on_window_moved)();

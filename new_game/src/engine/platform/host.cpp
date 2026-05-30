@@ -68,6 +68,11 @@ static void on_mouse_button(int button, bool down, int /*x*/, int /*y*/)
         input_frame_on_mouse_button_up(button);
 }
 
+static void on_mouse_wheel(int dy)
+{
+    input_frame_on_mouse_wheel(dy);
+}
+
 void host_on_focus_changed(bool focused)
 {
     if (focused) {
@@ -221,6 +226,7 @@ BOOL SetupHost(ULONG flags)
     cb.on_key_up = on_key_up;
     cb.on_mouse_move = on_mouse_move;
     cb.on_mouse_button = on_mouse_button;
+    cb.on_mouse_wheel = on_mouse_wheel;
     cb.on_focus_gained = on_focus_gained;
     cb.on_focus_lost = on_focus_lost;
     cb.on_window_moved = on_window_moved;
