@@ -1595,18 +1595,11 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     return (angle);
 }
 
-// L2 modifier regime — written in get_hardware_input, read by
-// player_turn_left_right_analogue (for walk_back force-keep). See the L2 block
-// in get_hardware_input for full semantics.
-//
-// ROTATE was removed: under the character-relative stick scheme there is no
-// "rotate in place" walk regime any more — the player rotates the camera
-// (right stick / mouse) or holds L1 zoom for slow turning. Side rolls
-// (L2+✕ with a side-of-character stick) remain via the tactical action path
-// in apply_button_input, gated on `l2_regime != L2_REGIME_NONE`.
+// L2 modifier regime — written in get_hardware_input (the STICKY_BACK state of
+// the back-walk machine), read by player_turn_left_right_analogue to force
+// walk_back entry/exit. Only NONE / BACKWARD are used in the current scheme.
 enum {
     L2_REGIME_NONE = 0,
-    L2_REGIME_FORWARD,
     L2_REGIME_BACKWARD,
 };
 static int l2_regime = L2_REGIME_NONE;
@@ -1648,20 +1641,6 @@ bool input_l2_is_held(void)
     return g_l2_is_held;
 }
 
-// File-scope flag: was the player character in STATE_MOVEING + RUNNING/WALKING
-// at the start of the current tick? Updated by apply_button_input (it has
-// p_person access). Read by get_hardware_input regime classification — when L2
-// engages while the character is already running, regime is forced to FORWARD
-// regardless of stick direction. Otherwise running toward the camera then
-// pressing L2 would classify as BACKWARD (character abruptly switched to
-// walk-back mid-stride), which felt jarring; user expects the run to
-// continue smoothly into slow-walk mode.
-//
-// WALKING_BACKWARDS / CRAWLING / etc. are intentionally NOT included — a
-// player just exiting walk-back and immediately re-engaging L2 with stick
-// back should re-enter BACKWARD regime via stick classification, not get
-// forced to FORWARD.
-static bool g_player_thing_is_running_or_walking = false;
 
 // Post-climb jump suppression counter. Set when pull_up animation ends (in
 // person.cpp), decremented in apply_button_input. While > 0, INPUT_MASK_JUMP
@@ -1704,22 +1683,13 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
         --reduce_turn;
     }
 
-    // L2 BACKWARD regime: explicit walk_back entry/exit.
-    //
-    // Why not use the existing tank-mode entry below (~line 1626): that path
-    // is gated on player_relative=1, where target_angle = stick_angle +
-    // char.Angle. In tank mode the target FOLLOWS the character — the angular
-    // delta between stick and facing stays constant, so the character keeps
-    // rotating tank-style while walking back instead of converging on a fixed
-    // backing direction (the "tanky rotation while backing up" feel).
-    //
-    // With player_relative=0 (camera-relative — used in BACKWARD regime),
-    // target_angle is in world space; character converges after a few ticks
-    // of rotation, then walks at -velocity opposite to facing = into stick
-    // direction. But the camera-relative path doesn't auto-enter walk_back,
-    // so we force-enter here from STATE_IDLE; and force-exit when the regime
-    // changes (stick released / L2 off) so the character doesn't get stuck
-    // in walk_back.
+    // L2 BACKWARD regime: explicit walk_back entry / exit. Backing is
+    // CAMERA-RELATIVE (player_relative stays 0): the walk_back target is in
+    // world space, so the character converges toward a fixed backing direction,
+    // and rotating the stick around the rim steers where it backs. We force-
+    // enter walk_back here when the regime becomes BACKWARD (the sticky back-
+    // walk latch in get_hardware_input), and force-exit on regime change (stick
+    // returned to centre / L2 released) so the character doesn't get stuck.
     if (l2_regime == L2_REGIME_BACKWARD) {
         // Allow force-entry from any normal locomotion state. STATE_IDLE
         // alone misses the deceleration window (State still MOVEING when
@@ -2584,13 +2554,6 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
     // window state at jump-decision time.
     if (g_player_run_entry_ticks > 0)
         --g_player_run_entry_ticks;
-
-    // Publish player character locomotion state for get_hardware_input's L2
-    // regime classification. See g_player_thing_is_running_or_walking comment.
-    g_player_thing_is_running_or_walking =
-        (p_person->State == STATE_MOVEING
-         && (p_person->SubState == SUB_STATE_RUNNING
-             || p_person->SubState == SUB_STATE_WALKING));
 
     // Post-climb jump suppression — see g_post_climb_jump_block_ticks comment.
     // Suppress JUMP for a few ticks after climb-up so the buffered jump press
@@ -3941,60 +3904,28 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // L2 hold = on-foot slow-walk modifier + tactical action chord.
+                // L2 hold = on-foot tactical modifier. Controls rework in
+                // progress — STEP 1 implements BACK-WALK only. Forward slow-walk
+                // and side rolls arrive in later steps (on L1 and L2+side).
                 //
-                // Stick is interpreted in CHARACTER-RELATIVE frame: raw stick
-                // (camera-frame) is rotated by (cam_angle - char_angle) so
-                // that "stick up" on the controller always means "forward for
-                // the character", regardless of where the camera is pointing.
-                // This lets the player keep using familiar stick directions
-                // even when the character is facing the camera (in which case
-                // raw stick-up would otherwise be "backward in world").
+                // Stick is interpreted in the CHARACTER-RELATIVE frame: the raw
+                // (camera-frame) stick is rotated into the character's frame
+                // (stick_camera_to_char_frame below) so "toward the character's
+                // back" is detected regardless of where the camera points.
                 //
-                // Movement under L2 uses a LATCHED REGIME state machine:
-                // the regime is classified ONCE on the first stick
-                // deflection out of the deadzone after L2 engages, then
-                // STAYS committed until L2 is released. Returning the
-                // stick to neutral does NOT reset the regime; nor does
-                // pushing it the opposite way. To switch regimes the
-                // player must release L2 and press it again — this
-                // explicit commit makes the slow-walk mode predictable
-                // and removes a class of "stick wobble flipped me into
-                // backward walk" surprises.
+                // BACK-WALK regime: pushing the stick into the ±45° cone around
+                // the character's back (dy_p > 0 AND |dx_p| < |dy_p|) latches a
+                // sticky walk-backwards. It stays latched until L2 is released —
+                // returning the stick to neutral or pushing it elsewhere does
+                // not cancel it. Movement is camera-relative (player_relative=0):
+                // walk_back entry/exit is forced in player_turn_left_right_
+                // analogue when l2_regime == L2_REGIME_BACKWARD;
+                // set_person_walk_backwards sets Velocity = -5.
                 //
-                //   REGIME    | Trigger (on stick exit from neutral, char-rel)
-                //   FORWARD   | everything past deadzone that isn't BACKWARD
-                //   BACKWARD  | ±45° cone around char-back:
-                //             |   dy_p > 0  AND  |dx_p| < |dy_p|
-                //
-                //   FORWARD   | Camera-relative slow walk (player_relative=0).
-                //             | Stick rotation → character rotates and walks
-                //             | in stick direction. Pure-side stick belongs
-                //             | here too: character walks sideways relative
-                //             | to itself, in stick direction.
-                //   BACKWARD  | player_relative=0 (camera-relative angle math).
-                //             | Walk_back entry forced from STATE_IDLE in
-                //             | player_turn_left_right_analogue when l2_regime
-                //             | == L2_REGIME_BACKWARD; force-exit on regime
-                //             | change. set_person_walk_backwards: Velocity=-5.
-                //
-                // ROTATE regime removed: L2 no longer rotates the character.
-                // Rotation lives on the camera (right stick / mouse) and on
-                // L1 zoom-hold. Side rolls (L2+✕+side stick) remain via the
-                // tactical action path in apply_button_input.
-                //
-                // BACKWARD cone is narrower than FORWARD because backward
-                // walking is needed rarely; the wider FORWARD cone is more
-                // forgiving for ordinary movement and absorbs diagonal-side
-                // intent into "walk in that direction".
-                //
-                // Hysteresis on L2 value (engage ~10 %, release ~5 %) keeps
-                // a small gap against rest-position noise while still
-                // firing nearly immediately on press — L2+✕ taps in
-                // rapid succession need L2 to register before ✕ does,
-                // so we engage as early as we can without dithering.
-                // l2_engaged static is driven down to false when
-                // input_trigger_raw returns 0 (no pad connected).
+                // Hysteresis on the L2 trigger value (engage ~10 %, release
+                // ~5 %) keeps a small gap against rest-position noise while
+                // still firing nearly immediately on press. l2_engaged is
+                // driven to false when input_trigger_raw returns 0 (no pad).
                 {
                     static bool l2_engaged = false;
                     // l2_regime is a file-scope static (declared near
@@ -4040,81 +3971,65 @@ ULONG get_hardware_input(UWORD type)
                         --g_l2_engage_window_ticks;
                     }
 
-                    // Raw camera-relative stick vector. Used for deadzone
-                    // test (per-axis NOISE_TOLERANCE, hardware property),
-                    // and as input to the char-frame rotation.
+                    // Stick vectors: raw (controller frame) for the centre /
+                    // deadzone test, and character-relative (camera+char
+                    // transform) for the back-cone test below.
                     const SLONG dx_c = axis_x - AXIS_CENTRE;
                     const SLONG dy_c = axis_y - AXIS_CENTRE;
-                    const bool dx_past_deadzone = (abs(dx_c) > (SLONG)NOISE_TOLERANCE);
-                    const bool dy_past_deadzone = (abs(dy_c) > (SLONG)NOISE_TOLERANCE);
-                    const bool stick_in_deadzone = !dx_past_deadzone && !dy_past_deadzone;
+                    const bool stick_in_deadzone =
+                        (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
 
-                    // Character-relative stick vector. char.Angle is read
-                    // from the player character (NET_PERSON(0)) via the
-                    // tweened (visual) angle — that's what the player sees
-                    // and intuits from. Falls back to camera angle (zero
-                    // rotation, identity transform) if the player thing
-                    // is unavailable (early-frame edge cases, etc.) so the
-                    // code is robust without the player char being set.
-                    SLONG dx_p = dx_c;
-                    SLONG dy_p = dy_c;
+                    SLONG dx_p = dx_c, dy_p = dy_c;
                     {
                         Thing* p_pc = NET_PERSON(0);
-                        if (p_pc && p_pc->Draw.Tweened) {
-                            const SLONG cam_angle = get_camera_angle();
-                            const SLONG char_angle = p_pc->Draw.Tweened->Angle;
-                            stick_camera_to_char_frame(dx_c, dy_c, cam_angle, char_angle, &dx_p, &dy_p);
-                        }
+                        if (p_pc && p_pc->Draw.Tweened)
+                            stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
+                                p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
                     }
+                    // BACK zone (char frame, camera-considered): the whole rear
+                    // semicircle — any stick deflection with a backward component
+                    // (dy_p > 0). This is a 180° zone (±90° from straight back).
+                    const bool stick_in_back_cone = (dy_p > 0);
 
-                    // BACKWARD-cone test in char frame: stick points behind
-                    // the character (dy_p > 0) AND backward dominates
-                    // sideways (|dx_p| < |dy_p|, ±45° cone around char-
-                    // back). Everything else past deadzone falls into
-                    // FORWARD, including pure-side stick (character walks
-                    // sideways relative to its own facing).
-                    const bool stick_in_back_cone = (dy_p > 0) && (abs(dx_p) < abs(dy_p));
+                    // Back-walk activation. While L2 is held the stick deflection
+                    // out of centre commits to one of two STICKY modes, each held
+                    // until the stick returns to centre:
+                    //  - L2 just pressed → ARMED (await a deflection).
+                    //  - ARMED + deflection INSIDE the back zone → STICKY_BACK
+                    //    (camera-relative back-walk).
+                    //  - ARMED + deflection OUTSIDE the back zone → STICKY_PASS:
+                    //    ignore L2, pass through to default movement (the
+                    //    character just runs). This blocks switching to back-walk
+                    //    until the stick is re-centred.
+                    //  - Either sticky mode returns to ARMED when the stick
+                    //    re-centres, so back → centre → back re-engages, and
+                    //    forward → centre → back also works (standard feel).
+                    //  - L2 release ends everything.
+                    // When NOT in STICKY_BACK, L2 does NOTHING: `input` is left
+                    // untouched, so the character moves exactly as if L2 were not
+                    // held (no stop, no neutralise).
+                    enum { L2_OFF, L2_ARMED, L2_STICKY_BACK, L2_STICKY_PASS };
+                    static int l2_state = L2_OFF;
+                    if (!l2_engaged)
+                        l2_state = L2_OFF;
+                    else if (!l2_was_engaged)
+                        l2_state = L2_ARMED; // L2 just pressed → await a stick move
 
-                    if (!l2_engaged) {
-                        // L2 released — clear the latched regime so the
-                        // next L2 press starts fresh.
+                    if (l2_state == L2_ARMED && !stick_in_deadzone)
+                        l2_state = stick_in_back_cone ? L2_STICKY_BACK : L2_STICKY_PASS;
+                    else if ((l2_state == L2_STICKY_BACK || l2_state == L2_STICKY_PASS) && stick_in_deadzone)
+                        l2_state = L2_ARMED; // re-centred → re-arm
+
+                    if (l2_state == L2_STICKY_BACK) {
+                        l2_regime = L2_REGIME_BACKWARD;
+                        m_bForceWalk = UC_TRUE;
+                        // Camera-relative backing (player_relative stays 0):
+                        // walk_back entry/exit handled in
+                        // player_turn_left_right_analogue.
+                    } else {
                         l2_regime = L2_REGIME_NONE;
-                    } else if (l2_regime == L2_REGIME_NONE && !stick_in_deadzone) {
-                        // L2 is held, regime not yet committed, stick just
-                        // moved out of neutral → LATCH the regime now. Stays
-                        // committed until L2 releases (the !l2_engaged branch
-                        // above). Subsequent stick-to-neutral or stick-to-
-                        // opposite-direction is intentionally ignored.
-                        if (g_player_thing_is_running_or_walking) {
-                            // Character is already in mid-locomotion. Force
-                            // FORWARD regardless of stick — running + L2
-                            // should smoothly become slow-walk in the same
-                            // direction, not snap into BACKWARD.
-                            l2_regime = L2_REGIME_FORWARD;
-                        } else if (stick_in_back_cone) {
-                            l2_regime = L2_REGIME_BACKWARD;
-                        } else {
-                            l2_regime = L2_REGIME_FORWARD;
-                        }
-                    }
-                    // No deadzone-reset and no slam-reclassification: once
-                    // the regime is latched it stays for the duration of
-                    // the L2 hold.
-
-                    switch (l2_regime) {
-                        case L2_REGIME_NONE:
-                            break;
-                        case L2_REGIME_FORWARD:
-                            m_bForceWalk = UC_TRUE;
-                            // player_relative stays 0 (camera-relative).
-                            break;
-                        case L2_REGIME_BACKWARD:
-                            m_bForceWalk = UC_TRUE;
-                            // player_relative stays 0 (camera-relative).
-                            // Walk_back entry/exit handled by
-                            // player_turn_left_right_analogue (force-entry
-                            // on regime active, force-exit on regime change).
-                            break;
+                        // ARMED / STICKY_PASS / OFF → leave input untouched
+                        // (normal movement).
                     }
                 }
 
