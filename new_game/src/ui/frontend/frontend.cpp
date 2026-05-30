@@ -1897,7 +1897,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-        menu_data[1].Data |= ENV_get_value_number("scanner_follows", 1, "Game");
+        menu_data[1].Data |= ENV_get_value_number("scanner_follows", 0, "Game");
         break;
     case FE_SAVE_CONFIRM:
         if (bDoTransition) {

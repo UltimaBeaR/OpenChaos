@@ -42,7 +42,10 @@ static void build_defaults_and_migrate(const char* ini_path)
     g_config = {
         { "audio", { { "ambient_volume", 127 }, { "music_volume", 127 }, { "fx_volume", 127 } } },
         { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true } } },
-        { "game", { { "scanner_follows", true } } },
+        // scanner_follows: true = radar rotates with Darci's facing, false =
+        // rotates with the camera (position is always relative to Darci). Default
+        // false — the radar tracks where the camera looks.
+        { "game", { { "scanner_follows", false } } },
         { "movie", { { "play_movie", true } } },
         // Stick deadzones as a fraction 0..1 of full deflection (center→edge).
         // gameplay = in-game movement/aim deadzone (raw 8192 = 0.25, unchanged).

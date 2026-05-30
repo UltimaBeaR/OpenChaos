@@ -1532,7 +1532,8 @@ void player_interface_move(Thing* p_thing, ULONG input)
 void init_user_interface(void)
 {
     USER_INTERFACE = 0;
-    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_TRUE, "Game");
+    // Default UC_FALSE: radar rotation follows the camera, not Darci's facing.
+    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_FALSE, "Game");
 }
 
 // Maximum turn speed per frame when rotating (controls animation frame advance rate).
