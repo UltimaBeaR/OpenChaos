@@ -3415,6 +3415,48 @@ void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill)
     free(blank);
 }
 
+void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgba)
+{
+    if (page < 0 || page >= GL_TEX_MAX)
+        return;
+    if (!rgba || w <= 0 || h <= 0)
+        return;
+
+    GLTexture& tex = s_textures[page];
+
+    // Reset render states (matches gl_load_tga / ge_texture_create_user_page,
+    // which reset so POLY_init_render_states re-caches texture handles).
+    if (s_render_states_reset_callback)
+        s_render_states_reset_callback();
+
+    // Treat as a user-supplied RGBA page. These atlases carry per-pixel alpha
+    // and may be non-square / non-power-of-two, so we upload directly without
+    // the square/POT validation gl_load_tga applies to game TGAs.
+    tex.type = GE_TEXTURE_TYPE_USER;
+    tex.size = w; // square in practice; width is what callers query
+    tex.contains_alpha = true;
+    // No mipmaps: glyph atlases are drawn 1:1 in screen space and mip
+    // averaging would bleed neighbouring atlas cells into each other.
+    tex.no_mipmaps = true;
+    tex.has_mipmaps = false;
+
+    if (!tex.gl_id) {
+        glGenTextures(1, &tex.gl_id);
+    }
+    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
+    // Source bytes from stb_image are R,G,B,A in memory, so upload as GL_RGBA
+    // (the TGA path uses GL_BGRA because its source staging buffer is BGRA).
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Clamp: glyph cells live inside the atlas; clamping avoids wrap bleeding
+    // at the atlas edges when a cell touches the border.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void ge_texture_destroy(int32_t page)
 {
     if (page < 0 || page >= GL_TEX_MAX)

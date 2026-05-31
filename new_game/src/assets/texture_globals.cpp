@@ -190,6 +190,13 @@ SLONG TEXTURE_page_meteor = 0;
 // uc_orig: TEXTURE_page_splash (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_splash = 0;
 
+// Input-prompt glyph atlas pages (Kenney Input Prompts, embedded PNGs).
+// New in OpenChaos — no original counterpart.
+SLONG TEXTURE_page_glyph_kbm = 0;
+SLONG TEXTURE_page_glyph_generic = 0;
+SLONG TEXTURE_page_glyph_ps = 0;
+SLONG TEXTURE_page_glyph_deck = 0;
+
 // uc_orig: TEXTURE_create_clump (fallen/DDEngine/Source/texture.cpp)
 int TEXTURE_create_clump = 0;
 

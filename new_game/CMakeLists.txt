@@ -143,6 +143,38 @@ add_custom_command(
     COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
 )
 
+# Embed the input-prompt glyph PNG atlases (Kenney Input Prompts, CC0) as C
+# byte arrays at build time. Same mechanism as the shader embed above: a
+# generated CMake script invoked via add_custom_command, so edits to the PNGs
+# are picked up on every build. file(READ ... HEX) reads each PNG as a hex
+# string; string(REGEX REPLACE) turns it into "0x..,0x..,".
+set(GLYPH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/input_glyphs/assets")
+set(GLYPH_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/input_glyphs_embedded.h")
+set(GLYPH_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_input_glyphs.cmake")
+file(WRITE "${GLYPH_EMBED_SCRIPT}" "
+file(WRITE \"\${OUT}\" \"// Auto-generated from input-prompt PNG atlases — do not edit.\\n\")
+foreach(PAIR KEYBOARD=glyphs_keyboard GENERIC=glyphs_generic PS=glyphs_ps DECK=glyphs_deck)
+    string(REPLACE \"=\" \";\" PAIR_LIST \"\${PAIR}\")
+    list(GET PAIR_LIST 0 NAME)
+    list(GET PAIR_LIST 1 FILE)
+    file(READ \"\${GLYPH_DIR}/\${FILE}.png\" HEX HEX)
+    string(REGEX REPLACE \"(..)\" \"0x\\\\1,\" BYTES \"\${HEX}\")
+    file(APPEND \"\${OUT}\"
+        \"static const unsigned char GLYPH_\${NAME}_PNG[] = { \${BYTES} };\\n\"
+        \"static const unsigned int  GLYPH_\${NAME}_PNG_LEN = sizeof(GLYPH_\${NAME}_PNG);\\n\\n\")
+endforeach()
+")
+add_custom_command(
+    OUTPUT "${GLYPH_HEADER}"
+    COMMAND ${CMAKE_COMMAND} -DGLYPH_DIR="${GLYPH_DIR}" -DOUT="${GLYPH_HEADER}" -P "${GLYPH_EMBED_SCRIPT}"
+    DEPENDS
+        "${GLYPH_DIR}/glyphs_keyboard.png"
+        "${GLYPH_DIR}/glyphs_generic.png"
+        "${GLYPH_DIR}/glyphs_ps.png"
+        "${GLYPH_DIR}/glyphs_deck.png"
+    COMMENT "Embedding input-prompt PNG atlases into input_glyphs_embedded.h"
+)
+
 set(BACKEND_SOURCES
     # --- GLAD loader ---
     src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
@@ -328,6 +360,7 @@ set(SOURCES_NEW
     src/assets/formats/file_clump.cpp
     src/assets/formats/tga.cpp
     src/assets/formats/tga_globals.cpp
+    src/assets/formats/stb_image_impl.cpp
     src/assets/formats/anim.cpp
     src/assets/formats/anim_globals.cpp
     src/assets/formats/anim_loader.cpp
@@ -493,6 +526,8 @@ set(SOURCES_NEW
     src/camera/vis_cam.cpp
 
     # === UI ===
+    src/ui/input_glyphs/input_glyphs.cpp
+    src/ui/input_glyphs/input_glyph_coords.cpp
     src/ui/frontend/startscr_globals.cpp
     src/ui/frontend/attract.cpp
     src/ui/frontend/attract_globals.cpp
@@ -549,6 +584,8 @@ add_executable(OpenChaos
     ${SOURCES_NEW}
     # Generated shader header (triggers rebuild when .glsl files change).
     ${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h
+    # Generated glyph-atlas header (triggers rebuild when PNGs change).
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/input_glyphs_embedded.h
 )
 # WIN32 = SUBSYSTEM:WINDOWS (no console window). Only meaningful on Windows.
 if(WIN32)
