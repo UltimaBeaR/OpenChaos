@@ -74,12 +74,18 @@ Inline rich-text (also DONE):
   shares the size math so wrap measuring matches drawing.
 - Spacing: a space is inserted between atoms ONLY where the source has one, so
   `{jump}{use}` sits flush and `a {jump} b` keeps its spaces (no extra padding).
-- Vertical: the glyph centre is aligned to the FONT2D letter's visual centre
-  (from its quad metrics), plus a small empirical bias, so glyphs sit on the
-  text line rather than riding high/low.
-- Brightness: FONT2D text renders slightly translucent, so glyphs are drawn at
-  reduced alpha (`INPUT_GLYPH_DRAW_COLOUR`, ~0xB0) to match — otherwise an
-  opaque glyph looked brighter than the text beside it.
+- Vertical alignment / crispness: the glyph centre is aligned to the FONT2D
+  letter's visual centre (from its quad metrics), plus a small whole-pixel nudge
+  (`INPUT_GLYPH_VNUDGE_PX`) to optically centre it on the ink. For the glyph and
+  the text to be BOTH crisp AND stay aligned across UI scales, **FONT2D now
+  pixel-snaps each letter quad to the real framebuffer grid** (global change in
+  font2d.cpp — text on the virtual grid + glyphs on the real grid drifted ±1px as
+  the scale changed). Residual ≤1px alignment variance is inherent (letters and
+  glyphs have different pixel heights/parities when both are crisp-snapped).
+- Colour match: FONT2D text reads slightly COOL (greenish-blue) and a touch
+  translucent. A pure-white opaque glyph stood out, so the glyph is drawn tinted
+  cool and at reduced alpha (`INPUT_GLYPH_DRAW_COLOUR` — ARGB, alpha for
+  brightness + cool RGB for the tint) to match the text.
 
 Help screen UI (DONE — first version, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
 
@@ -92,9 +98,10 @@ Help screen UI (DONE — first version, in `ui/menus/gamemenu.cpp` + `help_conte
 - Navigation: ↑↓ moves the list selection (wraps), confirm opens a topic, cancel/
   ESC goes detail→list→pause. Reuses the existing menu input channels.
 - Detail screen: title + body via `input_glyph_text_draw` (smaller, ~0.75x), over
-  an **extra full-screen dim** drawn in GAMEMENU's first pass (behind the text,
-  fades in with the same left→right wipe as the menu darken). Body **fades in**
-  synced to the menu reveal. Bottom hint "Press CANCEL to go back".
+  an **extra full-screen dim** drawn in GAMEMENU's first pass (behind the text).
+  The dim **fades in** (full-screen alpha ramp) a bit faster than the body, and
+  the body **fades in** synced to the menu reveal. No bottom hint (cancel/ESC
+  goes back, consistent with the other menus which show no hint either).
 - Content: `HELP_TOPICS[]` in help_content.cpp — **placeholder** topics
   (MOVEMENT / COMBAT / CLIMBING / WEAPONS), short so they fit one screen. Append
   `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens.

@@ -19,7 +19,6 @@
 #include "ui/menus/gamemenu_globals.h"
 #include "ui/menus/help_content.h"
 #include "ui/input_glyphs/input_glyphs.h" // input_glyph_text_draw — rich-text help body
-#include "engine/graphics/text/font2d.h"   // FONT2D_DrawStringCentred — back hint line
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
@@ -574,13 +573,29 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 #define GAMEMENU_HELP_DETAIL_WRAP_WIDTH 400
 #define GAMEMENU_HELP_DETAIL_TEXT_SCALE 192 // 256 == 1.0, so ~0.75x (smaller body)
 #define GAMEMENU_HELP_DETAIL_TEXT_COLOUR 0xffffff
-#define GAMEMENU_HELP_HINT_Y            440 // near bottom of the 480-tall frame
 
 // Extra full-screen dim for the detail text screen, on TOP of the menu's base
 // darken (PANEL_darken_screen) but drawn in the same first pass — so it sits
 // BEHIND the text and fades in with the same left→right wipe (no hard-edged box,
 // no abrupt pop). Black ARGB; tune the alpha for more/less dimming.
-#define GAMEMENU_HELP_DETAIL_DIM_COLOUR 0x99000000u // ~60% black, stacks with base
+#define GAMEMENU_HELP_DETAIL_DIM_COLOUR 0xC0000000u // ~75% black, stacks with base
+
+// The backdrop dim fades in FASTER than the body text (so the dark backdrop is
+// mostly there before the text reveals on it). Multiplier on the shared reveal
+// progress (1.0 = same speed as the text).
+#define GAMEMENU_HELP_DIM_FADE_SPEEDUP 2.5f
+
+// Reveal progress (0..1) of the detail screen, from the menu's left→right fade
+// (GAMEMENU_fadein_x) crossing the body's x-range. Drives BOTH the body-text fade
+// and the backdrop-dim fade, so they appear together and smoothly.
+static float GAMEMENU_help_detail_reveal_t()
+{
+    const float reveal_x = (float)GAMEMENU_fadein_x * (1.0f / 256.0f);
+    float t = (reveal_x - (float)GAMEMENU_HELP_DETAIL_BODY_X) / (float)GAMEMENU_HELP_DETAIL_WRAP_WIDTH;
+    if (t < 0.0f) t = 0.0f;
+    else if (t > 1.0f) t = 1.0f;
+    return t;
+}
 
 // Help topic list: heading + vertical list of topic titles, selected one bright.
 static void GAMEMENU_draw_help_list()
@@ -612,15 +627,9 @@ static void GAMEMENU_draw_help_detail()
     MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
                          (CBYTE*)HELP_TOPICS[s_help_topic].title);
 
-    // Fade the body in together with the menu's reveal: MENUFONT wipes left→right
-    // at reveal-x = GAMEMENU_fadein_x/256 (virtual px). Map the wipe crossing the
-    // body's x-range to a 0..255 alpha so the text appears with the same effect
-    // as the title instead of popping in instantly.
-    const float reveal_x = (float)GAMEMENU_fadein_x * (1.0f / 256.0f);
-    float t = (reveal_x - (float)GAMEMENU_HELP_DETAIL_BODY_X) / (float)GAMEMENU_HELP_DETAIL_WRAP_WIDTH;
-    if (t < 0.0f) t = 0.0f;
-    else if (t > 1.0f) t = 1.0f;
-    const SWORD body_fade = (SWORD)((1.0f - t) * 255.0f);
+    // Fade the body in together with the menu's reveal (same progress as the
+    // backdrop dim), so the text appears with an effect instead of popping in.
+    const SWORD body_fade = (SWORD)((1.0f - GAMEMENU_help_detail_reveal_t()) * 255.0f);
 
     input_glyph_text_draw(HELP_TOPICS[s_help_topic].body,
                           GAMEMENU_HELP_DETAIL_BODY_X,
@@ -629,8 +638,6 @@ static void GAMEMENU_draw_help_detail()
                           GAMEMENU_HELP_DETAIL_TEXT_SCALE,
                           GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
                           body_fade);
-
-    FONT2D_DrawStringCentred((CBYTE*)"Press CANCEL to go back", 320, GAMEMENU_HELP_HINT_Y);
 }
 
 // Renders the menu overlay: background dimming, title, selectable items, or scores on win.
@@ -655,11 +662,14 @@ void GAMEMENU_draw()
         POLY_frame_init(UC_FALSE, UC_FALSE);
         PANEL_darken_screen(GAMEMENU_background);
         // Detail screen: extra full-screen dim so the body text reads clearly.
-        // Same left→right wipe extent as the base darken (640 - background), so
-        // it fades in together with the menu rather than popping.
+        // Smooth alpha fade-in (full screen) ramped by the same reveal progress
+        // as the body text, so the dim and the text appear together gradually.
         if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
-            PANEL_draw_quad(640.0F - (float)GAMEMENU_background, 0.0F, 640.0F, 480.0F,
-                            POLY_PAGE_ALPHA_OVERLAY, GAMEMENU_HELP_DETAIL_DIM_COLOUR);
+            float t = GAMEMENU_help_detail_reveal_t() * GAMEMENU_HELP_DIM_FADE_SPEEDUP;
+            if (t > 1.0f) t = 1.0f;
+            const ULONG dim_a = (ULONG)((float)(GAMEMENU_HELP_DETAIL_DIM_COLOUR >> 24) * t);
+            const ULONG dim = (GAMEMENU_HELP_DETAIL_DIM_COLOUR & 0x00FFFFFFu) | (dim_a << 24);
+            PANEL_draw_quad(0.0F, 0.0F, 640.0F, 480.0F, POLY_PAGE_ALPHA_OVERLAY, dim);
         }
         POLY_frame_draw(UC_FALSE, UC_FALSE);
         PolyPage::pop_ui_mode();

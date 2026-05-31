@@ -24,18 +24,22 @@
 #define INPUT_GLYPH_RGBA_CHANNELS 4
 
 // Glyph vertex colour (the glyph page blends with ModulateAlpha, so this
-// multiplies the texture's colour AND alpha). The FONT2D text renders slightly
-// translucent, so a fully-opaque glyph looked brighter than the text next to
-// it. Drawing the glyph at reduced ALPHA matches the text's brightness. White
-// RGB keeps glyph colours intact. Tune the alpha byte (0xCC ~ 80%) up/down to
-// match the font's apparent opacity.
-#define INPUT_GLYPH_DRAW_COLOUR 0xb0FFFFFFu
+// multiplies the texture's colour AND alpha). The FONT2D text reads slightly
+// COOL (greenish-blue) and a touch translucent, so a pure-white opaque glyph
+// stands out. We tint the glyph cool (lower red channel → green-blue) and reduce
+// alpha to match. ARGB: alpha byte for brightness, RGB for the tint. Tune the
+// red channel down for more cool, up toward 0xFF for neutral.
+#define INPUT_GLYPH_DRAW_COLOUR 0xA8E0F4F2u
 
 // Extra inter-glyph gap added to a glyph's advance width, as a fraction of the
 // drawn glyph width. The 64px source cells already include transparent margin
 // around the icon, and rich-text adds real spaces between atoms, so no extra
 // padding is needed — kept at 0 (tunable if adjacent glyphs ever look cramped).
 #define INPUT_GLYPH_GAP_FRACTION 0.0f
+
+// Whole-pixel vertical nudge (in real framebuffer pixels, positive = down)
+// applied to inline glyphs to optically centre them on the visible text.
+#define INPUT_GLYPH_VNUDGE_PX 1.0f
 
 namespace {
 
@@ -166,8 +170,14 @@ GlyphLayout layout_glyph(float x, float y, float line_height)
     const float line_h_real = line_height * sy;
     const float g_real = clean_glyph_size_px(line_h_real);
 
+    // Snap both axes to whole framebuffer pixels so the glyph is crisp. The text
+    // (FONT2D) now snaps to the same real-pixel grid, so the glyph and the letters
+    // share one grid and stay aligned at every UI scale. INPUT_GLYPH_VNUDGE_PX is
+    // a whole-real-pixel vertical nudge (down) to optically centre the glyph on
+    // the visible text (the letter quad's geometric centre sits a bit high vs the
+    // ink).
     const float gx_real = pixel_snap(x * sx + ox);
-    const float gy_real = pixel_snap(y * sy + oy + (line_h_real - g_real) * 0.5f);
+    const float gy_real = pixel_snap(y * sy + oy + (line_h_real - g_real) * 0.5f) + INPUT_GLYPH_VNUDGE_PX;
 
     GlyphLayout out;
     out.gx = (gx_real - ox) / sx;
@@ -242,10 +252,12 @@ namespace {
 #define FONT2D_LETTER_TOP_PX 3
 #define FONT2D_LETTER_BOTTOM_PX 15
 
-// Small empirical downward nudge (fraction of text height) on top of the
-// letter-centre alignment — the FONT2D letter's visible pixels sit a hair below
-// its quad centre, so without this the glyph reads ~1px high. Tune to taste.
-#define INPUT_GLYPH_TEXT_VBIAS_FRACTION 0.04f
+// Small empirical vertical nudge (fraction of text height) on top of the
+// letter-centre alignment, to centre the glyph against the visible text. With
+// per-line baseline pixel-snapping the glyph was sitting low (smaller gap below
+// than above), so this lifts it slightly (negative = up). Tune to taste —
+// midway between the too-low (+0.04) and too-high (-0.06) trials.
+#define INPUT_GLYPH_TEXT_VBIAS_FRACTION 0.00f
 
 // Maps an inline {token} name to a logical prompt. Unknown names are skipped.
 struct TokenMap {
@@ -277,6 +289,15 @@ float text_char_width(CBYTE ch, SLONG text_scale)
     return (float)(((FONT2D_GetLetterWidth(ch) + 1) * text_scale) >> 8);
 }
 
+// Round a virtual-coord Y to a whole VIRTUAL pixel. FONT2D takes an integer y
+// ((SLONG)), so giving each line an already-integer baseline means the letters
+// and the inline glyph reference the exact same baseline; both then pixel-snap to
+// the real framebuffer grid from there, staying aligned at every UI scale.
+float round_virtual_y(float vy)
+{
+    return (float)(SLONG)(vy + 0.5f);
+}
+
 } // namespace
 
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
@@ -297,7 +318,11 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
     const float glyph_y_off = letter_centre - text_h * 0.5f + text_h * INPUT_GLYPH_TEXT_VBIAS_FRACTION;
 
     float cursor_x = x;
-    float cursor_y = y;
+    // Keep each line's baseline on the integer VIRTUAL grid — the same grid
+    // FONT2D draws letters on ((SLONG)y). The inline glyph centres on this same
+    // baseline (+ letter_centre) without its own pixel snap, so text and glyph
+    // share one reference and stay aligned at every UI scale.
+    float cursor_y = round_virtual_y(y);
     bool at_line_start = true;
     bool pending_space = false; // a separator space appeared before the next atom
 
@@ -306,7 +331,7 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
         // Forced line break.
         if (*p == '\n') {
             cursor_x = x;
-            cursor_y += line_advance;
+            cursor_y = round_virtual_y(cursor_y + line_advance);
             at_line_start = true;
             pending_space = false;
             ++p;
@@ -367,7 +392,7 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
         // overflows rather than looping forever).
         if (!at_line_start && cursor_x + lead + atom_w > x + wrap_width) {
             cursor_x = x;
-            cursor_y += line_advance;
+            cursor_y = round_virtual_y(cursor_y + line_advance);
             at_line_start = true;
         }
 

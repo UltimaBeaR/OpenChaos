@@ -2,6 +2,7 @@
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font2d_globals.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h" // UI affine for pixel-snapping letters
 #include "assets/formats/tga.h"
 
 // 256×256 array of TGA pixels — the actual type behind the void* font2d_data global.
@@ -226,11 +227,28 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
 
     SATURATE(fade, 0, 255);
 
+    // Pixel-snap the letter quad to whole framebuffer pixels. The UI scope maps
+    // virtual 640x480 coords to real pixels by a (scale, offset) affine; without
+    // snapping, letters land on fractional real pixels (softer) and — since the
+    // inline input-prompt glyphs ARE pixel-snapped — text and glyphs would sit on
+    // different grids and drift apart as the UI scale changes. Snapping every
+    // corner to the real grid keeps text crisp and on the same grid as the glyphs.
+    // Outside a UI scope the affine is identity (scale 1, offset 0), so this is a
+    // harmless round to whole virtual pixels.
+    float sx = PolyPage::ui_scale_x();
+    float sy = PolyPage::ui_scale_y();
+    const float ox = PolyPage::ui_offset_x();
+    const float oy = PolyPage::ui_offset_y();
+    if (sx <= 0.0f) sx = 1.0f;
+    if (sy <= 0.0f) sy = 1.0f;
+    auto snap_x = [&](float vx) { return ((float)(SLONG)(vx * sx + ox + 0.5f) - ox) / sx; };
+    auto snap_y = [&](float vy) { return ((float)(SLONG)(vy * sy + oy + 0.5f) - oy) / sy; };
+
     PANEL_draw_quad(
-        (float)x,
-        (float)(y - 3),
-        (float)(x + (fl->width * scale >> 8)),
-        (float)(y + (15 * scale >> 8)),
+        snap_x((float)x),
+        snap_y((float)(y - 3)),
+        snap_x((float)(x + (fl->width * scale >> 8))),
+        snap_y((float)(y + (15 * scale >> 8))),
         page,
         (rgb & 0xffffff) | ((255 - fade) << 24),
         fl->u,
