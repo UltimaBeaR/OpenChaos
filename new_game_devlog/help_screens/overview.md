@@ -81,6 +81,27 @@ Inline rich-text (also DONE):
   reduced alpha (`INPUT_GLYPH_DRAW_COLOUR`, ~0xB0) to match — otherwise an
   opaque glyph looked brighter than the text beside it.
 
+Help screen UI (DONE — first version, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
+
+- Pause menu has a **"How to Play"** item (2nd, after Resume). It reuses the
+  `X_CONTROLS` id for nav/confirm but draws a literal label (no fitting localized
+  string; 1.0 is English).
+- Two new GAMEMENU types: `HELP_LIST` (topic list) and `HELP_DETAIL` (text
+  screen). Both custom-rendered (their text is literal OpenChaos content, not
+  XLAT ids), with their own bounded selection — they never index `GAMEMENU_menu[]`.
+- Navigation: ↑↓ moves the list selection (wraps), confirm opens a topic, cancel/
+  ESC goes detail→list→pause. Reuses the existing menu input channels.
+- Detail screen: title + body via `input_glyph_text_draw` (smaller, ~0.75x), over
+  an **extra full-screen dim** drawn in GAMEMENU's first pass (behind the text,
+  fades in with the same left→right wipe as the menu darken). Body **fades in**
+  synced to the menu reveal. Bottom hint "Press CANCEL to go back".
+- Content: `HELP_TOPICS[]` in help_content.cpp — **placeholder** topics
+  (MOVEMENT / COMBAT / CLIMBING / WEAPONS), short so they fit one screen. Append
+  `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens.
+
+Flagged by the user as a **first version — needs more polish** (e.g. detail-screen
+layout/visual refinement). Not yet: paging, real content.
+
 ### Licensing / trademark notes
 
 - Kenney pack is **CC0** — covers the artwork; no attribution required (credited
@@ -95,13 +116,15 @@ Inline rich-text (also DONE):
 
 ## Follow-ups (TODO)
 
-1. **The help screen UI itself:** pause-menu item → mechanics list → per-mechanic
-   text screen (using `input_glyph_text_draw`), with **pages** when text
-   overflows. Plus deciding which mechanics to document.
-2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-3. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
+1. **Polish the help screens** (first version flagged for more work): detail-screen
+   layout/visual refinement, list styling, dim level / fade tuning.
+2. **Paging** on the detail screen for bodies longer than one screen.
+3. **Real content** — replace the placeholder topics with accurate mechanic
+   descriptions (and decide the full topic list).
+4. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
+5. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
    token map in input_glyphs.cpp) beyond the JUMP/USE starter set as content grows.
-4. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
+6. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
    up, so text is softer than the crisp glyphs sitting next to it. Matching them
    would mean improving the font rendering (higher-res font / sharper sampling) —
    a separate effort, deferred. Glyph alpha is already tuned to match brightness.

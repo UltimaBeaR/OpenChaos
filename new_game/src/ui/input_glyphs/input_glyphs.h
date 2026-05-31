@@ -37,7 +37,8 @@ enum InputGlyphKey {
 // the 64px source) snapped to whole framebuffer pixels so outlines stay crisp.
 // Returns the ADVANCE width (glyph width + a small inter-glyph gap) so prompts
 // can be laid out inline: `x += input_glyph_draw(...)`. Returns 0 if unresolved.
-float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height);
+// `fade` (0 = opaque .. 255 = invisible) scales the glyph's alpha, for fade-in.
+float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height, SWORD fade = 0);
 
 // Compute the advance width input_glyph_draw would return for `key` at the given
 // `line_height`, WITHOUT drawing anything. Shares the size/snap math with
@@ -52,7 +53,9 @@ float input_glyph_advance(InputGlyphKey key, float line_height);
 // Drawing happens in the CALLER's current UI scope (virtual 640x480 coords) —
 // the function does NOT push its own scope. Returns the total height drawn
 // (number_of_lines * line_advance) so callers can lay out below it.
+// `fade` (0 = opaque .. 255 = invisible) fades the whole block in/out (text and
+// glyphs together) — drive it from a menu fade timer for a consistent reveal.
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
-                            SLONG text_scale, unsigned long colour);
+                            SLONG text_scale, unsigned long colour, SWORD fade = 0);
 
 #endif // UI_INPUT_GLYPHS_H

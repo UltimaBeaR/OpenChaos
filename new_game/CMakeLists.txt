@@ -535,6 +535,7 @@ set(SOURCES_NEW
     src/ui/frontend/frontend_globals.cpp
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
+    src/ui/menus/help_content.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
     src/ui/hud/eng_map.cpp

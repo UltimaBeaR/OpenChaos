@@ -195,7 +195,7 @@ float input_glyph_advance(InputGlyphKey key, float line_height)
     return layout_glyph(0.0f, 0.0f, line_height).advance;
 }
 
-float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
+float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height, SWORD fade)
 {
     const GlyphAtlas a = atlas_for_active_device();
     const char* sprite = sprite_for(key, active_input_device);
@@ -213,8 +213,15 @@ float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
     const float u2 = (float)(r->x + r->w) / px;
     const float v2 = (float)(r->y + r->h) / px;
 
+    // Scale the base alpha by (255 - fade)/255 so the glyph can fade with text.
+    if (fade < 0) fade = 0;
+    else if (fade > 255) fade = 255;
+    const ULONG base_a = INPUT_GLYPH_DRAW_COLOUR >> 24;
+    const ULONG faded_a = base_a * (ULONG)(255 - fade) / 255u;
+    const ULONG colour = (INPUT_GLYPH_DRAW_COLOUR & 0x00FFFFFFu) | (faded_a << 24);
+
     PANEL_draw_quad(L.gx, L.gy, L.gx + L.gw, L.gy + L.gh, a.poly_page,
-                    INPUT_GLYPH_DRAW_COLOUR, u1, v1, u2, v2);
+                    colour, u1, v1, u2, v2);
 
     return L.advance;
 }
@@ -273,7 +280,7 @@ float text_char_width(CBYTE ch, SLONG text_scale)
 } // namespace
 
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
-                            SLONG text_scale, unsigned long colour)
+                            SLONG text_scale, unsigned long colour, SWORD fade)
 {
     if (!str)
         return 0.0f;
@@ -371,11 +378,12 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
 
         // Draw the atom.
         if (is_glyph) {
-            cursor_x += input_glyph_draw(glyph_key, cursor_x, cursor_y + glyph_y_off, text_h);
+            cursor_x += input_glyph_draw(glyph_key, cursor_x, cursor_y + glyph_y_off, text_h, fade);
         } else {
             for (const char* c = atom_begin; c < atom_end; ++c)
                 cursor_x += (float)FONT2D_DrawLetter(
-                    (CBYTE)*c, (SLONG)cursor_x, (SLONG)cursor_y, colour, text_scale);
+                    (CBYTE)*c, (SLONG)cursor_x, (SLONG)cursor_y, colour, text_scale,
+                    POLY_PAGE_FONT2D, fade);
         }
         at_line_start = false;
     }

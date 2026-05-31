@@ -17,6 +17,9 @@
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
+#include "ui/menus/help_content.h"
+#include "ui/input_glyphs/input_glyphs.h" // input_glyph_text_draw — rich-text help body
+#include "engine/graphics/text/font2d.h"   // FONT2D_DrawStringCentred — back hint line
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
@@ -38,8 +41,21 @@
 #define GAMEMENU_MENU_TYPE_LOST 3
 // uc_orig: GAMEMENU_MENU_TYPE_SURE (fallen/Source/gamemenu.cpp)
 #define GAMEMENU_MENU_TYPE_SURE 4
+// Controls/how-to-play help: list of mechanics topics (OpenChaos addition).
+#define GAMEMENU_MENU_TYPE_HELP_LIST 5
+// Controls/how-to-play help: full-screen detail text for one topic (OpenChaos addition).
+#define GAMEMENU_MENU_TYPE_HELP_DETAIL 6
 // uc_orig: GAMEMENU_MENU_TYPE_NUMBER (fallen/Source/gamemenu.cpp)
-#define GAMEMENU_MENU_TYPE_NUMBER 5
+#define GAMEMENU_MENU_TYPE_NUMBER 7
+
+// Index (0-based) into HELP_TOPICS of the topic shown on the HELP_DETAIL screen.
+// Set when confirming a topic in HELP_LIST. Persists while the detail screen is up.
+static SLONG s_help_topic = 0;
+
+// HELP_LIST highlighted topic index (0-based). The generic word[]-based nav
+// can't drive the help list (HELP_LIST has no word[] table), so the list
+// keeps its own selection bounded to [0, HELP_TOPIC_COUNT-1].
+static SLONG s_help_list_selection = 0;
 
 // Resets fade/animation state and sets the active menu type.
 // When switching between non-NONE menus only the text re-fades; overlay stays.
@@ -245,6 +261,17 @@ SLONG GAMEMENU_process()
             GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
             break;
 
+        case GAMEMENU_MENU_TYPE_HELP_LIST:
+            // Back from the topic list to the pause menu.
+            GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
+            GAMEMENU_menu_selection = 1;
+            break;
+
+        case GAMEMENU_MENU_TYPE_HELP_DETAIL:
+            // Back from a topic's detail screen to the topic list.
+            GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_LIST);
+            break;
+
         default:
             ASSERT(0);
             break;
@@ -348,6 +375,61 @@ SLONG GAMEMENU_process()
                 nav_down = false;
             }
 
+            // Confirm edge (shared by every menu type).
+            const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_1_KKEY);
+            const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_2_KKEY);
+            const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_3_KKEY);
+            const bool confirm_gp  = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
+            const bool confirm = confirm_kb1 || confirm_kb2 || confirm_kb3 || confirm_gp;
+            // Drain the confirm press the same way the generic path does, so a
+            // held SPACE/ENTER/gamepad button doesn't leak into gameplay or
+            // re-fire on the next screen.
+            auto consume_confirm = [&]() {
+                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_1_KKEY);
+                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_2_KKEY);
+                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_3_KKEY);
+                if (confirm_gp)  input_btn_consume(ACT_MENU_CONFIRM_GBTN);
+            };
+
+            if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_LIST) {
+                // Topic list: own 0-based selection bounded to the topic count,
+                // wrapping top/bottom like the generic menu. Cancel/back is
+                // handled by the pause-toggle channel above.
+                if (HELP_TOPIC_COUNT > 0) {
+                    if (nav_up) {
+                        s_help_list_selection -= 1;
+                        if (s_help_list_selection < 0) {
+                            s_help_list_selection = HELP_TOPIC_COUNT - 1;
+                        }
+                        MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
+                    }
+                    if (nav_down) {
+                        s_help_list_selection += 1;
+                        if (s_help_list_selection > HELP_TOPIC_COUNT - 1) {
+                            s_help_list_selection = 0;
+                        }
+                        MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
+                    }
+                    SATURATE(s_help_list_selection, 0, HELP_TOPIC_COUNT - 1);
+
+                    if (confirm) {
+                        consume_confirm();
+                        MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
+                        s_help_topic = s_help_list_selection;
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_DETAIL);
+                    }
+                }
+            } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
+                // Detail screen: no list to navigate (single screen, no paging
+                // this increment). Confirm also goes back to the list, matching
+                // cancel. nav_up/nav_down do nothing here.
+                if (confirm) {
+                    consume_confirm();
+                    MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
+                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_LIST);
+                }
+            } else {
+
             if (nav_up) {
                 GAMEMENU_menu_selection -= 1;
 
@@ -382,19 +464,12 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_1_KKEY);
-            const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_2_KKEY);
-            const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_3_KKEY);
-            const bool confirm_gp  = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
-            if (confirm_kb1 || confirm_kb2 || confirm_kb3 || confirm_gp) {
+            if (confirm) {
                 // Force-release in input_frame's CURRENT snapshot — see
                 // comment in the ESC handler above. Otherwise SPACE held for
                 // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
                 // INPUT_MASK_SELECT (weapon switch popup opens), etc.
-                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_1_KKEY);
-                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_2_KKEY);
-                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_3_KKEY);
-                if (confirm_gp)  input_btn_consume(ACT_MENU_CONFIRM_GBTN);
+                consume_confirm();
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
 
@@ -408,6 +483,13 @@ SLONG GAMEMENU_process()
 
                 case X_RESTART_LEVEL:
                     return GAMEMENU_DO_RESTART;
+
+                case X_CONTROLS:
+                    // Open the controls/how-to-play topic list. Start at the
+                    // first topic (menu→menu transitions don't reset state).
+                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_LIST);
+                    s_help_list_selection = 0;
+                    break;
 
                 case X_ABANDON_GAME:
                     GAMEMENU_initialise(GAMEMENU_MENU_TYPE_SURE);
@@ -442,6 +524,7 @@ SLONG GAMEMENU_process()
                     break;
                 }
             }
+            } // end generic (non-HELP) nav/confirm
         }
     }
 
@@ -466,6 +549,90 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
     GAMEMENU_level_lost_reason = reason;
 }
 
+// --- Controls/how-to-play help screens (OpenChaos addition) ---
+//
+// Both draw inside the caller's framed CENTER_CENTER UI scope (set up in
+// GAMEMENU_draw) and use the same virtual 640x480 coordinate space as the
+// generic menu. They must NOT push their own scope or frame.
+
+// Vertical layout shared with the generic menu: title near top, list items
+// spaced ~40px apart, mirroring "155 + i*40".
+#define GAMEMENU_HELP_TITLE_Y     100
+#define GAMEMENU_HELP_LIST_FIRST_Y 195 // == 155 + 1*40, matches generic first item
+#define GAMEMENU_HELP_LIST_SPACING 40
+#define GAMEMENU_HELP_ALPHA_SELECTED   255
+#define GAMEMENU_HELP_ALPHA_UNSELECTED 128
+
+// Literal label for the pause "How to Play" item / help heading (no fitting
+// localized string; 1.0 ships English).
+#define GAMEMENU_HELP_MENU_LABEL "How to Play"
+
+// Detail-screen body layout. The framed region is the centred 4:3 area in
+// virtual 0..640; x≈120 with wrap≈400 keeps the text comfortably inside it.
+#define GAMEMENU_HELP_DETAIL_BODY_X     120
+#define GAMEMENU_HELP_DETAIL_BODY_Y     170
+#define GAMEMENU_HELP_DETAIL_WRAP_WIDTH 400
+#define GAMEMENU_HELP_DETAIL_TEXT_SCALE 192 // 256 == 1.0, so ~0.75x (smaller body)
+#define GAMEMENU_HELP_DETAIL_TEXT_COLOUR 0xffffff
+#define GAMEMENU_HELP_HINT_Y            440 // near bottom of the 480-tall frame
+
+// Extra full-screen dim for the detail text screen, on TOP of the menu's base
+// darken (PANEL_darken_screen) but drawn in the same first pass — so it sits
+// BEHIND the text and fades in with the same left→right wipe (no hard-edged box,
+// no abrupt pop). Black ARGB; tune the alpha for more/less dimming.
+#define GAMEMENU_HELP_DETAIL_DIM_COLOUR 0x99000000u // ~60% black, stacks with base
+
+// Help topic list: heading + vertical list of topic titles, selected one bright.
+static void GAMEMENU_draw_help_list()
+{
+    MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
+                         (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
+
+    for (SLONG i = 0; i < HELP_TOPIC_COUNT; i++) {
+        const UBYTE alpha = (i == s_help_list_selection)
+                                ? GAMEMENU_HELP_ALPHA_SELECTED
+                                : GAMEMENU_HELP_ALPHA_UNSELECTED;
+        MENUFONT_fadein_draw(320,
+                             GAMEMENU_HELP_LIST_FIRST_Y + i * GAMEMENU_HELP_LIST_SPACING,
+                             alpha,
+                             (CBYTE*)HELP_TOPICS[i].title);
+    }
+}
+
+// Help topic detail: topic title heading + rich-text body (with inline button
+// glyphs) + a bottom hint line. Body fits one screen — no paging this increment.
+static void GAMEMENU_draw_help_detail()
+{
+    if (s_help_topic < 0 || s_help_topic >= HELP_TOPIC_COUNT) {
+        return; // defensive — index is always set from a valid list selection
+    }
+
+    // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
+    // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
+    MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
+                         (CBYTE*)HELP_TOPICS[s_help_topic].title);
+
+    // Fade the body in together with the menu's reveal: MENUFONT wipes left→right
+    // at reveal-x = GAMEMENU_fadein_x/256 (virtual px). Map the wipe crossing the
+    // body's x-range to a 0..255 alpha so the text appears with the same effect
+    // as the title instead of popping in instantly.
+    const float reveal_x = (float)GAMEMENU_fadein_x * (1.0f / 256.0f);
+    float t = (reveal_x - (float)GAMEMENU_HELP_DETAIL_BODY_X) / (float)GAMEMENU_HELP_DETAIL_WRAP_WIDTH;
+    if (t < 0.0f) t = 0.0f;
+    else if (t > 1.0f) t = 1.0f;
+    const SWORD body_fade = (SWORD)((1.0f - t) * 255.0f);
+
+    input_glyph_text_draw(HELP_TOPICS[s_help_topic].body,
+                          GAMEMENU_HELP_DETAIL_BODY_X,
+                          GAMEMENU_HELP_DETAIL_BODY_Y,
+                          GAMEMENU_HELP_DETAIL_WRAP_WIDTH,
+                          GAMEMENU_HELP_DETAIL_TEXT_SCALE,
+                          GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
+                          body_fade);
+
+    FONT2D_DrawStringCentred((CBYTE*)"Press CANCEL to go back", 320, GAMEMENU_HELP_HINT_Y);
+}
+
 // Renders the menu overlay: background dimming, title, selectable items, or scores on win.
 // uc_orig: GAMEMENU_draw (fallen/Source/gamemenu.cpp)
 void GAMEMENU_draw()
@@ -487,6 +654,13 @@ void GAMEMENU_draw()
         PolyPage::push_fullscreen_ui_mode();
         POLY_frame_init(UC_FALSE, UC_FALSE);
         PANEL_darken_screen(GAMEMENU_background);
+        // Detail screen: extra full-screen dim so the body text reads clearly.
+        // Same left→right wipe extent as the base darken (640 - background), so
+        // it fades in together with the menu rather than popping.
+        if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
+            PANEL_draw_quad(640.0F - (float)GAMEMENU_background, 0.0F, 640.0F, 480.0F,
+                            POLY_PAGE_ALPHA_OVERLAY, GAMEMENU_HELP_DETAIL_DIM_COLOUR);
+        }
         POLY_frame_draw(UC_FALSE, UC_FALSE);
         PolyPage::pop_ui_mode();
     }
@@ -497,28 +671,41 @@ void GAMEMENU_draw()
     POLY_frame_init(UC_FALSE, UC_FALSE);
 
     MENUFONT_fadein_line(GAMEMENU_fadein_x);
-    MENUFONT_fadein_draw(320, 100, 255, XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[0]));
 
-    bool bDrawMainPartOfMenu = UC_TRUE;
+    if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_LIST) {
+        GAMEMENU_draw_help_list();
+    } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
+        GAMEMENU_draw_help_detail();
+    } else {
+        MENUFONT_fadein_draw(320, 100, 255, XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[0]));
 
-    if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_LOST) {
-        if (GAMEMENU_level_lost_reason) {
-            // Text rendering was disabled in the original (oversized, all-caps, doesn't fit).
-            // MENUFONT_fadein_draw(320, 120, 255, GAMEMENU_level_lost_reason);
+        bool bDrawMainPartOfMenu = UC_TRUE;
+
+        if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_LOST) {
+            if (GAMEMENU_level_lost_reason) {
+                // Text rendering was disabled in the original (oversized, all-caps, doesn't fit).
+                // MENUFONT_fadein_draw(320, 120, 255, GAMEMENU_level_lost_reason);
+            }
+        } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_WON) {
+            extern void ScoresDraw(void);
+            ScoresDraw();
         }
-    } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_WON) {
-        extern void ScoresDraw(void);
-        ScoresDraw();
-    }
 
-    if (bDrawMainPartOfMenu) {
-        for (i = 1; i < 8; i++) {
-            if (GAMEMENU_menu[GAMEMENU_menu_type].word[i]) {
-                MENUFONT_fadein_draw(
-                    320,
-                    155 + i * 40,
-                    (i == GAMEMENU_menu_selection) ? 255 : 128,
-                    XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[i]));
+        if (bDrawMainPartOfMenu) {
+            for (i = 1; i < 8; i++) {
+                const SLONG word = GAMEMENU_menu[GAMEMENU_menu_type].word[i];
+                if (word) {
+                    // The "How to Play" item reuses X_CONTROLS for its id (nav /
+                    // confirm), but shows a literal label — there is no fitting
+                    // localized string and 1.0 ships English.
+                    CBYTE* label = (word == X_CONTROLS) ? (CBYTE*)GAMEMENU_HELP_MENU_LABEL
+                                                        : XLAT_str(word);
+                    MENUFONT_fadein_draw(
+                        320,
+                        155 + i * 40,
+                        (i == GAMEMENU_menu_selection) ? 255 : 128,
+                        label);
+                }
             }
         }
     }
