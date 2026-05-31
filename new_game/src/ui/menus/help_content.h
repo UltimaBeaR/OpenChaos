@@ -3,23 +3,26 @@
 
 // In-game "Controls / how-to-play" help content.
 //
-// Each topic has a short title (shown in the help list and as the detail-screen
-// heading) and a body string drawn through the rich-text glyph drawer
-// (input_glyph_text_draw) on the detail screen. Bodies may contain inline glyph
-// tokens like {jump} / {use} which resolve to device-specific button glyphs.
+// Each topic has a title plus a SEPARATE body per input device (keyboard&mouse /
+// Xbox / PlayStation) — there is no unified text, because usage and wording can
+// differ per device. The detail screen shows the body for the active device and
+// swaps it when the device changes. Bodies are drawn through the rich-text glyph
+// drawer (input_glyph_text_draw*) and may contain inline glyph tokens `{id}` from
+// input_prompt_map (e.g. {kb_w}, {xb_a}, {ps_cross}).
 //
-// THIS INCREMENT: bodies are SHORT placeholders that fit one screen — no paging.
-// Real content / paging slot in later without changing this interface.
+// The body text lives in per-device files (help_content_kbm/xbox/ps.cpp), with
+// reusable snippets in help_content_common.h; this table just wires titles to the
+// three bodies.
 
 struct HelpTopic {
     const char* title;
-    const char* body;
-    // When true this topic is the input-prompt CATALOG (auto-generated device-
-    // aware list of every button glyph), not a text body — `body` is then ignored.
-    // Omitted in normal entries (aggregate-init leaves it false). A dev tool: the
-    // list item only appears when OC_DEBUG_INPUT_PROMPT_CATALOG is on (players
-    // never see it), kept in the build for re-checking the glyph map when bindings
-    // or atlases change.
+    const char* body_kbm;  // keyboard & mouse body
+    const char* body_xbox; // Xbox body
+    const char* body_ps;   // PlayStation body
+    // When true this is the input-prompt CATALOG (dev tool, gated by
+    // OC_DEBUG_INPUT_PROMPT_CATALOG), not text — the bodies are ignored. Omitted
+    // in normal entries (aggregate-init leaves it false). Must stay LAST in
+    // HELP_TOPICS (see GAMEMENU_help_list_count).
     bool input_test;
 };
 

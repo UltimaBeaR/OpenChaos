@@ -788,13 +788,13 @@ static void GAMEMENU_draw_help_detail()
         return; // defensive — index is always set from a valid list selection
     }
 
-    // INPUT TEST page only: its list is the ACTIVE device's, so reset the scroll
-    // to the top whenever the active device changes while it's open (the row set
-    // and count change under you otherwise).
-    if (HELP_TOPICS[s_help_topic].input_test) {
-        static SLONG s_test_last_device = -1;
-        if ((SLONG)active_input_device != s_test_last_device) {
-            s_test_last_device = (SLONG)active_input_device;
+    // The detail content is the ACTIVE device's (per-device body, or the catalog's
+    // device-specific list), so reset the scroll to the top whenever the active
+    // device changes while this screen is open — the content changes under you.
+    {
+        static SLONG s_last_device = -1;
+        if ((SLONG)active_input_device != s_last_device) {
+            s_last_device = (SLONG)active_input_device;
             s_help_detail_scroll_line = 0;
         }
     }
@@ -908,8 +908,13 @@ static void GAMEMENU_draw_help_detail()
             view_h,
             &fit);
     } else {
+        // Pick the body for the active device (each topic is written per device).
+        const HelpTopic& t = HELP_TOPICS[s_help_topic];
+        const char* body = (active_input_device == INPUT_DEVICE_XBOX)       ? t.body_xbox
+                           : (active_input_device == INPUT_DEVICE_DUALSENSE) ? t.body_ps
+                                                                             : t.body_kbm;
         total = input_glyph_text_draw_scrolled(
-            HELP_TOPICS[s_help_topic].body,
+            body,
             body_x,
             view_top,
             wrap_w,

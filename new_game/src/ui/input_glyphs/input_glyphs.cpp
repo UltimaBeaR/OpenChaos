@@ -3,7 +3,7 @@
 #include "assets/texture_globals.h" // TEXTURE_page_glyph_*
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "ui/input_glyphs/input_glyph_coords.h" // INPUT_GLYPH_* tables
-#include "ui/input_glyphs/input_prompt_map.h" // INPUT_PROMPTS — editable cell map
+#include "ui/input_glyphs/input_prompt_map.h" // INPUT_GLYPHS / input_glyph_find — glyph map
 #include "ui/hud/panel.h" // PANEL_draw_quad
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_GLYPH_*
 #include "engine/graphics/pipeline/polypage.h" // PolyPage UI affine (pixel-snap)
@@ -72,54 +72,37 @@ void input_glyphs_init(void)
 
 namespace {
 
-// One device's atlas: which POLY page to draw on, its coordinate table, and the
-// atlas pixel size (square) for UV normalisation.
+// One device's atlas: which POLY page to draw on + its (square) pixel size for UV
+// normalisation. Glyphs are addressed by raw atlas cell now, so no name table.
 struct GlyphAtlas {
     SLONG poly_page;
-    const InputGlyphRect* table;
-    int count;
     int atlas_px;
 };
 
-// Pick the atlas matching the active input device. DualSense -> PlayStation
-// style, Xbox -> generic (ABXY), everything else -> keyboard & mouse. (Steam
-// Deck has no active_input_device value yet, so the `deck` atlas is loaded but
-// not selected here — see help_screens devlog follow-ups.)
-GlyphAtlas atlas_for_active_device()
+GlyphAtlas atlas_for_device(GlyphDevice dev)
+{
+    switch (dev) {
+    case GLYPH_DEV_PS:
+        return { POLY_PAGE_GLYPH_PS, INPUT_GLYPH_PS_ATLAS_PX };
+    case GLYPH_DEV_XBOX:
+        return { POLY_PAGE_GLYPH_GENERIC, INPUT_GLYPH_GENERIC_ATLAS_PX };
+    case GLYPH_DEV_KBM:
+    default:
+        return { POLY_PAGE_GLYPH_KBM, INPUT_GLYPH_KEYBOARD_ATLAS_PX };
+    }
+}
+
+// Map the live active_input_device to a glyph device family. DualSense ->
+// PlayStation, Xbox -> generic (ABXY), everything else -> keyboard & mouse.
+// (Steam Deck has no active_input_device value yet — see devlog follow-ups.)
+GlyphDevice active_glyph_device()
 {
     switch (active_input_device) {
-    case INPUT_DEVICE_DUALSENSE:
-        return { POLY_PAGE_GLYPH_PS, INPUT_GLYPH_PS, INPUT_GLYPH_PS_COUNT, INPUT_GLYPH_PS_ATLAS_PX };
-    case INPUT_DEVICE_XBOX:
-        return { POLY_PAGE_GLYPH_GENERIC, INPUT_GLYPH_GENERIC, INPUT_GLYPH_GENERIC_COUNT, INPUT_GLYPH_GENERIC_ATLAS_PX };
+    case INPUT_DEVICE_DUALSENSE: return GLYPH_DEV_PS;
+    case INPUT_DEVICE_XBOX:      return GLYPH_DEV_XBOX;
     case INPUT_DEVICE_KEYBOARD_MOUSE:
-    default:
-        return { POLY_PAGE_GLYPH_KBM, INPUT_GLYPH_KEYBOARD, INPUT_GLYPH_KEYBOARD_COUNT, INPUT_GLYPH_KEYBOARD_ATLAS_PX };
+    default:                     return GLYPH_DEV_KBM;
     }
-}
-
-// Logical prompt -> Kenney sprite name for the given device family. Mirrors the
-// in-game bindings: JUMP = Cross/A/Space, USE = Square/X/F.
-const char* sprite_for(InputGlyphKey key, InputDeviceType dev)
-{
-    const bool xbox = (dev == INPUT_DEVICE_XBOX);
-    const bool ps = (dev == INPUT_DEVICE_DUALSENSE);
-    switch (key) {
-    case INPUT_GLYPH_KEY_JUMP:
-        return xbox ? "xbox_button_a" : ps ? "playstation_button_cross" : "keyboard_space";
-    case INPUT_GLYPH_KEY_USE:
-        return xbox ? "xbox_button_x" : ps ? "playstation_button_square" : "keyboard_f";
-    default:
-        return nullptr;
-    }
-}
-
-const InputGlyphRect* find_rect(const InputGlyphRect* table, int count, const char* name)
-{
-    for (int i = 0; i < count; ++i)
-        if (strcmp(table[i].name, name) == 0)
-            return &table[i];
-    return nullptr;
 }
 
 // Round to the nearest integer pixel — keeps glyph edges crisp.
@@ -211,61 +194,17 @@ GlyphLayout layout_glyph(float x, float y, float line_height)
 
 } // namespace
 
-float input_glyph_advance(InputGlyphKey key, float line_height)
-{
-    const GlyphAtlas a = atlas_for_active_device();
-    const char* sprite = sprite_for(key, active_input_device);
-    if (!sprite)
-        return 0.0f;
-    if (!find_rect(a.table, a.count, sprite))
-        return 0.0f;
-    // Position is irrelevant to the advance; pass 0,0.
-    return layout_glyph(0.0f, 0.0f, line_height).advance;
-}
-
-float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height, SWORD fade)
-{
-    const GlyphAtlas a = atlas_for_active_device();
-    const char* sprite = sprite_for(key, active_input_device);
-    if (!sprite)
-        return 0.0f;
-    const InputGlyphRect* r = find_rect(a.table, a.count, sprite);
-    if (!r)
-        return 0.0f;
-
-    const GlyphLayout L = layout_glyph(x, y, line_height);
-
-    const float px = (float)a.atlas_px;
-    const float u1 = (float)r->x / px;
-    const float v1 = (float)r->y / px;
-    const float u2 = (float)(r->x + r->w) / px;
-    const float v2 = (float)(r->y + r->h) / px;
-
-    // Scale the base alpha by (255 - fade)/255 so the glyph can fade with text.
-    if (fade < 0) fade = 0;
-    else if (fade > 255) fade = 255;
-    const ULONG base_a = INPUT_GLYPH_DRAW_COLOUR >> 24;
-    const ULONG faded_a = base_a * (ULONG)(255 - fade) / 255u;
-    const ULONG colour = (INPUT_GLYPH_DRAW_COLOUR & 0x00FFFFFFu) | (faded_a << 24);
-
-    PANEL_draw_quad(L.gx, L.gy, L.gx + L.gw, L.gy + L.gh, a.poly_page,
-                    colour, u1, v1, u2, v2);
-
-    return L.advance;
-}
-
 // Source atlas cell size — every atlas is a uniform grid of this many px.
 #define GLYPH_ATLAS_CELL_PX 64
 
-// Draw a glyph by raw atlas CELL (col,row) from the ACTIVE device's atlas, rather
-// than by logical key / metadata sprite-name. Atlases are uniform 64px grids;
-// (col,row) is a 0-based cell from the PNG's top-left. Lets a caller address ANY
-// cell, including ones the metadata table doesn't name. Returns the advance width.
-float input_glyph_draw_cell(int col, int row, float x, float y, float line_height, SWORD fade)
+// Draw a glyph by raw atlas CELL (col,row) from the GIVEN device's atlas. Atlases
+// are uniform 64px grids; (col,row) is 0-based — row counted from the BOTTOM (the
+// atlas texture is loaded V-flipped). Returns the advance width.
+float input_glyph_draw_cell(GlyphDevice dev, int col, int row, float x, float y, float line_height, SWORD fade)
 {
-    const GlyphAtlas a = atlas_for_active_device();
     if (col < 0 || row < 0)
         return 0.0f;
+    const GlyphAtlas a = atlas_for_device(dev);
 
     const GlyphLayout L = layout_glyph(x, y, line_height);
 
@@ -285,6 +224,13 @@ float input_glyph_draw_cell(int col, int row, float x, float y, float line_heigh
     PANEL_draw_quad(L.gx, L.gy, L.gx + L.gw, L.gy + L.gh, a.poly_page,
                     colour, u1, v1, u2, v2);
     return L.advance;
+}
+
+// Advance width an inline glyph occupies at the given line height — same for any
+// cell/device (depends only on the clean size + UI scale).
+float input_glyph_cell_advance(float line_height)
+{
+    return layout_glyph(0.0f, 0.0f, line_height).advance;
 }
 
 // --- Rich text: word-wrapped text with inline input-prompt glyphs ----------
@@ -310,27 +256,9 @@ namespace {
 // midway between the too-low (+0.04) and too-high (-0.06) trials.
 #define INPUT_GLYPH_TEXT_VBIAS_FRACTION 0.00f
 
-// Maps an inline {token} name to a logical prompt. Unknown names are skipped.
-struct TokenMap {
-    const char* name;
-    InputGlyphKey key;
-};
-const TokenMap INPUT_GLYPH_TOKENS[] = {
-    { "jump", INPUT_GLYPH_KEY_JUMP },
-    { "use", INPUT_GLYPH_KEY_USE },
-};
-const int INPUT_GLYPH_TOKEN_COUNT = (int)(sizeof(INPUT_GLYPH_TOKENS) / sizeof(INPUT_GLYPH_TOKENS[0]));
-
-// Resolve a {token} name (length `len`, not NUL-terminated) to a key.
-// Returns INPUT_GLYPH_KEY_COUNT if the name is unknown.
-InputGlyphKey token_key(const char* name, size_t len)
-{
-    for (int i = 0; i < INPUT_GLYPH_TOKEN_COUNT; ++i)
-        if (strncmp(INPUT_GLYPH_TOKENS[i].name, name, len) == 0 &&
-            INPUT_GLYPH_TOKENS[i].name[len] == '\0')
-            return INPUT_GLYPH_TOKENS[i].key;
-    return INPUT_GLYPH_KEY_COUNT;
-}
+// Inline {token} ids resolve to glyphs via input_glyph_find() (input_prompt_map):
+// the token is the glyph's id (e.g. {kb_w}, {xb_a}, {ps_cross}) and draws that
+// device's cell. Unknown tokens are skipped.
 
 // Width of one drawn text character in virtual px at `text_scale`. We add the
 // +1px the font's own DrawLetter advance includes, so measured width matches
@@ -434,11 +362,11 @@ int build_lines(const char* str, float wrap_width, SLONG text_scale,
             while (*close && *close != '}')
                 ++close;
             if (*close == '}') {
-                InputGlyphKey k = token_key(p + 1, (size_t)(close - (p + 1)));
+                const InputGlyph* g = input_glyph_find(p + 1, (unsigned long)(close - (p + 1)));
                 p = close + 1;
-                if (k != INPUT_GLYPH_KEY_COUNT) {
+                if (g) {
                     is_glyph = true;
-                    atom_w = input_glyph_advance(k, m.text_h);
+                    atom_w = input_glyph_cell_advance(m.text_h);
                 } else {
                     // Unknown token: skip entirely (no advance, no wrap).
                     continue;
@@ -500,16 +428,16 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
 
         const char* atom_begin = p;
         bool is_glyph = false;
-        InputGlyphKey glyph_key = INPUT_GLYPH_KEY_COUNT;
+        const InputGlyph* glyph = nullptr;
 
         if (*p == '{') {
             const char* close = p + 1;
             while (close < line.end && *close != '}')
                 ++close;
             if (close < line.end && *close == '}') {
-                glyph_key = token_key(p + 1, (size_t)(close - (p + 1)));
+                glyph = input_glyph_find(p + 1, (unsigned long)(close - (p + 1)));
                 p = close + 1;
-                if (glyph_key != INPUT_GLYPH_KEY_COUNT) {
+                if (glyph) {
                     is_glyph = true;
                 } else {
                     continue; // unknown token: skip
@@ -528,7 +456,8 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
         pending_space = false;
 
         if (is_glyph) {
-            cursor_x += input_glyph_draw(glyph_key, cursor_x, y + m.glyph_y_off, m.text_h, fade);
+            cursor_x += input_glyph_draw_cell(glyph->dev, glyph->col, glyph->row,
+                                              cursor_x, y + m.glyph_y_off, m.text_h, fade);
         } else {
             for (const char* c = atom_begin; c < p; ++c)
                 cursor_x += (float)FONT2D_DrawLetter(
@@ -610,30 +539,19 @@ SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
 
 // --- Input-prompt catalog (dev test page, gated by OC_DEBUG_INPUT_PROMPT_CATALOG) ---
 
-namespace {
-// Pick the glyph cell for the currently active device from a prompt row.
-InputPromptCell prompt_cell_for_active(const InputPrompt& p)
-{
-    switch (active_input_device) {
-    case INPUT_DEVICE_XBOX:      return p.xbox;
-    case INPUT_DEVICE_DUALSENSE: return p.ps;
-    default:                     return p.kbm; // keyboard & mouse (and fallback)
-    }
-}
-} // namespace
-
 SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
                                          unsigned long colour, SWORD fade,
                                          SLONG* first_line, float view_height,
                                          SLONG* out_fit)
 {
     const TextMetrics m = text_metrics(text_scale);
+    const GlyphDevice dev = active_glyph_device();
 
-    // Rows that have a glyph on the active device (the catalog shows the active
-    // device's set, so it changes when the device changes).
+    // Glyphs of the active device (the catalog shows the active device's set, so
+    // it changes when the device changes).
     int total = 0;
-    for (int i = 0; i < INPUT_PROMPT_COUNT; ++i)
-        if (prompt_cell_for_active(INPUT_PROMPTS[i]).col >= 0)
+    for (int i = 0; i < INPUT_GLYPH_COUNT; ++i)
+        if (INPUT_GLYPHS[i].dev == dev)
             ++total;
 
     int fit = (m.line_advance > 0.0f) ? (int)(view_height / m.line_advance) : 0;
@@ -653,25 +571,25 @@ SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
     if (out_fit)
         *out_fit = (SLONG)fit;
 
-    // Draw the visible window — one row per line: "<name> - <glyph>".
-    int shown = 0; // running count of device-visible rows seen
+    // Draw the visible window — one row per line: "<label> - <glyph>".
+    int shown = 0; // running count of active-device glyphs seen
     int drawn = 0;
     float ly = round_virtual_y(y);
-    for (int i = 0; i < INPUT_PROMPT_COUNT && drawn < fit; ++i) {
-        const InputPromptCell cell = prompt_cell_for_active(INPUT_PROMPTS[i]);
-        if (cell.col < 0)
+    for (int i = 0; i < INPUT_GLYPH_COUNT && drawn < fit; ++i) {
+        if (INPUT_GLYPHS[i].dev != dev)
             continue;
         if (shown++ < first)
             continue; // before the scroll window
 
         float cursor_x = x;
-        for (const char* c = INPUT_PROMPTS[i].name; *c; ++c)
+        for (const char* c = INPUT_GLYPHS[i].label; *c; ++c)
             cursor_x += (float)FONT2D_DrawLetter((CBYTE)*c, (SLONG)cursor_x, (SLONG)ly,
                                                  colour, text_scale, POLY_PAGE_FONT2D, fade);
         for (const char* c = " - "; *c; ++c)
             cursor_x += (float)FONT2D_DrawLetter((CBYTE)*c, (SLONG)cursor_x, (SLONG)ly,
                                                  colour, text_scale, POLY_PAGE_FONT2D, fade);
-        input_glyph_draw_cell(cell.col, cell.row, cursor_x, ly + m.glyph_y_off, m.text_h, fade);
+        input_glyph_draw_cell(dev, INPUT_GLYPHS[i].col, INPUT_GLYPHS[i].row,
+                              cursor_x, ly + m.glyph_y_off, m.text_h, fade);
 
         ly = round_virtual_y(ly + m.line_advance);
         ++drawn;

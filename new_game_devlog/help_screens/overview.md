@@ -75,9 +75,10 @@ Drawing (also DONE):
 Inline rich-text (also DONE):
 
 - `input_glyph_text_draw(str, x, y, wrap_width, text_scale, colour)` draws normal
-  FONT2D text with inline glyph tokens `{name}` (e.g. `{jump}`, `{use}`), word-
-  wrapped to `wrap_width`. Returns the height drawn. `input_glyph_advance()`
-  shares the size math so wrap measuring matches drawing.
+  FONT2D text with inline glyph tokens `{id}`, where `id` is a glyph id from the
+  glyph map (e.g. `{kb_w}`, `{xb_a}`, `{ps_cross}`); each draws that glyph's atlas
+  cell. Unknown tokens are skipped. Word-wrapped to `wrap_width`; returns the
+  height drawn.
 - `input_glyph_text_draw_scrolled(...)` is the scrollable variant: it lays the
   WHOLE string out into wrapped lines once (so the wraps are deterministic and
   never shift as you scroll), then draws only the whole lines that fit a given
@@ -139,25 +140,34 @@ Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
   them after. (The horizontal twin of this bug — `clip_right` — was already fixed
   earlier in `POLY_camera_set`.) See the warning on
   `push_uniform_fullscreen_ui_mode`.
-- Content: `HELP_TOPICS[]` in help_content.cpp — **placeholder** topics
-  (MOVEMENT long enough to scroll; COMBAT / CLIMBING / WEAPONS short). Append
-  `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens and any length
-  (they scroll).
+- Content is written PER DEVICE: each `HELP_TOPICS[]` row (help_content.cpp) has
+  three bodies — `body_kbm` / `body_xbox` / `body_ps` — and the detail screen
+  shows the active device's body, swapping (and resetting scroll) on device
+  change. The text lives in per-device files `help_content_{kbm,xbox,ps}.cpp`
+  (edited independently), with reusable device-agnostic prose as `#define`
+  fragments in `help_content_common.h` and the body declarations in
+  `help_content_bodies.h`. Bodies take `{id}` glyph tokens (see below) and any
+  length (they scroll). To add a topic: declare its three bodies in the bodies
+  header, define them in the three device files, add a row to the table.
 
-Input-prompt cell map + dev catalog (DONE, in `input_glyphs/input_prompt_map.{h,cpp}`):
+Glyph map + dev catalog (DONE, in `input_glyphs/input_prompt_map.{h,cpp}`):
 
-- `INPUT_PROMPTS[]` is a hand-edited per-input table: each input (mouse, keyboard
-  main block, gamepad — face / shoulders / triggers / D-pad / sticks / Start /
-  Select) maps to a glyph CELL `{col,row}` in each device atlas (kbm / xbox / ps).
-  Atlases are uniform 64px grids and cells are addressed by raw grid position (not
-  by metadata sprite name), so any glyph in the PNG is reachable — including ones
-  the metadata table doesn't name (e.g. PS Options/Share). ⚠ The atlas texture is
-  loaded V-FLIPPED, so `row` counts FROM THE BOTTOM (`input_glyph_draw_cell` maps
-  row→v directly). To convert a metadata pixel (x, y-from-top): `col = x/64`,
-  `row = (atlas_px/64 − 1) − y/64`.
-- The **INPUT TEST** help topic auto-lists the active device's mapped inputs as
-  "name - glyph" (`input_prompt_catalog_draw_scrolled`) — changes with the device,
-  resets scroll on device change. A DEV tool: hidden from the list unless
+- `INPUT_GLYPHS[]` is a hand-edited flat table — ONE row per glyph PER DEVICE
+  (nothing unified): `{ id, label, dev, col, row }`. `id` is the inline token used
+  in help text (prefixes `kb_`/`ms_`/`xb_`/`ps_`, e.g. `kb_w`, `xb_a`, `ps_cross`);
+  `label` is the catalog caption (separate per device — "A" for Xbox, "Cross" for
+  PS); `dev` picks the atlas; `{col,row}` is the cell. Covers mouse, the keyboard
+  main block, and both gamepads (face / shoulders / triggers / D-pad / sticks /
+  Start / Select). Cells are addressed by raw grid position (not metadata sprite
+  name), so any glyph in the PNG is reachable — including ones the metadata table
+  doesn't name (e.g. PS Options/Share). ⚠ The atlas texture is loaded V-FLIPPED,
+  so `row` counts FROM THE BOTTOM (`input_glyph_draw_cell` maps row→v directly).
+  To convert a metadata pixel (x, y-from-top): `col = x/64`,
+  `row = (atlas_px/64 − 1) − y/64`. Inline `{id}` tokens and the catalog both
+  resolve through this table (`input_glyph_find`).
+- The **INPUT TEST** help topic auto-lists the active device's glyphs as
+  "label - glyph" (`input_prompt_catalog_draw_scrolled`) — changes with the
+  device, resets scroll on device change. A DEV tool: hidden from the list unless
   `OC_DEBUG_INPUT_PROMPT_CATALOG` (debug_config.h) is on, for re-checking the map
   when bindings / atlases change. Kept in the build; never shown to players.
 
@@ -175,19 +185,17 @@ Input-prompt cell map + dev catalog (DONE, in `input_glyphs/input_prompt_map.{h,
 
 ## Follow-ups (TODO)
 
-1. **Real content** — replace the placeholder topics with accurate mechanic
-   descriptions (and decide the full topic list). The MOVEMENT body is a long
-   placeholder used to exercise scrolling.
+1. **Real content** — replace the placeholder per-device bodies with accurate
+   mechanic descriptions (and decide the full topic list). Current bodies are
+   short placeholders demonstrating the per-device `{id}` tokens.
 2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-3. **Wire the cell map into inline tokens.** The full per-device button→glyph map
-   (`input_prompt_map.cpp`) is filled, but inline rich-text `{tokens}` still go
-   through the old logical-key→sprite-name path (`sprite_for`, JUMP/USE only). Add
-   tokens that resolve via the cell map so real help texts can show any button.
-4. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
+3. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
    up, so text is softer than the crisp glyphs sitting next to it. Matching them
    would mean improving the font rendering (higher-res font / sharper sampling) —
    a separate effort, deferred. Glyph alpha is already tuned to match brightness.
 
 Done since the first version: full-window (undistorted) detail layout, line
-scrolling with fast auto-repeat + ▲/▼ arrows, small-glyph resize fallback, and
-the full-window 2D-clip fix. Paging was superseded by scrolling.
+scrolling with fast auto-repeat + ▲/▼ arrows, small-glyph resize fallback, the
+full-window 2D-clip fix, the per-device glyph map (id tokens) + dev catalog, and
+the switch to per-device topic bodies (3 files + common). Paging was superseded
+by scrolling.

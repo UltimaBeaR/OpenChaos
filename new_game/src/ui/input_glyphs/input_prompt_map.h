@@ -1,39 +1,38 @@
 #ifndef UI_INPUT_GLYPHS_INPUT_PROMPT_MAP_H
 #define UI_INPUT_GLYPHS_INPUT_PROMPT_MAP_H
 
-// Editable glyph mapping for input prompts (catalog + future help texts).
+// Glyph map for input prompts. One row per glyph PER DEVICE — nothing is unified
+// across devices: a keyboard key, an Xbox button and a DualSense button are
+// separate entries with their own id, label and cell. Help text is written per
+// device too, and references glyphs by `id` as an inline token, e.g. {kb_w},
+// {xb_a}, {ps_cross}.
 //
-// Each input has a display name plus, per device atlas, the glyph CELL to use.
-// All atlases are uniform grids of 64px cells (each atlas has its own column/row
-// COUNT, but the cell size is the same). A cell is a 0-based {col, row} measured
-// from the atlas PNG's top-left — so to set a glyph you just open the PNG, count
-// the cell, and write {col, row}. Addressing by raw cell (not by metadata sprite
-// name) lets you point at ANY glyph in the image, including ones the metadata
-// table doesn't name.
+// Each row's cell is a 0-based {col, row} in that device's atlas PNG. All atlases
+// are uniform 64px grids; cells are addressed by raw grid position (any glyph in
+// the PNG is reachable). NOTE the atlas texture is loaded V-FLIPPED, so `row`
+// counts FROM THE BOTTOM (see input_glyph_draw_cell). To convert a metadata pixel
+// (x, y-from-top): col = x/64, row = (atlas_px/64 - 1) - y/64.
 //
-// HOW TO FILL: every controller/keyboard/mouse cell below starts as {0,0} (a
-// placeholder — the top-left cell). Replace each with the real {col, row}. Use
-// {INPUT_PROMPT_NONE, INPUT_PROMPT_NONE} when an input has no glyph on that
-// device (the catalog then skips it for that device).
-//
-// Atlases (see input_glyphs.cpp): kbm = keyboard & mouse, xbox = generic
-// (Xbox-style ABXY), ps = PlayStation.
+// id prefixes: kb_ (keyboard), ms_ (mouse), xb_ (Xbox), ps_ (PlayStation).
 
-#define INPUT_PROMPT_NONE (-1)
-
-struct InputPromptCell {
-    int col;
-    int row;
+enum GlyphDevice {
+    GLYPH_DEV_KBM,  // keyboard & mouse atlas
+    GLYPH_DEV_XBOX, // generic (Xbox-style) atlas
+    GLYPH_DEV_PS,   // PlayStation atlas
 };
 
-struct InputPrompt {
-    const char* name; // label shown in the catalog
-    InputPromptCell kbm;  // cell in the keyboard & mouse atlas
-    InputPromptCell xbox; // cell in the generic (Xbox-style) atlas
-    InputPromptCell ps;   // cell in the PlayStation atlas
+struct InputGlyph {
+    const char* id;    // inline-token id used in help text (unique)
+    const char* label; // human label shown in the dev catalog
+    GlyphDevice dev;    // which atlas this glyph lives in
+    int col;            // atlas cell column (0-based)
+    int row;            // atlas cell row (0-based, counted from the bottom)
 };
 
-extern const InputPrompt INPUT_PROMPTS[];
-extern const int INPUT_PROMPT_COUNT;
+extern const InputGlyph INPUT_GLYPHS[];
+extern const int INPUT_GLYPH_COUNT;
+
+// Look up a glyph by id (name not NUL-terminated, length `len`). Null if unknown.
+const InputGlyph* input_glyph_find(const char* id, unsigned long len);
 
 #endif // UI_INPUT_GLYPHS_INPUT_PROMPT_MAP_H

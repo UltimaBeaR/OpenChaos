@@ -537,6 +537,9 @@ set(SOURCES_NEW
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
     src/ui/menus/help_content.cpp
+    src/ui/menus/help_content_kbm.cpp
+    src/ui/menus/help_content_xbox.cpp
+    src/ui/menus/help_content_ps.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
     src/ui/hud/eng_map.cpp
