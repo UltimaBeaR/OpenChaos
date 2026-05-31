@@ -528,6 +528,7 @@ set(SOURCES_NEW
     # === UI ===
     src/ui/input_glyphs/input_glyphs.cpp
     src/ui/input_glyphs/input_glyph_coords.cpp
+    src/ui/input_glyphs/input_prompt_map.cpp
     src/ui/frontend/startscr_globals.cpp
     src/ui/frontend/attract.cpp
     src/ui/frontend/attract_globals.cpp

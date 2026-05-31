@@ -144,6 +144,23 @@ Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
   `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens and any length
   (they scroll).
 
+Input-prompt cell map + dev catalog (DONE, in `input_glyphs/input_prompt_map.{h,cpp}`):
+
+- `INPUT_PROMPTS[]` is a hand-edited per-input table: each input (mouse, keyboard
+  main block, gamepad — face / shoulders / triggers / D-pad / sticks / Start /
+  Select) maps to a glyph CELL `{col,row}` in each device atlas (kbm / xbox / ps).
+  Atlases are uniform 64px grids and cells are addressed by raw grid position (not
+  by metadata sprite name), so any glyph in the PNG is reachable — including ones
+  the metadata table doesn't name (e.g. PS Options/Share). ⚠ The atlas texture is
+  loaded V-FLIPPED, so `row` counts FROM THE BOTTOM (`input_glyph_draw_cell` maps
+  row→v directly). To convert a metadata pixel (x, y-from-top): `col = x/64`,
+  `row = (atlas_px/64 − 1) − y/64`.
+- The **INPUT TEST** help topic auto-lists the active device's mapped inputs as
+  "name - glyph" (`input_prompt_catalog_draw_scrolled`) — changes with the device,
+  resets scroll on device change. A DEV tool: hidden from the list unless
+  `OC_DEBUG_INPUT_PROMPT_CATALOG` (debug_config.h) is on, for re-checking the map
+  when bindings / atlases change. Kept in the build; never shown to players.
+
 ### Licensing / trademark notes
 
 - Kenney pack is **CC0** — covers the artwork; no attribution required (credited
@@ -162,8 +179,10 @@ Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
    descriptions (and decide the full topic list). The MOVEMENT body is a long
    placeholder used to exercise scrolling.
 2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-3. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
-   token map in input_glyphs.cpp) beyond the JUMP/USE starter set as content grows.
+3. **Wire the cell map into inline tokens.** The full per-device button→glyph map
+   (`input_prompt_map.cpp`) is filled, but inline rich-text `{tokens}` still go
+   through the old logical-key→sprite-name path (`sprite_for`, JUMP/USE only). Add
+   tokens that resolve via the cell map so real help texts can show any button.
 4. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
    up, so text is softer than the crisp glyphs sitting next to it. Matching them
    would mean improving the font rendering (higher-res font / sharper sampling) —

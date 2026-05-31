@@ -13,7 +13,19 @@ DualSense-специфика (adaptive triggers, LED, тачпад, гироск
 
 ## Иконки кнопок в UI
 - Инфраструктура `InputDeviceType` готова (определяем тип контроллера)
-- Рисование соответствующих иконок (Xbox / PlayStation / клавиатура) в подсказках на экране — пока не реализовано
+- Device-aware глифы кнопок **реализованы** для in-game справки «How to Play»
+  (вшитые Kenney-атласы, см. `new_game_devlog/help_screens/`). Подсказки прямо в
+  HUD (поверх геймплея) — пока не реализованы, кандидат на будущее.
+
+### Steam Deck detection (после 1.0)
+- Сейчас `active_input_device` различает только KEYBOARD_MOUSE / XBOX / DUALSENSE.
+  Значения «Steam Deck» нет → на Деке справка покажет клавиатурный или Xbox-стиль
+  глифов, а не родной Deck-стиль.
+- **Графика глифов под Steam Deck уже готова** (атлас `deck` вшит и грузится в
+  `input_glyphs_init`, координаты в `input_glyph_coords`), просто не выбирается —
+  выбор атласа в `atlas_for_active_device()` (input_glyphs.cpp) не имеет ветки Deck.
+- TODO: определять запуск на Steam Deck (SDL/ENV/устройство) и добавить
+  соответствующий `InputDeviceType`, чтобы автоматически выбирался атлас `deck`.
 
 ## Быстрый выбор оружия: D-pad
 

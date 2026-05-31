@@ -19,7 +19,9 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
 #include "ui/menus/help_content.h"
+#include "debug_config.h" // OC_DEBUG_INPUT_PROMPT_CATALOG — gate the dev INPUT TEST topic
 #include "ui/input_glyphs/input_glyphs.h" // input_glyph_text_draw_scrolled — rich-text help body
+#include "engine/input/gamepad_globals.h" // active_input_device — reset test-page scroll on device change
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
@@ -56,6 +58,23 @@ static SLONG s_help_topic = 0;
 // can't drive the help list (HELP_LIST has no word[] table), so the list
 // keeps its own selection bounded to [0, HELP_TOPIC_COUNT-1].
 static SLONG s_help_list_selection = 0;
+
+// Number of topics shown in the How-to-Play list. The input-prompt catalog
+// (input_test) topic is dev-only — hidden from the list unless the debug flag is
+// on (players never see it; the page stays in the build). Debug topics MUST be at
+// the END of HELP_TOPICS so list indices still map 1:1 to topic indices.
+static SLONG GAMEMENU_help_list_count()
+{
+    SLONG n = HELP_TOPIC_COUNT;
+    if (!OC_DEBUG_INPUT_PROMPT_CATALOG) {
+        for (SLONG i = 0; i < HELP_TOPIC_COUNT; ++i) {
+            if (HELP_TOPICS[i].input_test) {
+                --n;
+            }
+        }
+    }
+    return n;
+}
 
 // HELP_DETAIL scroll position, as the index of the first wrapped line shown in
 // the window. Up/down nav pages it; the draw clamps it to the measured line
@@ -418,25 +437,27 @@ SLONG GAMEMENU_process()
             };
 
             if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_LIST) {
-                // Topic list: own 0-based selection bounded to the topic count,
+                // Topic list: own 0-based selection bounded to the VISIBLE topic
+                // count (dev-only topics hidden unless the debug flag is on),
                 // wrapping top/bottom like the generic menu. Cancel/back is
                 // handled by the pause-toggle channel above.
-                if (HELP_TOPIC_COUNT > 0) {
+                const SLONG help_count = GAMEMENU_help_list_count();
+                if (help_count > 0) {
                     if (nav_up) {
                         s_help_list_selection -= 1;
                         if (s_help_list_selection < 0) {
-                            s_help_list_selection = HELP_TOPIC_COUNT - 1;
+                            s_help_list_selection = help_count - 1;
                         }
                         MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
                     }
                     if (nav_down) {
                         s_help_list_selection += 1;
-                        if (s_help_list_selection > HELP_TOPIC_COUNT - 1) {
+                        if (s_help_list_selection > help_count - 1) {
                             s_help_list_selection = 0;
                         }
                         MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
                     }
-                    SATURATE(s_help_list_selection, 0, HELP_TOPIC_COUNT - 1);
+                    SATURATE(s_help_list_selection, 0, help_count - 1);
 
                     if (confirm) {
                         consume_confirm();
@@ -743,7 +764,9 @@ static void GAMEMENU_draw_help_list()
     MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
                          (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
 
-    for (SLONG i = 0; i < HELP_TOPIC_COUNT; i++) {
+    // Only the visible topics (dev-only INPUT TEST hidden unless the debug flag).
+    const SLONG help_count = GAMEMENU_help_list_count();
+    for (SLONG i = 0; i < help_count; i++) {
         const UBYTE alpha = (i == s_help_list_selection)
                                 ? GAMEMENU_HELP_ALPHA_SELECTED
                                 : GAMEMENU_HELP_ALPHA_UNSELECTED;
@@ -763,6 +786,17 @@ static void GAMEMENU_draw_help_detail()
 {
     if (s_help_topic < 0 || s_help_topic >= HELP_TOPIC_COUNT) {
         return; // defensive — index is always set from a valid list selection
+    }
+
+    // INPUT TEST page only: its list is the ACTIVE device's, so reset the scroll
+    // to the top whenever the active device changes while it's open (the row set
+    // and count change under you otherwise).
+    if (HELP_TOPICS[s_help_topic].input_test) {
+        static SLONG s_test_last_device = -1;
+        if ((SLONG)active_input_device != s_test_last_device) {
+            s_test_last_device = (SLONG)active_input_device;
+            s_help_detail_scroll_line = 0;
+        }
     }
 
     // Visible virtual extent of the whole window in the uniform scope (see
@@ -857,21 +891,35 @@ static void GAMEMENU_draw_help_detail()
     const float view_bottom = down_base_y - (float)GAMEMENU_HELP_DETAIL_ARROW_GAP;
     const float view_h = view_bottom - view_top;
 
-    // Draw only the whole lines that fit, starting at the scroll position. The
-    // drawer clamps s_help_detail_scroll_line in place and reports how many lines
-    // fit and the total wrapped line count for the arrow / paging logic.
+    // Draw the scroll window. Either the rich-text body, or — for the temporary
+    // INPUT TEST topic — the auto-generated input-prompt catalog for the active
+    // device. Both clamp s_help_detail_scroll_line in place and report how many
+    // lines fit + the total line count for the arrow / paging logic.
     SLONG fit = 0;
-    const SLONG total = input_glyph_text_draw_scrolled(
-        HELP_TOPICS[s_help_topic].body,
-        body_x,
-        view_top,
-        wrap_w,
-        GAMEMENU_HELP_DETAIL_TEXT_SCALE,
-        GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
-        body_fade,
-        &s_help_detail_scroll_line,
-        view_h,
-        &fit);
+    SLONG total = 0;
+    if (HELP_TOPICS[s_help_topic].input_test) {
+        total = input_prompt_catalog_draw_scrolled(
+            body_x,
+            view_top,
+            GAMEMENU_HELP_DETAIL_TEXT_SCALE,
+            GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
+            body_fade,
+            &s_help_detail_scroll_line,
+            view_h,
+            &fit);
+    } else {
+        total = input_glyph_text_draw_scrolled(
+            HELP_TOPICS[s_help_topic].body,
+            body_x,
+            view_top,
+            wrap_w,
+            GAMEMENU_HELP_DETAIL_TEXT_SCALE,
+            GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
+            body_fade,
+            &s_help_detail_scroll_line,
+            view_h,
+            &fit);
+    }
 
     // Share the measured metrics with GAMEMENU_process (paging step + clamping).
     s_help_detail_fit = fit;

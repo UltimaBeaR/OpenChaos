@@ -79,6 +79,13 @@ const HelpTopic HELP_TOPICS[] = {
     { "WEAPONS",
       "Pick up weapons found in the level.\n"
       "Press {use} to fire or use the held item." },
+
+    // Dev tool — input-prompt catalog: auto-generated, device-aware list of every
+    // mapped button glyph (see input_prompt_map.cpp). Hidden from the list unless
+    // OC_DEBUG_INPUT_PROMPT_CATALOG is on; kept in the build for re-checking the
+    // glyph map when bindings/atlases change. Must stay LAST (see help_content.h /
+    // GAMEMENU_help_list_count). body is ignored (input_test = true).
+    { "INPUT TEST", nullptr, true },
 };
 
 const int HELP_TOPIC_COUNT = (int)(sizeof(HELP_TOPICS) / sizeof(HELP_TOPICS[0]));

@@ -76,4 +76,19 @@ SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
                                      SLONG* first_line, float view_height,
                                      SLONG* out_fit);
 
+// Draw a glyph by raw atlas CELL (col, row) from the active device's atlas (all
+// atlases are uniform 64px grids; cell is 0-based from the PNG top-left). Returns
+// the advance width. Used by the input-prompt catalog. fade: 0 opaque..255 gone.
+float input_glyph_draw_cell(int col, int row, float x, float y, float line_height, SWORD fade = 0);
+
+// Draw the input-prompt CATALOG (dev test page, gated by the debug flag) as a vertically-scrolled
+// list — one row per line, "<name> - <glyph>", for every prompt that has a glyph
+// on the CURRENTLY ACTIVE device (so the list changes with the device). Same
+// scroll contract as input_glyph_text_draw_scrolled: *first_line is clamped and
+// written back, *out_fit gets the visible-row count, returns the total row count.
+SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
+                                         unsigned long colour, SWORD fade,
+                                         SLONG* first_line, float view_height,
+                                         SLONG* out_fit);
+
 #endif // UI_INPUT_GLYPHS_H

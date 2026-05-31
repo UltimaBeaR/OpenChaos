@@ -80,6 +80,14 @@
 // flag here per subsystem as it gets instrumented.
 #define OC_DEBUG_LOG false
 
+// Input-prompt glyph catalog: shows the "INPUT TEST" item in the pause-menu
+// "How to Play" list — an auto-generated, device-aware list of every mapped
+// button glyph (input_prompt_map.cpp). For visually checking the glyph map when
+// bindings/atlases change. When false the item is hidden from the list (players
+// never see it); the page itself stays in the build. Dev-only; keep false in
+// shipping builds.
+#define OC_DEBUG_INPUT_PROMPT_CATALOG false
+
 // --- Per-subsystem debug-log gates (see note above) ---------------------
 
 // Melee combat tuning log: combo proc/pity rolls, the per-action

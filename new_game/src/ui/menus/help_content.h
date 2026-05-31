@@ -14,6 +14,13 @@
 struct HelpTopic {
     const char* title;
     const char* body;
+    // When true this topic is the input-prompt CATALOG (auto-generated device-
+    // aware list of every button glyph), not a text body — `body` is then ignored.
+    // Omitted in normal entries (aggregate-init leaves it false). A dev tool: the
+    // list item only appears when OC_DEBUG_INPUT_PROMPT_CATALOG is on (players
+    // never see it), kept in the build for re-checking the glyph map when bindings
+    // or atlases change.
+    bool input_test;
 };
 
 // Topic table and its element count. Add a topic by appending an entry to
