@@ -634,33 +634,41 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // 4:3 frame, no distortion), so its coordinates live in a virtual space whose
 // visible extent is the WHOLE window: width VW = g_screen_w_px / g_frame_scale,
 // height VH = g_screen_h_px / g_frame_scale (computed in the draw). The body
-// spans almost the full width via a padding given as a FRACTION of VW (so it
-// stays proportional at any resolution); the wrap width is what's left between
-// the paddings.
-#define GAMEMENU_HELP_DETAIL_PAD_FRACTION 0.06f  // 6% padding each side
+// gets a fixed left/right padding in VIRTUAL (pre-scale) px: a virtual unit is
+// 1/g_frame_scale real px, so the same constant becomes a LARGER physical margin
+// on a bigger display and a smaller one on a small window — which is what reads
+// well. The wrap width is whatever is left between the two paddings.
+#define GAMEMENU_HELP_DETAIL_PAD_PX       20     // virtual px (pre-scale), each side
 #define GAMEMENU_HELP_DETAIL_TEXT_SCALE   192    // 256 == 1.0, so ~0.75x (smaller body)
 #define GAMEMENU_HELP_DETAIL_TEXT_COLOUR  0xffffff
 
 // Vertical layout, in virtual units measured from the window edges (same scale
 // as the framed menus, so these stay constant physical insets at any size). The
-// title sits near the very top; the scroll window runs from VIEW_TOP down to
-// (VH - VIEW_BOTTOM_INSET). Only whole lines that fit are drawn; the rest scroll.
-#define GAMEMENU_HELP_DETAIL_TITLE_Y           34  // title near the top
-#define GAMEMENU_HELP_DETAIL_VIEW_TOP          130 // first body line (leaves a band
-                                                   // for the title + the ▲ arrow)
-#define GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET 72  // window bottom = VH - this
-                                                   // (leaves room for the ▼ arrow
-                                                   // clear of the screen edge)
+// title sits near the very top; the scroll window runs from VIEW_TOP down to a
+// band reserved for the ▼ arrow. Only whole lines that fit are drawn; the rest
+// scroll. VIEW_BOTTOM_INSET is the gap from the window bottom to the ▼ arrow tip
+// (small edge margin); the text window ends ARROW_GAP above the arrow base.
+#define GAMEMENU_HELP_DETAIL_TITLE_Y           11  // title near the top
+// How far LEFT of the title the reveal wipe starts (virtual px). The wipe then
+// only has to travel this short lead-in before the title begins animating, so
+// there's no long "nothing yet" pause while it crawls from x=0. Smaller = title
+// appears sooner; larger = a longer lead-in before it starts.
+#define GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD   48
+#define GAMEMENU_HELP_DETAIL_VIEW_TOP          78  // first body line (leaves a band
+                                                   // for the title + the ▲ arrow;
+                                                   // title→▲ gap ≈ ▼→edge gap)
+#define GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET 14  // ▼ arrow tip to window bottom
 
 // (GAMEMENU_HELP_DETAIL_SCROLL_LINES is defined near the scroll state up top,
 // since GAMEMENU_process uses it ahead of this block.)
 
 // Scroll arrows (▲ above the window, ▼ below it), centred horizontally at VW/2.
 // Drawn as solid triangles on the menu's colour page (so they sit on top like
-// the text). Sizes/offsets in virtual units; gap measured from the window edge.
+// the text). Sizes in virtual units; ARROW_GAP is the gap between the text and
+// the arrow (kept small so the arrow hugs the text, not the window edge).
 #define GAMEMENU_HELP_DETAIL_ARROW_HALF_W 14
 #define GAMEMENU_HELP_DETAIL_ARROW_HEIGHT 14
-#define GAMEMENU_HELP_DETAIL_ARROW_GAP    14
+#define GAMEMENU_HELP_DETAIL_ARROW_GAP    8
 #define GAMEMENU_HELP_DETAIL_ARROW_COLOUR 0xD0E0F0 // cool light grey (RGB; alpha added)
 
 // Extra full-screen dim for the detail text screen, on TOP of the menu's base
@@ -669,10 +677,22 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // ARGB; tune the alpha for more/less dimming.
 #define GAMEMENU_HELP_DETAIL_DIM_COLOUR 0xC0000000u // ~75% black, stacks with base
 
-// The backdrop dim fades in FASTER than the body text (so the dark backdrop is
-// mostly there before the text reveals on it). Multiplier on the shared reveal
-// progress (1.0 = same speed as the text).
-#define GAMEMENU_HELP_DIM_FADE_SPEEDUP 2.5f
+// The backdrop dim fades in over the reveal. Multiplier on the shared reveal
+// progress: the dim reaches full at reveal_t = 1/SPEEDUP, so its fade duration is
+// inversely proportional to this — 1.0 stretches across the whole reveal,
+// higher = finishes (much) sooner.
+#define GAMEMENU_HELP_DIM_FADE_SPEEDUP 7.0f
+
+// Body/arrow fade shape: faint for a while, then a sharp ease-in burst up to full
+// reached at BODY_FADE_COMPLETE of the reveal, and held at full afterwards.
+//   p = reveal progress 0..1 (after the optional BODY_FADE_DELAY hold)
+//   p reaches 1 at COMPLETE (then clamps), body_t = p^EASE
+// Lower COMPLETE = the burst lands earlier in the reveal (0.5 = midpoint), then
+// holds. EASE sets how sharp the burst is (2 soft, 3, 4+ sharper). BODY_FADE_DELAY
+// = 0 (no start pause — the title's wipe starts at once).
+#define GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY    0.0f
+#define GAMEMENU_HELP_DETAIL_BODY_FADE_COMPLETE 0.35f
+#define GAMEMENU_HELP_DETAIL_BODY_FADE_EASE     6
 
 // Reveal progress (0..1) of the detail screen. GAMEMENU_fadein_x ramps from 0 to
 // (800<<8) once the overlay is partly opaque (see GAMEMENU_process); normalising
@@ -772,21 +792,69 @@ static void GAMEMENU_draw_help_detail()
     POLY_screen_clip_right = vw;
     POLY_screen_clip_bottom = vh;
 
+    // Start the title's left→right reveal wipe just LEFT of the title itself,
+    // instead of at virtual x=0. The MENUFONT wipe travels rightward across the
+    // virtual screen and only reveals a glyph once it reaches that glyph's x; with
+    // the title centred on a wide window (x ≈ vw/2) the wipe had to crawl across
+    // the whole empty left margin first, a long "nothing visible yet" dead time.
+    // Offsetting the wipe origin to the title's left edge (minus a short lead-in)
+    // makes the title start animating almost immediately. TITLE_Y line below uses
+    // the same centring (sum of raw glyph widths) as MENUFONT_fadein_draw.
+    {
+        SLONG title_w = 0;
+        for (const char* c = HELP_TOPICS[s_help_topic].title; *c; ++c) {
+            title_w += MENUFONT_CharWidth((CBYTE)*c, 256); // 256 == 1.0 (raw width)
+        }
+        const float wipe_start = cx - (float)title_w * 0.5f
+                                 - (float)GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD;
+        MENUFONT_fadein_line(GAMEMENU_fadein_x + (SLONG)(wipe_start * 256.0f));
+    }
+
     // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
     // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
     MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
                          GAMEMENU_HELP_ALPHA_SELECTED,
                          (CBYTE*)HELP_TOPICS[s_help_topic].title);
 
-    // Fade the body in together with the menu's reveal (same progress as the
-    // backdrop dim), so the text appears with an effect instead of popping in.
+    // Fade the body (and the scroll arrows) in with a sharp ease-IN BURST rather
+    // than linearly: a linear/early text fade reaches full opacity before the
+    // title's own animated reveal, so the body visibly "beats" the title. Here the
+    // body stays faint, then bursts up to full at BODY_FADE_COMPLETE of the reveal
+    // and holds. p = reveal progress (after the optional BODY_FADE_DELAY hold),
+    // remapped so it hits 1 at COMPLETE (then clamps), raised to BODY_FADE_EASE.
+    // The backdrop dim keeps its own (fast) ramp via reveal_t.
     const float reveal_t = GAMEMENU_help_detail_reveal_t();
-    const SWORD body_fade = (SWORD)((1.0f - reveal_t) * 255.0f);
+    float p = (reveal_t - GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY)
+              / (1.0f - GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY);
+    if (p < 0.0f) {
+        p = 0.0f;
+    }
+    // Reach full at COMPLETE of the reveal, then hold at full (clamp): the burst
+    // lands at the midpoint and brightness stops increasing afterwards.
+    p /= GAMEMENU_HELP_DETAIL_BODY_FADE_COMPLETE;
+    if (p > 1.0f) {
+        p = 1.0f;
+    }
+    // Ease-in: body_t = p ^ EASE — faint, then a sharp burst up to full.
+    float body_t = p;
+    for (int e = 1; e < GAMEMENU_HELP_DETAIL_BODY_FADE_EASE; ++e) {
+        body_t *= p;
+    }
+    const SWORD body_fade = (SWORD)((1.0f - body_t) * 255.0f);
 
-    const float body_x = vw * GAMEMENU_HELP_DETAIL_PAD_FRACTION;
-    const float wrap_w = vw * (1.0f - 2.0f * GAMEMENU_HELP_DETAIL_PAD_FRACTION);
+    const float body_x = (float)GAMEMENU_HELP_DETAIL_PAD_PX;
+    const float wrap_w = vw - 2.0f * (float)GAMEMENU_HELP_DETAIL_PAD_PX;
     const float view_top = (float)GAMEMENU_HELP_DETAIL_VIEW_TOP;
-    const float view_bottom = vh - (float)GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET;
+
+    // Reserve the bottom band for the ▼ arrow so it never clips the window edge
+    // and sits a fixed small gap below the text. The arrow's apex (tip) is a
+    // small edge margin above the window bottom; its base is one arrow-height up;
+    // the text window ends ARROW_GAP above that base. So: text → gap → ▼ → margin
+    // → window bottom, all inside the window regardless of how many whole lines
+    // fit. (down_tip_y / down_base_y are reused by the arrow draw below.)
+    const float down_tip_y = vh - (float)GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET;
+    const float down_base_y = down_tip_y - (float)GAMEMENU_HELP_DETAIL_ARROW_HEIGHT;
+    const float view_bottom = down_base_y - (float)GAMEMENU_HELP_DETAIL_ARROW_GAP;
     const float view_h = view_bottom - view_top;
 
     // Draw only the whole lines that fit, starting at the scroll position. The
@@ -813,7 +881,7 @@ static void GAMEMENU_draw_help_detail()
     const bool more_up = s_help_detail_scroll_line > 0;
     const bool more_down = (s_help_detail_scroll_line + fit) < total;
     if (more_up || more_down) {
-        SLONG a = (SLONG)(255.0f * reveal_t);
+        SLONG a = (SLONG)(255.0f * body_t); // fade with the body, not the dim
         if (a < 0) a = 0;
         else if (a > 255) a = 255;
         const ULONG arrow_col = ((ULONG)a << 24) | (GAMEMENU_HELP_DETAIL_ARROW_COLOUR & 0x00FFFFFFu);
@@ -828,12 +896,11 @@ static void GAMEMENU_draw_help_detail()
                                    arrow_col);
         }
         if (more_down) {
-            // Points down: apex below the window, base above it.
-            const float base_y = view_bottom + GAMEMENU_HELP_DETAIL_ARROW_GAP;
-            const float tip_y = base_y + GAMEMENU_HELP_DETAIL_ARROW_HEIGHT;
-            GAMEMENU_draw_help_tri(cx, tip_y,
-                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
-                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+            // Points down: apex (tip) near the bottom edge, base above it. Both
+            // precomputed with the view geometry so the text sits just above.
+            GAMEMENU_draw_help_tri(cx, down_tip_y,
+                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
+                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
                                    arrow_col);
         }
     }

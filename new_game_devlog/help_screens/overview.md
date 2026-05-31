@@ -110,8 +110,10 @@ Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
 - The **topic list** draws in the framed CENTER_CENTER scope (like the other
   menus). The **detail screen** draws in a uniform **full-window** scope
   (`PolyPage::push_uniform_fullscreen_ui_mode`): it spans the whole window with
-  the title near the top and the body across nearly the full width (% padding),
-  while keeping text/glyphs square (no aspect distortion).
+  the title near the top and the body across nearly the full width — left/right
+  padding is a fixed amount in VIRTUAL (pre-scale) px, so the physical margin
+  grows on a bigger display and shrinks on a small window — while keeping
+  text/glyphs square (no aspect distortion).
 - Navigation: in the list ↑↓ moves the selection (wraps), confirm opens a topic,
   cancel/ESC goes detail→list→pause. In the detail screen ↑↓ **scroll** the body.
 - Scrolling: the body lays out across a window from below the title to near the
@@ -120,8 +122,14 @@ Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
   auto-repeat** (separate `InputAutoRepeat`, ~55 ms vs the 150 ms menu default)
   so a held key creeps smoothly. **▲/▼ arrows** (solid triangles on the colour
   page, faded in with the body) show only when there's more above / below.
+- **Reveal:** the title's left→right MENUFONT wipe is offset to start at the
+  title's own left edge, so it animates almost at once instead of waiting for the
+  wipe to crawl from virtual x=0 to the centred title (a long "nothing yet" dead
+  time on a wide window). The body fades in as a sharp ease-in BURST that lands at
+  a set fraction of the reveal and then holds at full; the arrows fade with it.
+  (All tunable via the `*_FADE_*` / `*_WIPE_LEAD` constants in gamemenu.cpp.)
 - **Backdrop:** an extra full-screen dim drawn in GAMEMENU's first pass (behind
-  the text), fading in a bit faster than the body. No bottom hint (cancel/ESC
+  the text), fading in fast (well before the body). No bottom hint (cancel/ESC
   goes back, like the other menus).
 - **Full-window clip caveat (fixed):** the POLY 2D clip window is the virtual
   640×480 screen with `clip_bottom` fixed at 480, so on a tall window the body
