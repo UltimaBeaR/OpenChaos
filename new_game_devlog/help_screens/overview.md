@@ -49,6 +49,23 @@ needed):
   `ps` (PlayStation-style → `INPUT_DEVICE_DUALSENSE`), `deck` (Steam Deck-style).
 - Credits in `THIRD_PARTY_LICENSES.md` (Kenney + stb_image).
 
+Drawing (also DONE):
+
+- `input_glyph_draw(key, x, y, line_height)` draws the prompt for a logical key
+  (`InputGlyphKey`, starter set: JUMP, USE), picking the atlas from
+  `active_input_device` and the Kenney sprite per device. The glyph is
+  left-aligned at x, centred vertically in `line_height`, and the call returns
+  the **advance width** (glyph width + a small inter-glyph gap) so prompts lay
+  out inline (`x += input_glyph_draw(...)`) without oversized square gaps.
+- **Pixel-perfect:** glyphs are minified far below their 64px source, so the
+  atlas uses **mipmaps** (the draw path applies trilinear from `has_mipmaps`),
+  and the draw picks a **clean on-screen size** — a power-of-two fraction of 64
+  (64/32/16/8, or 128 for 2x) — measured in **real framebuffer pixels**,
+  centred in the `size` box and **snapped to whole framebuffer pixels** (via
+  `PolyPage::ui_scale_*/ui_offset_*`). This keeps outlines crisp and avoids the
+  one-sided blur that arbitrary sub-pixel scaling caused. `ge_texture_load_rgba`
+  gained a `gen_mipmaps` flag for this.
+
 ### Licensing / trademark notes
 
 - Kenney pack is **CC0** — covers the artwork; no attribution required (credited
@@ -63,12 +80,12 @@ needed):
 
 ## Follow-ups (TODO)
 
-1. **Pixel-perfect glyph rendering.** Source glyphs are 64px; when drawn small,
-   thin button outlines drop out and text becomes unreadable (linear
-   minification, no mipmaps). Fix at draw time: mipmaps and/or integer-scale to
-   the display size and/or pick an appropriate source size.
-2. **Inline rich-text glyphs + paging** for the help screen text.
-3. **The help screen UI itself:** pause-menu item → mechanics list → per-mechanic
+1. **Inline rich-text glyphs + paging** for the help screen text — a glyph
+   flowing inside a line of text (marker token → glyph quad on the baseline,
+   counted by the wrap pass), and pages when text overflows. (Single-glyph draw
+   + pixel-perfect are done; this is the in-text integration.)
+2. **The help screen UI itself:** pause-menu item → mechanics list → per-mechanic
    text screen. Plus deciding which mechanics to document.
-4. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-5. **Map our logical buttons → Kenney sprite names** per device.
+3. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
+4. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` in
+   input_glyphs.cpp) beyond the JUMP/USE starter set as help content grows.

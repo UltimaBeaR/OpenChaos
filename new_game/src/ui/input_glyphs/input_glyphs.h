@@ -19,4 +19,22 @@
 // Must be called once after the GL context and texture system are ready.
 void input_glyphs_init(void);
 
+// Logical input prompts a help screen can show. Each resolves to a device-
+// specific glyph (keyboard key / Xbox or PlayStation face button) at draw time,
+// based on active_input_device. Starter set — extend as the help content grows.
+enum InputGlyphKey {
+    INPUT_GLYPH_KEY_JUMP,
+    INPUT_GLYPH_KEY_USE,
+    INPUT_GLYPH_KEY_COUNT
+};
+
+// Draw the prompt for `key` matching the currently active input device at (x, y)
+// in the CALLER's current UI scope (virtual 640x480 coords). `line_height` sizes
+// the glyph; the (square) glyph is left-aligned at x and centred vertically
+// within the line height, drawn at a "clean" size (a power-of-two fraction of
+// the 64px source) snapped to whole framebuffer pixels so outlines stay crisp.
+// Returns the ADVANCE width (glyph width + a small inter-glyph gap) so prompts
+// can be laid out inline: `x += input_glyph_draw(...)`. Returns 0 if unresolved.
+float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height);
+
 #endif // UI_INPUT_GLYPHS_H

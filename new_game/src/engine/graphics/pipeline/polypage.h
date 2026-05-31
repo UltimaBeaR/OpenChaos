@@ -70,6 +70,15 @@ public:
     // honour the framed region.
     static bool in_ui_mode();
 
+    // Current virtual->screen UI affine (screen = virtual * scale + offset),
+    // as snapshotted by push_ui_mode. Lets a caller pixel-snap a quad to real
+    // framebuffer pixels (e.g. crisp glyph atlases). Identity (1,0) when no UI
+    // scope is active.
+    static float ui_scale_x() { return s_XScale; }
+    static float ui_scale_y() { return s_YScale; }
+    static float ui_offset_x() { return s_XOffset; }
+    static float ui_offset_y() { return s_YOffset; }
+
     // RAII wrappers around the push/pop pair. Use at the top of any UI
     // render entry-point so every return path pops correctly.
     struct UIModeScope {

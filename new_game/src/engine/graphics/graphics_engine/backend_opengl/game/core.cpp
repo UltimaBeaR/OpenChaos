@@ -3415,7 +3415,7 @@ void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill)
     free(blank);
 }
 
-void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgba)
+void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgba, bool gen_mipmaps)
 {
     if (page < 0 || page >= GL_TEX_MAX)
         return;
@@ -3435,9 +3435,12 @@ void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgb
     tex.type = GE_TEXTURE_TYPE_USER;
     tex.size = w; // square in practice; width is what callers query
     tex.contains_alpha = true;
-    // No mipmaps: glyph atlases are drawn 1:1 in screen space and mip
-    // averaging would bleed neighbouring atlas cells into each other.
-    tex.no_mipmaps = true;
+    // Mipmaps: requested for glyph atlases that get minified far below their
+    // source size (a 64px cell drawn at ~16px) — without them thin button
+    // outlines fall between linear samples and vanish. The draw path re-applies
+    // the min filter from has_mipmaps (see the bind code), so setting the flag
+    // here is what actually enables trilinear sampling at draw time.
+    tex.no_mipmaps = !gen_mipmaps;
     tex.has_mipmaps = false;
 
     if (!tex.gl_id) {
@@ -3448,7 +3451,13 @@ void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgb
     // (the TGA path uses GL_BGRA because its source staging buffer is BGRA).
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
         GL_RGBA, GL_UNSIGNED_BYTE, rgba);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    if (gen_mipmaps) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        tex.has_mipmaps = true;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Clamp: glyph cells live inside the atlas; clamping avoids wrap bleeding
     // at the atlas edges when a cell touches the border.

@@ -2,6 +2,14 @@
 
 #include "assets/texture_globals.h" // TEXTURE_page_glyph_*
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
+#include "ui/input_glyphs/input_glyph_coords.h" // INPUT_GLYPH_* tables
+#include "ui/hud/panel.h" // PANEL_draw_quad
+#include "engine/graphics/pipeline/poly.h" // POLY_PAGE_GLYPH_*
+#include "engine/graphics/pipeline/polypage.h" // PolyPage UI affine (pixel-snap)
+#include "engine/input/gamepad.h" // InputDeviceType
+#include "engine/input/gamepad_globals.h" // active_input_device
+
+#include <cstring> // strcmp
 
 // stb_image declarations only — the implementation is compiled once in
 // assets/formats/stb_image_impl.cpp.
@@ -14,6 +22,16 @@
 // Number of RGBA channels we force stb_image to output (R,G,B,A).
 #define INPUT_GLYPH_RGBA_CHANNELS 4
 
+// Solid white, full alpha — draw the glyph with its own colours/alpha (the
+// glyph page blends with ModulateAlpha, so white vertices pass the texture
+// through unchanged and the transparent atlas background stays transparent).
+#define INPUT_GLYPH_DRAW_COLOUR 0xffFFFFFFu
+
+// Inter-glyph gap added to a glyph's advance width, as a fraction of the drawn
+// glyph width. Keeps adjacent prompts close together (the glyph footprint is
+// its own width, not the full line-height box) with a small readable gap.
+#define INPUT_GLYPH_GAP_FRACTION 0.2f
+
 namespace {
 
 // Decode one embedded PNG and upload it to its texture page.
@@ -23,7 +41,9 @@ void load_atlas(int32_t page, const unsigned char* png, unsigned int png_len)
     stbi_uc* data = stbi_load_from_memory(
         png, (int)png_len, &w, &h, &n, INPUT_GLYPH_RGBA_CHANNELS);
     if (data) {
-        ge_texture_load_rgba(page, w, h, data);
+        // Mipmaps on: glyphs are drawn far smaller than the 64px source cells,
+        // so trilinear minification keeps thin button outlines from vanishing.
+        ge_texture_load_rgba(page, w, h, data, /*gen_mipmaps=*/true);
         stbi_image_free(data);
     }
 }
@@ -36,4 +56,131 @@ void input_glyphs_init(void)
     load_atlas(TEXTURE_page_glyph_generic, GLYPH_GENERIC_PNG, GLYPH_GENERIC_PNG_LEN);
     load_atlas(TEXTURE_page_glyph_ps, GLYPH_PS_PNG, GLYPH_PS_PNG_LEN);
     load_atlas(TEXTURE_page_glyph_deck, GLYPH_DECK_PNG, GLYPH_DECK_PNG_LEN);
+}
+
+// --- Drawing a logical prompt for the active device ------------------------
+
+namespace {
+
+// One device's atlas: which POLY page to draw on, its coordinate table, and the
+// atlas pixel size (square) for UV normalisation.
+struct GlyphAtlas {
+    SLONG poly_page;
+    const InputGlyphRect* table;
+    int count;
+    int atlas_px;
+};
+
+// Pick the atlas matching the active input device. DualSense -> PlayStation
+// style, Xbox -> generic (ABXY), everything else -> keyboard & mouse. (Steam
+// Deck has no active_input_device value yet, so the `deck` atlas is loaded but
+// not selected here — see help_screens devlog follow-ups.)
+GlyphAtlas atlas_for_active_device()
+{
+    switch (active_input_device) {
+    case INPUT_DEVICE_DUALSENSE:
+        return { POLY_PAGE_GLYPH_PS, INPUT_GLYPH_PS, INPUT_GLYPH_PS_COUNT, INPUT_GLYPH_PS_ATLAS_PX };
+    case INPUT_DEVICE_XBOX:
+        return { POLY_PAGE_GLYPH_GENERIC, INPUT_GLYPH_GENERIC, INPUT_GLYPH_GENERIC_COUNT, INPUT_GLYPH_GENERIC_ATLAS_PX };
+    case INPUT_DEVICE_KEYBOARD_MOUSE:
+    default:
+        return { POLY_PAGE_GLYPH_KBM, INPUT_GLYPH_KEYBOARD, INPUT_GLYPH_KEYBOARD_COUNT, INPUT_GLYPH_KEYBOARD_ATLAS_PX };
+    }
+}
+
+// Logical prompt -> Kenney sprite name for the given device family. Mirrors the
+// in-game bindings: JUMP = Cross/A/Space, USE = Square/X/F.
+const char* sprite_for(InputGlyphKey key, InputDeviceType dev)
+{
+    const bool xbox = (dev == INPUT_DEVICE_XBOX);
+    const bool ps = (dev == INPUT_DEVICE_DUALSENSE);
+    switch (key) {
+    case INPUT_GLYPH_KEY_JUMP:
+        return xbox ? "xbox_button_a" : ps ? "playstation_button_cross" : "keyboard_space";
+    case INPUT_GLYPH_KEY_USE:
+        return xbox ? "xbox_button_x" : ps ? "playstation_button_square" : "keyboard_f";
+    default:
+        return nullptr;
+    }
+}
+
+const InputGlyphRect* find_rect(const InputGlyphRect* table, int count, const char* name)
+{
+    for (int i = 0; i < count; ++i)
+        if (strcmp(table[i].name, name) == 0)
+            return &table[i];
+    return nullptr;
+}
+
+// Round to the nearest integer pixel — keeps glyph edges crisp.
+float pixel_snap(float v)
+{
+    return (float)(SLONG)(v + 0.5f);
+}
+
+// "Clean" on-screen glyph sizes in framebuffer pixels: the source cell is 64px,
+// so drawing at 64 (native), 32, 16, 8 makes the GPU sample a single mip level
+// 1:1 with no trilinear blend (crisp); 128 is a clean 2x magnify. Any size in
+// between blends two mip levels and softens. We pick the largest of these that
+// fits the reserved box, so glyphs stay sharp instead of blurring at odd sizes.
+float clean_glyph_size_px(float box_px)
+{
+    static const float CLEAN[] = { 128.0f, 64.0f, 32.0f, 16.0f, 8.0f };
+    const int n = (int)(sizeof(CLEAN) / sizeof(CLEAN[0]));
+    for (int i = 0; i < n; ++i)
+        if (CLEAN[i] <= box_px)
+            return CLEAN[i];
+    return CLEAN[n - 1]; // box smaller than the smallest clean size
+}
+
+} // namespace
+
+float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
+{
+    const GlyphAtlas a = atlas_for_active_device();
+    const char* sprite = sprite_for(key, active_input_device);
+    if (!sprite)
+        return 0.0f;
+    const InputGlyphRect* r = find_rect(a.table, a.count, sprite);
+    if (!r)
+        return 0.0f;
+
+    const float px = (float)a.atlas_px;
+    const float u1 = (float)r->x / px;
+    const float v1 = (float)r->y / px;
+    const float u2 = (float)(r->x + r->w) / px;
+    const float v2 = (float)(r->y + r->h) / px;
+
+    // `line_height` (virtual 640x480 coords) sizes the glyph; the glyph itself is
+    // square, drawn LEFT-aligned at x and centred vertically within the line
+    // height. The footprint is the glyph's own width (+ a small gap), NOT the
+    // full line-height box — so adjacent prompts don't get large gaps. Returns
+    // the advance width so callers can lay prompts out inline (x += advance).
+    //
+    // The UI scope scales virtual->real framebuffer pixels, so sizing/snapping is
+    // done in REAL pixels (otherwise the clean-size and pixel-snap benefits are
+    // lost), then converted back to virtual for PANEL_draw_quad.
+    float sx = PolyPage::ui_scale_x();
+    float sy = PolyPage::ui_scale_y();
+    const float ox = PolyPage::ui_offset_x();
+    const float oy = PolyPage::ui_offset_y();
+    if (sx <= 0.0f) sx = 1.0f;
+    if (sy <= 0.0f) sy = 1.0f;
+
+    const float line_h_real = line_height * sy;
+    const float g_real = clean_glyph_size_px(line_h_real);
+
+    const float gx_real = pixel_snap(x * sx + ox);
+    const float gy_real = pixel_snap(y * sy + oy + (line_h_real - g_real) * 0.5f);
+
+    const float gx = (gx_real - ox) / sx;
+    const float gy = (gy_real - oy) / sy;
+    const float gw = g_real / sx;
+    const float gh = g_real / sy;
+
+    PANEL_draw_quad(gx, gy, gx + gw, gy + gh, a.poly_page, INPUT_GLYPH_DRAW_COLOUR, u1, v1, u2, v2);
+
+    // Advance = drawn glyph width + a small inter-glyph gap, in virtual coords.
+    const float gap_real = pixel_snap(g_real * INPUT_GLYPH_GAP_FRACTION);
+    return (g_real + gap_real) / sx;
 }
