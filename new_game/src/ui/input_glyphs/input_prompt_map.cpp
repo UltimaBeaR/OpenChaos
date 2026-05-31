@@ -65,6 +65,7 @@ const InputGlyph INPUT_GLYPHS[] = {
     { "kb_space",     "Space",     GLYPH_DEV_KBM, 6, 3 },
     { "kb_enter",     "Enter",     GLYPH_DEV_KBM, 7, 4 },
     { "kb_backspace", "Backspace", GLYPH_DEV_KBM, 9, 12 },
+    { "kb_esc",       "Esc",       GLYPH_DEV_KBM, 2, 9 },
 
     // ---- Xbox ----
     { "xb_a", "A", GLYPH_DEV_XBOX, 4, 9 },

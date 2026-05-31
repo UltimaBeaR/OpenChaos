@@ -13,6 +13,11 @@
 // Anything that names a button stays in the per-device file (the glyph tokens
 // differ per device).
 
+// Intro line shared by the CONTROLS reference on every device — it names no
+// button, so the same wording fits all three.
+#define HELP_TXT_CONTROLS_INTRO \
+    "Every button used during gameplay. Menu controls are not listed here."
+
 // Placeholder shared snippets — replace with real prose as content is written.
 #define HELP_TXT_MOVEMENT_OUTRO \
     "Keep moving with a plan: stay out of sight, chain your moves, and never get " \

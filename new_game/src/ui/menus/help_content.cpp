@@ -6,6 +6,7 @@
 // active device. To add a topic: declare its bodies in help_content_bodies.h,
 // define them in all three device files, and add a row here.
 const HelpTopic HELP_TOPICS[] = {
+    { "CONTROLS", HELP_CONTROLS_KBM, HELP_CONTROLS_XBOX, HELP_CONTROLS_PS },
     { "MOVEMENT", HELP_MOVEMENT_KBM, HELP_MOVEMENT_XBOX, HELP_MOVEMENT_PS },
     { "COMBAT",   HELP_COMBAT_KBM,   HELP_COMBAT_XBOX,   HELP_COMBAT_PS },
     { "CLIMBING", HELP_CLIMBING_KBM, HELP_CLIMBING_XBOX, HELP_CLIMBING_PS },

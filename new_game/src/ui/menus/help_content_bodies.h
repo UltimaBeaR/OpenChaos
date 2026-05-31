@@ -9,6 +9,10 @@
 // Naming: HELP_<TOPIC>_<DEVICE>. Add a body here when you add a topic, and define
 // it in all three device files.
 
+extern const char* const HELP_CONTROLS_KBM;
+extern const char* const HELP_CONTROLS_XBOX;
+extern const char* const HELP_CONTROLS_PS;
+
 extern const char* const HELP_MOVEMENT_KBM;
 extern const char* const HELP_MOVEMENT_XBOX;
 extern const char* const HELP_MOVEMENT_PS;
