@@ -1,6 +1,6 @@
 // Xbox help bodies. Edit freely. Inline glyph tokens use xb_* ids from
 // input_prompt_map. Shared device-agnostic prose lives in help_content_common.h.
-// (Placeholder content — replace with the real text.)
+// (REFERENCE and MOVEMENT are written; COMBAT and WEAPONS are still placeholders.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -33,16 +33,43 @@ const char* const HELP_CONTROLS_XBOX =
     "{xb_start} - Pause.";
 
 const char* const HELP_MOVEMENT_XBOX =
-    "Move with the {xb_ls} and look around with the {xb_rs}.\n"
-    "Hold {xb_b} to sprint, press {xb_a} to jump, and hold {xb_x} to use or "
-    "interact with whatever you are facing.\n"
-    "\n" HELP_TXT_MOVEMENT_OUTRO;
+    "MOVING\n"
+    "Run with the {xb_ls}; hold {xb_b} while running to sprint.\n"
+    "Hold {xb_lt} to walk slowly and quietly.\n"
+    "Hold {xb_lb} and push back to walk backwards while still facing front; "
+    "pushing forward is ignored.\n"
+    "\n"
+    "CAMERA\n"
+    "Move the {xb_rs} to swing the camera; Darci always turns to face where it "
+    "points, so you can also steer where she runs by swinging the camera as she "
+    "goes. From a standstill, hold {xb_lb} to zoom in for a closer look.\n"
+    "\n"
+    "JUMPING\n"
+    "Tap {xb_a} to jump, on the spot or along your run. Jump while backing "
+    "away to do a backflip.\n"
+    "\n"
+    "CLIMBING\n"
+    "Jump at a ledge to grab on if you reach it; tap {xb_a} again to climb "
+    "up, or edge left and right while hanging.\n"
+    "Walk into a ladder to grab on; to get on heading down, back up to it (hold "
+    "{xb_lb} and push back) and press {xb_x}. Once on, push forward or back to "
+    "climb up or down.\n"
+    "Jump onto a wire, often strung between buildings, and Darci catches it and "
+    "slides down.\n"
+    "\n"
+    "ROLLING\n"
+    "While moving, tap {xb_lt} with a direction to roll that way.\n"
+    "\n"
+    "STEALTH\n"
+    "From a standstill, hold {xb_y} to crouch; then move to crawl on all fours "
+    "and stay out of sight.\n"
+    "\n"
+    "WALL HUG\n"
+    "Press {xb_x} against a wall to flatten against it and edge along, left or "
+    "right.";
 
 const char* const HELP_COMBAT_XBOX =
     "Face an enemy and attack with {xb_rt}. Keep moving to avoid hits.";
-
-const char* const HELP_CLIMBING_XBOX =
-    "Approach a ledge and press {xb_a} to pull yourself up.";
 
 const char* const HELP_WEAPONS_XBOX =
     "Pick up weapons found in the level. Press {xb_rt} to fire the held weapon.";

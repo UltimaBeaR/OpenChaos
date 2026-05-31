@@ -21,10 +21,6 @@ extern const char* const HELP_COMBAT_KBM;
 extern const char* const HELP_COMBAT_XBOX;
 extern const char* const HELP_COMBAT_PS;
 
-extern const char* const HELP_CLIMBING_KBM;
-extern const char* const HELP_CLIMBING_XBOX;
-extern const char* const HELP_CLIMBING_PS;
-
 extern const char* const HELP_WEAPONS_KBM;
 extern const char* const HELP_WEAPONS_XBOX;
 extern const char* const HELP_WEAPONS_PS;
