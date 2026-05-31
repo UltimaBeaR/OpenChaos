@@ -290,6 +290,13 @@ struct InputAutoRepeat {
     // before-context input doesn't fire on first call (any_just_pressed is
     // false because no rising edge happened in this frame's snapshot).
     bool tick_combined(bool any_just_pressed, bool any_held);
+
+    // Same, but with caller-chosen cadence (ms) instead of the shared menu
+    // default — for consumers that want a faster/slower repeat (e.g. holding a
+    // key to scroll text). initial_ms = delay before the first auto-repeat after
+    // the rising edge; period_ms = gap between subsequent repeats.
+    bool tick_combined(bool any_just_pressed, bool any_held,
+                       uint64_t initial_ms, uint64_t period_ms);
 };
 
 // Drop every sticky press_pending flag (keyboard + gamepad) at once. Use

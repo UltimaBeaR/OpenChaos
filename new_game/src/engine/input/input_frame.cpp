@@ -761,6 +761,13 @@ void input_consume_all_held_until_released()
 
 bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)
 {
+    return tick_combined(any_just_pressed, any_held,
+                         INPUT_REPEAT_INITIAL_MS, INPUT_REPEAT_PERIOD_MS);
+}
+
+bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held,
+                                    uint64_t initial_ms, uint64_t period_ms)
+{
     if (!any_held) {
         // Combined released — disarm and reset prev state for next press.
         armed = false;
@@ -779,11 +786,11 @@ bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)
     const uint64_t now = sdl3_get_ticks();
     if (combined_just_pressed) {
         armed = true;
-        next_fire = now + INPUT_REPEAT_INITIAL_MS;
+        next_fire = now + initial_ms;
         return true;
     }
     if (armed && now >= next_fire) {
-        next_fire = now + INPUT_REPEAT_PERIOD_MS;
+        next_fire = now + period_ms;
         return true;
     }
     return false;

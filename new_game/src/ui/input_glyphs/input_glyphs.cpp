@@ -142,6 +142,23 @@ float clean_glyph_size_px(float box_px)
     return CLEAN[n - 1]; // box smaller than the smallest clean size
 }
 
+// Smallest clean size we still treat as "crisp enough". Below this, a clean size
+// (16/8) renders the glyph at roughly half the text height — it reads as broken
+// next to the letters. So when the box is this small we abandon the clean-size
+// rule and resize the glyph to fill the line instead: blurry (off-mip sampling)
+// but legible and matched to the text height.
+#define GLYPH_CLEAN_MIN_PX 32.0f
+
+// On-screen glyph size (real px) for a reserved box: the crisp clean size when
+// that is >= GLYPH_CLEAN_MIN_PX (32+), otherwise the box itself (resize / blur).
+float glyph_size_px(float box_px)
+{
+    const float clean = clean_glyph_size_px(box_px);
+    if (clean >= GLYPH_CLEAN_MIN_PX)
+        return clean;
+    return pixel_snap(box_px);
+}
+
 // On-screen geometry of a glyph in virtual 640x480 coords, plus its advance.
 // Computed once and shared by draw (needs the quad) and measure (needs only the
 // advance), so the size/snap math can never diverge between the two.
@@ -168,7 +185,7 @@ GlyphLayout layout_glyph(float x, float y, float line_height)
     if (sy <= 0.0f) sy = 1.0f;
 
     const float line_h_real = line_height * sy;
-    const float g_real = clean_glyph_size_px(line_h_real);
+    const float g_real = glyph_size_px(line_h_real);
 
     // Snap both axes to whole framebuffer pixels so the glyph is crisp. The text
     // (FONT2D) now snaps to the same real-pixel grid, so the glyph and the letters
@@ -298,6 +315,200 @@ float round_virtual_y(float vy)
     return (float)(SLONG)(vy + 0.5f);
 }
 
+// Per-line geometry derived from the text scale, shared by every draw path so
+// line spacing / inline-glyph centring can never diverge between them.
+struct TextMetrics {
+    float text_h;       // text cell height (virtual px)
+    float line_advance; // baseline-to-baseline step (cell + leading)
+    float space_w;      // width of a separator space
+    float glyph_y_off;  // y offset to centre an inline glyph on the letter ink
+};
+
+TextMetrics text_metrics(SLONG text_scale)
+{
+    TextMetrics m;
+    m.text_h = (float)((FONT2D_LETTER_HEIGHT * text_scale) >> 8);
+    m.line_advance = m.text_h + m.text_h * INPUT_GLYPH_TEXT_LEADING_FRACTION;
+    m.space_w = (float)((FONT2D_GetLetterWidth(' ') * text_scale) >> 8);
+    // Align an inline glyph's centre to the FONT2D letter's visual centre rather
+    // than to the line-box centre (input_glyph_draw centres the glyph in the
+    // text_h box we pass), then bias slightly to taste.
+    const float letter_centre = (float)(-FONT2D_LETTER_TOP_PX + ((FONT2D_LETTER_BOTTOM_PX * text_scale) >> 8)) * 0.5f;
+    m.glyph_y_off = letter_centre - m.text_h * 0.5f + m.text_h * INPUT_GLYPH_TEXT_VBIAS_FRACTION;
+    return m;
+}
+
+// One wrapped line, as a [begin,end) range into the source string. Re-parsing
+// the range with the same atom rules reproduces the exact same layout, so a line
+// can be drawn on its own without re-running the wrap.
+struct RichLine {
+    const char* begin;
+    const char* end;
+};
+
+// Lay the whole string out into wrapped lines. Records each line's char range
+// into out_lines[0..max_lines) and returns the TOTAL line count (which may
+// exceed max_lines — extra lines are counted but not stored). Pass out_lines =
+// nullptr / max_lines = 0 for a count-only pass.
+//
+// The wrap is a pure function of (str, wrap_width, text_scale) and the active
+// device's glyph advances, so it is deterministic — the same on every call.
+int build_lines(const char* str, float wrap_width, SLONG text_scale,
+                RichLine* out_lines, int max_lines)
+{
+    if (!str)
+        return 0;
+
+    const TextMetrics m = text_metrics(text_scale);
+
+    int count = 0;
+    const char* line_begin = str;
+    auto emit = [&](const char* b, const char* e) {
+        if (out_lines && count < max_lines)
+            out_lines[count] = { b, e };
+        ++count;
+    };
+
+    float cursor_x = 0.0f; // absolute x cancels out; measure from 0
+    bool at_line_start = true;
+    bool pending_space = false;
+
+    const char* p = str;
+    while (*p) {
+        if (*p == '\n') {
+            emit(line_begin, p);
+            ++p;
+            line_begin = p;
+            cursor_x = 0.0f;
+            at_line_start = true;
+            pending_space = false;
+            continue;
+        }
+        if (*p == ' ') {
+            pending_space = true;
+            ++p;
+            continue;
+        }
+
+        // Parse one atom: a {token} glyph or a run of normal characters (measure).
+        const char* atom_begin = p;
+        float atom_w = 0.0f;
+        bool is_glyph = false;
+
+        if (*p == '{') {
+            const char* close = p + 1;
+            while (*close && *close != '}')
+                ++close;
+            if (*close == '}') {
+                InputGlyphKey k = token_key(p + 1, (size_t)(close - (p + 1)));
+                p = close + 1;
+                if (k != INPUT_GLYPH_KEY_COUNT) {
+                    is_glyph = true;
+                    atom_w = input_glyph_advance(k, m.text_h);
+                } else {
+                    // Unknown token: skip entirely (no advance, no wrap).
+                    continue;
+                }
+            } else {
+                // Unterminated '{': treat as a normal word starting at '{'.
+                while (*p && *p != ' ' && *p != '\n')
+                    ++p;
+                for (const char* c = atom_begin; c < p; ++c)
+                    atom_w += text_char_width((CBYTE)*c, text_scale);
+            }
+        } else {
+            while (*p && *p != ' ' && *p != '\n' && *p != '{')
+                ++p;
+            for (const char* c = atom_begin; c < p; ++c)
+                atom_w += text_char_width((CBYTE)*c, text_scale);
+        }
+        (void)is_glyph;
+
+        const float lead = (pending_space && !at_line_start) ? m.space_w : 0.0f;
+
+        // Wrap before placing this atom if it would overflow (never wrap at line
+        // start — a single over-wide atom just overflows rather than looping).
+        if (!at_line_start && cursor_x + lead + atom_w > wrap_width) {
+            emit(line_begin, atom_begin);
+            line_begin = atom_begin;
+            cursor_x = 0.0f;
+            at_line_start = true;
+        }
+
+        if (pending_space && !at_line_start)
+            cursor_x += m.space_w;
+        pending_space = false;
+        cursor_x += atom_w;
+        at_line_start = false;
+    }
+
+    emit(line_begin, p); // final line
+    return count;
+}
+
+// Draw one already-laid-out line at (x, y). Walks the line's char range with the
+// same atom/spacing rules build_lines used, so positions match exactly. Does NOT
+// wrap (the line is known to fit).
+void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
+                   unsigned long colour, SWORD fade, const TextMetrics& m)
+{
+    float cursor_x = x;
+    bool at_line_start = true;
+    bool pending_space = false;
+
+    const char* p = line.begin;
+    while (p < line.end) {
+        if (*p == ' ') {
+            pending_space = true;
+            ++p;
+            continue;
+        }
+
+        const char* atom_begin = p;
+        bool is_glyph = false;
+        InputGlyphKey glyph_key = INPUT_GLYPH_KEY_COUNT;
+
+        if (*p == '{') {
+            const char* close = p + 1;
+            while (close < line.end && *close != '}')
+                ++close;
+            if (close < line.end && *close == '}') {
+                glyph_key = token_key(p + 1, (size_t)(close - (p + 1)));
+                p = close + 1;
+                if (glyph_key != INPUT_GLYPH_KEY_COUNT) {
+                    is_glyph = true;
+                } else {
+                    continue; // unknown token: skip
+                }
+            } else {
+                while (p < line.end && *p != ' ')
+                    ++p;
+            }
+        } else {
+            while (p < line.end && *p != ' ' && *p != '{')
+                ++p;
+        }
+
+        if (pending_space && !at_line_start)
+            cursor_x += m.space_w;
+        pending_space = false;
+
+        if (is_glyph) {
+            cursor_x += input_glyph_draw(glyph_key, cursor_x, y + m.glyph_y_off, m.text_h, fade);
+        } else {
+            for (const char* c = atom_begin; c < p; ++c)
+                cursor_x += (float)FONT2D_DrawLetter(
+                    (CBYTE)*c, (SLONG)cursor_x, (SLONG)y, colour, text_scale,
+                    POLY_PAGE_FONT2D, fade);
+        }
+        at_line_start = false;
+    }
+}
+
+// Upper bound on wrapped lines laid out at once. Help bodies are far shorter;
+// any excess is counted (for scroll bounds) but not stored/drawn.
+const int RICH_TEXT_MAX_LINES = 256;
+
 } // namespace
 
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
@@ -306,114 +517,59 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
     if (!str)
         return 0.0f;
 
-    // Text cell height and per-line advance, in virtual px.
-    const float text_h = (float)((FONT2D_LETTER_HEIGHT * text_scale) >> 8);
-    const float line_advance = text_h + text_h * INPUT_GLYPH_TEXT_LEADING_FRACTION;
-    const float space_w = (float)((FONT2D_GetLetterWidth(' ') * text_scale) >> 8);
-    // Align an inline glyph's centre to the FONT2D letter's visual centre rather
-    // than to the line-box centre. input_glyph_draw centres the glyph in the
-    // line_height box we pass (text_h), so we offset the glyph's y by
-    // (letter_centre - box_centre).
-    const float letter_centre = (float)(-FONT2D_LETTER_TOP_PX + ((FONT2D_LETTER_BOTTOM_PX * text_scale) >> 8)) * 0.5f;
-    const float glyph_y_off = letter_centre - text_h * 0.5f + text_h * INPUT_GLYPH_TEXT_VBIAS_FRACTION;
+    const TextMetrics m = text_metrics(text_scale);
 
-    float cursor_x = x;
-    // Keep each line's baseline on the integer VIRTUAL grid — the same grid
-    // FONT2D draws letters on ((SLONG)y). The inline glyph centres on this same
-    // baseline (+ letter_centre) without its own pixel snap, so text and glyph
-    // share one reference and stay aligned at every UI scale.
-    float cursor_y = round_virtual_y(y);
-    bool at_line_start = true;
-    bool pending_space = false; // a separator space appeared before the next atom
+    RichLine lines[RICH_TEXT_MAX_LINES];
+    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES);
+    const int stored = (total < RICH_TEXT_MAX_LINES) ? total : RICH_TEXT_MAX_LINES;
 
-    const char* p = str;
-    while (*p) {
-        // Forced line break.
-        if (*p == '\n') {
-            cursor_x = x;
-            cursor_y = round_virtual_y(cursor_y + line_advance);
-            at_line_start = true;
-            pending_space = false;
-            ++p;
-            continue;
-        }
-        // A space only separates atoms — remember it (collapsing runs) and add
-        // it before the next atom, so adjacent atoms with NO source space (e.g.
-        // "{jump}{use}") sit flush rather than getting an inserted gap.
-        if (*p == ' ') {
-            pending_space = true;
-            ++p;
-            continue;
-        }
-
-        // Parse one atom: a {token} glyph or a run of normal characters.
-        bool is_glyph = false;
-        InputGlyphKey glyph_key = INPUT_GLYPH_KEY_COUNT;
-        const char* atom_begin = p;
-        const char* atom_end = p; // one past the atom's characters (for words)
-        float atom_w = 0.0f;
-
-        if (*p == '{') {
-            const char* close = p + 1;
-            while (*close && *close != '}')
-                ++close;
-            if (*close == '}') {
-                glyph_key = token_key(p + 1, (size_t)(close - (p + 1)));
-                p = close + 1; // consume the whole {token}
-                if (glyph_key != INPUT_GLYPH_KEY_COUNT) {
-                    is_glyph = true;
-                    atom_w = input_glyph_advance(glyph_key, text_h);
-                } else {
-                    // Unknown token: skip it entirely (no draw, no advance).
-                    continue;
-                }
-            } else {
-                // Unterminated '{': treat as a normal word starting at '{'.
-                while (*p && *p != ' ' && *p != '\n')
-                    ++p;
-                atom_end = p;
-                for (const char* c = atom_begin; c < atom_end; ++c)
-                    atom_w += text_char_width((CBYTE)*c, text_scale);
-            }
-        } else {
-            // Normal word: up to next space, newline, or token start.
-            while (*p && *p != ' ' && *p != '\n' && *p != '{')
-                ++p;
-            atom_end = p;
-            for (const char* c = atom_begin; c < atom_end; ++c)
-                atom_w += text_char_width((CBYTE)*c, text_scale);
-        }
-
-        // Leading space only if the source had one here (and not at line start).
-        const float lead = (pending_space && !at_line_start) ? space_w : 0.0f;
-
-        // Wrap before placing this atom if it would overflow (never wrap when
-        // already at line start — a single atom wider than wrap_width just
-        // overflows rather than looping forever).
-        if (!at_line_start && cursor_x + lead + atom_w > x + wrap_width) {
-            cursor_x = x;
-            cursor_y = round_virtual_y(cursor_y + line_advance);
-            at_line_start = true;
-        }
-
-        // Apply the separator space (dropped at a fresh line start).
-        if (pending_space && !at_line_start)
-            cursor_x += space_w;
-        pending_space = false;
-
-        // Draw the atom.
-        if (is_glyph) {
-            cursor_x += input_glyph_draw(glyph_key, cursor_x, cursor_y + glyph_y_off, text_h, fade);
-        } else {
-            for (const char* c = atom_begin; c < atom_end; ++c)
-                cursor_x += (float)FONT2D_DrawLetter(
-                    (CBYTE)*c, (SLONG)cursor_x, (SLONG)cursor_y, colour, text_scale,
-                    POLY_PAGE_FONT2D, fade);
-        }
-        at_line_start = false;
+    float ly = round_virtual_y(y);
+    for (int i = 0; i < stored; ++i) {
+        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m);
+        ly = round_virtual_y(ly + m.line_advance);
     }
 
-    // Total height drawn: number of lines * line advance. cursor_y advanced once
-    // per line break, so the last (current) line adds one more line_advance.
-    return (cursor_y - y) + line_advance;
+    return (float)total * m.line_advance;
+}
+
+SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
+                                     float wrap_width, SLONG text_scale,
+                                     unsigned long colour, SWORD fade,
+                                     SLONG* first_line, float view_height,
+                                     SLONG* out_fit)
+{
+    const TextMetrics m = text_metrics(text_scale);
+
+    RichLine lines[RICH_TEXT_MAX_LINES];
+    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES);
+    const int stored = (total < RICH_TEXT_MAX_LINES) ? total : RICH_TEXT_MAX_LINES;
+
+    // How many WHOLE lines fit the window (floor — no partial line peeks at the
+    // bottom edge, which is what lets us skip clipping entirely).
+    int fit = (m.line_advance > 0.0f) ? (int)(view_height / m.line_advance) : 0;
+    if (fit < 1)
+        fit = 1;
+
+    // Clamp the caller's scroll to a valid first-line and write it back.
+    int first = first_line ? (int)*first_line : 0;
+    int max_first = total - fit;
+    if (max_first < 0)
+        max_first = 0;
+    if (first < 0)
+        first = 0;
+    if (first > max_first)
+        first = max_first;
+    if (first_line)
+        *first_line = (SLONG)first;
+    if (out_fit)
+        *out_fit = (SLONG)fit;
+
+    const int last = (first + fit < stored) ? (first + fit) : stored;
+    float ly = round_virtual_y(y);
+    for (int i = first; i < last; ++i) {
+        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m);
+        ly = round_virtual_y(ly + m.line_advance);
+    }
+
+    return (SLONG)total;
 }

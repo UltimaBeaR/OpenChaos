@@ -6,6 +6,7 @@
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/poly_globals.h" // POLY_screen_clip_* — widen 2D clip for full-window help
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "engine/graphics/ui_coords.h" // UIAnchor
 #include "engine/graphics/text/menufont.h"
@@ -18,7 +19,7 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
 #include "ui/menus/help_content.h"
-#include "ui/input_glyphs/input_glyphs.h" // input_glyph_text_draw — rich-text help body
+#include "ui/input_glyphs/input_glyphs.h" // input_glyph_text_draw_scrolled — rich-text help body
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
@@ -55,6 +56,32 @@ static SLONG s_help_topic = 0;
 // can't drive the help list (HELP_LIST has no word[] table), so the list
 // keeps its own selection bounded to [0, HELP_TOPIC_COUNT-1].
 static SLONG s_help_list_selection = 0;
+
+// HELP_DETAIL scroll position, as the index of the first wrapped line shown in
+// the window. Up/down nav pages it; the draw clamps it to the measured line
+// count (so it can't run past the ends) and the rich-text drawer writes the
+// clamped value back. Reset to 0 whenever a topic is opened.
+static SLONG s_help_detail_scroll_line = 0;
+
+// Window metrics measured during the last HELP_DETAIL draw: how many whole lines
+// fit the window (fit) and the total wrapped line count (total). GAMEMENU_process
+// reads them to size the page step and clamp scrolling (it runs before the draw,
+// so it uses the previous frame's values — a one-frame lag that is invisible).
+static SLONG s_help_detail_fit = 0;
+static SLONG s_help_detail_total = 0;
+
+// Lines moved per up/down nav step. Small fixed step (not a full page) so the
+// auto-repeat scrolls gently while held — easier to follow than big jumps.
+// Defined here (not with the other help layout constants below) because
+// GAMEMENU_process uses it, ahead of that block.
+#define GAMEMENU_HELP_DETAIL_SCROLL_LINES 1
+
+// Auto-repeat cadence for holding the scroll key — its own timing, faster than
+// the shared menu nav repeat, so a held key scrolls briskly without speeding up
+// every other menu. INITIAL = delay before the first repeat (so a single tap
+// moves one line); PERIOD = gap between repeats while held (ms).
+#define GAMEMENU_HELP_DETAIL_SCROLL_INITIAL_MS 350
+#define GAMEMENU_HELP_DETAIL_SCROLL_PERIOD_MS  55
 
 // Resets fade/animation state and sets the active menu type.
 // When switching between non-NONE menus only the text re-fades; overlay stays.
@@ -415,13 +442,48 @@ SLONG GAMEMENU_process()
                         consume_confirm();
                         MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
                         s_help_topic = s_help_list_selection;
+                        s_help_detail_scroll_line = 0; // start each topic at the top
                         GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_DETAIL);
                     }
                 }
             } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
-                // Detail screen: no list to navigate (single screen, no paging
-                // this increment). Confirm also goes back to the list, matching
-                // cancel. nav_up/nav_down do nothing here.
+                // Detail screen: up/down scroll the body by a small fixed step.
+                // Uses its OWN auto-repeat (faster cadence than the shared menu
+                // nav above) off the same source bools, so a held key scrolls
+                // briskly without affecting other menus. total/fit come from the
+                // last draw; the draw also clamps and writes the scroll position
+                // back, so a one-frame lag here is harmless. Confirm goes back,
+                // like cancel.
+                static InputAutoRepeat ar_scroll_up;
+                static InputAutoRepeat ar_scroll_down;
+                bool scroll_up = ar_scroll_up.tick_combined(
+                    any_up_jp, any_up_held,
+                    GAMEMENU_HELP_DETAIL_SCROLL_INITIAL_MS, GAMEMENU_HELP_DETAIL_SCROLL_PERIOD_MS);
+                bool scroll_down = ar_scroll_down.tick_combined(
+                    any_dn_jp, any_dn_held,
+                    GAMEMENU_HELP_DETAIL_SCROLL_INITIAL_MS, GAMEMENU_HELP_DETAIL_SCROLL_PERIOD_MS);
+                // Antagonist suppression: both directions held = no clear intent.
+                if (any_up_held && any_dn_held) {
+                    scroll_up = false;
+                    scroll_down = false;
+                }
+
+                if (scroll_up) {
+                    s_help_detail_scroll_line -= GAMEMENU_HELP_DETAIL_SCROLL_LINES;
+                }
+                if (scroll_down) {
+                    s_help_detail_scroll_line += GAMEMENU_HELP_DETAIL_SCROLL_LINES;
+                }
+                if (s_help_detail_scroll_line < 0) {
+                    s_help_detail_scroll_line = 0;
+                }
+                SLONG max_first = s_help_detail_total - s_help_detail_fit;
+                if (max_first < 0) {
+                    max_first = 0;
+                }
+                if (s_help_detail_scroll_line > max_first) {
+                    s_help_detail_scroll_line = max_first;
+                }
                 if (confirm) {
                     consume_confirm();
                     MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
@@ -550,9 +612,11 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 
 // --- Controls/how-to-play help screens (OpenChaos addition) ---
 //
-// Both draw inside the caller's framed CENTER_CENTER UI scope (set up in
-// GAMEMENU_draw) and use the same virtual 640x480 coordinate space as the
-// generic menu. They must NOT push their own scope or frame.
+// The topic LIST draws inside the framed CENTER_CENTER UI scope (virtual 640x480,
+// like the generic menu). The DETAIL screen instead draws in a uniform
+// full-window scope so it can use the whole window without distorting the text —
+// its layout lives in a larger virtual extent (see GAMEMENU_draw_help_detail).
+// Neither pushes its own POLY frame; GAMEMENU_draw wraps them.
 
 // Vertical layout shared with the generic menu: title near top, list items
 // spaced ~40px apart, mirroring "155 + i*40".
@@ -566,18 +630,43 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // localized string; 1.0 ships English).
 #define GAMEMENU_HELP_MENU_LABEL "How to Play"
 
-// Detail-screen body layout. The framed region is the centred 4:3 area in
-// virtual 0..640; x≈120 with wrap≈400 keeps the text comfortably inside it.
-#define GAMEMENU_HELP_DETAIL_BODY_X     120
-#define GAMEMENU_HELP_DETAIL_BODY_Y     170
-#define GAMEMENU_HELP_DETAIL_WRAP_WIDTH 400
-#define GAMEMENU_HELP_DETAIL_TEXT_SCALE 192 // 256 == 1.0, so ~0.75x (smaller body)
-#define GAMEMENU_HELP_DETAIL_TEXT_COLOUR 0xffffff
+// Detail-screen layout. The screen draws in a UNIFORM full-window UI scope (no
+// 4:3 frame, no distortion), so its coordinates live in a virtual space whose
+// visible extent is the WHOLE window: width VW = g_screen_w_px / g_frame_scale,
+// height VH = g_screen_h_px / g_frame_scale (computed in the draw). The body
+// spans almost the full width via a padding given as a FRACTION of VW (so it
+// stays proportional at any resolution); the wrap width is what's left between
+// the paddings.
+#define GAMEMENU_HELP_DETAIL_PAD_FRACTION 0.06f  // 6% padding each side
+#define GAMEMENU_HELP_DETAIL_TEXT_SCALE   192    // 256 == 1.0, so ~0.75x (smaller body)
+#define GAMEMENU_HELP_DETAIL_TEXT_COLOUR  0xffffff
+
+// Vertical layout, in virtual units measured from the window edges (same scale
+// as the framed menus, so these stay constant physical insets at any size). The
+// title sits near the very top; the scroll window runs from VIEW_TOP down to
+// (VH - VIEW_BOTTOM_INSET). Only whole lines that fit are drawn; the rest scroll.
+#define GAMEMENU_HELP_DETAIL_TITLE_Y           34  // title near the top
+#define GAMEMENU_HELP_DETAIL_VIEW_TOP          130 // first body line (leaves a band
+                                                   // for the title + the ▲ arrow)
+#define GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET 72  // window bottom = VH - this
+                                                   // (leaves room for the ▼ arrow
+                                                   // clear of the screen edge)
+
+// (GAMEMENU_HELP_DETAIL_SCROLL_LINES is defined near the scroll state up top,
+// since GAMEMENU_process uses it ahead of this block.)
+
+// Scroll arrows (▲ above the window, ▼ below it), centred horizontally at VW/2.
+// Drawn as solid triangles on the menu's colour page (so they sit on top like
+// the text). Sizes/offsets in virtual units; gap measured from the window edge.
+#define GAMEMENU_HELP_DETAIL_ARROW_HALF_W 14
+#define GAMEMENU_HELP_DETAIL_ARROW_HEIGHT 14
+#define GAMEMENU_HELP_DETAIL_ARROW_GAP    14
+#define GAMEMENU_HELP_DETAIL_ARROW_COLOUR 0xD0E0F0 // cool light grey (RGB; alpha added)
 
 // Extra full-screen dim for the detail text screen, on TOP of the menu's base
 // darken (PANEL_darken_screen) but drawn in the same first pass — so it sits
-// BEHIND the text and fades in with the same left→right wipe (no hard-edged box,
-// no abrupt pop). Black ARGB; tune the alpha for more/less dimming.
+// BEHIND the text and fades in with it (no hard-edged box, no abrupt pop). Black
+// ARGB; tune the alpha for more/less dimming.
 #define GAMEMENU_HELP_DETAIL_DIM_COLOUR 0xC0000000u // ~75% black, stacks with base
 
 // The backdrop dim fades in FASTER than the body text (so the dark backdrop is
@@ -585,16 +674,47 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // progress (1.0 = same speed as the text).
 #define GAMEMENU_HELP_DIM_FADE_SPEEDUP 2.5f
 
-// Reveal progress (0..1) of the detail screen, from the menu's left→right fade
-// (GAMEMENU_fadein_x) crossing the body's x-range. Drives BOTH the body-text fade
-// and the backdrop-dim fade, so they appear together and smoothly.
+// Reveal progress (0..1) of the detail screen. GAMEMENU_fadein_x ramps from 0 to
+// (800<<8) once the overlay is partly opaque (see GAMEMENU_process); normalising
+// it gives a layout-independent fade that drives the body text, the backdrop dim
+// and the arrows together. (Layout-independent — the body now spans a width that
+// varies with the window, so tying the fade to an x-range would misbehave.)
+#define GAMEMENU_HELP_DETAIL_FADE_RANGE (800 << 8) // matches GAMEMENU_fadein_x cap
 static float GAMEMENU_help_detail_reveal_t()
 {
-    const float reveal_x = (float)GAMEMENU_fadein_x * (1.0f / 256.0f);
-    float t = (reveal_x - (float)GAMEMENU_HELP_DETAIL_BODY_X) / (float)GAMEMENU_HELP_DETAIL_WRAP_WIDTH;
+    float t = (float)GAMEMENU_fadein_x / (float)GAMEMENU_HELP_DETAIL_FADE_RANGE;
     if (t < 0.0f) t = 0.0f;
     else if (t > 1.0f) t = 1.0f;
     return t;
+}
+
+// Draw a solid 2D triangle in the current UI scope, ordered on top of the scene
+// like the menu text (same depth bodge as PANEL_draw_quad), on the colour-alpha
+// page. colour is ARGB. Used for the scroll arrows.
+static void GAMEMENU_draw_help_tri(float ax, float ay, float bx, float by,
+                                   float cx, float cy, ULONG colour)
+{
+    const float w = PANEL_GetNextDepthBodge();
+    const float z = 1.0f - w;
+
+    POLY_Point pp[3];
+    POLY_Point* tri[3] = { &pp[0], &pp[1], &pp[2] };
+    for (int i = 0; i < 3; ++i) {
+        pp[i].z = z;
+        pp[i].Z = w;
+        pp[i].u = 0.0f;
+        pp[i].v = 0.0f;
+        pp[i].colour = colour;
+        pp[i].specular = 0xff000000;
+    }
+    pp[0].X = ax;
+    pp[0].Y = ay;
+    pp[1].X = bx;
+    pp[1].Y = by;
+    pp[2].X = cx;
+    pp[2].Y = cy;
+
+    POLY_add_triangle(tri, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
 }
 
 // Help topic list: heading + vertical list of topic titles, selected one bright.
@@ -614,30 +734,115 @@ static void GAMEMENU_draw_help_list()
     }
 }
 
-// Help topic detail: topic title heading + rich-text body (with inline button
-// glyphs) + a bottom hint line. Body fits one screen — no paging this increment.
+// Help topic detail: topic title heading + scrollable rich-text body (with
+// inline button glyphs). Drawn in a uniform full-window scope (the caller pushes
+// it), so coordinates span the whole window without distortion. Long bodies
+// scroll within a window between the title and the bottom; ▲/▼ arrows show when
+// there is more above/below.
 static void GAMEMENU_draw_help_detail()
 {
     if (s_help_topic < 0 || s_help_topic >= HELP_TOPIC_COUNT) {
         return; // defensive — index is always set from a valid list selection
     }
 
+    // Visible virtual extent of the whole window in the uniform scope (see
+    // PolyPage::push_uniform_fullscreen_ui_mode). Fall back to 640x480 if the
+    // frame scale isn't ready.
+    float scale = ui_coords::g_frame_scale;
+    if (scale <= 0.0f) scale = 1.0f;
+    const float vw = ui_coords::g_screen_w_px / scale;
+    const float vh = ui_coords::g_screen_h_px / scale;
+    const float cx = vw * 0.5f;
+
+    // Widen the POLY 2D clip window to the full window's virtual extent for the
+    // duration of this draw. POLY_setclip culls 2D quads whose virtual Y exceeds
+    // POLY_screen_clip_bottom, which is the 640x480 virtual screen height (480) —
+    // fine for the framed menus, but this screen lays out across the whole window
+    // (virtual height up to g_screen_h_px/scale), so rows below virtual y=480
+    // would be culled (only the top ~480 worth of text would draw). The clip
+    // flags are baked at POLY_add_quad time (i.e. during the draws below), so set
+    // the window here and restore it before returning. The hardware scissor
+    // (full FBO, from the uniform scope) still bounds actual pixels.
+    const float saved_clip_left = POLY_screen_clip_left;
+    const float saved_clip_right = POLY_screen_clip_right;
+    const float saved_clip_top = POLY_screen_clip_top;
+    const float saved_clip_bottom = POLY_screen_clip_bottom;
+    POLY_screen_clip_left = 0.0f;
+    POLY_screen_clip_top = 0.0f;
+    POLY_screen_clip_right = vw;
+    POLY_screen_clip_bottom = vh;
+
     // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
     // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
-    MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
+    MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
+                         GAMEMENU_HELP_ALPHA_SELECTED,
                          (CBYTE*)HELP_TOPICS[s_help_topic].title);
 
     // Fade the body in together with the menu's reveal (same progress as the
     // backdrop dim), so the text appears with an effect instead of popping in.
-    const SWORD body_fade = (SWORD)((1.0f - GAMEMENU_help_detail_reveal_t()) * 255.0f);
+    const float reveal_t = GAMEMENU_help_detail_reveal_t();
+    const SWORD body_fade = (SWORD)((1.0f - reveal_t) * 255.0f);
 
-    input_glyph_text_draw(HELP_TOPICS[s_help_topic].body,
-                          GAMEMENU_HELP_DETAIL_BODY_X,
-                          GAMEMENU_HELP_DETAIL_BODY_Y,
-                          GAMEMENU_HELP_DETAIL_WRAP_WIDTH,
-                          GAMEMENU_HELP_DETAIL_TEXT_SCALE,
-                          GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
-                          body_fade);
+    const float body_x = vw * GAMEMENU_HELP_DETAIL_PAD_FRACTION;
+    const float wrap_w = vw * (1.0f - 2.0f * GAMEMENU_HELP_DETAIL_PAD_FRACTION);
+    const float view_top = (float)GAMEMENU_HELP_DETAIL_VIEW_TOP;
+    const float view_bottom = vh - (float)GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET;
+    const float view_h = view_bottom - view_top;
+
+    // Draw only the whole lines that fit, starting at the scroll position. The
+    // drawer clamps s_help_detail_scroll_line in place and reports how many lines
+    // fit and the total wrapped line count for the arrow / paging logic.
+    SLONG fit = 0;
+    const SLONG total = input_glyph_text_draw_scrolled(
+        HELP_TOPICS[s_help_topic].body,
+        body_x,
+        view_top,
+        wrap_w,
+        GAMEMENU_HELP_DETAIL_TEXT_SCALE,
+        GAMEMENU_HELP_DETAIL_TEXT_COLOUR,
+        body_fade,
+        &s_help_detail_scroll_line,
+        view_h,
+        &fit);
+
+    // Share the measured metrics with GAMEMENU_process (paging step + clamping).
+    s_help_detail_fit = fit;
+    s_help_detail_total = total;
+
+    // Scroll arrows, faded in with the body via the alpha byte.
+    const bool more_up = s_help_detail_scroll_line > 0;
+    const bool more_down = (s_help_detail_scroll_line + fit) < total;
+    if (more_up || more_down) {
+        SLONG a = (SLONG)(255.0f * reveal_t);
+        if (a < 0) a = 0;
+        else if (a > 255) a = 255;
+        const ULONG arrow_col = ((ULONG)a << 24) | (GAMEMENU_HELP_DETAIL_ARROW_COLOUR & 0x00FFFFFFu);
+
+        if (more_up) {
+            // Points up: apex above the window, base below it.
+            const float base_y = view_top - GAMEMENU_HELP_DETAIL_ARROW_GAP;
+            const float tip_y = base_y - GAMEMENU_HELP_DETAIL_ARROW_HEIGHT;
+            GAMEMENU_draw_help_tri(cx, tip_y,
+                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                                   arrow_col);
+        }
+        if (more_down) {
+            // Points down: apex below the window, base above it.
+            const float base_y = view_bottom + GAMEMENU_HELP_DETAIL_ARROW_GAP;
+            const float tip_y = base_y + GAMEMENU_HELP_DETAIL_ARROW_HEIGHT;
+            GAMEMENU_draw_help_tri(cx, tip_y,
+                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                                   arrow_col);
+        }
+    }
+
+    // Restore the 2D clip window (see the widen at the top of this function).
+    POLY_screen_clip_left = saved_clip_left;
+    POLY_screen_clip_right = saved_clip_right;
+    POLY_screen_clip_top = saved_clip_top;
+    POLY_screen_clip_bottom = saved_clip_bottom;
 }
 
 // Renders the menu overlay: background dimming, title, selectable items, or scores on win.
@@ -675,7 +880,20 @@ void GAMEMENU_draw()
         PolyPage::pop_ui_mode();
     }
 
-    // Menu text stays framed (4:3 centred region with bars).
+    // Detail screen uses the WHOLE window (uniform scale, no 4:3 frame) so the
+    // text can span the full width and height without distortion. Its own scope
+    // + frame; nothing else to draw, so return after.
+    if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
+        PolyPage::push_uniform_fullscreen_ui_mode();
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+        MENUFONT_fadein_line(GAMEMENU_fadein_x);
+        GAMEMENU_draw_help_detail();
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        PolyPage::pop_ui_mode();
+        return;
+    }
+
+    // Other menus stay framed (4:3 centred region with bars).
     PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
 
     POLY_frame_init(UC_FALSE, UC_FALSE);
@@ -684,8 +902,6 @@ void GAMEMENU_draw()
 
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_LIST) {
         GAMEMENU_draw_help_list();
-    } else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
-        GAMEMENU_draw_help_detail();
     } else {
         MENUFONT_fadein_draw(320, 100, 255, XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[0]));
 

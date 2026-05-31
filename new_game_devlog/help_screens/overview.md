@@ -16,8 +16,9 @@ Entry point: a new **pause-menu** item first; maybe the main menu later.
 ## Design decisions (agreed)
 
 - **Screen style:** mission-briefing-style — fullscreen background + text. When
-  text overflows: **pages** (prev/next), not scrolling (simpler, predictable).
-  Word-wrap already exists (`FONT2D_DrawStringWrap`).
+  text overflows the window it **scrolls** line-by-line (▲/▼ arrows + up/down
+  nav), drawing only the whole lines that fit. (Originally planned as prev/next
+  pages; line scrolling turned out simpler and less disorienting.)
 - **One screen per mechanic:** the menu lists mechanics; selecting one opens its
   text screen.
 - **Device-aware prompts:** swap the button shown to match the active device.
@@ -65,6 +66,11 @@ Drawing (also DONE):
   `PolyPage::ui_scale_*/ui_offset_*`). This keeps outlines crisp and avoids the
   one-sided blur that arbitrary sub-pixel scaling caused. `ge_texture_load_rgba`
   gained a `gen_mipmaps` flag for this.
+- **Small-size fallback:** below `GLYPH_CLEAN_MIN_PX` (32 real px) a clean size
+  would be 16/8 — so tiny it renders at ~half the text height and looks broken
+  next to the letters. There the clean-size rule is dropped and the glyph is
+  **resized to fill the line height** instead (blurry off-mip sampling, but
+  legible and matched to the text). ≥32px keeps the crisp clean-size path.
 
 Inline rich-text (also DONE):
 
@@ -72,6 +78,12 @@ Inline rich-text (also DONE):
   FONT2D text with inline glyph tokens `{name}` (e.g. `{jump}`, `{use}`), word-
   wrapped to `wrap_width`. Returns the height drawn. `input_glyph_advance()`
   shares the size math so wrap measuring matches drawing.
+- `input_glyph_text_draw_scrolled(...)` is the scrollable variant: it lays the
+  WHOLE string out into wrapped lines once (so the wraps are deterministic and
+  never shift as you scroll), then draws only the whole lines that fit a given
+  view height starting at a caller-held first-line index (which it clamps and
+  writes back), and returns the total line count — enough for the caller to show
+  scroll arrows. Both share one line-builder, so wrapping can't diverge.
 - Spacing: a space is inserted between atoms ONLY where the source has one, so
   `{jump}{use}` sits flush and `a {jump} b` keeps its spaces (no extra padding).
 - Vertical alignment / crispness: the glyph centre is aligned to the FONT2D
@@ -87,7 +99,7 @@ Inline rich-text (also DONE):
   cool and at reduced alpha (`INPUT_GLYPH_DRAW_COLOUR` — ARGB, alpha for
   brightness + cool RGB for the tint) to match the text.
 
-Help screen UI (DONE — first version, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
+Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
 
 - Pause menu has a **"How to Play"** item (2nd, after Resume). It reuses the
   `X_CONTROLS` id for nav/confirm but draws a literal label (no fitting localized
@@ -95,19 +107,34 @@ Help screen UI (DONE — first version, in `ui/menus/gamemenu.cpp` + `help_conte
 - Two new GAMEMENU types: `HELP_LIST` (topic list) and `HELP_DETAIL` (text
   screen). Both custom-rendered (their text is literal OpenChaos content, not
   XLAT ids), with their own bounded selection — they never index `GAMEMENU_menu[]`.
-- Navigation: ↑↓ moves the list selection (wraps), confirm opens a topic, cancel/
-  ESC goes detail→list→pause. Reuses the existing menu input channels.
-- Detail screen: title + body via `input_glyph_text_draw` (smaller, ~0.75x), over
-  an **extra full-screen dim** drawn in GAMEMENU's first pass (behind the text).
-  The dim **fades in** (full-screen alpha ramp) a bit faster than the body, and
-  the body **fades in** synced to the menu reveal. No bottom hint (cancel/ESC
-  goes back, consistent with the other menus which show no hint either).
+- The **topic list** draws in the framed CENTER_CENTER scope (like the other
+  menus). The **detail screen** draws in a uniform **full-window** scope
+  (`PolyPage::push_uniform_fullscreen_ui_mode`): it spans the whole window with
+  the title near the top and the body across nearly the full width (% padding),
+  while keeping text/glyphs square (no aspect distortion).
+- Navigation: in the list ↑↓ moves the selection (wraps), confirm opens a topic,
+  cancel/ESC goes detail→list→pause. In the detail screen ↑↓ **scroll** the body.
+- Scrolling: the body lays out across a window from below the title to near the
+  bottom and draws only the whole lines that fit; `s_help_detail_scroll_line` is
+  the first visible line. Step = **1 line** per nav, with its **own fast
+  auto-repeat** (separate `InputAutoRepeat`, ~55 ms vs the 150 ms menu default)
+  so a held key creeps smoothly. **▲/▼ arrows** (solid triangles on the colour
+  page, faded in with the body) show only when there's more above / below.
+- **Backdrop:** an extra full-screen dim drawn in GAMEMENU's first pass (behind
+  the text), fading in a bit faster than the body. No bottom hint (cancel/ESC
+  goes back, like the other menus).
+- **Full-window clip caveat (fixed):** the POLY 2D clip window is the virtual
+  640×480 screen with `clip_bottom` fixed at 480, so on a tall window the body
+  rows below virtual y=480 were silently culled at `POLY_add_quad` time (text cut
+  mid-screen, no arrow). `GAMEMENU_draw_help_detail` now widens
+  `POLY_screen_clip_*` to the full window extent for its own draws and restores
+  them after. (The horizontal twin of this bug — `clip_right` — was already fixed
+  earlier in `POLY_camera_set`.) See the warning on
+  `push_uniform_fullscreen_ui_mode`.
 - Content: `HELP_TOPICS[]` in help_content.cpp — **placeholder** topics
-  (MOVEMENT / COMBAT / CLIMBING / WEAPONS), short so they fit one screen. Append
-  `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens.
-
-Flagged by the user as a **first version — needs more polish** (e.g. detail-screen
-layout/visual refinement). Not yet: paging, real content.
+  (MOVEMENT long enough to scroll; COMBAT / CLIMBING / WEAPONS short). Append
+  `{ title, body }` to add; bodies take `{jump}`/`{use}` tokens and any length
+  (they scroll).
 
 ### Licensing / trademark notes
 
@@ -123,15 +150,17 @@ layout/visual refinement). Not yet: paging, real content.
 
 ## Follow-ups (TODO)
 
-1. **Polish the help screens** (first version flagged for more work): detail-screen
-   layout/visual refinement, list styling, dim level / fade tuning.
-2. **Paging** on the detail screen for bodies longer than one screen.
-3. **Real content** — replace the placeholder topics with accurate mechanic
-   descriptions (and decide the full topic list).
-4. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-5. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
+1. **Real content** — replace the placeholder topics with accurate mechanic
+   descriptions (and decide the full topic list). The MOVEMENT body is a long
+   placeholder used to exercise scrolling.
+2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
+3. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
    token map in input_glyphs.cpp) beyond the JUMP/USE starter set as content grows.
-6. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
+4. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
    up, so text is softer than the crisp glyphs sitting next to it. Matching them
    would mean improving the font rendering (higher-res font / sharper sampling) —
    a separate effort, deferred. Glyph alpha is already tuned to match brightness.
+
+Done since the first version: full-window (undistorted) detail layout, line
+scrolling with fast auto-repeat + ▲/▼ arrows, small-glyph resize fallback, and
+the full-window 2D-clip fix. Paging was superseded by scrolling.

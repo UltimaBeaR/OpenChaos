@@ -58,4 +58,22 @@ float input_glyph_advance(InputGlyphKey key, float line_height);
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
                             SLONG text_scale, unsigned long colour, SWORD fade = 0);
 
+// Draw rich text as a vertically-scrolled window. The WHOLE string is laid out
+// into wrapped lines first; because the wrap depends only on the string, width,
+// scale and the active device's glyph widths, it is identical on every call —
+// so the line breaks never shift as the player scrolls. Only the WHOLE lines
+// that fit in `view_height` (virtual px) are drawn, starting at line index
+// *first_line; no partial line is ever drawn, so the window needs no clipping.
+//
+// *first_line is clamped to a valid range and WRITTEN BACK, so the caller's
+// scroll value can never run past the ends (drive it with up/down nav and let
+// this function bound it). *out_fit receives how many lines fit the window.
+// Returns the total wrapped line count. Use first_line/out_fit/total to decide
+// whether to show "more above / more below" scroll arrows.
+SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
+                                     float wrap_width, SLONG text_scale,
+                                     unsigned long colour, SWORD fade,
+                                     SLONG* first_line, float view_height,
+                                     SLONG* out_fit);
+
 #endif // UI_INPUT_GLYPHS_H
