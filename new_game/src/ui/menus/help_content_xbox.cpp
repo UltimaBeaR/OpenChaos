@@ -1,6 +1,6 @@
 // Xbox help bodies. Edit freely. Inline glyph tokens use xb_* ids from
 // input_prompt_map. Shared device-agnostic prose lives in help_content_common.h.
-// (REFERENCE and MOVEMENT are written; COMBAT and WEAPONS are still placeholders.)
+// (REFERENCE, MOVEMENT and COMBAT are written; WEAPONS is still a placeholder.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -69,7 +69,40 @@ const char* const HELP_MOVEMENT_XBOX =
     "right.";
 
 const char* const HELP_COMBAT_XBOX =
-    "Face an enemy and attack with {xb_rt}. Keep moving to avoid hits.";
+    "FIGHTING STANCE\n"
+    "Darci drops into a fighting stance by herself whenever a close fight "
+    "starts. In it she stays focused on one enemy - switch target with {xb_x}. "
+    "You can't just run out of a fight: roll to break away - any roll cancels "
+    "the stance, and in a fight you can roll with {xb_lt} or {xb_a} as long as "
+    "you hold a direction.\n"
+    "\n"
+    "STRIKES AND COMBOS\n"
+    "Attack with {xb_rt} (hands) or {xb_rb} (feet). Press them a few times, or "
+    "alternate the two, to chain a combo - if a follow-up does not come out, "
+    "that is normal, the extra hits are not guaranteed. In the stance, hold a "
+    "direction with {xb_rb} to kick that way. A bat or knife attacks with "
+    "{xb_rt}, and you can still kick.\n"
+    "\n"
+    "GRAPPLE\n"
+    "Press {xb_rt} while moving into an enemy right in front of you to grab "
+    "them. From the hold, {xb_rt} tries to throw them down (it can fail and "
+    "just shove them away), or {xb_rb} knees them, up to twice if you are "
+    "quick. Darci then lets go.\n"
+    "\n"
+    "DODGE\n"
+    "Push back as an enemy attacks and Darci ducks under the blow; hold to stay "
+    "low (she stands after a moment). Kick while ducking to sweep nearby enemies "
+    "off their feet.\n"
+    "\n"
+    "RUNNING MOVES\n"
+    "Press {xb_rb} while running for a sliding kick that knocks down anyone you "
+    "slide into. Jump while running and press {xb_rb} in the air for a flying "
+    "kick.\n"
+    "\n"
+    "DOWNED ENEMIES\n"
+    "Stand over an enemy you have knocked down, while they are still alive, and "
+    "press {xb_x} to arrest them. Facing a downed enemy up close, press {xb_rb} "
+    "to stomp them.";
 
 const char* const HELP_WEAPONS_XBOX =
     "Pick up weapons found in the level. Press {xb_rt} to fire the held weapon.";

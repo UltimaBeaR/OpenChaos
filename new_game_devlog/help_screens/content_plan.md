@@ -80,11 +80,58 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
      buildings) — Darci grabs it and slides down. (In an early movement
      tutorial mission.)
 
-3. **COMBAT** — melee. Combat mode auto-engages near enemies. Punches / kicks,
-   slide (подкат), flying/jump kick (удар ногой на лету), combos (partly random),
-   grapple / throw, block, rolling out of a fight, melee weapons (bat, knife).
-   - **Arrest lives here** (decision): it's the resolution of a fight (subdue →
-     arrest), part of the combat cycle, not a separate world interaction.
+3. **COMBAT** — melee. The other dense topic. Mechanics (confirmed by the user):
+
+   Fighting stance — BODY KEEPS THIS BRIEF. The player only needs "a stance
+   activates by itself in close combat; switch target with Action". The
+   trigger/movement specifics below are REFERENCE, not for the screen — don't
+   spell out technical detail unless it's how to perform a move (button combos).
+   - Enters automatically when an enemy holding a melee weapon is close, OR the
+     instant you swing at any enemy in melee (even a miss counts). A gunman keeps
+     firing until you land a hit on him.
+   - Movement is TARGET-RELATIVE (boxer stance): step toward / away / sidestep the
+     current target, each with a cooldown (can't spam steps). No jumping, can't
+     just run away. Switch target with Action.
+   - Hitting an armed enemy knocks their weapon to the ground; getting hit while
+     you're armed drops yours.
+
+   Strikes & combos — BODY KEEPS THIS SIMPLE: just "press the attack buttons a
+   few times or alternate them to chain a combo; if a follow-up doesn't come
+   out that's normal (not a missed input)". Hit counts / proc odds / bat-knife
+   internals / weapon-drop are reference only, not for the screen.
+   - Punch (hands) or kick (feet). Press repeatedly for a combo of up to 3 hits:
+     1st always lands, each follow-up has a diminishing chance to continue. Can
+     mix hands and feet.
+   - In the stance, hold a direction (left / right / back) + kick → kick that way.
+   - Bat/knife attack with the PUNCH button; kicks still work. Knife = 3 distinct
+     strikes; bat = 1st hit with the bat, the other 2 combo hits are hand blows
+     (not the bat). Drawing a gun leaves the stance; bat/knife can be drawn in it.
+
+   Grapple:
+   - Tap punch + move INTO a target right in front and close → grab. From the
+     hold: punch → throw to ground (can fail → shoves enemy aside); kick → knee
+     to gut (up to 2 if quick). Then Darci releases.
+
+   Dodge (body section DODGE):
+   - Push BACK as the enemy attacks → Darci ducks under it. Hold to stay crouched
+     (auto-stands after a moment). Kick while ducking → sweep that knocks down
+     nearby enemies. (A dodge, NOT a block.)
+
+   Escape (in the body this lives INSIDE the FIGHTING STANCE block, since it's
+   how you leave the stance):
+   - Any roll cancels the stance and gives a chance to flee. In a fight the roll
+     also works on the JUMP button (not only the roll button); still needs a
+     direction held.
+
+   Running moves (work outside the stance too):
+   - Slide (подкат): kick while running → Darci slides; sliding into an enemy
+     knocks them down.
+   - Jump kick: jump while running (won't work from a standstill), then kick in
+     the air.
+
+   Downed enemies (works in stance and normal on-foot):
+   - Arrest: stand over a knocked-down (still alive) enemy and press Action.
+   - Stomp: facing a downed enemy up close, press kick → downward stomp.
 
 4. **WEAPONS & SHOOTING** — guns. The four ranged weapons (pistol, M16, shotgun,
    grenade), firing, aiming / zoom, ammo, selecting / cycling / drawing-holstering.
@@ -107,7 +154,7 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
 
 - [x] 1. REFERENCE
 - [ ] 2. MOVEMENT  ← next
-- [ ] 3. COMBAT
+- [x] 3. COMBAT
 - [ ] 4. WEAPONS & SHOOTING
 - [ ] 5. DRIVING
 - [ ] 6. INTERACTION

@@ -1,6 +1,6 @@
 // PlayStation help bodies. Edit freely. Inline glyph tokens use ps_* ids from
 // input_prompt_map. Shared device-agnostic prose lives in help_content_common.h.
-// (REFERENCE and MOVEMENT are written; COMBAT and WEAPONS are still placeholders.)
+// (REFERENCE, MOVEMENT and COMBAT are written; WEAPONS is still a placeholder.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -68,7 +68,40 @@ const char* const HELP_MOVEMENT_PS =
     "or right.";
 
 const char* const HELP_COMBAT_PS =
-    "Face an enemy and attack with {ps_r2}. Keep moving to avoid hits.";
+    "FIGHTING STANCE\n"
+    "Darci drops into a fighting stance by herself whenever a close fight "
+    "starts. In it she stays focused on one enemy - switch target with "
+    "{ps_square}. You can't just run out of a fight: roll to break away - any "
+    "roll cancels the stance, and in a fight you can roll with {ps_l2} or "
+    "{ps_cross} as long as you hold a direction.\n"
+    "\n"
+    "STRIKES AND COMBOS\n"
+    "Attack with {ps_r2} (hands) or {ps_r1} (feet). Press them a few times, or "
+    "alternate the two, to chain a combo - if a follow-up does not come out, "
+    "that is normal, the extra hits are not guaranteed. In the stance, hold a "
+    "direction with {ps_r1} to kick that way. A bat or knife attacks with "
+    "{ps_r2}, and you can still kick.\n"
+    "\n"
+    "GRAPPLE\n"
+    "Press {ps_r2} while moving into an enemy right in front of you to grab "
+    "them. From the hold, {ps_r2} tries to throw them down (it can fail and "
+    "just shove them away), or {ps_r1} knees them, up to twice if you are "
+    "quick. Darci then lets go.\n"
+    "\n"
+    "DODGE\n"
+    "Push back as an enemy attacks and Darci ducks under the blow; hold to stay "
+    "low (she stands after a moment). Kick while ducking to sweep nearby enemies "
+    "off their feet.\n"
+    "\n"
+    "RUNNING MOVES\n"
+    "Press {ps_r1} while running for a sliding kick that knocks down anyone you "
+    "slide into. Jump while running and press {ps_r1} in the air for a flying "
+    "kick.\n"
+    "\n"
+    "DOWNED ENEMIES\n"
+    "Stand over an enemy you have knocked down, while they are still alive, and "
+    "press {ps_square} to arrest them. Facing a downed enemy up close, press "
+    "{ps_r1} to stomp them.";
 
 const char* const HELP_WEAPONS_PS =
     "Pick up weapons found in the level. Press {ps_r2} to fire the held weapon.";

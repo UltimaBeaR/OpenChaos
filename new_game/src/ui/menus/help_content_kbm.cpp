@@ -1,7 +1,7 @@
 // Keyboard & mouse help bodies. Edit freely. Inline glyph tokens use kb_* / ms_*
 // ids from input_prompt_map. Shared device-agnostic prose lives in
-// help_content_common.h. (REFERENCE and MOVEMENT are written; COMBAT and
-// WEAPONS are still placeholders.)
+// help_content_common.h. (REFERENCE, MOVEMENT and COMBAT are written; WEAPONS
+// is still a placeholder.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -72,7 +72,40 @@ const char* const HELP_MOVEMENT_KBM =
     "right.";
 
 const char* const HELP_COMBAT_KBM =
-    "Face an enemy and attack with {ms_lmb}. Keep moving to avoid hits.";
+    "FIGHTING STANCE\n"
+    "Darci drops into a fighting stance by herself whenever a close fight "
+    "starts. In it she stays focused on one enemy - switch target with {kb_f}. "
+    "You can't just run out of a fight: roll to break away - any roll cancels "
+    "the stance, and in a fight you can roll with {kb_ctrl} or {kb_space} as "
+    "long as you hold a direction.\n"
+    "\n"
+    "STRIKES AND COMBOS\n"
+    "Attack with {ms_lmb} (hands) or {ms_rmb} (feet). Press them a few times, or "
+    "alternate the two, to chain a combo - if a follow-up does not come out, "
+    "that is normal, the extra hits are not guaranteed. In the stance, hold a "
+    "direction with {ms_rmb} to kick that way. A bat or knife attacks with "
+    "{ms_lmb}, and you can still kick.\n"
+    "\n"
+    "GRAPPLE\n"
+    "Press {ms_lmb} while moving into an enemy right in front of you to grab "
+    "them. From the hold, {ms_lmb} tries to throw them down (it can fail and "
+    "just shove them away), or {ms_rmb} knees them, up to twice if you are "
+    "quick. Darci then lets go.\n"
+    "\n"
+    "DODGE\n"
+    "Push back as an enemy attacks and Darci ducks under the blow; hold to stay "
+    "low (she stands after a moment). Kick while ducking to sweep nearby enemies "
+    "off their feet.\n"
+    "\n"
+    "RUNNING MOVES\n"
+    "Press {ms_rmb} while running for a sliding kick that knocks down anyone you "
+    "slide into. Jump while running and press {ms_rmb} in the air for a flying "
+    "kick.\n"
+    "\n"
+    "DOWNED ENEMIES\n"
+    "Stand over an enemy you have knocked down, while they are still alive, and "
+    "press {kb_f} to arrest them. Facing a downed enemy up close, press {ms_rmb} "
+    "to stomp them.";
 
 const char* const HELP_WEAPONS_KBM =
     "Pick up weapons found in the level. Press {ms_lmb} to fire the held weapon.";
