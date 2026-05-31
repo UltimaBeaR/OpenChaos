@@ -66,6 +66,21 @@ Drawing (also DONE):
   one-sided blur that arbitrary sub-pixel scaling caused. `ge_texture_load_rgba`
   gained a `gen_mipmaps` flag for this.
 
+Inline rich-text (also DONE):
+
+- `input_glyph_text_draw(str, x, y, wrap_width, text_scale, colour)` draws normal
+  FONT2D text with inline glyph tokens `{name}` (e.g. `{jump}`, `{use}`), word-
+  wrapped to `wrap_width`. Returns the height drawn. `input_glyph_advance()`
+  shares the size math so wrap measuring matches drawing.
+- Spacing: a space is inserted between atoms ONLY where the source has one, so
+  `{jump}{use}` sits flush and `a {jump} b` keeps its spaces (no extra padding).
+- Vertical: the glyph centre is aligned to the FONT2D letter's visual centre
+  (from its quad metrics), plus a small empirical bias, so glyphs sit on the
+  text line rather than riding high/low.
+- Brightness: FONT2D text renders slightly translucent, so glyphs are drawn at
+  reduced alpha (`INPUT_GLYPH_DRAW_COLOUR`, ~0xB0) to match — otherwise an
+  opaque glyph looked brighter than the text beside it.
+
 ### Licensing / trademark notes
 
 - Kenney pack is **CC0** — covers the artwork; no attribution required (credited
@@ -80,12 +95,13 @@ Drawing (also DONE):
 
 ## Follow-ups (TODO)
 
-1. **Inline rich-text glyphs + paging** for the help screen text — a glyph
-   flowing inside a line of text (marker token → glyph quad on the baseline,
-   counted by the wrap pass), and pages when text overflows. (Single-glyph draw
-   + pixel-perfect are done; this is the in-text integration.)
-2. **The help screen UI itself:** pause-menu item → mechanics list → per-mechanic
-   text screen. Plus deciding which mechanics to document.
-3. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-4. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` in
-   input_glyphs.cpp) beyond the JUMP/USE starter set as help content grows.
+1. **The help screen UI itself:** pause-menu item → mechanics list → per-mechanic
+   text screen (using `input_glyph_text_draw`), with **pages** when text
+   overflows. Plus deciding which mechanics to document.
+2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
+3. **Extend the logical-key → Kenney sprite mapping** (`sprite_for` /
+   token map in input_glyphs.cpp) beyond the JUMP/USE starter set as content grows.
+4. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
+   up, so text is softer than the crisp glyphs sitting next to it. Matching them
+   would mean improving the font rendering (higher-res font / sharper sampling) —
+   a separate effort, deferred. Glyph alpha is already tuned to match brightness.

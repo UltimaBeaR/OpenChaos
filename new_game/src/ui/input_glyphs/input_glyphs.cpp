@@ -8,8 +8,9 @@
 #include "engine/graphics/pipeline/polypage.h" // PolyPage UI affine (pixel-snap)
 #include "engine/input/gamepad.h" // InputDeviceType
 #include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/graphics/text/font2d.h" // FONT2D_*, FONT2D_LETTER_HEIGHT
 
-#include <cstring> // strcmp
+#include <cstring> // strcmp, strncmp
 
 // stb_image declarations only — the implementation is compiled once in
 // assets/formats/stb_image_impl.cpp.
@@ -22,15 +23,19 @@
 // Number of RGBA channels we force stb_image to output (R,G,B,A).
 #define INPUT_GLYPH_RGBA_CHANNELS 4
 
-// Solid white, full alpha — draw the glyph with its own colours/alpha (the
-// glyph page blends with ModulateAlpha, so white vertices pass the texture
-// through unchanged and the transparent atlas background stays transparent).
-#define INPUT_GLYPH_DRAW_COLOUR 0xffFFFFFFu
+// Glyph vertex colour (the glyph page blends with ModulateAlpha, so this
+// multiplies the texture's colour AND alpha). The FONT2D text renders slightly
+// translucent, so a fully-opaque glyph looked brighter than the text next to
+// it. Drawing the glyph at reduced ALPHA matches the text's brightness. White
+// RGB keeps glyph colours intact. Tune the alpha byte (0xCC ~ 80%) up/down to
+// match the font's apparent opacity.
+#define INPUT_GLYPH_DRAW_COLOUR 0xb0FFFFFFu
 
-// Inter-glyph gap added to a glyph's advance width, as a fraction of the drawn
-// glyph width. Keeps adjacent prompts close together (the glyph footprint is
-// its own width, not the full line-height box) with a small readable gap.
-#define INPUT_GLYPH_GAP_FRACTION 0.2f
+// Extra inter-glyph gap added to a glyph's advance width, as a fraction of the
+// drawn glyph width. The 64px source cells already include transparent margin
+// around the icon, and rich-text adds real spaces between atoms, so no extra
+// padding is needed — kept at 0 (tunable if adjacent glyphs ever look cramped).
+#define INPUT_GLYPH_GAP_FRACTION 0.0f
 
 namespace {
 
@@ -133,33 +138,24 @@ float clean_glyph_size_px(float box_px)
     return CLEAN[n - 1]; // box smaller than the smallest clean size
 }
 
-} // namespace
+// On-screen geometry of a glyph in virtual 640x480 coords, plus its advance.
+// Computed once and shared by draw (needs the quad) and measure (needs only the
+// advance), so the size/snap math can never diverge between the two.
+struct GlyphLayout {
+    float gx, gy, gw, gh; // quad in virtual coords
+    float advance; // virtual-px advance (glyph width + inter-glyph gap)
+};
 
-float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
+// Compute the on-screen layout of a square glyph of size `line_height` (virtual
+// coords) placed LEFT-aligned at x and centred vertically within the line
+// height. Its footprint/advance is the glyph's own width (+ a small gap), NOT
+// the full line-height box, so adjacent prompts don't get large gaps.
+//
+// Sizing/snapping is done in REAL framebuffer pixels (the UI scope scales
+// virtual->real; doing it in virtual would lose the clean-size and pixel-snap
+// benefits), then converted back to virtual.
+GlyphLayout layout_glyph(float x, float y, float line_height)
 {
-    const GlyphAtlas a = atlas_for_active_device();
-    const char* sprite = sprite_for(key, active_input_device);
-    if (!sprite)
-        return 0.0f;
-    const InputGlyphRect* r = find_rect(a.table, a.count, sprite);
-    if (!r)
-        return 0.0f;
-
-    const float px = (float)a.atlas_px;
-    const float u1 = (float)r->x / px;
-    const float v1 = (float)r->y / px;
-    const float u2 = (float)(r->x + r->w) / px;
-    const float v2 = (float)(r->y + r->h) / px;
-
-    // `line_height` (virtual 640x480 coords) sizes the glyph; the glyph itself is
-    // square, drawn LEFT-aligned at x and centred vertically within the line
-    // height. The footprint is the glyph's own width (+ a small gap), NOT the
-    // full line-height box — so adjacent prompts don't get large gaps. Returns
-    // the advance width so callers can lay prompts out inline (x += advance).
-    //
-    // The UI scope scales virtual->real framebuffer pixels, so sizing/snapping is
-    // done in REAL pixels (otherwise the clean-size and pixel-snap benefits are
-    // lost), then converted back to virtual for PANEL_draw_quad.
     float sx = PolyPage::ui_scale_x();
     float sy = PolyPage::ui_scale_y();
     const float ox = PolyPage::ui_offset_x();
@@ -173,14 +169,218 @@ float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
     const float gx_real = pixel_snap(x * sx + ox);
     const float gy_real = pixel_snap(y * sy + oy + (line_h_real - g_real) * 0.5f);
 
-    const float gx = (gx_real - ox) / sx;
-    const float gy = (gy_real - oy) / sy;
-    const float gw = g_real / sx;
-    const float gh = g_real / sy;
-
-    PANEL_draw_quad(gx, gy, gx + gw, gy + gh, a.poly_page, INPUT_GLYPH_DRAW_COLOUR, u1, v1, u2, v2);
+    GlyphLayout out;
+    out.gx = (gx_real - ox) / sx;
+    out.gy = (gy_real - oy) / sy;
+    out.gw = g_real / sx;
+    out.gh = g_real / sy;
 
     // Advance = drawn glyph width + a small inter-glyph gap, in virtual coords.
     const float gap_real = pixel_snap(g_real * INPUT_GLYPH_GAP_FRACTION);
-    return (g_real + gap_real) / sx;
+    out.advance = (g_real + gap_real) / sx;
+    return out;
+}
+
+} // namespace
+
+float input_glyph_advance(InputGlyphKey key, float line_height)
+{
+    const GlyphAtlas a = atlas_for_active_device();
+    const char* sprite = sprite_for(key, active_input_device);
+    if (!sprite)
+        return 0.0f;
+    if (!find_rect(a.table, a.count, sprite))
+        return 0.0f;
+    // Position is irrelevant to the advance; pass 0,0.
+    return layout_glyph(0.0f, 0.0f, line_height).advance;
+}
+
+float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height)
+{
+    const GlyphAtlas a = atlas_for_active_device();
+    const char* sprite = sprite_for(key, active_input_device);
+    if (!sprite)
+        return 0.0f;
+    const InputGlyphRect* r = find_rect(a.table, a.count, sprite);
+    if (!r)
+        return 0.0f;
+
+    const GlyphLayout L = layout_glyph(x, y, line_height);
+
+    const float px = (float)a.atlas_px;
+    const float u1 = (float)r->x / px;
+    const float v1 = (float)r->y / px;
+    const float u2 = (float)(r->x + r->w) / px;
+    const float v2 = (float)(r->y + r->h) / px;
+
+    PANEL_draw_quad(L.gx, L.gy, L.gx + L.gw, L.gy + L.gh, a.poly_page,
+                    INPUT_GLYPH_DRAW_COLOUR, u1, v1, u2, v2);
+
+    return L.advance;
+}
+
+// --- Rich text: word-wrapped text with inline input-prompt glyphs ----------
+
+namespace {
+
+// Extra vertical leading between text lines, as a fraction of the text cell
+// height. ~40% keeps wrapped lines comfortably separated without looking double
+// spaced.
+#define INPUT_GLYPH_TEXT_LEADING_FRACTION 0.4f
+
+// FONT2D letter vertical extent relative to the y passed to FONT2D_DrawLetter:
+// the letter quad spans (y - TOP) .. (y + BOTTOM*scale/256). TOP is unscaled,
+// BOTTOM scales — mirrors font2d.cpp::FONT2D_DrawLetter. Used to align an inline
+// glyph's centre to the letter's VISUAL centre (not the line-box centre).
+#define FONT2D_LETTER_TOP_PX 3
+#define FONT2D_LETTER_BOTTOM_PX 15
+
+// Small empirical downward nudge (fraction of text height) on top of the
+// letter-centre alignment — the FONT2D letter's visible pixels sit a hair below
+// its quad centre, so without this the glyph reads ~1px high. Tune to taste.
+#define INPUT_GLYPH_TEXT_VBIAS_FRACTION 0.04f
+
+// Maps an inline {token} name to a logical prompt. Unknown names are skipped.
+struct TokenMap {
+    const char* name;
+    InputGlyphKey key;
+};
+const TokenMap INPUT_GLYPH_TOKENS[] = {
+    { "jump", INPUT_GLYPH_KEY_JUMP },
+    { "use", INPUT_GLYPH_KEY_USE },
+};
+const int INPUT_GLYPH_TOKEN_COUNT = (int)(sizeof(INPUT_GLYPH_TOKENS) / sizeof(INPUT_GLYPH_TOKENS[0]));
+
+// Resolve a {token} name (length `len`, not NUL-terminated) to a key.
+// Returns INPUT_GLYPH_KEY_COUNT if the name is unknown.
+InputGlyphKey token_key(const char* name, size_t len)
+{
+    for (int i = 0; i < INPUT_GLYPH_TOKEN_COUNT; ++i)
+        if (strncmp(INPUT_GLYPH_TOKENS[i].name, name, len) == 0 &&
+            INPUT_GLYPH_TOKENS[i].name[len] == '\0')
+            return INPUT_GLYPH_TOKENS[i].key;
+    return INPUT_GLYPH_KEY_COUNT;
+}
+
+// Width of one drawn text character in virtual px at `text_scale`. We add the
+// +1px the font's own DrawLetter advance includes, so measured width matches
+// drawn width and a greedy wrap never overflows by accumulated rounding.
+float text_char_width(CBYTE ch, SLONG text_scale)
+{
+    return (float)(((FONT2D_GetLetterWidth(ch) + 1) * text_scale) >> 8);
+}
+
+} // namespace
+
+float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
+                            SLONG text_scale, unsigned long colour)
+{
+    if (!str)
+        return 0.0f;
+
+    // Text cell height and per-line advance, in virtual px.
+    const float text_h = (float)((FONT2D_LETTER_HEIGHT * text_scale) >> 8);
+    const float line_advance = text_h + text_h * INPUT_GLYPH_TEXT_LEADING_FRACTION;
+    const float space_w = (float)((FONT2D_GetLetterWidth(' ') * text_scale) >> 8);
+    // Align an inline glyph's centre to the FONT2D letter's visual centre rather
+    // than to the line-box centre. input_glyph_draw centres the glyph in the
+    // line_height box we pass (text_h), so we offset the glyph's y by
+    // (letter_centre - box_centre).
+    const float letter_centre = (float)(-FONT2D_LETTER_TOP_PX + ((FONT2D_LETTER_BOTTOM_PX * text_scale) >> 8)) * 0.5f;
+    const float glyph_y_off = letter_centre - text_h * 0.5f + text_h * INPUT_GLYPH_TEXT_VBIAS_FRACTION;
+
+    float cursor_x = x;
+    float cursor_y = y;
+    bool at_line_start = true;
+    bool pending_space = false; // a separator space appeared before the next atom
+
+    const char* p = str;
+    while (*p) {
+        // Forced line break.
+        if (*p == '\n') {
+            cursor_x = x;
+            cursor_y += line_advance;
+            at_line_start = true;
+            pending_space = false;
+            ++p;
+            continue;
+        }
+        // A space only separates atoms — remember it (collapsing runs) and add
+        // it before the next atom, so adjacent atoms with NO source space (e.g.
+        // "{jump}{use}") sit flush rather than getting an inserted gap.
+        if (*p == ' ') {
+            pending_space = true;
+            ++p;
+            continue;
+        }
+
+        // Parse one atom: a {token} glyph or a run of normal characters.
+        bool is_glyph = false;
+        InputGlyphKey glyph_key = INPUT_GLYPH_KEY_COUNT;
+        const char* atom_begin = p;
+        const char* atom_end = p; // one past the atom's characters (for words)
+        float atom_w = 0.0f;
+
+        if (*p == '{') {
+            const char* close = p + 1;
+            while (*close && *close != '}')
+                ++close;
+            if (*close == '}') {
+                glyph_key = token_key(p + 1, (size_t)(close - (p + 1)));
+                p = close + 1; // consume the whole {token}
+                if (glyph_key != INPUT_GLYPH_KEY_COUNT) {
+                    is_glyph = true;
+                    atom_w = input_glyph_advance(glyph_key, text_h);
+                } else {
+                    // Unknown token: skip it entirely (no draw, no advance).
+                    continue;
+                }
+            } else {
+                // Unterminated '{': treat as a normal word starting at '{'.
+                while (*p && *p != ' ' && *p != '\n')
+                    ++p;
+                atom_end = p;
+                for (const char* c = atom_begin; c < atom_end; ++c)
+                    atom_w += text_char_width((CBYTE)*c, text_scale);
+            }
+        } else {
+            // Normal word: up to next space, newline, or token start.
+            while (*p && *p != ' ' && *p != '\n' && *p != '{')
+                ++p;
+            atom_end = p;
+            for (const char* c = atom_begin; c < atom_end; ++c)
+                atom_w += text_char_width((CBYTE)*c, text_scale);
+        }
+
+        // Leading space only if the source had one here (and not at line start).
+        const float lead = (pending_space && !at_line_start) ? space_w : 0.0f;
+
+        // Wrap before placing this atom if it would overflow (never wrap when
+        // already at line start — a single atom wider than wrap_width just
+        // overflows rather than looping forever).
+        if (!at_line_start && cursor_x + lead + atom_w > x + wrap_width) {
+            cursor_x = x;
+            cursor_y += line_advance;
+            at_line_start = true;
+        }
+
+        // Apply the separator space (dropped at a fresh line start).
+        if (pending_space && !at_line_start)
+            cursor_x += space_w;
+        pending_space = false;
+
+        // Draw the atom.
+        if (is_glyph) {
+            cursor_x += input_glyph_draw(glyph_key, cursor_x, cursor_y + glyph_y_off, text_h);
+        } else {
+            for (const char* c = atom_begin; c < atom_end; ++c)
+                cursor_x += (float)FONT2D_DrawLetter(
+                    (CBYTE)*c, (SLONG)cursor_x, (SLONG)cursor_y, colour, text_scale);
+        }
+        at_line_start = false;
+    }
+
+    // Total height drawn: number of lines * line advance. cursor_y advanced once
+    // per line break, so the last (current) line adds one more line_advance.
+    return (cursor_y - y) + line_advance;
 }

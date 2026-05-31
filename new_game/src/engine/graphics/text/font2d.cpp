@@ -8,9 +8,7 @@
 // uc_orig: MyArrayType (fallen/DDEngine/Source/font2d.cpp)
 typedef TGA_Pixel FontAtlasPixels[256][256];
 
-// Character atlas is 256x256 pixels with a 16px row height.
-// uc_orig: FONT2D_LETTER_HEIGHT (fallen/DDEngine/Source/font2d.cpp)
-#define FONT2D_LETTER_HEIGHT 16
+// FONT2D_LETTER_HEIGHT now lives in font2d.h (shared with inline-glyph layout).
 
 // Character-set layout constants — offsets into FONT2D_letter[].
 // uc_orig: FONT2D_LOWERCASE (fallen/DDEngine/Source/font2d.cpp)

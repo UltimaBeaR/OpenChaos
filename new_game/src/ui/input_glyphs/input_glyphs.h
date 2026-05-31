@@ -1,6 +1,8 @@
 #ifndef UI_INPUT_GLYPHS_H
 #define UI_INPUT_GLYPHS_H
 
+#include "engine/core/types.h" // SLONG
+
 // Input-prompt glyph atlases (Kenney Input Prompts, CC0).
 //
 // Four PNG atlases are embedded into the executable at build time and decoded
@@ -36,5 +38,21 @@ enum InputGlyphKey {
 // Returns the ADVANCE width (glyph width + a small inter-glyph gap) so prompts
 // can be laid out inline: `x += input_glyph_draw(...)`. Returns 0 if unresolved.
 float input_glyph_draw(InputGlyphKey key, float x, float y, float line_height);
+
+// Compute the advance width input_glyph_draw would return for `key` at the given
+// `line_height`, WITHOUT drawing anything. Shares the size/snap math with
+// input_glyph_draw so measure and draw never diverge. Returns 0 if unresolved.
+float input_glyph_advance(InputGlyphKey key, float line_height);
+
+// Draw a "rich-text" string: normal text interleaved with inline input-prompt
+// glyphs, word-wrapped to `wrap_width` virtual px. Inline glyph tokens are
+// substrings of the form `{name}` (name -> InputGlyphKey: "jump", "use");
+// unknown tokens are skipped. Text is drawn with FONT2D at `text_scale`
+// (256 == 1.0) in `colour` (0xRRGGBB). Explicit '\n' forces a line break.
+// Drawing happens in the CALLER's current UI scope (virtual 640x480 coords) —
+// the function does NOT push its own scope. Returns the total height drawn
+// (number_of_lines * line_advance) so callers can lay out below it.
+float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
+                            SLONG text_scale, unsigned long colour);
 
 #endif // UI_INPUT_GLYPHS_H
