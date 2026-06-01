@@ -36,6 +36,8 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/startscr.h" // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "map/supermap_globals.h" // DONT_load
 #include "game/game_tick_globals.h" // allow_debug_keys
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_MENU_THEME_*
+#include "game/action_map/act_menu.h" // ACT_MENU_*
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 #include "game/game_types.h"
@@ -430,7 +432,6 @@ void FRONTEND_stop_xition()
         break;
     case FE_CONFIG:
     case FE_CONFIG_AUDIO:
-    case FE_CONFIG_INPUT_KB:
     case FE_LOADSCREEN:
     case FE_SAVESCREEN:
         ge_set_background_override(screenfull_config);
@@ -647,42 +648,6 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
         rgb = FRONTEND_fix_rgb(fade_rgb, 1);
         FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE + 64, POLY_PAGE_FONT2D);
     }
-}
-
-// uc_orig: FRONTEND_DrawKey (fallen/Source/frontend.cpp)
-// Draws the name of the keyboard key assigned to a menu action.
-// Draws the name of the keyboard key assigned to a menu action.
-void FRONTEND_DrawKey(MenuData* md)
-{
-    SLONG x, y, dy, rgb;
-    CBYTE str[25];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_key && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
-    dy = md->Y + menu_state.base - menu_state.scroll;
-
-    sdl3_get_key_name(md->Data, str, 25);
-
-    if (IsEnglish) {
-        MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
-        MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
-    } else {
-        FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D);
-    }
-}
-
-// uc_orig: FRONTEND_DrawPad (fallen/Source/frontend.cpp)
-// Draws the name of the joypad button assigned to a menu action.
-void FRONTEND_DrawPad(MenuData* md)
-{
-    SLONG x, y, dy, rgb;
-    CBYTE str[20];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_pad && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
-    dy = md->Y + menu_state.base - menu_state.scroll;
-    if (md->Data < 31)
-        sprintf(str, "%s %d", XLAT_str(X_BUTTON), md->Data);
-    else
-        strcpy(str, "Unused");
-    MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
-    MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
 }
 
 // ---- Kibble particle system ------------------------------------------------
@@ -1208,7 +1173,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
         case FE_CONFIG:
         case FE_CONFIG_AUDIO:
         case FE_CONFIG_OPTIONS:
-        case FE_CONFIG_INPUT_KB:
         case FE_LOADSCREEN:
         case FE_SAVESCREEN:
             ge_set_background_override(screenfull_config);
@@ -1928,32 +1892,12 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
         menu_data[1].Data = amb << 1;
         menu_data[2].Data = mus << 1;
     } break;
-    case FE_CONFIG_INPUT_KB:
-        if (bDoTransition) {
-            FRONTEND_init_xition();
-        }
-        FRONTEND_easy(mode);
-        menu_data[0].Data = ENV_get_value_number("left", 203, "Keyboard");
-        menu_data[1].Data = ENV_get_value_number("right", 205, "Keyboard");
-        menu_data[2].Data = ENV_get_value_number("forward", 200, "Keyboard");
-        menu_data[3].Data = ENV_get_value_number("back", 208, "Keyboard");
-        menu_data[4].Data = ENV_get_value_number("punch", 44, "Keyboard");
-        menu_data[5].Data = ENV_get_value_number("kick", 45, "Keyboard");
-        menu_data[6].Data = ENV_get_value_number("action", 46, "Keyboard");
-        menu_data[7].Data = ENV_get_value_number("jump", 57, "Keyboard");
-        menu_data[8].Data = ENV_get_value_number("start", 15, "Keyboard");
-        menu_data[9].Data = ENV_get_value_number("select", 28, "Keyboard");
-        menu_data[11].Data = ENV_get_value_number("camera", 207, "Keyboard");
-        menu_data[12].Data = ENV_get_value_number("cam_left", 211, "Keyboard");
-        menu_data[13].Data = ENV_get_value_number("cam_right", 209, "Keyboard");
-        menu_data[14].Data = ENV_get_value_number("1stperson", 30, "Keyboard");
-        break;
     case FE_CONFIG_OPTIONS:
         if (bDoTransition) {
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-        menu_data[1].Data |= ENV_get_value_number("scanner_follows", 1, "Game");
+        menu_data[1].Data |= ENV_get_value_number("scanner_follows", 0, "Game");
         break;
     case FE_SAVE_CONFIRM:
         if (bDoTransition) {
@@ -2213,12 +2157,6 @@ void FRONTEND_display_overlay()
             case OT_MULTI:
                 FRONTEND_DrawMulti(md, rgb);
                 break;
-            case OT_KEYPRESS:
-                FRONTEND_DrawKey(md);
-                break;
-            case OT_PADPRESS:
-                FRONTEND_DrawPad(md);
-                break;
             }
         } else {
             if (i == menu_state.selected) { // better do some scrolling
@@ -2278,33 +2216,11 @@ void FRONTEND_display_overlay()
         FONT2D_DrawStringWrapTo(menu_buffer, 20, 100, fade_rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, 255 - (fade_state << 2), 400);
     }
 
-    if (m_bMovingPanel) {
-        // Display the panel at the current position.
-        // REMEMBER THAT THESE NUMBERS ARE DIVIDED BY 4!
-        int iXPos = ENV_get_value_number("panel_x", 32 / 4, "");
-        int iYPos = ENV_get_value_number("panel_y", (480 - 32) / 4, "");
-
-        extern void PANEL_draw_quad(float left, float top, float right, float bottom, SLONG page, ULONG colour,
-            float u1, float v1, float u2, float v2);
-
-        PANEL_draw_quad(
-            (float)(iXPos * 4 + 0),
-            (float)(iYPos * 4 - 165),
-            (float)(iXPos * 4 + 212),
-            (float)(iYPos * 4 - 0),
-            POLY_PAGE_LASTPANEL_ALPHA,
-            0xffffffff,
-            0.0F,
-            90.0F / 256.0F,
-            212.0F / 256.0F,
-            1.0F);
-    }
-
     POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
 
 // uc_orig: FRONTEND_storedata (fallen/Source/frontend.cpp)
-// Saves current menu screen's settings back to ENV (video, audio, keyboard, joypad, options).
+// Saves current menu screen's settings back to ENV (video, audio, options).
 static void FRONTEND_storedata(void)
 {
     switch (menu_state.mode) {
@@ -2317,24 +2233,6 @@ static void FRONTEND_storedata(void)
         ENV_set_value_number("fx_volume", menu_data[0].Data >> 1, "Audio");
         ENV_set_value_number("ambient_volume", menu_data[1].Data >> 1, "Audio");
         ENV_set_value_number("music_volume", menu_data[2].Data >> 1, "Audio");
-        break;
-
-    case FE_CONFIG_INPUT_KB:
-        ENV_set_value_number("left", menu_data[0].Data, "Keyboard");
-        ENV_set_value_number("right", menu_data[1].Data, "Keyboard");
-        ENV_set_value_number("forward", menu_data[2].Data, "Keyboard");
-        ENV_set_value_number("back", menu_data[3].Data, "Keyboard");
-        ENV_set_value_number("punch", menu_data[4].Data, "Keyboard");
-        ENV_set_value_number("kick", menu_data[5].Data, "Keyboard");
-        ENV_set_value_number("action", menu_data[6].Data, "Keyboard");
-        ENV_set_value_number("jump", menu_data[7].Data, "Keyboard");
-        ENV_set_value_number("start", menu_data[8].Data, "Keyboard");
-        ENV_set_value_number("select", menu_data[9].Data, "Keyboard");
-        // gap for label
-        ENV_set_value_number("camera", menu_data[11].Data, "Keyboard");
-        ENV_set_value_number("cam_left", menu_data[12].Data, "Keyboard");
-        ENV_set_value_number("cam_right", menu_data[13].Data, "Keyboard");
-        ENV_set_value_number("1stperson", menu_data[14].Data, "Keyboard");
         break;
 
     case FE_CONFIG_OPTIONS:
@@ -2361,41 +2259,14 @@ static BOOL FRONTEND_ValidMission(SWORD sel)
 
 // uc_orig: FRONTEND_input (fallen/Source/frontend.cpp)
 // Polls keyboard and joypad state, processes navigation keys (up/down/left/right/enter/esc),
-// handles key/pad rebinding modes, and returns 0 normally or a FE_* exit code.
+// and returns 0 normally or a FE_* exit code.
 static UBYTE FRONTEND_input(void)
 {
     UBYTE scan, any_button = 0;
-    // Tracks the previous frame's resolved input mask. Used as a one-frame
-    // settle gate for grabbing_pad so a confirm press doesn't immediately
-    // re-trigger a bind on the same frame.
-    static SLONG last_input = 0;
 
     SLONG input = 0;
 
-    if (grabbing_pad && !last_input) {
-        UBYTE i, j;
-        MenuData* item = menu_data + menu_state.selected;
-        if (input_key_just_pressed(KB_ESC)) {
-            // Consume so the regular-nav ESC handler below doesn't also fire
-            // FE_BACK / FE_QUIT on a subsequent frame while ESC stays held.
-            input_key_force_release(KB_ESC);
-            grabbing_pad = 0;
-        } else {
-            for (i = 0; i < 32; i++) {
-                if (input_btn_held(i)) {
-                    for (j = 0; j < menu_state.items; j++) {
-                        if (menu_data[j].Data == i) {
-                            menu_data[j].Data = 31;
-                        }
-                    }
-                    item->Data = i;
-                    grabbing_pad = 0;
-                    break;
-                }
-            }
-        }
-        return 0;
-    } else {
+    {
         // Unified menu navigation through input_frame. Three independent
         // input sources per direction: keyboard arrows, left-stick virtual
         // directions, D-Pad buttons. They are merged into one combined "any
@@ -2415,20 +2286,20 @@ static UBYTE FRONTEND_input(void)
         // from a previous screen produces no rising edge in the snapshot, so
         // a stale press cannot leak into the menu.
 
-        const bool kb_up = input_key_held(KB_UP);
-        const bool kb_dn = input_key_held(KB_DOWN);
-        const bool kb_lt = input_key_held(KB_LEFT);
-        const bool kb_rt = input_key_held(KB_RIGHT);
+        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY)    || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY);
+        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY)  || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY);
+        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY)  || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY);
+        const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY);
 
-        bool st_up = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
-        bool st_dn = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
-        bool st_lt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT);
-        bool st_rt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT);
+        bool st_up = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR);
+        bool st_dn = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR);
+        bool st_lt = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_LEFT_GDIR);
+        bool st_rt = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_RIGHT_GDIR);
 
-        const bool dp_up = input_btn_held(11);
-        const bool dp_dn = input_btn_held(12);
-        const bool dp_lt = input_btn_held(13);
-        const bool dp_rt = input_btn_held(14);
+        const bool dp_up = input_btn_held(ACT_MENU_NAV_UP_GBTN);
+        const bool dp_dn = input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
+        const bool dp_lt = input_btn_held(ACT_MENU_NAV_LEFT_GBTN);
+        const bool dp_rt = input_btn_held(ACT_MENU_NAV_RIGHT_GBTN);
 
         // Stick-only diagonal: pick the dominant axis by raw distance from
         // centre so a small Y wobble doesn't override an intended X flick.
@@ -2442,8 +2313,8 @@ static UBYTE FRONTEND_input(void)
             const bool st_y = st_up || st_dn;
             const bool st_x = st_lt || st_rt;
             if (st_y && st_x) {
-                const int32_t lx_raw = input_stick_x_axis_raw(INPUT_STICK_LEFT);
-                const int32_t ly_raw = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+                const int32_t lx_raw = input_stick_x_axis_raw(ACT_MENU_NAV_GAXIS);
+                const int32_t ly_raw = input_stick_y_axis_raw(ACT_MENU_NAV_GAXIS);
                 const int32_t dx = (lx_raw > 32768) ? lx_raw - 32768 : 32768 - lx_raw;
                 const int32_t dy = (ly_raw > 32768) ? ly_raw - 32768 : 32768 - ly_raw;
                 if (dy >= dx) {
@@ -2461,18 +2332,22 @@ static UBYTE FRONTEND_input(void)
         const bool any_lt_held = kb_lt || st_lt || dp_lt;
         const bool any_rt_held = kb_rt || st_rt || dp_rt;
 
-        const bool any_up_jp = input_key_just_pressed(KB_UP)
-            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
-            || input_btn_just_pressed(11);
-        const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
-            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
-            || input_btn_just_pressed(12);
-        const bool any_lt_jp = input_key_just_pressed(KB_LEFT)
-            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT)
-            || input_btn_just_pressed(13);
-        const bool any_rt_jp = input_key_just_pressed(KB_RIGHT)
-            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT)
-            || input_btn_just_pressed(14);
+        const bool any_up_jp = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_UP_ALT_KKEY)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR)
+            || input_btn_just_pressed(ACT_MENU_NAV_UP_GBTN);
+        const bool any_dn_jp = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_DOWN_ALT_KKEY)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR)
+            || input_btn_just_pressed(ACT_MENU_NAV_DOWN_GBTN);
+        const bool any_lt_jp = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_LEFT_ALT_KKEY)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_LEFT_GDIR)
+            || input_btn_just_pressed(ACT_MENU_NAV_LEFT_GBTN);
+        const bool any_rt_jp = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY)
+            || input_key_just_pressed(ACT_MENU_NAV_RIGHT_ALT_KKEY)
+            || input_stick_just_pressed(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_RIGHT_GDIR)
+            || input_btn_just_pressed(ACT_MENU_NAV_RIGHT_GBTN);
 
         static InputAutoRepeat ar_up;
         static InputAutoRepeat ar_dn;
@@ -2507,38 +2382,19 @@ static UBYTE FRONTEND_input(void)
         // an intro skip and still held when entering a menu) and post-bind
         // protection (Cross held to bind a slot, then released): no rising
         // edge until release + re-press.
-        if (input_btn_just_pressed(0)) {
+        if (input_btn_just_pressed(ACT_MENU_ANY_BUTTON_GBTN)) {
             any_button = 1;
         }
-        if (input_btn_just_pressed(3)) {
+        if (input_btn_just_pressed(ACT_MENU_CANCEL_GBTN)) {
             input |= INPUT_MASK_CANCEL;
         }
-
-        last_input = input;
     }
 
-    if (grabbing_key) {
-        const UBYTE last_key = input_last_key();
-        if (last_key) {
-            MenuData* item = menu_data + menu_state.selected;
-            if (last_key != KB_ESC) {
-                UBYTE j;
-                for (j = 0; j < menu_state.items; j++)
-                    if (menu_data[j].Data == last_key)
-                        menu_data[j].Data = 0;
-                item->Data = last_key;
-            }
-            input_key_force_release(last_key);
-            input_last_key_consume();
-            grabbing_key = 0;
-            return 0;
-        }
-    }
-    if (allow_debug_keys) {
-        const bool theme1 = input_key_just_pressed(KB_1);
-        const bool theme2 = input_key_just_pressed(KB_2);
-        const bool theme3 = input_key_just_pressed(KB_3);
-        const bool theme4 = input_key_just_pressed(KB_4);
+    if (input_debug_modifier_active()) {
+        const bool theme1 = input_key_just_pressed(ACT_BANG_MENU_THEME_1_KKEY);
+        const bool theme2 = input_key_just_pressed(ACT_BANG_MENU_THEME_2_KKEY);
+        const bool theme3 = input_key_just_pressed(ACT_BANG_MENU_THEME_3_KKEY);
+        const bool theme4 = input_key_just_pressed(ACT_BANG_MENU_THEME_4_KKEY);
         if (theme1 || theme2 || theme3 || theme4) {
             if (theme1) menu_theme = 0;
             if (theme2) menu_theme = 1;
@@ -2549,7 +2405,7 @@ static UBYTE FRONTEND_input(void)
         }
     }
 
-    if (input_key_just_pressed(KB_END)) {
+    if (input_key_just_pressed(ACT_MENU_PAGE_LAST_KKEY)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = menu_state.items - 1;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2557,7 +2413,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected--;
     }
-    if (input_key_just_pressed(KB_HOME)) {
+    if (input_key_just_pressed(ACT_MENU_PAGE_FIRST_KKEY)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = 0;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2596,7 +2452,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_PENTER) || any_button) {
+    if (input_key_just_pressed(ACT_MENU_CONFIRM_1_KKEY) || input_key_just_pressed(ACT_MENU_CONFIRM_2_KKEY) || input_key_just_pressed(ACT_MENU_CONFIRM_3_KKEY) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)
@@ -2686,23 +2542,6 @@ static UBYTE FRONTEND_input(void)
                 item->Data &= ~0xff;
             }
             break;
-        case OT_KEYPRESS:
-            grabbing_key = 1;
-            input_last_key_consume();
-            break;
-        case OT_PADPRESS:
-            if (bCanChangeJoypadButtons) {
-                grabbing_pad = 1;
-                last_input = 0;
-            } else {
-                // Can't change button - using a predefined setup.
-                MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
-            }
-            break;
-        case OT_PADMOVE:
-            // Enter pad-move mode.
-            m_bMovingPanel = UC_TRUE;
-            break;
         case OT_BUTTON:
         case OT_BUTTON_L:
             if (menu_state.mode == FE_START)
@@ -2722,27 +2561,6 @@ static UBYTE FRONTEND_input(void)
 
             menu_mode_queued = item->Data;
             fade_mode = 2 | ((item->Data == FE_BACK) ? 4 : 0);
-            break;
-        case OT_RESET:
-            switch (menu_state.mode) {
-            case FE_CONFIG_INPUT_KB:
-                menu_data[0].Data = 203;
-                menu_data[1].Data = 205;
-                menu_data[2].Data = 200;
-                menu_data[3].Data = 208;
-                menu_data[4].Data = 44;
-                menu_data[5].Data = 45;
-                menu_data[6].Data = 46;
-                menu_data[7].Data = 57;
-                menu_data[8].Data = 15;
-                menu_data[9].Data = 28;
-                // gap for label
-                menu_data[11].Data = 207;
-                menu_data[12].Data = 211;
-                menu_data[13].Data = 209;
-                menu_data[14].Data = 30;
-                break;
-            }
             break;
         }
     }
@@ -2804,7 +2622,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (input_key_just_pressed(KB_ESC) || (input & INPUT_MASK_CANCEL)) {
+    if (input_key_just_pressed(ACT_MENU_CANCEL_KKEY) || (input & INPUT_MASK_CANCEL)) {
         if (fade_mode != 6)
             MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
         if (fade_mode == 2) // cancel a transition
@@ -3225,12 +3043,12 @@ SBYTE FRONTEND_loop()
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {
-        if (input_key_just_pressed(KB_PPLUS)) {
+        if (input_key_just_pressed(ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY)) {
             complete_point++;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;
         }
-        if (input_key_just_pressed(KB_ASTERISK)) {
+        if (input_key_just_pressed(ACT_MENU_FE_CHEAT_MAX_POINT_KKEY)) {
             complete_point = 40;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;

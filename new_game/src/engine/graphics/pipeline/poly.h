@@ -532,6 +532,14 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 // uc_orig: POLY_PAGE_TEST_SHADOWMAP (fallen/DDEngine/Headers/poly.h)
 #define POLY_PAGE_TEST_SHADOWMAP (POLY_NUM_PAGES - 2)
 
+// Input-prompt glyph atlas pages (Kenney Input Prompts, embedded PNGs).
+// New in OpenChaos — no original counterpart. These reuse free special-page
+// slots (N = 3, 12, 29, 30) that are gaps in the existing -N sequence.
+#define POLY_PAGE_GLYPH_KBM (POLY_NUM_PAGES - 3)
+#define POLY_PAGE_GLYPH_GENERIC (POLY_NUM_PAGES - 12)
+#define POLY_PAGE_GLYPH_PS (POLY_NUM_PAGES - 29)
+#define POLY_PAGE_GLYPH_DECK (POLY_NUM_PAGES - 30)
+
 // uc_orig: POLY_frame_init (fallen/DDEngine/Headers/poly.h)
 // Clears polygon buffers for a new frame. keep_shadow_page/keep_text_page = UC_TRUE to preserve
 // previously submitted shadow/text polygons across frames.

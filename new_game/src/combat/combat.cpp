@@ -19,7 +19,8 @@
 #include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/physics/collide.h" // LOS_FLAG_IGNORE_*
-#include "game/input_actions.h" // INPUT_MASK_FORWARDS (player grapple intent)
+#include "game/input_actions.h" // INPUT_MASK_FORWARDS, input_virtual_axis (player grapple intent)
+#include "game/action_map/act_foot.h" // ACT_FOOT_MOVE_Y_VAXIS
 #include "engine/input/gamepad.h" // gamepad_set_shock
 
 // Functions not yet in any header: declared here as in the original.
@@ -375,7 +376,7 @@ SLONG find_best_grapple(Thing* p_person)
     if (p_person->Genus.Person->PlayerID) {
         ULONG pin = NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Input;
         const SLONG STICK_DEADZONE = 8;          // ANALOGUE_MIN_VELOCITY
-        SLONG stick_y = (SLONG)(((pin >> 24) & 0xfe) - 128); // GET_JOYY
+        SLONG stick_y = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back movement intent
         bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0;  // keyboard / D-pad
         bool fwd_stick = stick_y < -STICK_DEADZONE;           // analog stick up
         player_grapple_intent = fwd_digital || fwd_stick;
@@ -1873,6 +1874,128 @@ SLONG turn_to_target_and_kick(Thing* p_person)
     }
 
     return (ret);
+}
+
+// OpenChaos: pre-attack camera-cone auto-aim for the player's R1/R2
+// forward attacks. The original game only re-aims through
+// find_attack_stance once an attack runs -- and that cone is built
+// around Darci's BODY angle, so the locked target persists even when
+// the camera (and the player's gaze) has clearly moved onto someone
+// else. The intent here is "punch toward what I'm looking at": pick
+// the closest valid enemy whose direction from Darci sits inside a
+// narrow cone around the camera ray, and re-target onto it right
+// before the attack fires. If nothing qualifies, the current target
+// is left alone -- existing behaviour resumes for that press.
+//
+// Player-only helper. NPCs keep the original target logic untouched.
+// uc_orig: none -- new for OpenChaos.
+
+// Half-angle of the camera cone, in degrees, converted to the
+// 0..2047-per-revolution angle units. Tuneable: narrow enough that
+// "side" enemies don't get auto-grabbed when the camera is clearly
+// on someone else, wide enough to absorb thumbstick aiming
+// inaccuracy.
+#define PLAYER_ATTACK_CAM_CONE_HALF_DEG 40
+#define PLAYER_ATTACK_CAM_CONE_HALF ((PLAYER_ATTACK_CAM_CONE_HALF_DEG * 2048) / 360)
+
+// Sphere search radius in >>8 world units for the camera-cone target
+// pick. Reuses the circle-button cycle's range so both auto-aim
+// paths agree on what counts as "nearby". find_attack_stance still
+// filters by melee distance once the attack starts, so a far-cone
+// pick that's out of reach simply won't connect -- no harm done.
+#define PLAYER_ATTACK_CAM_PICK_RANGE 0x300
+
+// Picks the closest enemy whose direction from p_person lies inside
+// the camera-cone. Returns NULL if nothing qualifies. Distance is
+// the QDIST2 distance from Darci (not from the camera) -- enemies
+// further out lose to closer ones inside the cone, which is the
+// behaviour the player expects from "punch toward what I see".
+static Thing* find_attack_target_by_camera_cone(Thing* p_person)
+{
+    SLONG cam_angle = get_camera_angle();
+
+    SLONG num_found = THING_find_sphere(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8,
+        PLAYER_ATTACK_CAM_PICK_RANGE,
+        found,
+        STANCE_MAX_FIND,
+        THING_FIND_PEOPLE);
+
+    Thing* best = NULL;
+    SLONG best_dist = UC_INFINITY;
+
+    for (SLONG i = 0; i < num_found; i++) {
+        Thing* p_found = TO_THING(found[i]);
+
+        if (p_found == p_person)
+            continue;
+        if (is_person_dead(p_found))
+            continue;
+
+        // Skip anyone Darci is not allowed to hit (e.g. innocent
+        // cops). people_allowed_to_hit_each_other is the canonical
+        // predicate used by the hit-resolution code itself, driven
+        // by PersonType + flags (FLAG2_PERSON_GUILTY, gang colour,
+        // bodyguard relations, VIOLENCE mode etc.) -- so it stays
+        // correct if the player runs as someone other than Darci
+        // (debug "play as X"), if guilt is toggled in the future, or
+        // if a level is in non-violence mode.
+        if (!people_allowed_to_hit_each_other(p_found, p_person))
+            continue;
+
+        SLONG dx = (p_found->WorldPos.X - p_person->WorldPos.X) >> 8;
+        SLONG dz = (p_found->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+
+        // Angular deviation of (Darci -> enemy) from the camera ray,
+        // folded into 0..1024 (1024 == 180 deg). Same azimuth
+        // convention used by person_pick_best_target.
+        SLONG ang = (Arctan(dx, -dz) + 1024) & 2047;
+        SLONG dangle = (ang - cam_angle) & 2047;
+        if (dangle > 1024)
+            dangle = 2048 - dangle;
+
+        if (dangle > PLAYER_ATTACK_CAM_CONE_HALF)
+            continue;
+
+        SLONG dist = QDIST2(abs(dx), abs(dz));
+        if (dist < best_dist) {
+            best_dist = dist;
+            best = p_found;
+        }
+    }
+
+    return best;
+}
+
+// Re-targets Darci onto whatever is inside the camera cone right
+// before an R1/R2 attack starts. If nothing is in the cone, the
+// current target is left untouched (we deliberately don't fall back
+// to the body-cone search here -- that's what the existing attack
+// path does on its own).
+//
+// snap_body controls whether Darci's facing is snapped to the new
+// target. Use 1 for fresh attacks from IDLE / STEP_FORWARD so the
+// kick/punch animation starts already pointed the right way (this
+// matches the snap turn_to_target_and_kick already does via
+// find_attack_stance). Use 0 when re-targeting mid-combo: Darci is
+// already mid-animation and aim_at_victim will smoothly turn her
+// during the next node; an instant snap would visibly pop.
+void player_pick_attack_target_by_camera(Thing* p_person, SLONG snap_body)
+{
+    Thing* t = find_attack_target_by_camera_cone(p_person);
+    if (!t)
+        return;
+
+    p_person->Genus.Person->Target = THING_NUMBER(t);
+
+    if (snap_body) {
+        SLONG dx = (t->WorldPos.X - p_person->WorldPos.X) >> 8;
+        SLONG dz = (t->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+        SLONG ang = (Arctan(dx, -dz) + 1024) & 2047;
+        p_person->Draw.Tweened->Angle = ang;
+    }
 }
 
 // Finds the nearest person actively targeting p_person with KILLING or NAVTOKILL ai_state.

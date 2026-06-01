@@ -13,6 +13,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "game/game_types.h" // UC_VISUAL_CADENCE_HZ — original render-tied calibration rate
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_SHOW_VERSION_KKEY
 
 // Scene FBO dimensions (defined in d3d/display_globals.cpp).
 extern SLONG ScreenWidth;
@@ -25,6 +26,7 @@ extern SLONG ScreenHeight;
 #include "things/core/thing_globals.h"
 #include "things/items/special.h"
 #include "things/items/special_globals.h"
+#include "game/game_tick.h" // CONTROLS_build_weapon_list (inventory popup order)
 
 // MFX sound playback (MFX_play_ambient)
 #include "engine/audio/mfx.h"
@@ -50,7 +52,7 @@ extern SLONG ScreenHeight;
 // XLAT_str, X_COMPLETE, X_SEARCHING for search-mode text
 #include "assets/xlat_str.h"
 
-// KB_V for version number display
+// KKEY_V for version number display
 #include "engine/input/keyboard.h"
 #include "engine/input/input_frame.h"
 
@@ -1321,9 +1323,7 @@ void PANEL_inventory(Thing* darci, Thing* player)
     SLONG rgb;
     CBYTE draw_list[10];
     UBYTE draw_count = 0;
-    Thing* p_special = NULL;
     SLONG c0;
-    UBYTE current_item = 0;
     SLONG sel;
 
     UWORD CONTROLS_inv_fade = player->Genus.Player->PopupFade;
@@ -1345,44 +1345,20 @@ void PANEL_inventory(Thing* darci, Thing* player)
     // smaller.
     PolyPage::UIModeScope _inv_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
 
-    PANEL_ADDWEAPON(0);
+    // OpenChaos: the draw order is the canonical weapon list (pistol, AK,
+    // shotgun, grenade, bat, knife, other drawables, fist-last) — shared with
+    // the scroll so the popup and scrolling stay in lockstep. The fist (token 0)
+    // is the last entry; it's highlighted only when nothing is equipped.
+    draw_count = (UBYTE)CONTROLS_build_weapon_list(darci, draw_list, (SLONG)sizeof(draw_list));
 
-    sel = darci->Genus.Person->SpecialUse;
+    // Highlight follows the current/just-selected TYPE (SPECIAL_NONE == fist).
+    // CONTROLS_current_weapon_type accounts for the in-progress draw, so the
+    // highlight lands on the selected weapon immediately instead of flickering
+    // through the fist for the first frames of every draw animation.
+    sel = CONTROLS_current_weapon_type(darci);
 
-    if (darci->Genus.Person->SpecialList) {
-        p_special = TO_THING(darci->Genus.Person->SpecialList);
-
-        while (p_special) {
-            ASSERT(p_special->Class == CLASS_SPECIAL);
-            if (SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_ONEHANDED_WEAPON || SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_TWOHANDED_WEAPON || p_special->Genus.Special->SpecialType == SPECIAL_EXPLOSIVES || p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
-                if (THING_NUMBER(p_special) == darci->Genus.Person->SpecialUse) {
-                    current_item = draw_count;
-                    sel = p_special->Genus.Special->SpecialType;
-                }
-                PANEL_ADDWEAPON(p_special->Genus.Special->SpecialType);
-            }
-            if (p_special->Genus.Special->NextSpecial)
-                p_special = TO_THING(p_special->Genus.Special->NextSpecial);
-            else
-                p_special = NULL;
-        }
-    }
-
-    if (darci->Flags & FLAGS_HAS_GUN) {
-        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
-            current_item = draw_count;
-            sel = SPECIAL_GUN;
-        }
-        PANEL_ADDWEAPON(SPECIAL_GUN);
-    }
-
-    current_item = player->Genus.Player->ItemFocus;
-
-    if (current_item == -1)
+    if (player->Genus.Player->ItemFocus == -1)
         return;
-
-    if (draw_list[current_item] && !sel)
-        sel = draw_list[current_item];
 
     int iYPos, iYInc;
     if (m_iPanelYPos > 300) {
@@ -1395,12 +1371,15 @@ void PANEL_inventory(Thing* darci, Thing* player)
 
     rgb = CONTROLS_inv_fade - 1;
     rgb |= (rgb << 8) | (rgb << 16) | (rgb << 24);
-    for (c0 = 0; c0 < draw_count; c0++) {
-        if (draw_list[c0] != sel) {
-            PANEL_inv_weapon(m_iPanelXPos + 170, iYPos, draw_list[c0], 0, rgb, 0);
-        } else {
-            PANEL_inv_weapon(m_iPanelXPos + 170, iYPos, draw_list[c0], 0, rgb, 1);
-        }
+    // Draw so list index 0 (pistol) is ALWAYS the topmost icon, regardless of
+    // whether the stack grows up or down from the panel anchor — otherwise the
+    // scroll (which steps by list index) wouldn't match the visual top→bottom
+    // order. When stacking upward (iYInc < 0) draw the last entry first so
+    // index 0 ends up highest; when stacking downward, draw index 0 first.
+    for (SLONG k = 0; k < draw_count; k++) {
+        c0 = (iYInc < 0) ? (draw_count - 1 - k) : k;
+        const SLONG hl = (draw_list[c0] == sel) ? 1 : 0;
+        PANEL_inv_weapon(m_iPanelXPos + 170, iYPos, draw_list[c0], 0, rgb, hl);
         iYPos += iYInc;
     }
 
@@ -1492,15 +1471,22 @@ void PANEL_last(void)
         if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
             sprite = PANEL_LSPRITE_LOW_GEAR;
         } else {
-            if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+            // Use the current/just-selected weapon (in-progress-draw aware) so
+            // the big panel icon matches the popup and doesn't flash the fist
+            // for the first frames of a draw. CONTROLS_current_special_thing
+            // yields the item Thing (committed SpecialUse or the in-progress
+            // draw target) the ammo/timer readout below needs.
+            const SLONG cur_type = CONTROLS_current_weapon_type(darci);
+            Thing* p_cur_special = CONTROLS_current_special_thing(darci);
+            if (cur_type == SPECIAL_GUN) {
                 sprite = PANEL_LSPRITE_PISTOL;
                 if (darci->Genus.Person->ammo_packs_pistol) {
                     sprintf(text, "%d\\%d", darci->Genus.Person->Ammo, darci->Genus.Person->ammo_packs_pistol / 15);
                 } else {
                     sprintf(text, "%d", darci->Genus.Person->Ammo);
                 }
-            } else if (darci->Genus.Person->SpecialUse) {
-                Thing* p_special = TO_THING(darci->Genus.Person->SpecialUse);
+            } else if (p_cur_special) {
+                Thing* p_special = p_cur_special;
 
                 switch (p_special->Genus.Special->SpecialType) {
                 case SPECIAL_SHOTGUN:
@@ -2290,7 +2276,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (input_key_held(KB_V) && allow_debug_keys) {
+        if (input_key_held(ACT_BANG_SHOW_VERSION_KKEY) && input_debug_modifier_active()) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

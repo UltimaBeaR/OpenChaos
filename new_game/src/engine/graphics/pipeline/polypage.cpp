@@ -200,6 +200,28 @@ void PolyPage::push_fullscreen_ui_mode()
         /*scissor=*/false, 0, 0, 0, 0);
 }
 
+void PolyPage::push_uniform_fullscreen_ui_mode()
+{
+    // Uniform scale = g_frame_scale (matches the framed menus, so text/glyphs
+    // are the same physical size and stay square — no distortion), offset 0
+    // (top-left). The visible virtual extent is larger than 640x480 in whichever
+    // axis the window is "longer": [0, g_screen_w_px/scale] x
+    // [0, g_screen_h_px/scale]. Callers lay out across that range (see the
+    // scrollable help screen). The +0.5 pixel-half offset is applied uniformly in
+    // AddFan (PIXEL_HALF_OFFSET), as for the other fullscreen mode.
+    //
+    // Scissor is pinned EXPLICITLY to the whole FBO (0,0,w,h) rather than
+    // "disabled": ge_disable_scissor() leaves the scissor equal to the current
+    // viewport (the 3D scene viewport in the menu pass), so a full-window draw
+    // should pin its own clip region instead of inheriting whatever was active.
+    // Mirrors how push_ui_mode pins the scissor for its framed region.
+    const float scale = ui_coords::g_frame_scale;
+    const int32_t fbo_w = (int32_t)(ui_coords::g_screen_w_px + 0.5f);
+    const int32_t fbo_h = (int32_t)(ui_coords::g_screen_h_px + 0.5f);
+    apply_ui_state(scale, scale, 0.0f, 0.0f,
+        /*scissor=*/true, 0, 0, fbo_w, fbo_h);
+}
+
 void PolyPage::pop_ui_mode()
 {
     ASSERT(s_ui_stack_top > 0);

@@ -18,6 +18,7 @@
 #include "things/core/statedef.h"
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard_globals.h" // ControlFlag
+#include "game/action_map/act_menu.h" // ACT_MENU_*
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)
@@ -91,7 +92,7 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-        if (ControlFlag && input_key_just_pressed(KB_Q)) {
+        if (ControlFlag && input_key_just_pressed(ACT_MENU_ATTRACT_QUIT_KKEY)) {
             GAME_STATE = 0;
             input_last_key_consume();
         }
@@ -105,9 +106,11 @@ reinit_because_of_language_change:
         // Any nav/confirm key held — wake the attract screen (reset y so
         // the menu stays visible). Level-state read (input_key_held), not
         // edge: as long as user is interacting we keep the screen alive.
-        if (input_key_held(KB_LEFT) || input_key_held(KB_RIGHT)
-            || input_key_held(KB_UP) || input_key_held(KB_DOWN)
-            || input_key_held(KB_SPACE) || input_key_held(KB_ENTER))
+        if (input_key_held(ACT_MENU_NAV_LEFT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_KKEY)
+            || input_key_held(ACT_MENU_NAV_UP_KKEY) || input_key_held(ACT_MENU_NAV_DOWN_KKEY)
+            || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY)
+            || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY) || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY)
+            || input_key_held(ACT_MENU_CONFIRM_2_KKEY) || input_key_held(ACT_MENU_CONFIRM_1_KKEY))
             y = 500;
 
         {
@@ -127,9 +130,6 @@ reinit_because_of_language_change:
                     ATTRACT_loadscreen_init();
 
                     stop_all_fx_and_music();
-
-                    extern void init_joypad_config(void);
-                    init_joypad_config();
                 } break;
                 case STARTS_PLAYBACK:
                     GAME_STATE &= ~GS_ATTRACT_MODE;

@@ -160,6 +160,49 @@ void POLY_init_render_states()
                 pa->RS.SetAlphaBlendEnabled(true);
                 break;
 
+            // Input-prompt glyph atlases (Kenney Input Prompts, embedded PNGs).
+            // Straight alpha-blended 2D UI pages: fog off, depth off, modulate
+            // alpha. Mirrors POLY_PAGE_SIGN.
+            case POLY_PAGE_GLYPH_KBM:
+                SET_TEXTURE((TEXTURE_page_glyph_kbm));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                break;
+
+            case POLY_PAGE_GLYPH_GENERIC:
+                SET_TEXTURE((TEXTURE_page_glyph_generic));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                break;
+
+            case POLY_PAGE_GLYPH_PS:
+                SET_TEXTURE((TEXTURE_page_glyph_ps));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                break;
+
+            case POLY_PAGE_GLYPH_DECK:
+                SET_TEXTURE((TEXTURE_page_glyph_deck));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                break;
+
             case POLY_PAGE_LASTPANEL_ALPHA:
                 SET_TEXTURE((TEXTURE_page_lastpanel));
                 pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);

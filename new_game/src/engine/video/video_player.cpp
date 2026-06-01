@@ -8,10 +8,12 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/io/env.h"
 #include "engine/platform/host.h"
+#include "engine/platform/host_globals.h" // ShellActive
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
-#include "engine/input/keyboard.h" // keyboard_key_down/up — dispatch SDL key events into the regular input pipeline
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
+#include "engine/input/mouse_capture.h" // mouse_capture_set_suppressed
+#include "game/action_map/act_cinematic.h" // ACT_CINE_VIDEO_SKIP_*
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
@@ -179,6 +181,14 @@ static void audio_destroy(AudioStream* a)
 
 bool video_play(const char* filename, bool allow_skip)
 {
+    // Videos aren't gameplay — suppress mouse capture for the
+    // playback's duration. set_suppressed releases any active capture
+    // AND blocks the engage path while it's set, so clicks landing in
+    // the window during a cutscene don't engage the camera path even
+    // though SDL events now go through the regular on_mouse_button
+    // dispatch.
+    mouse_capture_set_suppressed(true);
+
     // Open file
     AVFormatContext* fmt_ctx = nullptr;
     if (avformat_open_input(&fmt_ctx, filename, nullptr, nullptr) < 0) {
@@ -278,75 +288,46 @@ bool video_play(const char* filename, bool allow_skip)
     ds_update_input();
     input_frame_update();
 
-    while (!done) {
-        // --- Skip check: keyboard/mouse/gamepad/DualSense ---
-        // We use raw SDL_PollEvent (not sdl3_poll_events) so the regular
-        // on_window_resized callback never fires here — instead the SDL
-        // event watcher latches s_resize_pending in the bridge layer, and
-        // host_process_pending_resize below drains it into a real
-        // ge_resize_display. Without that, a resize during a video would
-        // leave the scene FBO at the pre-video size and the first menu
-        // frame after the video would render with the wrong composition
-        // letterbox.
-        //
-        // SDL keyboard events are dispatched manually into keyboard_key_down/up
-        // (which set both legacy Keys[] and input_frame's event-tracked state)
-        // so input_frame snapshot stays consistent. Skip checks then read
-        // through input_*_just_pressed instead of switching on raw SDL events.
-        {
-            bool mouse_skip = false;
-            SDL_Event ev;
-            while (SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_EVENT_QUIT) {
-                    done = true;
-                    break;
-                }
-                if (ev.type == SDL_EVENT_KEY_DOWN && !ev.key.repeat) {
-                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
-                    if (sc) keyboard_key_down(sc);
-                }
-                if (ev.type == SDL_EVENT_KEY_UP) {
-                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
-                    if (sc) keyboard_key_up(sc);
-                }
-                // Mouse buttons aren't yet in input_frame — keep raw SDL
-                // event check until input_frame grows mouse-button support.
-                if (allow_skip && ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                    mouse_skip = true;
-                }
+    while (!done && ShellActive) {
+        // Drain events via the shared sdl3_poll_events path so every
+        // callback (focus, mouse, keyboard, window close, resize)
+        // fires the same way as during the regular main loop. The
+        // capture module is suppressed for the playback duration
+        // (see mouse_capture_set_suppressed above), so on_mouse_button
+        // callbacks don't try to engage during a cutscene. on_close
+        // sets ShellActive=FALSE which the loop condition catches.
+        if (!sdl3_poll_events())
+            ShellActive = UC_FALSE;
+
+        host_process_pending_resize();
+        // Refresh DualSense + gamepad + keyboard snapshot AFTER events
+        // are dispatched so the snapshot reflects this iteration.
+        ds_poll_registry(0.033f);
+        ds_update_input();
+        input_frame_update();
+
+        // --- Skip on any user input ---
+        if (allow_skip) {
+            if (input_key_just_pressed(ACT_CINE_VIDEO_SKIP_1_KKEY)
+                || input_key_just_pressed(ACT_CINE_VIDEO_SKIP_2_KKEY)
+                || input_key_just_pressed(ACT_CINE_VIDEO_SKIP_3_KKEY)) {
+                done = true;
             }
-
-            host_process_pending_resize();
-            // Refresh DualSense + gamepad + keyboard snapshot AFTER events
-            // are dispatched so the snapshot reflects this iteration.
-            ds_poll_registry(0.033f);
-            ds_update_input();
-            input_frame_update();
-
-            // --- Skip on any user input ---
-            if (allow_skip) {
-                if (input_key_just_pressed(KB_ESC)
-                    || input_key_just_pressed(KB_ENTER)
-                    || input_key_just_pressed(KB_SPACE)) {
-                    done = true;
-                }
-                // Any gamepad / DualSense button rising edge = skip. Cross,
-                // Circle, Start are at indices 0/1/6 (rgbButtons mirror).
-                // Loop covers the standard 0..16 button range to catch any
-                // controller layout.
-                if (!done) {
-                    for (int i = 0; i < 17; i++) {
-                        if (input_btn_just_pressed(i)) {
-                            done = true;
-                            break;
-                        }
+            // Any common gamepad button rising edge = skip — a "any button"
+            // wildcard, not a single binding (so no ACT_*_GBTN constant; see
+            // act_cinematic.h). The scan bound is the named device-vocabulary
+            // count GBTN_COMMON_COUNT rather than a magic 17.
+            if (!done) {
+                for (int i = 0; i < GBTN_COMMON_COUNT; i++) {
+                    if (input_btn_just_pressed(i)) {
+                        done = true;
+                        break;
                     }
                 }
-                if (mouse_skip) done = true;
             }
-            if (done)
-                break;
         }
+        if (done)
+            break;
 
         // --- Flush accumulated audio into OpenAL buffers ---
         if (has_audio)
@@ -443,6 +424,12 @@ bool video_play(const char* filename, bool allow_skip)
         audio_destroy(&audio);
 
     ge_video_texture_destroy(tex);
+
+    // Release the engage-suppression we set at the top — the regular
+    // capture state machine takes over again on the next LibShellActive
+    // tick (auto-engages if conditions are met, since suppression also
+    // reset s_was_in_gameplay).
+    mouse_capture_set_suppressed(false);
 
     return ok;
 }

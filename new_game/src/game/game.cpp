@@ -16,6 +16,10 @@
 // These modules are not yet fully migrated:
 #include "assets/formats/level_loader.h"
 #include "game/input_actions.h"
+#include "game/action_map/act_cinematic.h" // ACT_CINE_GENERIC_SKIP_*
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
+#include "game/action_map/act_menu.h" // ACT_MENU_TOGGLE_PAUSE_KKEY, ACT_MENU_MODAL_ACK_*
+#include "game/action_map/act_dev_perf.h" // ACT_DEV_PERF_*
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
 #include "map/ob.h"
@@ -238,8 +242,6 @@ void game_startup(void)
 
     ATTRACT_loadscreen_draw(160);
 
-    void init_joypad_config(void);
-    init_joypad_config();
     ANIM_init();
 
     gamepad_init();
@@ -588,7 +590,7 @@ void screen_flip(void)
     // FONT_buffer flush moved to ui_render_post_composition — they draw
     // text that must land on the default FB at native resolution, after
     // composition, so FXAA / bilinear upscale don't soften the glyphs.
-    if (allow_debug_keys && input_key_just_pressed(KB_LCONTROL)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_DEBUG_OVERLAY_LOCK_KKEY)) {
         debug_overlay_locked_on = !debug_overlay_locked_on;
     }
 
@@ -603,10 +605,14 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
+    if (input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_1_KKEY)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_2_KKEY)
+        || input_key_just_pressed(ACT_CINE_PLAYBACK_EXIT_3_KKEY)) {
         GAME_STATE = 0;
     }
 
+    // Any gamepad button 0..9 held = exit playback. "Any button" wildcard
+    // (see act_cinematic.h ACT_CINE_PLAYBACK_EXIT_* comment).
     if (input_gamepad_connected()) {
         for (SLONG i = 0; i <= 9; i++) {
             if (input_btn_held(i)) {
@@ -629,7 +635,7 @@ void check_debug_timing_keys(void)
     // 30 is the meaningful value here.
     constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
 
-    if (input_key_just_pressed(KB_1)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_PHYS_HZ_KKEY)) {
         g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
             ? PHYS_HZ_TOGGLE_LOW
             : UC_PHYSICS_DESIGN_HZ;
@@ -639,22 +645,23 @@ void check_debug_timing_keys(void)
     // reaching for the keyboard during gamepad debugging. The DS gamepad path
     // mirrors touchpad_click into rgbButtons[17], so input_btn_just_pressed
     // gives the rising-edge directly with no local edge-detect needed.
-    if (input_key_just_pressed(KB_2) || input_btn_just_pressed(17)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_RENDER_FPS_KKEY)
+        || input_btn_just_pressed(ACT_DEV_PERF_TOGGLE_RENDER_FPS_DBTN)) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
 
-    if (input_key_just_pressed(KB_3)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_TOGGLE_INTERP_KKEY)) {
         g_render_interp_enabled = !g_render_interp_enabled;
     }
 
-    if (input_key_just_pressed(KB_9)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_DEC_KKEY)) {
         g_physics_hz -= 1;
         if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
     }
 
-    if (input_key_just_pressed(KB_0)) {
+    if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_INC_KKEY)) {
         g_physics_hz += 1;
         if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
     }
@@ -674,12 +681,12 @@ SLONG special_keys(void)
     // identical in practice). ControlFlag stays as the modifier source —
     // it's a separate level-state Ctrl tracker, out of scope for this
     // discrete-event migration.
-    if (allow_debug_keys && ControlFlag && input_key_just_pressed(KB_Q)) {
+    if (input_debug_modifier_active() && ControlFlag && input_key_just_pressed(ACT_BANG_QUIT_GAME_KKEY)) {
         return 1;
     }
 
     // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
-    if (allow_debug_keys && input_key_just_pressed(KB_F2)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_CRT_KKEY)) {
         g_crt_enabled ^= 1;
         if (g_crt_enabled)
             CONSOLE_text((CBYTE*)"CRT shader on", 3000);
@@ -691,14 +698,14 @@ SLONG special_keys(void)
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger
     // "pause/continue" key, which matches intent.
-    if (allow_debug_keys && input_key_just_pressed(KB_F8)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SINGLE_STEP_KKEY)) {
         single_step ^= 1;
     }
 
     // F10: toggle far-facet debug mode (skip level geometry + shader
     // debug-split colours on far-facets). Only active after bangunsnotgames
     // cheat. See stage12_farfacets.md.
-    if (allow_debug_keys && input_key_just_pressed(KB_F10)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_FARFACET_DEBUG_KKEY)) {
         g_farfacet_debug ^= 1;
         if (g_farfacet_debug)
             CONSOLE_text("farfacet debug on", 3000);
@@ -709,7 +716,7 @@ SLONG special_keys(void)
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames
     // so only developers hit it — regular players never see the panel
     // even by accident.
-    if (allow_debug_keys && input_key_just_pressed(KB_F11)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_INPUT_DEBUG_PANEL_KKEY)) {
         input_debug_toggle();
     }
 
@@ -727,7 +734,7 @@ SLONG special_keys(void)
 
     // Step once while in single-step mode. Was comma (`,`) — rebound to
     // Insert for the same legend-readability reason as the F8 toggle.
-    if (allow_debug_keys && single_step && input_key_just_pressed(KB_INS)) {
+    if (input_debug_modifier_active() && single_step && input_key_just_pressed(ACT_BANG_STEP_ONE_TICK_KKEY)) {
         process_things(0);
     }
 
@@ -812,7 +819,15 @@ SLONG hardware_input_continue(void)
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
         const UBYTE last_key = input_last_key();
-        if (last_key == KB_SPACE || last_key == KB_ESC || last_key == KB_Z || last_key == KB_X || last_key == KB_C || last_key == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
+        if (last_key == ACT_CINE_GENERIC_SKIP_1_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_2_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_3_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_4_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_5_KKEY
+            || last_key == ACT_CINE_GENERIC_SKIP_6_KKEY
+            || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_1_GBTN)
+            || input_btn_just_pressed(ACT_CINE_GENERIC_SKIP_2_GBTN)) {
             input_last_key_consume();
 
             return (1);
@@ -841,10 +856,11 @@ round_again:;
         form_leave_map = NULL;
         form_left_map = 0;
         input_last_key_consume();
-        // Drain a stale KB_ESC press_pending carried over from the frontend so
-        // GAMEMENU_process can't open the pause menu on the very first tick of
-        // the level just because the user closed a frontend dialog with ESC.
-        input_key_force_release(KB_ESC);
+        // Drain a stale pause-toggle press_pending carried over from the
+        // frontend so GAMEMENU_process can't open the pause menu on the very
+        // first tick of the level just because the user closed a frontend
+        // dialog with ESC.
+        input_key_force_release(ACT_MENU_TOGGLE_PAUSE_KKEY);
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
@@ -864,7 +880,16 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
-        uint64_t prev_frame_ms = sdl3_get_ticks();
+        // High-resolution frame timing. SDL_GetTicks() (integer ms) was
+        // quantizing frame_dt_ms to 1ms steps, which at high FPS (>100)
+        // produced visible alpha-jitter in render-interp (camera tremor
+        // during rotation, etc.). Performance counter gives sub-us
+        // precision -- monotonic, suitable for frame deltas. Affects
+        // all render-interp layers (camera, things, animations, ...)
+        // since they all read g_render_alpha which is derived from
+        // frame_dt_ms.
+        uint64_t prev_frame_pc = sdl3_get_performance_counter();
+        const double perf_freq_d = double(sdl3_get_performance_frequency());
         // Pre-charge the accumulator with one physics step so the first
         // iteration of the loop runs a physics tick BEFORE the first render
         // frame. Without this, mission_init's spawn poses (e.g. arrested
@@ -896,10 +921,10 @@ round_again:;
             PERF_FRAME_BEGIN();
 
             {
-                uint64_t now_ms = sdl3_get_ticks();
-                double frame_dt_ms = double(now_ms - prev_frame_ms);
+                uint64_t now_pc = sdl3_get_performance_counter();
+                double frame_dt_ms = double(now_pc - prev_frame_pc) * 1000.0 / perf_freq_d;
                 if (frame_dt_ms > FRAME_DT_MAX_MS) frame_dt_ms = FRAME_DT_MAX_MS;
-                prev_frame_ms = now_ms;
+                prev_frame_pc = now_pc;
                 physics_acc_ms += frame_dt_ms;
                 // Publish wall-clock dt for render-side effects (rain
                 // density, per-puddle drip spawn) — see g_frame_dt_ms.
@@ -967,30 +992,79 @@ round_again:;
             }
 
             // While a tutorial string is displayed, the game is frozen.
-            // Input before the message finishes (counter < 64*40) speeds it up;
-            // input after closes it.
+            // Input before the message finishes speeds it up; input after
+            // closes it.
+            //
+            // Close-input handling has two layers:
+            //
+            //   1. Wall-clock grace period (EWAY_TUT_INPUT_GRACE_MS) — the
+            //      dialog ignores close input for the first ~1 s after it
+            //      appears. The original code measured this in
+            //      EWAY_tutorial_counter units, which advances per render
+            //      frame; on our unlocked render rate (200+ FPS) that
+            //      "~1 s" actually expired in ~75 ms wall-clock and the
+            //      dialog flashed away before the player could read it.
+            //      Using sdl3_get_ticks() keeps the grace deterministic in
+            //      real time regardless of FPS.
+            //
+            //   2. Rising-edge detection on close input — hardware_input_continue()
+            //      is a mixed signal: keyboard is edge-triggered (last_key
+            //      consume drains the event), but the gamepad branch is
+            //      level-triggered, so a held PUNCH/JUMP/SELECT button
+            //      reads as 1 every render frame. Without edge detection
+            //      the grace timer alone is useless: a button held since
+            //      before the dialog appeared registers as a close press
+            //      as soon as the grace expires. We track `continue_pressed`
+            //      from the previous frame and only count 0→1 transitions
+            //      as a real close press. On dialog appearance we force
+            //      prev := true, so a button already held at that moment
+            //      reads as edge=0 — the player has to release and press
+            //      again deliberately for the dialog to close.
+            static const char* s_prev_tut_string = NULL;
+            static bool s_prev_continue = false;
+            static uint64_t s_tut_appear_ms = 0;
+
+            if (EWAY_tutorial_string != s_prev_tut_string) {
+                if (EWAY_tutorial_string != NULL) {
+                    // New dialog. Force prev=1 so a held button doesn't
+                    // produce a rising edge on the first tick.
+                    s_prev_continue = true;
+                    s_tut_appear_ms = sdl3_get_ticks();
+                }
+                s_prev_tut_string = EWAY_tutorial_string;
+            }
+
             if (EWAY_tutorial_string) {
                 EWAY_tutorial_counter += 64 * TICK_RATIO >> TICK_SHIFT;
 
-                // Minimum display time (~1s; counter ticks at 960/s) before
-                // close/skip input is accepted — prevents instant dismissal
-                // when a button is already held as the dialog appears.
-                // hardware_input_continue() is called unconditionally to
-                // drain LastKey so a stale press from before the dialog
-                // doesn't leak into the post-grace close check.
-                const SLONG EWAY_TUT_INPUT_GRACE = 960;
+                const uint64_t EWAY_TUT_INPUT_GRACE_MS = 1000;
+                const uint64_t elapsed_ms = sdl3_get_ticks() - s_tut_appear_ms;
                 SLONG continue_pressed = hardware_input_continue();
 
-                if (EWAY_tutorial_counter >= EWAY_TUT_INPUT_GRACE) {
+                bool close_edge = (continue_pressed != 0) && !s_prev_continue;
+                s_prev_continue = (continue_pressed != 0);
+
+                if (elapsed_ms >= EWAY_TUT_INPUT_GRACE_MS) {
                     if (EWAY_tutorial_counter > 64 * 20 * 2) {
-                        if (continue_pressed) {
+                        if (close_edge) {
                             EWAY_tutorial_string = NULL;
 
                             NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_JUMP);
-                            NET_PLAYER(0)->Genus.Player->InputDone = -1;
+                            // Original code set InputDone = -1 (mask ALL 18
+                            // input bits as already-processed) to prevent
+                            // the close button itself (× / punch / select)
+                            // from immediately firing as a gameplay action.
+                            // But -1 also masks movement bits (LEFT/RIGHT/
+                            // FORWARDS/BACKWARDS), so a player holding the
+                            // stick at close moment has movement frozen
+                            // until they wiggle the stick. Mask only the 3
+                            // close-button bits — minimum needed to block
+                            // the close press from leaking through.
+                            NET_PLAYER(0)->Genus.Player->InputDone
+                                = INPUT_MASK_PUNCH | INPUT_MASK_JUMP | INPUT_MASK_SELECT;
                         }
                     } else {
-                        if (continue_pressed) {
+                        if (close_edge) {
                             EWAY_tutorial_counter = 64 * 20 * 2;
                         }
                     }
@@ -1000,8 +1074,19 @@ round_again:;
             if (special_keys())
                 return (1);
 
+            // process_controls handles gameplay-level inputs (weapon select,
+            // inventory wheel, dev console open, cheat combos, debug keys).
+            // Gated by !GAMEMENU_is_paused() so once the pause slowdown ramp
+            // has finished and the menu is fully active, gameplay inputs
+            // stop firing — pressing R3 / D-pad / F9 etc. while the pause
+            // menu is up no longer opens the inventory wheel, switches the
+            // weapon, or pops the dev console behind the menu. During the
+            // slowdown ramp (menu open but not yet paused) gameplay inputs
+            // STILL fire, matching get_hardware_input / camera which also
+            // keep reading input through the ramp so the character animates
+            // out of its current motion naturally.
             if (!(GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) && !EWAY_tutorial_string
-                && !input_debug_is_active()) {
+                && !input_debug_is_active() && !GAMEMENU_is_paused()) {
                 process_controls();
             }
             void check_pows(void);
@@ -1250,6 +1335,16 @@ round_again:;
                         SLONG st = darci_t->State;
                         bool non_firing_state = st == STATE_JUMPING || st == STATE_FALLING || st == STATE_DYING || st == STATE_DEAD || st == STATE_DOWN || st == STATE_HIT || st == STATE_HIT_RECOIL || st == STATE_CLIMBING || st == STATE_CLIMB_LADDER || st == STATE_DANGLING || st == STATE_GRAPPLING || st == STATE_USE_SCENERY || st == STATE_CHANGE_LOCATION || st == STATE_STAND_UP || st == STATE_FIGHTING || st == STATE_FIGHT;
 
+                        // OpenChaos: walking backwards is a SubState within
+                        // STATE_MOVEING (not its own State), so the chain above
+                        // misses it. Shooting is blocked during walk_back (see
+                        // set_player_shoot) — so no trigger effect / haptic
+                        // either, otherwise the player feels rumble per pull
+                        // with no shot firing.
+                        if (darci_t->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                            non_firing_state = true;
+                        }
+
                         // Disable weapon trigger effect when target has surrendered (hands up)
                         // or is an innocent cop — game will "talk" instead of shoot.
                         // Only applies when the player is standing still: set_person_shoot
@@ -1428,10 +1523,10 @@ round_again:;
 
                         // Clear any pending press carried in from the previous
                         // screen so the warning loop doesn't dismiss instantly.
-                        input_key_force_release(KB_ESC);
-                        input_key_force_release(KB_SPACE);
-                        input_key_force_release(KB_ENTER);
-                        input_key_force_release(KB_PENTER);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_1_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_2_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_3_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_4_KKEY);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1470,18 +1565,20 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (input_key_just_pressed(KB_ESC) || input_key_just_pressed(KB_SPACE)
-                                || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
+                            if (input_key_just_pressed(ACT_MENU_MODAL_ACK_1_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_2_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_3_KKEY)
+                                || input_key_just_pressed(ACT_MENU_MODAL_ACK_4_KKEY)) {
                                 break;
                             }
                         }
 
                         ge_reset_back_image();
 
-                        input_key_force_release(KB_ESC);
-                        input_key_force_release(KB_SPACE);
-                        input_key_force_release(KB_ENTER);
-                        input_key_force_release(KB_PENTER);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_1_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_2_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_3_KKEY);
+                        input_key_force_release(ACT_MENU_MODAL_ACK_4_KKEY);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

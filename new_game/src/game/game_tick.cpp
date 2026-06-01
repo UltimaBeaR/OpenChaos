@@ -48,6 +48,10 @@
 #include "things/characters/anim_ids.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "game/action_map/act_dev_console.h" // ACT_CONS_*
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
+#include "game/action_map/act_foot.h" // ACT_FOOT_*
+#include "game/action_map/act_car.h" // ACT_CAR_*
 #include "engine/input/input_frame.h"
 #include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
@@ -83,7 +87,6 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 extern SLONG am_i_a_thug(Thing* p_person);
-extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
 extern UWORD fade_black;
 extern void reload_level(void);
@@ -98,20 +101,6 @@ static TGA_Pixel tga[480][640];
 // uc_orig: INVENTORY_FADE_SPEED (fallen/Source/Controls.cpp)
 // Inventory panel fade speed in opacity units per frame.
 #define INVENTORY_FADE_SPEED (32)
-
-// Weapon scoring constants used by CONTROLS_get_best_item.
-// uc_orig: AK47_SCORE (fallen/Source/Controls.cpp)
-#define AK47_SCORE 6
-// uc_orig: SHOTGUN_SCORE (fallen/Source/Controls.cpp)
-#define SHOTGUN_SCORE 5
-// uc_orig: PISTOL_SCORE (fallen/Source/Controls.cpp)
-#define PISTOL_SCORE 4
-// uc_orig: KNIFE_SCORE (fallen/Source/Controls.cpp)
-#define KNIFE_SCORE 3
-// uc_orig: BAT_SCORE (fallen/Source/Controls.cpp)
-#define BAT_SCORE 2
-// uc_orig: GRENADE_SCORE (fallen/Source/Controls.cpp)
-#define GRENADE_SCORE 1
 
 // uc_orig: eway_find (fallen/Source/Controls.cpp)
 // Linear search for a waypoint by numeric id. Used by the "telw" console command.
@@ -381,6 +370,21 @@ void parse_console(CBYTE* str)
 
             case 25:
                 PYRO_create(darci->WorldPos, PYRO_GAMEOVER);
+                break;
+
+            // Cheat commands (no allow_debug_keys gate — these are full
+            // gameplay cheats, equivalents of the gamepad combo).
+            case 26: // bloodofkings — toggle immortality
+                cheat_apply_immortal_toggle();
+                break;
+            case 27: // shieldofsteel — full health
+                cheat_apply_full_health();
+                break;
+            case 28: // weneedguns — spawn weapons ring around player
+                cheat_apply_spawn_weapons();
+                break;
+            case 29: // losttrack — max ammo for all weapon types
+                cheat_apply_max_ammo();
                 break;
             }
             return;
@@ -899,84 +903,9 @@ SBYTE CONTROLS_get_selected_item(Thing* darci, Thing* player)
     return current_item;
 }
 
-// uc_orig: CONTROLS_get_best_item (fallen/Source/Controls.cpp)
-// Auto-selects the best available weapon using a fixed priority score.
-// Ignores weapons with no ammo. Called when Darci is unarmed and selects inventory.
-SBYTE CONTROLS_get_best_item(Thing* darci, Thing* player)
-{
-    SBYTE count = 1;
-    Thing* p_special = NULL;
-    SBYTE current_item = 0, current_score = 0;
-
-    if (darci->Genus.Person->SpecialList) {
-        p_special = TO_THING(darci->Genus.Person->SpecialList);
-
-        while (p_special) {
-            ASSERT(p_special->Class == CLASS_SPECIAL);
-            if (can_i_draw_this_special(p_special)) {
-                switch (p_special->Genus.Special->SpecialType) {
-                case SPECIAL_SHOTGUN:
-                    if (p_special->Genus.Special->ammo || darci->Genus.Person->ammo_packs_shotgun)
-                        if (current_score < SHOTGUN_SCORE) {
-                            current_item = count;
-                            current_score = SHOTGUN_SCORE;
-                        }
-                    break;
-
-                case SPECIAL_AK47:
-                    if (p_special->Genus.Special->ammo || darci->Genus.Person->ammo_packs_ak47)
-                        if (current_score < AK47_SCORE) {
-                            current_item = count;
-                            current_score = AK47_SCORE;
-                        }
-                    break;
-                case SPECIAL_GRENADE:
-                    if (p_special->Genus.Special->ammo)
-                        if (current_score < GRENADE_SCORE) {
-                            current_item = count;
-                            current_score = GRENADE_SCORE;
-                        }
-                    break;
-
-                case SPECIAL_BASEBALLBAT:
-                    if (current_score < BAT_SCORE) {
-                        current_item = count;
-                        current_score = BAT_SCORE;
-                    }
-                    break;
-                case SPECIAL_KNIFE:
-                    if (current_score < KNIFE_SCORE) {
-                        current_item = count;
-                        current_score = KNIFE_SCORE;
-                    }
-                    break;
-                }
-                count++;
-            }
-            if (p_special->Genus.Special->NextSpecial)
-                p_special = TO_THING(p_special->Genus.Special->NextSpecial);
-            else
-                p_special = NULL;
-        }
-    }
-
-    if (darci->Flags & FLAGS_HAS_GUN) {
-        if (darci->Genus.Person->ammo_packs_pistol || darci->Genus.Person->Ammo) {
-            if (current_score < PISTOL_SCORE) {
-                current_item = count;
-                current_score = PISTOL_SCORE;
-            }
-        }
-
-        count++;
-    }
-
-    return (current_item);
-}
-
 // uc_orig: CONTROLS_new_inventory (fallen/Source/Controls.cpp)
 // Opens the inventory panel (begins fade-in). Initialises ItemFocus if not set.
-// Always returns 0; CONTROLS_get_best_item branch is commented out in this version.
+// Always returns 0.
 SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
 {
     UWORD temp = player->Genus.Player->PopupFade;
@@ -1020,20 +949,297 @@ SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
     return (0);
 }
 
-// uc_orig: CONTROLS_rot_inventory (fallen/Source/Controls.cpp)
-// Cycles the inventory selection by dir (+1 forward / -1 backward).
-// If pull_it_out_ooooerrr is set, immediately equips the newly selected item.
-void CONTROLS_rot_inventory(Thing* darci, Thing* player, SBYTE dir, SLONG pull_it_out_ooooerrr)
+// OpenChaos: D-pad direct weapon select (stage13_gamepad.md).
+// ===========================================================
+// Replaces / complements R3 cycle:
+//   D-pad ↑ = pistol
+//   D-pad ← = AK47 (called "AK47" in source; visually M16 in retail)
+//   D-pad → = shotgun
+//   D-pad ↓ = melee toggle (non-melee → fist; fist/melee → cycle
+//             fist → bat → knife → fist, owned-only)
+// R3 cycle path is left untouched.
+
+// The special Thing Darci is CURRENTLY using OR actively drawing (NULL when on
+// the pistol or fists). Prefers the committed SpecialUse; while a special draw
+// is mid-animation SpecialUse is still 0, so falls back to the in-progress draw
+// target (SpecialDraw during SubState DRAW_ITEM). Callers needing the item's
+// ammo/timer use this so the readout matches the just-selected weapon.
+//
+// Weapon draws are NOT instant: set_person_draw_item/set_person_draw_gun clear
+// the old SpecialUse/GUN_OUT immediately but only commit the NEW SpecialUse on
+// draw-animation frame 3 (GUN_OUT a frame or so after the draw starts). Reading
+// only the committed state therefore reports "fists" for the first frames of
+// every special draw — which makes the popup highlight (and the panel weapon
+// icon) flicker through the fist, breaks the "already in hand" no-op check
+// (re-pressing the same weapon restarts its draw), and corrupts the scroll
+// position (computed from a stale "fist"). SpecialDraw is set on the same frame
+// the weapon is selected, so consulting it removes all of that.
+Thing* CONTROLS_current_special_thing(Thing* darci)
 {
-    player->Genus.Player->ItemFocus += dir;
-    if (player->Genus.Player->ItemFocus == -1)
-        player->Genus.Player->ItemFocus = player->Genus.Player->ItemCount - 1;
+    auto* p = darci->Genus.Person;
+    // SubState lives on the Thing; SpecialUse/SpecialDraw on the Person genus.
+    if (p->SpecialUse)
+        return TO_THING(p->SpecialUse);
+    if (darci->SubState == SUB_STATE_DRAW_ITEM && p->SpecialDraw)
+        return TO_THING(p->SpecialDraw);
+    return NULL;
+}
 
-    if (player->Genus.Player->ItemFocus >= player->Genus.Player->ItemCount)
-        player->Genus.Player->ItemFocus = 0;
+// Returns the SpecialType Darci is CURRENTLY using OR actively drawing.
+// Synthesises SPECIAL_GUN for the pistol (which has no Thing in SpecialList —
+// it sits in FLAGS_HAS_GUN/FLAG_PERSON_GUN_OUT). Returns SPECIAL_NONE for an
+// empty hand (fist / nothing drawn). Single "current weapon" reader shared by
+// the equip path, the scroll, the popup highlight and the panel weapon icon.
+// See CONTROLS_current_special_thing for the in-progress-draw rationale.
+SLONG CONTROLS_current_weapon_type(Thing* darci)
+{
+    auto* p = darci->Genus.Person;
 
-    if (pull_it_out_ooooerrr)
-        CONTROLS_set_inventory(darci, player, player->Genus.Player->ItemFocus);
+    // Pistol: GUN_OUT commits ~instantly; DRAW_GUN covers the very first frame.
+    if ((p->Flags & FLAG_PERSON_GUN_OUT) || darci->SubState == SUB_STATE_DRAW_GUN)
+        return SPECIAL_GUN;
+
+    Thing* p_special = CONTROLS_current_special_thing(darci);
+    if (p_special)
+        return p_special->Genus.Special->SpecialType;
+
+    return SPECIAL_NONE;
+}
+
+// Walks Darci's SpecialList counting drawable items (matching
+// can_i_draw_this_special, same predicate CONTROLS_set_inventory and
+// CONTROLS_get_selected_item use). Returns the 1-based slot index of the
+// first item with the requested SpecialType, or -1 if not in inventory.
+// Slot 0 is reserved for fist; pistol (when owned) lives at slot N+1
+// where N is the drawable-count returned by this walk — caller handles
+// the pistol separately.
+static SLONG dpad_find_inventory_slot_by_type(Thing* darci, SLONG target_type)
+{
+    if (!darci->Genus.Person->SpecialList)
+        return -1;
+    SLONG slot = 1; // slot 0 = fist
+    Thing* p_special = TO_THING(darci->Genus.Person->SpecialList);
+    while (p_special) {
+        ASSERT(p_special->Class == CLASS_SPECIAL);
+        if (can_i_draw_this_special(p_special)) {
+            if (p_special->Genus.Special->SpecialType == target_type)
+                return slot;
+            slot++;
+        }
+        if (!p_special->Genus.Special->NextSpecial)
+            break;
+        p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+    }
+    return -1;
+}
+
+// Counts the drawable-special slots in Darci's inventory (slots 1..N).
+// The pistol, if owned (FLAGS_HAS_GUN), sits at slot N+1 — this helper is
+// used only to compute that pistol slot for the ↑ direct-select path.
+static SLONG dpad_count_drawable_specials(Thing* darci)
+{
+    SLONG count = 0;
+    if (!darci->Genus.Person->SpecialList)
+        return 0;
+    Thing* p_special = TO_THING(darci->Genus.Person->SpecialList);
+    while (p_special) {
+        ASSERT(p_special->Class == CLASS_SPECIAL);
+        if (can_i_draw_this_special(p_special))
+            count++;
+        if (!p_special->Genus.Special->NextSpecial)
+            break;
+        p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+    }
+    return count;
+}
+
+// Canonical ordered weapon list — the single source of truth for BOTH the
+// inventory popup (PANEL_inventory) and the scroll, so they stay in lockstep.
+// Order: pistol, AK47, shotgun, grenade, bat, knife, then any other owned
+// drawable special (explosives, wire cutter, ...) in inventory order, then the
+// FIST last. Each entry is a token: SPECIAL_GUN for the pistol, the SpecialType
+// for specials, SPECIAL_NONE (0) for the fist. Only OWNED items are added.
+// Returns the entry count (always >= 1 — the fist is always present).
+SLONG CONTROLS_build_weapon_list(Thing* darci, CBYTE* out, SLONG max)
+{
+    static const SLONG priority[] = {
+        SPECIAL_GUN, SPECIAL_AK47, SPECIAL_SHOTGUN, SPECIAL_GRENADE,
+        SPECIAL_BASEBALLBAT, SPECIAL_KNIFE,
+    };
+    const SLONG prio_len = (SLONG)(sizeof(priority) / sizeof(priority[0]));
+    SLONG n = 0;
+
+    // 1) Priority weapons in fixed order (owned only).
+    for (SLONG i = 0; i < prio_len; ++i) {
+        const SLONG t = priority[i];
+        const bool owned = (t == SPECIAL_GUN)
+            ? ((darci->Flags & FLAGS_HAS_GUN) != 0)
+            : (dpad_find_inventory_slot_by_type(darci, t) >= 0);
+        if (owned && n < max)
+            out[n++] = (CBYTE)t;
+    }
+
+    // 2) Any other drawable special not already listed, in inventory order.
+    if (darci->Genus.Person->SpecialList) {
+        Thing* p = TO_THING(darci->Genus.Person->SpecialList);
+        while (p) {
+            ASSERT(p->Class == CLASS_SPECIAL);
+            if (can_i_draw_this_special(p)) {
+                const SLONG t = p->Genus.Special->SpecialType;
+                bool listed = false;
+                for (SLONG i = 0; i < prio_len; ++i)
+                    if (priority[i] == t) { listed = true; break; }
+                if (!listed && n < max)
+                    out[n++] = (CBYTE)t;
+            }
+            if (!p->Genus.Special->NextSpecial)
+                break;
+            p = TO_THING(p->Genus.Special->NextSpecial);
+        }
+    }
+
+    // 3) Fist last (always present).
+    if (n < max)
+        out[n++] = (CBYTE)SPECIAL_NONE;
+
+    return n;
+}
+
+// Index of a weapon token in the canonical list (the fist token SPECIAL_NONE
+// lands on the last index). Returns -1 if not present.
+static SLONG controls_weapon_list_index_of(Thing* darci, SLONG type)
+{
+    CBYTE list[16];
+    const SLONG count = CONTROLS_build_weapon_list(darci, list, 16);
+    for (SLONG i = 0; i < count; ++i)
+        if ((SLONG)list[i] == type)
+            return i;
+    return -1;
+}
+
+// Open / refresh the weapon popup HUD (and reset its display timer). The popup
+// always highlights whatever weapon is CURRENTLY in hand (by type), so this on
+// its own is the "show the wheel without changing weapon" case.
+static void controls_show_popup(Thing* darci, Thing* player)
+{
+    CONTROLS_new_inventory(darci, player);
+    CONTROLS_inventory_mode = 3000;
+}
+
+// THE single weapon-equip path. `token` is a canonical-list item: SPECIAL_GUN
+// (pistol), a SpecialType, or SPECIAL_NONE (disarm to fists). ALWAYS opens the
+// popup so the player sees the result; actually swaps only when the item is
+// owned and not already in hand — otherwise it's popup-only feedback ("button
+// registered, nothing to swap to"). Every weapon action (D-pad / digits / melee
+// / scroll / disarm / arm-last) funnels through here, so the equip + popup
+// bookkeeping lives in exactly one place. ItemFocus is left to CONTROLS_new_-
+// inventory: the popup highlights by current type, not by ItemFocus.
+static void controls_equip(Thing* darci, Thing* player, SLONG token)
+{
+    controls_show_popup(darci, player);
+
+    if (token == CONTROLS_current_weapon_type(darci))
+        return; // already in hand — popup feedback only
+
+    if (token == SPECIAL_NONE) {
+        CONTROLS_set_inventory(darci, player, 0); // → fists
+        return;
+    }
+
+    // Old-slot index for CONTROLS_set_inventory (pistol sits after the specials,
+    // outside SpecialList; ownership is the FLAGS_HAS_GUN bit).
+    const SLONG slot = (token == SPECIAL_GUN)
+        ? ((darci->Flags & FLAGS_HAS_GUN) ? dpad_count_drawable_specials(darci) + 1 : -1)
+        : dpad_find_inventory_slot_by_type(darci, token);
+    if (slot < 0)
+        return; // not owned — popup-only
+
+    CONTROLS_set_inventory(darci, player, slot);
+}
+
+// D-pad ↓ / Tab melee toggle — SELECTS a melee weapon and cycles between the
+// owned ones (bat ↔ knife). The fist is NOT a target (disarm is R3 / middle-
+// mouse). No melee owned → popup-only (highlights the current weapon).
+static void controls_dpad_select_melee(Thing* darci, Thing* player)
+{
+    constexpr SLONG cycle[] = { SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
+    constexpr SLONG cycle_len = (SLONG)(sizeof(cycle) / sizeof(cycle[0]));
+
+    const SLONG cur = CONTROLS_current_weapon_type(darci);
+    SLONG idx = -1; // position of the current weapon in the cycle (-1 = none)
+    for (SLONG i = 0; i < cycle_len; ++i)
+        if (cycle[i] == cur) { idx = i; break; }
+
+    // First OWNED melee after the current one (wraps; skips un-owned).
+    for (SLONG step = 1; step <= cycle_len; ++step) {
+        const SLONG t = cycle[(idx + step) % cycle_len];
+        if (dpad_find_inventory_slot_by_type(darci, t) >= 0) {
+            controls_equip(darci, player, t);
+            return;
+        }
+    }
+    controls_show_popup(darci, player); // no melee owned
+}
+
+// --- Disarm / last-weapon + inventory scroll (R3 / MMB / wheel) -------------
+// OpenChaos weapon scheme: R3 / middle-mouse toggle disarm ↔ last weapon (the
+// old "best weapon" auto-pick is gone); mouse wheel and R3 + D-pad ↑/↓ scroll
+// the inventory popup. See act_foot.h.
+
+// Most recently equipped non-fist weapon type (SPECIAL_GUN for the pistol).
+// Updated every gameplay frame while something is in hand; consulted to re-arm
+// from empty hands. SPECIAL_NONE = nothing equipped yet this session.
+static SLONG g_weapon_last_type = SPECIAL_NONE;
+
+// Re-arm: equip the last weapon (or the FIRST weapon in the canonical list —
+// pistol if owned — when the last is gone / never set). Opens the popup.
+static void weapon_arm_last(Thing* darci, Thing* player)
+{
+    CBYTE list[16];
+    const SLONG count = CONTROLS_build_weapon_list(darci, list, (SLONG)sizeof(list));
+    const SLONG weapon_count = count - 1; // trailing entry is the fist
+    if (weapon_count <= 0) {
+        controls_show_popup(darci, player); // no weapons owned
+        return;
+    }
+    SLONG idx = controls_weapon_list_index_of(darci, g_weapon_last_type);
+    if (idx < 0 || idx >= weapon_count)
+        idx = 0;
+    controls_equip(darci, player, (SLONG)list[idx]);
+}
+
+// Middle-mouse click: simple toggle — weapon in hand → disarm; fists → re-arm
+// the last weapon. (R3 splits these across press/release — see process_controls:
+// fists arm on PRESS, a held weapon disarms on RELEASE.)
+static void weapon_disarm_or_last(Thing* darci, Thing* player)
+{
+    if (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE)
+        controls_equip(darci, player, SPECIAL_NONE); // disarm
+    else
+        weapon_arm_last(darci, player);
+}
+
+// Wheel / R3 + D-pad ↑↓ scroll: step through the canonical list (the same order
+// the popup draws) and equip as it goes, wrapping at the ends. The FIST is part
+// of the cycle — landing on it disarms — so scrolling can reach bare hands too.
+static void weapon_scroll(Thing* darci, Thing* player, SBYTE dir)
+{
+    CBYTE list[16];
+    const SLONG count = CONTROLS_build_weapon_list(darci, list, (SLONG)sizeof(list));
+    if (count <= 1) {
+        controls_show_popup(darci, player); // only the fist — nothing to cycle
+        return;
+    }
+
+    SLONG idx = controls_weapon_list_index_of(darci, CONTROLS_current_weapon_type(darci));
+    if (idx < 0)
+        idx = 0;
+    idx += dir;
+    if (idx < 0)
+        idx = count - 1;
+    else if (idx >= count)
+        idx = 0;
+    controls_equip(darci, player, (SLONG)list[idx]);
 }
 
 // uc_orig: context_music (fallen/Source/Controls.cpp)
@@ -1173,10 +1379,10 @@ void process_controls(void)
 {
     Thing* darci = NET_PERSON(0);
 
-    //	if (Keys[KB_D])
+    //	if (Keys[KKEY_D])
 
     if (GAME_TURN <= 1) {
-        // (Keys[KB_D] = 0 init reset removed: input_key_just_pressed below
+        // (Keys[KKEY_D] = 0 init reset removed: input_key_just_pressed below
         // doesn't trigger on a held-from-before key — no rising edge in
         // snapshot — so the protection it gave is now automatic.)
 
@@ -1194,7 +1400,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KB_D)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_ROOM_BEHIND_CHECK_KKEY)) {
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
@@ -1265,7 +1471,7 @@ void process_controls(void)
     };
     static int s_model_cycle_type     = PERSON_DARCI;
     static int s_model_cycle_variant  = 0;
-    if (allow_debug_keys && input_key_just_pressed(KB_N)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_CYCLE_PLAYER_MODEL_KKEY)) {
         Thing* darci_thing = NET_PERSON(0);
         if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
             // Advance variant within type; wrap to next type when out.
@@ -1295,7 +1501,7 @@ void process_controls(void)
     // (top-down map TGA dump) in the allow_debug_keys block below —
     // pressing H would fire both handlers. B avoids that and reads as
     // "Bones".
-    if (allow_debug_keys && input_key_just_pressed(KB_B)) {
+    if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY)) {
         g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
         CONSOLE_status(g_skin_debug_draw_skeleton
             ? (CBYTE*)"Skeleton overlay: ON"
@@ -1329,11 +1535,11 @@ void process_controls(void)
         }
     }
 
-    if (allow_debug_keys) {
+    if (input_debug_modifier_active()) {
         static SLONG index_cam = 0;
         Thing* p_thing;
 
-        if (input_key_just_pressed(KB_RBRACE)) {
+        if (input_key_just_pressed(ACT_BANG_CYCLE_CAMERA_PERSON_KKEY)) {
             while (1) {
                 index_cam++;
                 if (index_cam >= MAX_THINGS)
@@ -1346,7 +1552,7 @@ void process_controls(void)
                 }
             }
         }
-        if (input_key_just_pressed(KB_LBRACE)) {
+        if (input_key_just_pressed(ACT_BANG_CYCLE_CAMERA_PERSON_REV_KKEY)) {
             while (1) {
                 index_cam--;
                 if (index_cam < 0)
@@ -1360,7 +1566,7 @@ void process_controls(void)
             }
         }
 
-        if (input_key_just_pressed(KB_P)) {
+        if (input_key_just_pressed(ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY)) {
             if (FC_cam[1].focus) {
                 FC_cam[1].focus = NULL;
             } else {
@@ -1417,8 +1623,8 @@ void process_controls(void)
     if (is_inputing) {
         static CBYTE input_text[MAX_PATH] = "] ";
 
-        const bool console_esc   = input_key_just_pressed(KB_ESC);
-        const bool console_enter = input_key_just_pressed(KB_ENTER);
+        const bool console_esc   = input_key_just_pressed(ACT_CONS_CANCEL_KKEY);
+        const bool console_enter = input_key_just_pressed(ACT_CONS_SUBMIT_KKEY);
         if (console_esc || console_enter) {
             if (console_enter)
                 parse_console(input_text + 2); // +2 to skip the "] "
@@ -1434,7 +1640,7 @@ void process_controls(void)
                 UWORD len = strlen(input_text);
                 CBYTE key;
                 // ShiftFlag is the level-state Shift modifier mirrored from
-                // input_frame's event-tracked KB_LSHIFT || KB_RSHIFT.
+                // input_frame's event-tracked KKEY_LEFT_SHIFT || KKEY_RIGHT_SHIFT.
                 key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
                 if (key == 8) {
                     if (len > 2)
@@ -1453,7 +1659,11 @@ void process_controls(void)
         }
         return;
     } else {
-        if (input_key_just_pressed(KB_F9))
+        // F9 opens the dev console from gameplay. Same scancode in both foot
+        // and car contexts — read both ACT names so the constant change in
+        // either context would be picked up correctly.
+        if (input_key_just_pressed(ACT_FOOT_OPEN_DEV_CONSOLE_KKEY)
+            || input_key_just_pressed(ACT_CAR_OPEN_DEV_CONSOLE_KKEY))
             is_inputing = 1;
     }
 
@@ -1466,47 +1676,136 @@ void process_controls(void)
     extern Form* form_leave_map;
     extern SLONG can_darci_change_weapon(Thing * p_person);
 
-    if ((!(GAME_FLAGS & GF_PAUSED) && !form_leave_map) && can_darci_change_weapon(darci)) {
+    if ((!(GAME_FLAGS & GF_PAUSED) && !form_leave_map) && can_darci_change_weapon(darci) && input_gameplay_enabled()
+        && !(darci->Genus.Person->Flags & FLAG_PERSON_DRIVING)) { // no weapon switching while driving
         Thing* the_player = NET_PLAYER(0);
 
         //		if (can_darci_change_weapon(darci))
         {
 
-            // Weapon-switch trigger: edge-detect via input_frame (render-frame
-            // snapshot). Reading Player->Pressed here was unreliable because
-            // process_controls runs per render frame but Player->Pressed is
-            // only refreshed inside process_things (per physics tick) — so
-            // at high render rate the same edge would be visible across many
-            // render frames between two physics ticks, firing the rotation
-            // multiple times per single press (issue #20 in fps_unlock).
+            // OpenChaos weapon scheme. Edge-detect via input_frame (render-frame
+            // snapshot) — Player->Pressed only refreshes per physics tick, so at
+            // high render rate it would re-fire across frames (issue #20).
             //
-            // Mapping (mirrors get_hardware_input):
-            //   keyboard: keybrd_button_use[JOYPAD_BUTTON_SELECT]
-            //   gamepad : rgbButtons[8] (R3 / right-stick click; the SELECT
-            //             alias was rebound from Share/Back to R3 — see the
-            //             matching comment in get_hardware_input).
-            const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
-            constexpr SLONG pad_select_btn = 8;
-            if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
-                CONTROLS_new_inventory(darci, the_player);
+            //   R3 (gamepad) / middle-mouse (KBM): disarm ↔ last weapon.
+            //   Mouse wheel / R3 + D-pad ↑↓        : scroll the inventory popup.
+            //   D-pad (no R3): ↑ pistol, ← AK, → shotgun, ↓ melee, ↑+→ grenade.
+            //   Keyboard 1-4: pistol / AK / shotgun / grenade. Tab: melee.
 
-                if (CONTROLS_inventory_mode == 0 && darci->Genus.Person->SpecialUse == 0 && !(darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) && the_player->Genus.Player->ItemFocus == 0) {
-                    //
-                    // currently unarmed so pick best weapon
-                    //
-
-                    the_player->Genus.Player->ItemFocus = CONTROLS_get_best_item(darci, the_player);
-                    if (the_player->Genus.Player->ItemFocus) {
-                        CONTROLS_set_inventory(darci, the_player, the_player->Genus.Player->ItemFocus);
-                    } else
-                        CONTROLS_rot_inventory(darci, the_player, 1, 1);
-                } else
-                    CONTROLS_rot_inventory(darci, the_player, 1, 1);
-                CONTROLS_inventory_mode = 3000;
+            // Per-frame: remember the current non-fist weapon for the disarm/
+            // re-arm toggle and the empty-hand scroll start.
+            {
+                const SLONG cur_t = CONTROLS_current_weapon_type(darci);
+                if (cur_t != SPECIAL_NONE)
+                    g_weapon_last_type = cur_t;
             }
 
+            const bool r3_held = input_btn_held(ACT_FOOT_INVENTORY_GBTN);
+
+            // R3 doubles as a scroll modifier. Track whether a D-pad ↑/↓ scroll
+            // happened during this hold — if so, the R3 RELEASE does NOT fire the
+            // disarm toggle (the press was "used" for scrolling). Middle-mouse
+            // has no such conflict (wheel is independent) → it fires on press.
+            static bool s_r3_scroll_used = false;
+            static bool s_r3_press_armed = false; // had a weapon in hand at R3 press
+            if (input_btn_just_pressed(ACT_FOOT_INVENTORY_GBTN)) {
+                s_r3_scroll_used = false;
+                s_r3_press_armed = (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE);
+                if (s_r3_press_armed) {
+                    // Weapon in hand: just show the popup (current highlighted).
+                    // The disarm happens on RELEASE (so you can scroll instead).
+                    controls_show_popup(darci, the_player);
+                } else {
+                    // Fists: arm the last weapon immediately so the player sees it
+                    // selected and can then scroll from there.
+                    weapon_arm_last(darci, the_player);
+                }
+            }
+
+            const bool dpad_up    = input_btn_just_pressed(ACT_FOOT_WEAPON_PISTOL_GBTN);
+            const bool dpad_left  = input_btn_just_pressed(ACT_FOOT_WEAPON_AK47_GBTN);
+            const bool dpad_right = input_btn_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_GBTN);
+            const bool dpad_down  = input_btn_just_pressed(ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN);
+
+            if (r3_held) {
+                // R3 held: D-pad ↑/↓ AND left-stick ↑/↓ scroll the inventory;
+                // other D-pad ignored. Stick uses the virtual-direction edge so
+                // one push = one step (like the D-pad).
+                const bool scroll_up =
+                    dpad_up || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP);
+                const bool scroll_down =
+                    dpad_down || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN);
+                if (scroll_up)   { weapon_scroll(darci, the_player, -1); s_r3_scroll_used = true; }
+                if (scroll_down) { weapon_scroll(darci, the_player, +1); s_r3_scroll_used = true; }
+            } else {
+                // R3 not held: D-pad direct select + grenade on ↑+→ diagonal.
+                // Skipped while the cheat modifier (Select + L1 + L2) is held —
+                // the D-pad is the cheat-direction selector then.
+                const bool cheat_combo_active =
+                    input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
+                    && input_btn_held(ACT_FOOT_CHEAT_MOD_L1_GBTN)
+                    && input_btn_held(ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN);
+
+                static bool s_diag_grenade_armed = false;
+                const bool up_held    = input_btn_held(ACT_FOOT_WEAPON_PISTOL_GBTN);
+                const bool right_held = input_btn_held(ACT_FOOT_WEAPON_SHOTGUN_GBTN);
+
+                if (cheat_combo_active) {
+                    s_diag_grenade_armed = false;
+                } else if (up_held && right_held) {
+                    // ↑+→ together = grenade; fire once per diagonal engagement.
+                    if (!s_diag_grenade_armed) {
+                        controls_equip(darci, the_player, SPECIAL_GRENADE);
+                        s_diag_grenade_armed = true;
+                    }
+                } else {
+                    s_diag_grenade_armed = false;
+                    if (dpad_up)         controls_equip(darci, the_player, SPECIAL_GUN);
+                    else if (dpad_left)  controls_equip(darci, the_player, SPECIAL_AK47);
+                    else if (dpad_right) controls_equip(darci, the_player, SPECIAL_SHOTGUN);
+                    else if (dpad_down)  controls_dpad_select_melee(darci, the_player);
+                }
+            }
+
+            // R3 release → disarm to fists, but ONLY if a weapon was in hand at
+            // press and nothing was scrolled during the hold. (Releasing after a
+            // press from fists keeps the weapon armed on press; scrolling means
+            // the player was browsing, not toggling.)
+            if (input_btn_just_released(ACT_FOOT_INVENTORY_GBTN) && !s_r3_scroll_used && s_r3_press_armed)
+                controls_equip(darci, the_player, SPECIAL_NONE); // disarm
+
+            // Keyboard direct select (1-4) + Tab melee toggle.
+            if (input_key_just_pressed(ACT_FOOT_WEAPON_PISTOL_KKEY))
+                controls_equip(darci, the_player, SPECIAL_GUN);
+            if (input_key_just_pressed(ACT_FOOT_WEAPON_AK47_KKEY))
+                controls_equip(darci, the_player, SPECIAL_AK47);
+            if (input_key_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_KKEY))
+                controls_equip(darci, the_player, SPECIAL_SHOTGUN);
+            if (input_key_just_pressed(ACT_FOOT_WEAPON_GRENADE_KKEY))
+                controls_equip(darci, the_player, SPECIAL_GRENADE);
+            if (input_key_just_pressed(ACT_FOOT_WEAPON_MELEE_KKEY))
+                controls_dpad_select_melee(darci, the_player);
+
+            // Middle mouse = disarm ↔ last weapon (KBM counterpart of R3 click).
+            if (input_mouse_btn_just_pressed(ACT_FOOT_WEAPON_DISARM_MBTN))
+                weapon_disarm_or_last(darci, the_player);
+
+            // Mouse wheel = scroll inventory. Wheel up (dy>0) = previous,
+            // wheel down = next. One step per notch.
+            {
+                const SLONG wheel = input_mouse_wheel_consume();
+                const SBYTE d = (wheel > 0) ? (SBYTE)-1 : (SBYTE)+1;
+                for (SLONG i = 0, n = (wheel < 0 ? -wheel : wheel); i < n; ++i)
+                    weapon_scroll(darci, the_player, d);
+            }
+
+            // Keep the popup open as long as R3 (or middle mouse) is held — the
+            // wheel stays up while browsing, then lingers normally after release.
+            if (r3_held || input_mouse_btn_held(ACT_FOOT_WEAPON_DISARM_MBTN))
+                CONTROLS_inventory_mode = 3000;
+
             if (CONTROLS_inventory_mode) {
-                //				Keys[KB_ENTER] = 0;
+                //				Keys[KKEY_ENTER] = 0;
 
                 // Tick down the panel display in wall-clock milliseconds.
                 // process_controls runs per render frame, but TICK_TOCK is
@@ -1521,20 +1820,21 @@ void process_controls(void)
                 if (CONTROLS_inventory_mode < 0)
                     CONTROLS_inventory_mode = 0;
 
-                if (!ShiftFlag) {
+                //
+                // does the fade in
+                //
+                CONTROLS_new_inventory(darci, the_player);
 
-                    //
-                    // does the fade in
-                    //
-                    CONTROLS_new_inventory(darci, the_player);
-
-                } else {
-                    //
-                    // Shift + Return == Drop current weapon.
-                    //
-                    set_person_gun_away(darci);
-                    drop_current_gun(darci, 1);
-                }
+                // OpenChaos: the original "Shift (while the wheel is open) =
+                // drop current weapon" branch was removed. It was triple-broken:
+                // (1) the ground-drop was dead — set_person_gun_away() clears
+                // GUN_OUT/SpecialUse before drop_current_gun() runs, so nothing
+                // ever spawned; it only holstered to empty hands; (2) it ran
+                // every frame while Shift was held, re-posing Darci → freeze;
+                // (3) it skipped the fade-in, leaving a near-invisible wheel.
+                // In our layout Shift = ACTION (sprint), so "sprint + open
+                // wheel" hit it constantly. Holster/unequip belongs on its own
+                // input (gamepad: D-pad down; keyboard: TODO mirror the pad).
             }
         }
 
@@ -1565,12 +1865,17 @@ void process_controls(void)
         }
     }
 
-    if (!allow_debug_keys)
+    // F1-modifier gate: debug-mode hotkeys below only fire while F1 is held
+    // (in addition to allow_debug_keys being on). Returns when modifier is
+    // NOT active — same effect as the previous `if (!allow_debug_keys)` but
+    // adds the F1-hold requirement that suppresses conflicts with WASD /
+    // E / etc. See input_frame::input_debug_modifier_active().
+    if (!input_debug_modifier_active())
         return;
 
     // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).
     // Gated along with the rest of the debug keys.
-    if (input_key_just_pressed(KB_F12) && ShiftFlag) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_CHEAT_OVERLAY_KKEY) && ShiftFlag) {
         extern UBYTE cheat;
 
         if (cheat) {
@@ -1582,22 +1887,15 @@ void process_controls(void)
 
     // Combat-testing harness (OpenChaos). '-' fewer enemies, '=' more,
     // '\' cycle armament tier. update() keeps the wave topped up.
-    if (input_key_just_pressed(KB_PLUS))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_INC_KKEY))
         combat_test_inc();
-    if (input_key_just_pressed(KB_MINUS))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_DEC_KKEY))
         combat_test_dec();
-    if (input_key_just_pressed(KB_BACKSLASH))
+    if (input_key_just_pressed(ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY))
         combat_test_cycle_armament();
     combat_test_update();
 
-    if (input_mouse_active()) {
-        //
-        // put the mouse in the center of the screen so we can always get a mousedx,mousedy
-        //
-        RecenterMouse();
-    }
-
-    if (input_key_just_pressed(KB_F3)) {
+    if (input_key_just_pressed(ACT_BANG_SAVE_GAME_KKEY)) {
         void save_whole_game(CBYTE * gamename);
         void load_whole_game(CBYTE * gamename);
 
@@ -1612,7 +1910,7 @@ void process_controls(void)
     // debug panel (F11 → panel opens, covers the screen, making it
     // impossible to actually see whether clouds disappeared). Moved to
     // F4 — previously unbound.
-    if (input_key_just_pressed(KB_F4)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_CLOUDS_KKEY)) {
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
             CONSOLE_text("clouds off");
@@ -1640,7 +1938,7 @@ void process_controls(void)
         return;
     }
 
-    if (input_key_just_pressed(KB_TILD)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_DETAIL_LEVEL_KKEY)) {
         if (DETAIL_LEVEL)
             DETAIL_LEVEL = 0;
         else
@@ -1655,7 +1953,7 @@ void process_controls(void)
 
     void set_person_idle(Thing * p_person);
 
-    if (input_key_just_pressed(KB_P)) {
+    if (input_key_just_pressed(ACT_BANG_QUICK_SAVE_GAME_KKEY)) {
         void save_whole_game(CBYTE * gamename);
         save_whole_game("save.me");
     }
@@ -1665,7 +1963,7 @@ void process_controls(void)
     if (!ShiftFlag) {
         // J / I — debug overlay draws (MAV, WAND). Drawn every frame the key
         // is held (continuous overlay), so input_key_held — not just_pressed.
-        if (input_key_held(KB_J)) {
+        if (input_key_held(ACT_BANG_DRAW_MAV_OVERLAY_KKEY)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1674,7 +1972,7 @@ void process_controls(void)
                 mx + 5, mz + 5);
         }
 
-        if (input_key_held(KB_I)) {
+        if (input_key_held(ACT_BANG_DRAW_WAND_OVERLAY_KKEY)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1682,7 +1980,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KB_E)) {
+    if (input_key_just_pressed(ACT_BANG_SPAWN_VEHICLE_KKEY)) {
         SLONG y;
         SLONG index;
 
@@ -1706,9 +2004,9 @@ void process_controls(void)
     // Enter and leave the sewers if Darci does.
     //
 
-    // KB_W: continuous water particle spawn while held (no consume in
+    // KKEY_W: continuous water particle spawn while held (no consume in
     // original) — input_key_held, not just_pressed.
-    if (input_key_held(KB_W)) {
+    if (input_key_held(ACT_BANG_SPAWN_WATER_KKEY)) {
         SLONG px = darci->WorldPos.X >> 8;
         SLONG py = darci->WorldPos.Y >> 8;
         SLONG pz = darci->WorldPos.Z >> 8;
@@ -1746,7 +2044,7 @@ void process_controls(void)
         static UBYTE which_pyro = 0;
         GameCoord posn;
 
-        if (input_key_just_pressed(KB_P7)) {
+        if (input_key_just_pressed(ACT_BANG_PYRO_CYCLE_TYPE_KKEY)) {
             CBYTE* names[] = { "flicker", "ribbon", "explosion", "sparklies", "bonfire", "immolate", "testrib", "firewall", "new sploje", "new dome", "whoomph" };
             which_pyro++;
             if (which_pyro == (sizeof(names) / sizeof(names[0])))
@@ -1754,7 +2052,7 @@ void process_controls(void)
             CONSOLE_text(names[which_pyro], 1500);
         }
 
-        if (input_key_just_pressed(KB_P5)) {
+        if (input_key_just_pressed(ACT_BANG_PYRO_SPAWN_KKEY)) {
             static UBYTE line = 0;
             static GameCoord oldposn = { 0, 0, 0 };
             Thing* pyro;
@@ -1868,7 +2166,7 @@ void process_controls(void)
     {
         static UBYTE dlight = NULL;
 
-        if (input_key_just_pressed(KB_L)) {
+        if (input_key_just_pressed(ACT_BANG_TOGGLE_DIRECTIONAL_LIGHT_KKEY)) {
             if (dlight) {
                 NIGHT_dlight_destroy(dlight);
 
@@ -1904,7 +2202,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KB_P2)) {
+    if (input_key_just_pressed(ACT_BANG_IMMOLATE_CHOPPER_KKEY)) {
         // this is to test immolation of a thing
         if (TO_CHOPPER(1)->ChopperType != CHOPPER_NONE) {
             Thing* pyro;
@@ -1916,7 +2214,7 @@ void process_controls(void)
             pyro->Genus.Pyro->Flags = PYRO_FLAGS_FLICKER;
         }
     }
-    if (input_key_just_pressed(KB_P3)) {
+    if (input_key_just_pressed(ACT_BANG_SPAWN_FIREPOOL_KKEY)) {
         static UBYTE line = 0;
         static GameCoord oldposn = { 0, 0, 0 };
         Thing* pyro;
@@ -1945,7 +2243,7 @@ void process_controls(void)
         }
     }
     static UBYTE smokin = 0;
-    if (input_key_just_pressed(KB_FORESLASH)) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY)) {
         stealth_debug = !stealth_debug;
         if (stealth_debug)
             CONSOLE_text("STEALTH DEBUG MODE ON");
@@ -1953,9 +2251,9 @@ void process_controls(void)
             CONSOLE_text("STEALTH DEBUG MODE OFF");
     }
 
-    // KB_POINT: continuous smoke spawn while held — no consume in original
+    // KKEY_PERIOD: continuous smoke spawn while held — no consume in original
     // (level read fires every frame). input_key_held preserves that.
-    if (input_key_held(KB_POINT)) {
+    if (input_key_held(ACT_BANG_SPAWN_SMOKE_KKEY)) {
         PARTICLE_Add(
             darci->WorldPos.X,
             darci->WorldPos.Y + 0x4000,
@@ -2002,7 +2300,7 @@ void process_controls(void)
         }
     }
 
-    if (input_key_just_pressed(KB_O) && !ShiftFlag) {
+    if (input_key_just_pressed(ACT_BANG_CREATE_OB_KKEY) && !ShiftFlag) {
         OB_create(
             darci->WorldPos.X >> 8,
             darci->WorldPos.Y >> 8,
@@ -2015,7 +2313,7 @@ void process_controls(void)
 
     if (ShiftFlag) {
         static int skill = 0;
-        if (input_key_just_pressed(KB_A)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_FIGHT_THUG_KKEY)) {
             UWORD index;
 
             //
@@ -2046,7 +2344,7 @@ void process_controls(void)
             skill += 2;
         }
 
-        if (input_key_just_pressed(KB_I)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_BODYGUARD_KKEY)) {
             //
             // Create a bodyguard. First we must create a DUD waypoint that
             // pretends it created Darci!
@@ -2076,7 +2374,7 @@ void process_controls(void)
             // remove_thing_from_map(darci);
         }
 
-        if (input_key_just_pressed(KB_J)) {
+        if (input_key_just_pressed(ACT_BANG_DARCI_DANCE_KKEY)) {
             MAV_precalculate();
 
             switch (Random() % 3) {
@@ -2095,9 +2393,9 @@ void process_controls(void)
             darci->Genus.Person->Action = ACTION_SIT_BENCH;
         }
 
-        // KB_Y: continuous fastnav debug overlay while held — no consume in
+        // KKEY_Y: continuous fastnav debug overlay while held — no consume in
         // original (level read fires every frame). input_key_held preserves.
-        if (input_key_held(KB_Y)) {
+        if (input_key_held(ACT_BANG_DRAW_FASTNAV_KKEY)) {
             COLLIDE_debug_fastnav(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Z >> 8);
@@ -2106,7 +2404,7 @@ void process_controls(void)
         // Note: this block is gated by `if (ShiftFlag)` above, so the
         // `&& !ShiftFlag` here is dead code (always false). Pre-existing
         // bug, preserved verbatim — not addressed by input migration.
-        if (input_key_just_pressed(KB_D) && !ShiftFlag) {
+        if (input_key_just_pressed(ACT_BANG_CREATE_NIGHT_SLIGHT_KKEY) && !ShiftFlag) {
             NIGHT_slight_create(
                 (darci->WorldPos.X >> 8),
                 (darci->WorldPos.Y >> 8) + 0x80,
@@ -2121,22 +2419,22 @@ void process_controls(void)
             NIGHT_generate_walkable_lighting();
         }
 
-        if (input_key_just_pressed(KB_D) && ShiftFlag) {
+        if (input_key_just_pressed(ACT_BANG_DEBUGGER_BREAK_KKEY) && ShiftFlag) {
             //
             // shift D to leap into the debugger
             //
             ASSERT(2 + 2 == 5);
         }
 
-        if (input_key_just_pressed(KB_G)) {
+        if (input_key_just_pressed(ACT_BANG_GIVE_GUN_KKEY)) {
             darci->Flags |= FLAGS_HAS_GUN;
         }
 
-        if (input_key_just_pressed(KB_H)) {
+        if (input_key_just_pressed(ACT_BANG_PLAN_VIEW_SHOT_KKEY)) {
             plan_view_shot();
         }
 
-        if (input_key_just_pressed(KB_O)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_CHOPPER_KKEY)) {
             Thing* chopper;
             GameCoord posn;
 
@@ -2148,7 +2446,7 @@ void process_controls(void)
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
         }
 
-        if (input_key_just_pressed(KB_M)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_MINE_AT_MOUSE_KKEY)) {
             //
             // Create a mine at the mouse.
             //
@@ -2159,7 +2457,7 @@ void process_controls(void)
 
             // MouseX/Y are scene-FBO pixels (Stage 6 FBO refactor) — scale
             // into the 640×480 virtual UI canvas that AENG_raytraced_position
-            // expects, mirroring the KB_G "teleport Darci to mouse" handler
+            // expects, mirroring the KKEY_G "teleport Darci to mouse" handler
             // below. Without this, on non-native / non-4:3 windows the mine
             // spawns at the wrong world point.
             float hitx = float(input_mouse_x()) * float(DisplayWidth) / float(ScreenWidth);
@@ -2190,7 +2488,7 @@ void process_controls(void)
         // Shift not held down.
         //
 
-        if (input_key_just_pressed(KB_F12)) {
+        if (input_key_just_pressed(ACT_BANG_SPAWN_ALL_WEAPONS_KKEY)) {
             SLONG wx, wy, wz, dx, dz;
             SLONG angle;
 
@@ -2235,7 +2533,7 @@ void process_controls(void)
             }
         }
 
-        if (input_key_just_pressed(KB_G)) {
+        if (input_key_just_pressed(ACT_BANG_TELEPORT_TO_MOUSE_KKEY)) {
             SLONG world_x;
             SLONG world_y;
             SLONG world_z;
@@ -2277,9 +2575,9 @@ void process_controls(void)
             }
         }
 
-        // KB_U / KB_Q: continuous debug effects while held (no consume in
+        // KKEY_U / KKEY_Q: continuous debug effects while held (no consume in
         // original). input_key_held preserves level-read intent.
-        if (input_key_held(KB_U)) {
+        if (input_key_held(ACT_BANG_HIT_BARREL_KKEY)) {
             BARREL_hit_with_sphere(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Y >> 8,
@@ -2287,7 +2585,7 @@ void process_controls(void)
                 0x80);
         }
 
-        if (input_key_held(KB_Q)) {
+        if (input_key_held(ACT_BANG_DRAW_ROAD_DEBUG_KKEY)) {
             ROAD_debug();
         }
     }

@@ -100,6 +100,7 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/geometry/oval.h"
 #include "game/input_actions_globals.h"
 #include "game/game_tick_globals.h"
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_*
 #include "things/characters/anim_ids.h"
 #include "assets/formats/anim_tmap.h"
 #include "things/core/statedef.h"
@@ -2394,7 +2395,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (input_key_just_pressed(KB_L) && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(ACT_BANG_TOGGLE_OUTSIDE_CAM_KKEY) && ControlFlag && input_debug_modifier_active()) {
         outside ^= 1;
     }
 
@@ -4850,7 +4851,7 @@ void AENG_draw_city()
         AENG_draw_sparks();
     //	ANEG_draw_messages();
 
-    //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
+    //	if (Keys[KKEY_RIGHT_BRACKET] && !ShiftFlag) {Keys[KKEY_RIGHT_BRACKET] = 0; AENG_torch_on ^= UC_TRUE;}
 
     //
     // Draw a torch out of darci...
@@ -5828,11 +5829,11 @@ void AENG_draw_warehouse()
 }
 
 // uc_orig: AENG_screen_shot (fallen/DDEngine/Source/aeng.cpp)
-// Dumps the screen to a TGA file when KB_S is pressed (debug only).
+// Dumps the screen to a TGA file when KKEY_S is pressed (debug only).
 void AENG_screen_shot(void)
 {
-    if (allow_debug_keys)
-        if (input_key_just_pressed(KB_S) || record_video) {
+    if (input_debug_modifier_active())
+        if (input_key_just_pressed(ACT_BANG_SCREENSHOT_KKEY) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;
             }

@@ -7,6 +7,8 @@
 #include "engine/input/weapon_feel.h"
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/input/input_frame.h" // input_key_event_held for active device detection
+#include "engine/input/mouse_globals.h" // MouseRelDX/DY for mouse activity detection
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active — gate the above
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include "game/input_actions_globals.h"
@@ -20,6 +22,33 @@ static constexpr uint16_t DUALSENSE_EDGE_PRODUCT_ID = 0x0DF2;
 static SDL3_GamepadHandle s_gamepad = nullptr;
 static bool s_is_dualsense = false;
 static uint32_t s_consume_mask = 0; // bitmask of button indices to consume until released
+
+// Trigger consume gate. Bit 0 = L2 (trigger_left + rgbButtons[15]),
+// bit 1 = R2 (trigger_right + rgbButtons[16]). Set by
+// gamepad_consume_held_triggers_until_released, cleared per-trigger on
+// the first poll that observes the analog value back below
+// TRIGGER_REST_THRESHOLD_BYTE.
+static uint8_t s_trigger_consume_mask = 0;
+
+// Stick consume gate. Bit 0 = left stick (lX/lY/lX_raw/lY_raw),
+// bit 1 = right stick. Set by gamepad_consume_held_sticks_until_rest,
+// cleared per-stick on the first poll that observes both axes back
+// within STICK_REST_TOLERANCE_RAW of center.
+static uint8_t s_stick_consume_mask = 0;
+
+// Trigger byte threshold for "back to rest" — narrow enough that hardware
+// noise on a fully released trigger doesn't hold the gate open, wide
+// enough that the user doesn't have to slam the trigger to 0 to clear it.
+// ~6% of 255. Independent of the digital-press threshold (8000 / 32767 in
+// SDL units ≈ byte 62) because release-detection only needs to confirm
+// the user genuinely let go, not full deflection.
+static constexpr uint8_t TRIGGER_REST_THRESHOLD_BYTE = 16;
+
+// Stick raw tolerance around center (32768) for "back to rest" — matches
+// the gameplay NOISE_TOLERANCE in get_hardware_input (input_actions.cpp)
+// so the gate releases at the same slop level gameplay already ignores.
+static constexpr int STICK_REST_TOLERANCE_RAW = 8192;
+static constexpr int STICK_RAW_CENTER         = 32768;
 
 // PS1-style motor state (maximum tracking + per-tick decay).
 // uc_orig: psx_motor[2] (fallen/psxlib/Source/GDisplay.cpp)
@@ -133,12 +162,22 @@ static bool poll_dualsense()
         s_is_dualsense = false;
         gamepad_state.connected = (s_gamepad != nullptr);
         if (!gamepad_state.connected) {
-            // Reset axes to centre (32768) so downstream code doesn't see phantom input.
+            // Reset axes to centre (32768) so downstream code doesn't see
+            // phantom input. BOTH cooked (lX/lY/rX/rY) and raw (lX_raw etc)
+            // must be set — raw fields are read by input_frame_update for
+            // virtual stick directions (input_stick_held), and raw=0 (from
+            // memset) decodes as full-left/up deflection. Missing the _raw
+            // reset caused menu nav to auto-cycle UP/LEFT after gamepad
+            // disconnect while in a menu.
             memset(&gamepad_state, 0, sizeof(gamepad_state));
-            gamepad_state.lX = 32768;
-            gamepad_state.lY = 32768;
-            gamepad_state.rX = 32768;
-            gamepad_state.rY = 32768;
+            gamepad_state.lX = STICK_RAW_CENTER;
+            gamepad_state.lY = STICK_RAW_CENTER;
+            gamepad_state.rX = STICK_RAW_CENTER;
+            gamepad_state.rY = STICK_RAW_CENTER;
+            gamepad_state.lX_raw = STICK_RAW_CENTER;
+            gamepad_state.lY_raw = STICK_RAW_CENTER;
+            gamepad_state.rX_raw = STICK_RAW_CENTER;
+            gamepad_state.rY_raw = STICK_RAW_CENTER;
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
         }
         debug_log_backend("ds_disconnected");
@@ -184,8 +223,9 @@ static bool poll_dualsense()
             gamepad_state.lY = 65535;
     }
 
-    // Map to rgbButtons[] — same indices as SDL3 path for compatibility with
-    // joypad_button_use[] mapping in input_actions.cpp.
+    // Map to rgbButtons[] — same indices as SDL3 path. Consumers read these
+    // button indices directly (see hardcoded indices in input_actions.cpp and
+    // input_frame_*).
     memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
     if (ds.cross)
         gamepad_state.rgbButtons[0] = 0x80; // SDL3_BTN_SOUTH
@@ -295,12 +335,18 @@ static void poll_sdl3()
                 s_gamepad = nullptr;
                 if (!s_is_dualsense) {
                     gamepad_state.connected = false;
-                    // Reset axes to centre so downstream code doesn't see phantom input.
+                    // Reset axes to centre so downstream code doesn't see
+                    // phantom input. See the DualSense disconnect branch
+                    // above for why both cooked AND raw fields must be set.
                     memset(&gamepad_state, 0, sizeof(gamepad_state));
-                    gamepad_state.lX = 32768;
-                    gamepad_state.lY = 32768;
-                    gamepad_state.rX = 32768;
-                    gamepad_state.rY = 32768;
+                    gamepad_state.lX = STICK_RAW_CENTER;
+                    gamepad_state.lY = STICK_RAW_CENTER;
+                    gamepad_state.rX = STICK_RAW_CENTER;
+                    gamepad_state.rY = STICK_RAW_CENTER;
+                    gamepad_state.lX_raw = STICK_RAW_CENTER;
+                    gamepad_state.lY_raw = STICK_RAW_CENTER;
+                    gamepad_state.rX_raw = STICK_RAW_CENTER;
+                    gamepad_state.rY_raw = STICK_RAW_CENTER;
                     active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
                 }
                 debug_log_backend("sdl3_disconnected");
@@ -393,6 +439,24 @@ void gamepad_poll()
         }
     }
 
+    // Mouse motion counts as keyboard+mouse activity too (mouse is not a
+    // separate device from the keyboard's perspective — together they
+    // form the KEYBOARD_MOUSE input source). Peek at the accumulated
+    // relative delta without consuming it: the mouse-camera consumer
+    // does the consume later in the same frame.
+    //
+    // Gated on mouse_capture_is_active(): while the game is paused
+    // (ESC menu open), the mouse-camera input block is disabled and no
+    // longer consumes MouseRelDX/DY, so any cursor motion in the menu
+    // accumulates indefinitely. Without this gate, that accumulation
+    // would keep flipping active_input_device back to KEYBOARD_MOUSE
+    // every poll even while the player is using the gamepad, which
+    // disables the gamepad-specific convergence and other branches
+    // downstream.
+    if (mouse_capture_is_active() && (MouseRelDX != 0 || MouseRelDY != 0)) {
+        active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
+    }
+
     // Always scan for DualSense connect/disconnect (registry has 1s internal cooldown).
     ds_poll_registry(s_last_poll_delta);
 
@@ -453,6 +517,57 @@ void gamepad_poll()
                     s_consume_mask &= ~(1u << i);
                 }
             }
+        }
+    }
+
+    // Consume triggers marked by gamepad_consume_held_triggers_until_released.
+    // While armed, zero both the analog value AND the digital-threshold
+    // flag (rgbButtons[15/16]) so input_trigger / input_trigger_raw /
+    // input_btn_held(GBTN_L2_DIGITAL / GBTN_R2_DIGITAL) all read 0.
+    if (s_trigger_consume_mask & 0x01) {
+        if (gamepad_state.trigger_left > TRIGGER_REST_THRESHOLD_BYTE) {
+            gamepad_state.trigger_left = 0;
+            gamepad_state.rgbButtons[15] = 0;
+        } else {
+            s_trigger_consume_mask &= ~0x01;
+        }
+    }
+    if (s_trigger_consume_mask & 0x02) {
+        if (gamepad_state.trigger_right > TRIGGER_REST_THRESHOLD_BYTE) {
+            gamepad_state.trigger_right = 0;
+            gamepad_state.rgbButtons[16] = 0;
+        } else {
+            s_trigger_consume_mask &= ~0x02;
+        }
+    }
+
+    // Consume sticks marked by gamepad_consume_held_sticks_until_rest.
+    // While armed, scrub both processed (lX/lY/rX/rY) and raw
+    // (lX_raw/lY_raw/rX_raw/rY_raw) values to center so every reader sees
+    // a centered stick. Clear the gate as soon as both axes are observed
+    // within the rest tolerance.
+    auto axis_at_rest = [](int raw) {
+        const int delta = raw - STICK_RAW_CENTER;
+        return delta >= -STICK_REST_TOLERANCE_RAW && delta <= STICK_REST_TOLERANCE_RAW;
+    };
+    if (s_stick_consume_mask & 0x01) {
+        if (axis_at_rest(gamepad_state.lX_raw) && axis_at_rest(gamepad_state.lY_raw)) {
+            s_stick_consume_mask &= ~0x01;
+        } else {
+            gamepad_state.lX = STICK_RAW_CENTER;
+            gamepad_state.lY = STICK_RAW_CENTER;
+            gamepad_state.lX_raw = STICK_RAW_CENTER;
+            gamepad_state.lY_raw = STICK_RAW_CENTER;
+        }
+    }
+    if (s_stick_consume_mask & 0x02) {
+        if (axis_at_rest(gamepad_state.rX_raw) && axis_at_rest(gamepad_state.rY_raw)) {
+            s_stick_consume_mask &= ~0x02;
+        } else {
+            gamepad_state.rX = STICK_RAW_CENTER;
+            gamepad_state.rY = STICK_RAW_CENTER;
+            gamepad_state.rX_raw = STICK_RAW_CENTER;
+            gamepad_state.rY_raw = STICK_RAW_CENTER;
         }
     }
 
@@ -907,5 +1022,38 @@ void gamepad_consume_until_released(uint8_t button_index)
 {
     if (button_index < 32) {
         s_consume_mask |= (1u << button_index);
+    }
+}
+
+void gamepad_consume_all_held_buttons_until_released()
+{
+    for (int i = 0; i < 32; i++) {
+        if (gamepad_state.rgbButtons[i]) {
+            s_consume_mask |= (1u << i);
+        }
+    }
+}
+
+void gamepad_consume_held_triggers_until_released()
+{
+    if (gamepad_state.trigger_left > TRIGGER_REST_THRESHOLD_BYTE) {
+        s_trigger_consume_mask |= 0x01;
+    }
+    if (gamepad_state.trigger_right > TRIGGER_REST_THRESHOLD_BYTE) {
+        s_trigger_consume_mask |= 0x02;
+    }
+}
+
+void gamepad_consume_held_sticks_until_rest()
+{
+    auto axis_at_rest = [](int raw) {
+        const int delta = raw - STICK_RAW_CENTER;
+        return delta >= -STICK_REST_TOLERANCE_RAW && delta <= STICK_REST_TOLERANCE_RAW;
+    };
+    if (!axis_at_rest(gamepad_state.lX_raw) || !axis_at_rest(gamepad_state.lY_raw)) {
+        s_stick_consume_mask |= 0x01;
+    }
+    if (!axis_at_rest(gamepad_state.rX_raw) || !axis_at_rest(gamepad_state.rY_raw)) {
+        s_stick_consume_mask |= 0x02;
     }
 }

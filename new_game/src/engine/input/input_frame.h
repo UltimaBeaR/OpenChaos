@@ -45,8 +45,8 @@ bool input_key_just_released(SLONG kb_code);
 // key-up event immediately, without waiting for the next
 // input_frame_update() snapshot. Use ONLY from inside SDL event handlers
 // where the just-applied event must be visible to subsequent code in the
-// same call (e.g. keyboard.cpp::SetFlagsFromKeyArray recomputing
-// ShiftFlag/ControlFlag/AltFlag). Most consumers should use
+// same call (e.g. keyboard.cpp::update_modifier_flags recomputing
+// ShiftFlag/ControlFlag). Most consumers should use
 // input_key_held instead — it's snapshot-stable across the frame and
 // won't see mid-frame state flips.
 bool input_key_event_held(SLONG kb_code);
@@ -68,6 +68,15 @@ void input_key_consume(SLONG kb_code);
 // normally — synthesis only suppresses CURRENT held-state, not future presses.
 void input_key_force_release(SLONG kb_code);
 
+// Mark all keys currently event-held (i.e. pressed by SDL key-down with
+// no matching key-up yet) to be ignored until they physically release.
+// While armed, input_key_held / input_key_just_pressed / input_key_press_pending
+// all return false for the key, and the underlying snapshot is forced to 0.
+// Auto-clears on the next snapshot where event_held has fallen back to 0
+// (SDL key-up arrived). Use when closing a UI overlay so a key held into
+// gameplay doesn't fire as a fresh press in the first gameplay tick.
+void input_keyboard_consume_all_held_until_released();
+
 // Returns the scancode of the most recent SDL key-down event since the
 // last input_last_key_consume(). Returns 0 if no press is pending.
 //
@@ -77,22 +86,6 @@ void input_key_force_release(SLONG kb_code);
 // input_key_just_pressed which is per-key edge-detect.
 UBYTE input_last_key();
 void input_last_key_consume();
-
-// Synthesise a key-press event for the current frame from non-hardware
-// sources. Sets curr / event_held / pressed_during_frame / press_pending
-// for the given scancode immediately so subsequent reads in the SAME frame
-// see the press (just_pressed/held/press_pending all return true).
-//
-// Use ONLY for internal synthetic-input channels — currently the
-// gamepad→keyboard bridge in widget.cpp::FORM_KeyProc and
-// gamemenu.cpp's ESC bridge, where a controller button must drive a
-// keyboard handler that reads via input_key_just_pressed.
-//
-// Does NOT update input_last_key (synthetic presses must not look like
-// real keyboard presses for text-input consumers).
-//
-// Hardware events go through input_frame_on_key_down, NOT this function.
-void input_frame_inject_key_press(SLONG kb_code);
 
 // ---- Gamepad buttons --------------------------------------------------------
 // btn_idx = index into gamepad_state.rgbButtons[] (0..31).
@@ -124,19 +117,16 @@ void input_btn_consume(SLONG btn_idx);
 bool input_key_just_pressed_or_repeat(SLONG kb_code);
 bool input_btn_just_pressed_or_repeat(SLONG btn_idx);
 
-// ---- Stick virtual directions (Phase 2 — currently stubbed) ----------------
+// ---- Stick virtual directions ----------------------------------------------
+//
+// Stick id and direction are passed as `int` — values come from the
+// GAXIS_LEFT / GAXIS_RIGHT and GDIR_UP / DOWN / LEFT / RIGHT constants in
+// game/action_map/input_codes.h. Was an `enum InputStickId / InputStickDir`
+// pair; replaced with a typedef because the #defines in input_codes.h now own
+// the names (which keeps the action-map device-code list authoritative).
 
-enum InputStickId {
-    INPUT_STICK_LEFT = 0,
-    INPUT_STICK_RIGHT,
-};
-
-enum InputStickDir {
-    INPUT_STICK_DIR_UP = 0,
-    INPUT_STICK_DIR_DOWN,
-    INPUT_STICK_DIR_LEFT,
-    INPUT_STICK_DIR_RIGHT,
-};
+using InputStickId  = int;
+using InputStickDir = int;
 
 bool input_stick_held(InputStickId stick, InputStickDir dir);
 bool input_stick_just_pressed(InputStickId stick, InputStickDir dir);
@@ -150,30 +140,64 @@ bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir);
 float input_stick_x(InputStickId stick);
 float input_stick_y(InputStickId stick);
 
+// In-game stick deadzone in RAW units (distance from center 32768), from the
+// gamepad.gameplay_stick_deadzone config fraction (0..1). Used by get_hardware_input
+// as the movement/aim deadzone. Menu navigation has its own (larger) threshold
+// configured separately via gamepad.menu_stick_deadzone.
+int input_gameplay_deadzone_raw();
+
 // ---- Triggers ---------------------------------------------------------------
 // trigger_idx: 15 = L2, 16 = R2 (matches rgbButtons indices for digital path).
 // Returns float [0.0, 1.0].
 
 float input_trigger(SLONG trigger_idx);
 
-// ---- Mouse ------------------------------------------------------------------
-// Wrappers around the mouse_globals state (MouseDX/MouseDY/LeftButton/etc.)
-// filled by mouse.cpp from SDL3 events. Single source of truth for mouse
-// reads in game/UI code so consumers don't touch mouse_globals directly.
-//
-// mouse-input flag (input_mouse_active): legacy `mouse_input` global —
-// non-zero when the mouse is the active input source for character look /
-// movement (toggled by config). Consumer-side gate; mouse_globals always
-// receives events regardless of this flag.
+// ---- Mouse buttons ----------------------------------------------------------
+// mbtn_idx = MBTN_LEFT / MBTN_MIDDLE / MBTN_RIGHT (0/1/2). Wired from SDL
+// mouse-button events in host.cpp::on_mouse_button — only events that occur
+// AFTER mouse capture is engaged are forwarded; the engagement click itself
+// is consumed by mouse_capture_on_button and never reaches input_frame.
+// On capture disengage (UI overlay open, focus loss), held buttons are
+// scrubbed by input_consume_all_held_until_released so they don't leak
+// across the transition.
 
-bool input_mouse_active();
-SLONG input_mouse_dx();
-SLONG input_mouse_dy();
+bool input_mouse_btn_held(SLONG mbtn_idx);
+bool input_mouse_btn_just_pressed(SLONG mbtn_idx);
+bool input_mouse_btn_just_released(SLONG mbtn_idx);
+
+// Sticky: was there a rising edge since the last consume? Same semantics as
+// input_btn_press_pending for the gamepad.
+bool input_mouse_btn_press_pending(SLONG mbtn_idx);
+void input_mouse_btn_consume(SLONG mbtn_idx);
+
+// Read and reset the accumulated vertical wheel-scroll notches since the last
+// consume. > 0 = net scroll up (away from user), < 0 = net scroll down. One
+// notch is typically ±1. Consume-based, so call it once per frame where you
+// act on scroll.
+SLONG input_mouse_wheel_consume();
+
+// ---- Mouse motion / position ------------------------------------------------
+// Wrappers around mouse_globals (cursor position) filled by mouse.cpp from
+// SDL3 events. Single source of truth for mouse reads.
+
 // Cursor position in scene-FBO pixel coordinates (post-composition mapping).
 SLONG input_mouse_x();
 SLONG input_mouse_y();
-// btn_idx: 0 = left, 1 = right, 2 = middle (matches mouse_on_button order).
-bool input_mouse_button_held(SLONG btn_idx);
+
+// Read and reset the accumulated relative mouse-motion delta. Window-
+// pixel units, signed. Call once per tick from the camera (or any other
+// per-frame consumer); subsequent calls within the same tick return 0
+// until the next mouse event fires. Consumers MUST gate this on
+// mouse_capture_is_active() — when capture is off the delta is OS
+// cursor motion, not gameplay input.
+void input_mouse_consume_rel(SLONG* out_dx, SLONG* out_dy);
+
+// Drop the accumulated mouse relative-motion delta on the floor. Same as
+// input_mouse_consume_rel but discards the value. Use when closing a UI
+// overlay so motion that accumulated while mouse capture was off
+// (overlay open) doesn't fire as one big camera swing on the first
+// gameplay tick after capture re-engages.
+void input_mouse_drain_rel();
 
 // ---- Raw axis / trigger / connection accessors -----------------------------
 // Lower-level wrappers around gamepad_state for callers that need integer /
@@ -200,9 +224,9 @@ bool input_dpad_active();
 //   - Level-trigger digital movement flags (LEFT/RIGHT/FORWARDS/BACKWARDS)
 //     where the same threshold applies for both stick and D-Pad-as-stick.
 // Distinct from input_stick_x/y (float -1..1, deadzone applied — for
-// proportional movement) and from input_stick_held (pre-override raw + 4096
-// menu threshold — for menu nav where stick + D-Pad must be independent
-// signals for antagonist suppression).
+// proportional movement) and from input_stick_held (pre-override raw + the
+// configurable menu threshold, gamepad.menu_stick_deadzone — for menu nav where
+// stick + D-Pad must be independent signals for antagonist suppression).
 int input_stick_x_axis(InputStickId stick);
 int input_stick_y_axis(InputStickId stick);
 
@@ -241,8 +265,8 @@ int input_trigger_raw(SLONG trigger_idx);
 //
 //   static InputAutoRepeat ar_down;
 //   bool nav_down = ar_down.tick_combined(
-//       input_key_held(KB_DOWN)
-//    || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN));
+//       input_key_held(KKEY_DOWN)
+//    || input_stick_held(GAXIS_LEFT, GDIR_DOWN));
 struct InputAutoRepeat {
     bool     was_held  = false;
     bool     armed     = false;
@@ -266,16 +290,88 @@ struct InputAutoRepeat {
     // before-context input doesn't fire on first call (any_just_pressed is
     // false because no rising edge happened in this frame's snapshot).
     bool tick_combined(bool any_just_pressed, bool any_held);
+
+    // Same, but with caller-chosen cadence (ms) instead of the shared menu
+    // default — for consumers that want a faster/slower repeat (e.g. holding a
+    // key to scroll text). initial_ms = delay before the first auto-repeat after
+    // the rising edge; period_ms = gap between subsequent repeats.
+    bool tick_combined(bool any_just_pressed, bool any_held,
+                       uint64_t initial_ms, uint64_t period_ms);
 };
+
+// Drop every sticky press_pending flag (keyboard + gamepad) at once. Use
+// at a transition where stale press_pending from before the transition
+// must not leak into post-transition consumers — e.g. on pause-menu open
+// (so a Cross press the player made to jump just before opening pause
+// doesn't immediately surface to the menu as Resume) and at the moment
+// the pause slowdown ramp completes (so any press the player made during
+// the ramp doesn't carry into the now-active menu).
+//
+// Unlike input_consume_all_held_until_released this does NOT scrub
+// gamepad_state — held buttons / triggers / sticks pass through to
+// gameplay as normal, so the slowdown ramp animation is not interrupted.
+void input_drain_all_press_pending();
+
+// ---- Bulk consume after UI overlay close -----------------------------------
+// One-shot helper that arms wait-for-release / wait-for-rest on every
+// currently active input source AND drains the mouse delta:
+//
+//   - keyboard keys held when called (input_keyboard_consume_all_held_until_released)
+//   - gamepad buttons currently down (gamepad_consume_all_held_buttons_until_released)
+//   - gamepad triggers above the rest threshold (gamepad_consume_held_triggers_until_released)
+//   - gamepad sticks deflected beyond the rest tolerance (gamepad_consume_held_sticks_until_rest)
+//   - accumulated mouse relative motion (input_mouse_drain_rel)
+//
+// Call when a UI overlay (pause menu, mission won/lost, "are you sure?")
+// closes back to gameplay so nothing held into the overlay leaks into
+// the first gameplay tick. Each gated source clears its own gate when
+// the hardware reports it back to rest — the user has to physically
+// release and re-press to fire a fresh gameplay action.
+void input_consume_all_held_until_released();
 
 // ---- Internal: SDL event hooks ---------------------------------------------
 // Called from keyboard event handlers. Maintain an independent held-state
 // array driven only by these events, decoupled from the public Keys[] array
-// which consumers may mutate (e.g. menu handlers clearing Keys[KB_X] = 0
+// which consumers may mutate (e.g. menu handlers clearing Keys[KKEY_X] = 0
 // after consume). Without that decoupling, a consumer's clear leaks into
 // the next frame's snapshot and breaks auto-repeat for held keys.
 
 void input_frame_on_key_down(UBYTE scancode);
 void input_frame_on_key_up(UBYTE scancode);
+
+// Called from host.cpp::on_mouse_button after mouse_capture_on_button has
+// declined to consume the click. button is in MBTN_LEFT/MIDDLE/RIGHT (0/1/2).
+void input_frame_on_mouse_button_down(SLONG mbtn_idx);
+void input_frame_on_mouse_button_up(SLONG mbtn_idx);
+// Called from host.cpp::on_mouse_wheel. dy is the SDL wheel delta (notches),
+// > 0 = up/away, < 0 = down/toward.
+void input_frame_on_mouse_wheel(SLONG dy);
+
+// ---- Debug modifier / gameplay gating ---------------------------------------
+//
+// In `bangunsnotgames` debug mode, the player holds F1 as the global debug
+// modifier. F1 doubles as the help-legend trigger: held alone (no other
+// key pressed) it shows the overlay for 5 seconds; F1+key fires a debug
+// action and the overlay auto-hides on the first non-F1 keypress.
+//
+// While F1 is held in debug mode:
+//   - ALL bangunsnotgames hotkeys fire only on F1+key (suppresses individual
+//     conflicts with WASD/E/S/D/Tab/1-8/etc.)
+//   - Gameplay input is suppressed at every entry point — so pressing W
+//     during F1-hold doesn't make Darci move forward AND spawn water
+//     particles at the same time.
+//
+// input_debug_modifier_active() — true when F1 is held AND debug mode is on.
+// Used at each `if (allow_debug_keys && ...)` call site (replaces the bare
+// allow_debug_keys check). Same one-stop helper everywhere.
+//
+// input_gameplay_enabled() — opposite gate for gameplay-input call sites.
+// Currently just `!input_debug_modifier_active()`, but designed as a single
+// future-proof gate: if other "suppress gameplay" conditions ever arise
+// (modal dialog open, cutscene driving the camera, etc.) they extend this
+// helper, no per-site edit needed.
+
+bool input_debug_modifier_active();
+bool input_gameplay_enabled();
 
 #endif // ENGINE_INPUT_INPUT_FRAME_H

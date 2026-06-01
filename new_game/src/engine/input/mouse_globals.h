@@ -3,45 +3,21 @@
 
 #include "engine/core/types.h"
 
-// uc_orig: LastMouse (MFStdLib/Headers/StdMouse.h)
-struct LastMouse {
-    SLONG ButtonState,
-        MouseX,
-        MouseY;
-    MFPoint MousePoint;
-};
-
-// Public mouse state.
-
-// uc_orig: MouseMoved (MFStdLib/Headers/StdMouse.h)
-extern volatile UBYTE MouseMoved;
-// uc_orig: LeftButton (MFStdLib/Headers/StdMouse.h)
-extern volatile UBYTE LeftButton;
-// uc_orig: MiddleButton (MFStdLib/Headers/StdMouse.h)
-extern volatile UBYTE MiddleButton;
-// uc_orig: RightButton (MFStdLib/Headers/StdMouse.h)
-extern volatile UBYTE RightButton;
-// uc_orig: MouseX (MFStdLib/Headers/StdMouse.h)
+// Cursor position in scene-FBO pixel coordinates. Updated on every SDL3
+// mouse-motion event regardless of whether the cursor is captured —
+// captured-mode reads infinite relative motion, but the last known
+// absolute FBO position stays available here (used by debug mine-spawn
+// and teleport-to-cursor under the bangunsnotgames gate).
 extern volatile SLONG MouseX;
-// uc_orig: MouseY (MFStdLib/Headers/StdMouse.h)
 extern volatile SLONG MouseY;
-// uc_orig: LeftMouse (MFStdLib/Headers/StdMouse.h)
-extern volatile LastMouse LeftMouse;
-// uc_orig: MiddleMouse (MFStdLib/Headers/StdMouse.h)
-extern volatile LastMouse MiddleMouse;
-// uc_orig: RightMouse (MFStdLib/Headers/StdMouse.h)
-extern volatile LastMouse RightMouse;
-// uc_orig: MousePoint (MFStdLib/Headers/StdMouse.h)
-extern volatile MFPoint MousePoint;
 
-// uc_orig: MouseDX (fallen/DDLibrary/Source/GMouse.cpp)
-extern volatile SLONG MouseDX;
-// uc_orig: MouseDY (fallen/DDLibrary/Source/GMouse.cpp)
-extern volatile SLONG MouseDY;
-
-// uc_orig: OldMouseX (fallen/DDLibrary/Source/GMouse.cpp)
-extern SLONG OldMouseX;
-// uc_orig: OldMouseY (fallen/DDLibrary/Source/GMouse.cpp)
-extern SLONG OldMouseY;
+// Accumulated relative motion delta since the last consumer read.
+// Updated by every SDL3 mouse-motion event (independent of capture state
+// or position). Consumers (mouse camera) call input_mouse_consume_rel()
+// each tick — that function reads and resets the accumulator atomically
+// from the consumer's perspective. Window-pixel units; mouse-driven
+// camera scales by its own sensitivity constants.
+extern volatile SLONG MouseRelDX;
+extern volatile SLONG MouseRelDY;
 
 #endif // ENGINE_INPUT_MOUSE_GLOBALS_H

@@ -142,6 +142,15 @@ SLONG turn_to_target_and_punch(Thing* p_person);
 // uc_orig: turn_to_target_and_kick (fallen/Source/Combat.cpp)
 SLONG turn_to_target_and_kick(Thing* p_person);
 
+// OpenChaos: pre-attack camera-cone auto-aim. Called right before the
+// player's R1/R2 forward attack starts -- if there is an enemy inside
+// a narrow cone around the camera ray, re-target onto the closest
+// one. snap_body == 1 also snaps Darci's facing to that target
+// (fresh attacks from IDLE); 0 leaves the angle alone (mid-combo
+// requests, where aim_at_victim handles smooth turning).
+// uc_orig: none -- new for OpenChaos.
+void player_pick_attack_target_by_camera(Thing* p_person, SLONG snap_body);
+
 // Scans the grapples[] table and executes the best grapple move if valid target is found.
 // Returns 1 on success, 0 if no valid target.
 // uc_orig: find_best_grapple (fallen/Source/Combat.cpp)

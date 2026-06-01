@@ -1,0 +1,242 @@
+#ifndef GAME_ACTION_MAP_ACT_FOOT_H
+#define GAME_ACTION_MAP_ACT_FOOT_H
+
+// =============================================================================
+// ACT_FOOT_* — action constants for gameplay on foot: movement, attacks, jump,
+// camera, inventory, weapon switching, first-person aim, global gameplay
+// hotkeys (F9 → open dev console).
+//
+// ESC → open pause menu lives in act_menu.h (ACT_MENU_TOGGLE_PAUSE_*) — it's
+// a menu-context action triggered from gameplay, the menu owns the binding.
+//
+// Analog stick axes ARE wrapped in ACT_*_GAXIS constants (below): the ACT
+// constant is passed as the stick-id argument to input_stick_x_axis /
+// input_stick_y_axis, so a rebind is one edit and every reaction site is
+// found by searching the ACT name.
+//
+// Mouse motion is read by the single paramless call input_mouse_consume_rel
+// (dx+dy at once) — no per-axis argument to bind, so it has no ACT_*_MAXIS
+// constant; it's documented in prose at the camera-look section below. The L2
+// trigger is read via input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG).
+//
+// Naming rules, prefix table, suffix table → see
+//   new_game_devlog/input_system/action_map/rules.md
+// Step plan (this header is populated in step 3c.5) → see
+//   new_game_devlog/input_system/action_map/plan.md
+//
+// Device codes used as values (KKEY_*, GBTN_*, GTRIG_*, MAXIS_*, ...) live in
+//   new_game/src/game/action_map/input_codes.h
+// =============================================================================
+
+#include "game/action_map/input_codes.h"
+
+// ---- Movement (keyboard analog-emulation via WASD; gamepad analog left stick)
+// WASD on keyboard emulates the gamepad left stick: each key held = full
+// deflection in one cardinal direction, two keys together (e.g. W+D) clamp
+// to unit-circle magnitude (45° diagonals). Actual analog-emulation path is
+// implemented in get_hardware_input — see TODO step 7 in
+// new_game_devlog/input_system/keyboard_mouse_layout.md.
+//
+// Old "tanky" arrow-key controls (↑↓ = fwd/back digital, ←→ = tank turn) are
+// preserved as commented-out aliases below — if anyone ever wants to bring
+// them back as an opt-in setting for fans of the original UC PC control
+// scheme. Not on the roadmap; just keeping the reference handy.
+
+constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_W;
+constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_S;
+constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_A;
+constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
+
+// Gamepad left stick = analog on-foot movement (direction + magnitude).
+// Passed as the stick-id arg to input_stick_x_axis_raw / input_stick_y_axis_raw
+// in input_actions.cpp::get_hardware_input (packs into the movement word) and
+// in the STATE_DANGLING side-step classifier.
+constexpr int ACT_FOOT_MOVE_GAXIS = GAXIS_LEFT;
+
+// On-foot movement-intent vector, read back from the packed input word via
+// input_virtual_axis(input, ...) — device-agnostic (gamepad stick OR WASD,
+// see VAXIS_* in input_codes.h). X = horizontal (turn / lateral / strafe /
+// char-relative), Y = forward / back. Consumed across input_actions.cpp
+// (movement angle, turning, char-rel-forward, side-step classifier) and the
+// combat grapple-forward check in combat.cpp.
+constexpr int ACT_FOOT_MOVE_X_VAXIS = VAXIS_X;
+constexpr int ACT_FOOT_MOVE_Y_VAXIS = VAXIS_Y;
+
+// Tanky-arrow legacy — kept commented here in case anyone wants to wire
+// the old PC control scheme back as an opt-in setting later. Not on the
+// roadmap.
+// constexpr int ACT_FOOT_MOVE_TANK_FORWARD_KKEY  = KKEY_UP;
+// constexpr int ACT_FOOT_MOVE_TANK_BACKWARD_KKEY = KKEY_DOWN;
+// constexpr int ACT_FOOT_MOVE_TANK_TURN_LEFT_KKEY  = KKEY_LEFT;
+// constexpr int ACT_FOOT_MOVE_TANK_TURN_RIGHT_KKEY = KKEY_RIGHT;
+
+// ---- Combat: punch / kick / action / jump ----------------------------------
+// PUNCH: LMB (mouse) + analog R2 trigger via weapon_feel. KKEY binding
+// removed (was Z) — punch is mouse-only on keyboard layout.
+// KICK: RMB (mouse) + gamepad R1. KKEY binding removed (was X).
+// The old single ACTION button was split into three (OpenChaos):
+//   SPRINT  — hold while running to sprint. Keyboard Left Shift / gamepad Circle.
+//   STEALTH — hold to crouch (stealth pose). Keyboard C / gamepad Triangle.
+//   USE     — the interaction multitool (get in/out of vehicle, pick up, search,
+//             arrest, levers, grapple, ...). Keyboard F / gamepad Square.
+// SPRINT keeps Circle's widget-CANCEL role (back out of in-game forms).
+// JUMP: keyboard SPACE + Cross/A.
+
+constexpr int ACT_FOOT_SPRINT_KKEY  = KKEY_LEFT_SHIFT;
+constexpr int ACT_FOOT_STEALTH_KKEY = KKEY_C;
+constexpr int ACT_FOOT_USE_KKEY     = KKEY_F;
+constexpr int ACT_FOOT_JUMP_KKEY    = KKEY_SPACE;
+
+constexpr int ACT_FOOT_JUMP_GBTN    = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_FOOT_SPRINT_GBTN  = GBTN_EAST;  // DS: Circle, Xbox: B
+constexpr int ACT_FOOT_STEALTH_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
+constexpr int ACT_FOOT_USE_GBTN     = GBTN_WEST;  // DS: Square, Xbox: X
+constexpr int ACT_FOOT_KICK_GBTN    = GBTN_R1;    // DS: R1, Xbox: RB
+
+// Analog R2 trigger drives the punch / shoot path (weapon_feel). Read as
+// input_trigger_raw(GTRIG_R2) inside get_hardware_input.
+constexpr int ACT_FOOT_PUNCH_GTRIG = GTRIG_R2;
+
+// Mouse-button bindings for combat. LMB = punch (R2 trigger equivalent),
+// RMB = kick (R1 equivalent). Read via input_mouse_btn_held in
+// get_hardware_input. Mouse events only reach input_frame after mouse
+// capture is engaged (gating in host.cpp::on_mouse_button) — so clicks
+// in menus or while alt-tabbed do not register as gameplay actions.
+constexpr int ACT_FOOT_PUNCH_MBTN = MBTN_LEFT;
+constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
+
+// ---- L2 tactical mode (slow-walk + rolls) ----------------------------------
+// L2 analog trigger engages tactical mode (slow walk + ✕ does rolls / backflips
+// inside a 600 ms tap window). Read as input_trigger_raw(GTRIG_L2) with
+// ~10% engage / ~5% release hysteresis.
+//
+// Keyboard equivalent: Left Ctrl held = full engagement (treated as L2 at
+// 255). The tactical-mode state machine itself currently lives inside the
+// gamepad-connected branch of get_hardware_input — pulling it out so keyboard
+// players get full tactical-mode (slow walk + rolls/backflips with WASD as
+// direction source) is deferred (see keyboard_mouse_layout.md "что делаем
+// в конце").
+
+constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
+constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
+
+// ---- Weapon: disarm / last-weapon + inventory scroll (R3 / MMB / wheel) ----
+// R3 (gamepad) and middle mouse (KBM) toggle disarm ↔ last weapon. R3 also acts
+// as a modifier: holding R3 + D-pad ↑/↓ scrolls the inventory popup (and then
+// the R3 release does NOT fire disarm — see process_controls). Mouse wheel
+// scrolls the popup directly. INPUT_MASK_SELECT is still set from R3/Tab hold in
+// get_hardware_input for the car-siren / cutscene-skip / map-quit paths.
+// All read in game_tick.cpp::process_controls.
+
+constexpr int ACT_FOOT_INVENTORY_KKEY      = KKEY_TAB;      // legacy SELECT mask (car/map/skip)
+constexpr int ACT_FOOT_INVENTORY_GBTN      = GBTN_R3;       // DS: R3, Xbox: RSB
+constexpr int ACT_FOOT_WEAPON_DISARM_MBTN  = MBTN_MIDDLE;   // disarm ↔ last weapon (KBM)
+
+// ---- Weapon select: keyboard digit hotkeys + Tab melee ---------------------
+// Direct weapon switch (1..4) + Tab = melee toggle (fist ↔ bat ↔ knife, like
+// D-pad down). Read in game_tick.cpp::process_controls. Rarely-used items
+// (explosives etc.) have no hotkey — reach them via the wheel/R3 scroll.
+
+constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY  = KKEY_1;
+constexpr int ACT_FOOT_WEAPON_AK47_KKEY    = KKEY_2;
+constexpr int ACT_FOOT_WEAPON_SHOTGUN_KKEY = KKEY_3;
+constexpr int ACT_FOOT_WEAPON_GRENADE_KKEY = KKEY_4;
+constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_TAB;
+
+// ---- Weapon select: D-pad on gamepad ---------------------------------------
+// Direct weapon select via D-pad (only when R3 is NOT held — R3+↑/↓ is the
+// inventory scroll instead). Read in game_tick.cpp::process_controls, gated by
+// !cheat_combo_active so the cheat-direction selector (Select + L1 + L2 + DPad)
+// doesn't double-fire weapon switch.
+//   ↑ pistol, ← AK47, → shotgun, ↓ melee toggle, ↑+→ (diagonal) grenade.
+
+constexpr int ACT_FOOT_WEAPON_PISTOL_GBTN       = GBTN_DPAD_UP;
+constexpr int ACT_FOOT_WEAPON_AK47_GBTN         = GBTN_DPAD_LEFT;
+constexpr int ACT_FOOT_WEAPON_SHOTGUN_GBTN      = GBTN_DPAD_RIGHT;
+constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN  = GBTN_DPAD_DOWN;
+// Grenade = ↑ + → pressed together (no dedicated button — combines the two).
+
+// ---- Camera toggle (gamepad-only) ------------------------------------------
+// Gamepad L1 sets INPUT_MASK_CAMERA (cycle next camera mode). Keyboard
+// equivalents were removed when the new WASD + mouse layout took over —
+// mouse handles look, so keyboard camera rotation / snap-behind bindings
+// (F5/F6/F7/End/Del/PgDn) are gone. See
+// new_game_devlog/input_system/keyboard_mouse_layout.md.
+
+constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
+
+// ---- Camera look: right stick + mouse (analog) -----------------------------
+// Right stick X / Y drives free camera yaw / pitch: the read passes
+// ACT_FOOT_CAMERA_LOOK_GAXIS as the stick-id arg to input_stick_x_axis /
+// input_stick_y_axis in fc.cpp.
+//
+// Mouse look is read in fc.cpp via the single paramless call
+// input_mouse_consume_rel(&dx, &dy) — dx (MAXIS_X) drives yaw, dy (MAXIS_Y)
+// drives pitch. That call consumes both axes at once and has no per-axis
+// argument to pass a constant into, and mouse motion is not rebindable, so no
+// ACT_*_MAXIS constant is defined (one would never reach an API — a dead
+// constant). The MAXIS_X / MAXIS_Y source codes stay in input_codes.h.
+
+constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS  = GAXIS_RIGHT;
+
+// ---- Zoom / back-walk modifier (L1 / E held) -------------------------------
+// Holding L1 on gamepad or E on keyboard enters the zoom/back-walk modifier
+// (process_zoomwalk): from a standstill it's the zoom/look pose; with the stick
+// it's back-walk. Same GBTN as ACT_FOOT_CAM_TOGGLE_GBTN — L1 doubles as
+// camera-toggle press (edge) and modifier (hold). Two distinct ACT constants for
+// the two semantics on the same button. (Middle mouse is intentionally NOT bound
+// here — reserved for weapon switching.)
+
+constexpr int ACT_FOOT_AIM_GBTN = GBTN_L1;
+constexpr int ACT_FOOT_AIM_KKEY = KKEY_E;
+
+// In the zoom/look pose the RIGHT stick steers look yaw / pitch. The LEFT stick
+// is reserved for movement (touching it leaves zoom for the back-walk mode — see
+// process_zoomwalk), so it no longer doubles as a look source. Passed as a
+// stick-id arg in input_actions.cpp's aim block.
+constexpr int ACT_FOOT_AIM_LOOK_GAXIS = GAXIS_RIGHT;
+
+// ---- First-person look (arrow keys while aiming) ---------------------------
+// While in first-person aim, the arrow keys steer pitch / yaw of the look
+// view independently of character movement. Same scancodes as ACT_FOOT_MOVE_*
+// but different semantic — distinct ACT constants per rules.md.
+
+constexpr int ACT_FOOT_AIM_LOOK_UP_KKEY    = KKEY_UP;
+constexpr int ACT_FOOT_AIM_LOOK_DOWN_KKEY  = KKEY_DOWN;
+constexpr int ACT_FOOT_AIM_LOOK_LEFT_KKEY  = KKEY_LEFT;
+constexpr int ACT_FOOT_AIM_LOOK_RIGHT_KKEY = KKEY_RIGHT;
+
+// ---- Start button (INPUT_MASK_START in gameplay) ---------------------------
+// Used as a generic "menu / pause" gameplay-side flag in get_hardware_input.
+// The actual pause-menu open lives in act_menu.h (ACT_MENU_TOGGLE_PAUSE_GBTN);
+// this one just sets the INPUT_MASK_START bit so legacy gameplay logic that
+// reads the mask sees the press.
+
+constexpr int ACT_FOOT_START_GBTN = GBTN_START;
+
+// ---- Open dev console (gameplay-level hotkey) ------------------------------
+// F9 opens the dev console from gameplay. The console-internal text-input
+// keys live in act_dev_console.h. Same KKEY appears in act_car.h —
+// a separate constant per rules.md (different contexts).
+
+constexpr int ACT_FOOT_OPEN_DEV_CONSOLE_KKEY = KKEY_F9;
+
+// ---- Cheat combo (Select + L1 + L2 + D-pad direction) ----------------------
+// Three-button hold gate (Select + L1 + L2_BTN) that, when active, lets the
+// D-pad direction trigger a cheat. Modifier buttons + each D-pad direction
+// have their own ACT names so the four cheats are explicit. D-pad here uses
+// the same physical buttons as weapon select above — the cheat handler runs
+// when the modifier gate is held, the weapon handler when it isn't (cheat
+// combo is checked first).
+
+constexpr int ACT_FOOT_CHEAT_MOD_SELECT_GBTN = GBTN_SELECT;
+constexpr int ACT_FOOT_CHEAT_MOD_L1_GBTN     = GBTN_L1;
+constexpr int ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN = GBTN_L2_DIGITAL;
+
+// Cheats (held with modifier gate above):
+constexpr int ACT_FOOT_CHEAT_IMMORTAL_GBTN       = GBTN_DPAD_UP;
+constexpr int ACT_FOOT_CHEAT_FULL_HEALTH_GBTN    = GBTN_DPAD_DOWN;
+constexpr int ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN  = GBTN_DPAD_LEFT;
+constexpr int ACT_FOOT_CHEAT_MAX_AMMO_GBTN       = GBTN_DPAD_RIGHT;
+
+#endif // GAME_ACTION_MAP_ACT_FOOT_H

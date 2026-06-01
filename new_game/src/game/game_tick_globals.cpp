@@ -51,7 +51,16 @@ UBYTE InkeyToAsciiShift[] = {
 
 // uc_orig: cmd_list (fallen/Source/Controls.cpp)
 // Debug console command names. Index matches the switch in parse_console().
-CBYTE* cmd_list[] = { "cam", "echo", "tels", "telr", "telw", "break", "wpt", "vtx", "alpha", "gamma", "bangunsnotgames", "cctv", "win", "lose", "s", "l", "restart", "ambient", "analogue", "world", "fade", "roper", "darci", "crinkles", "bangunsnotgames", "boo", NULL };
+CBYTE* cmd_list[] = { "cam", "echo", "tels", "telr", "telw", "break", "wpt", "vtx", "alpha", "gamma", "bangunsnotgames", "cctv", "win", "lose", "s", "l", "restart", "ambient", "analogue", "world", "fade", "roper", "darci", "crinkles", "bangunsnotgames", "boo",
+    // Cheat commands — keyboard equivalents of the gamepad Select+L1+L2+DPad
+    // combo. Names are fragments of the on-screen messages each cheat prints
+    // (callbacks to Highlander / Matrix / Dirty Harry). See cheat_apply_*
+    // helpers in input_actions.cpp.
+    "bloodofkings",   // index 26 — immortal toggle
+    "shieldofsteel",  // index 27 — full health (1000 HP)
+    "weneedguns",     // index 28 — spawn weapons ring
+    "losttrack",      // index 29 — max ammo (240 per type)
+    NULL };
 
 // uc_orig: allow_debug_keys (fallen/Source/Controls.cpp)
 BOOL allow_debug_keys = 0;

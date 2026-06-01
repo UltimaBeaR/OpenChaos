@@ -54,7 +54,7 @@
 // bottom of its group; each row underlined to tie the far-apart name and
 // value together. The value column shows % of frame time, colour-graded
 // white→red (nonlinear) by that %. Hotkeys (gameplay, no
-// bangunsnotgames): KB_4 toggle panel, KB_5 cycle averaging window, KB_6
+// bangunsnotgames): KKEY_4 toggle panel, KKEY_5 cycle averaging window, KKEY_6
 // reset history. The MASTER switch for the perf-diag panel and
 // instrumentation. A dev-only build flag; keep false in shipping builds.
 //
@@ -79,6 +79,14 @@
 // everything else stays a stripped no-op. Add a new OC_DEBUG_LOG_<SYS>
 // flag here per subsystem as it gets instrumented.
 #define OC_DEBUG_LOG false
+
+// Input-prompt glyph catalog: shows the "INPUT TEST" item in the pause-menu
+// "Mechanics" list — an auto-generated, device-aware list of every mapped
+// button glyph (input_prompt_map.cpp). For visually checking the glyph map when
+// bindings/atlases change. When false the item is hidden from the list (players
+// never see it); the page itself stays in the build. Dev-only; keep false in
+// shipping builds.
+#define OC_DEBUG_INPUT_PROMPT_CATALOG false
 
 // --- Per-subsystem debug-log gates (see note above) ---------------------
 

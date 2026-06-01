@@ -700,6 +700,13 @@ void ge_texture_loading_begin();
 // Load a TGA file into a texture page. can_shrink: allow detail reduction.
 void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink = true);
 
+// Upload a raw RGBA8 image into a texture page (w*h*4 bytes, row-major,
+// top-left origin). Bytes are R,G,B,A in memory (e.g. stb_image output).
+// Used for embedded UI atlases that are not TGAs. Clamped edges. gen_mipmaps:
+// build a mip chain (for atlases minified well below source size, so thin
+// outlines don't drop out); the draw path applies trilinear from has_mipmaps.
+void ge_texture_load_rgba(int32_t page, int32_t w, int32_t h, const uint8_t* rgba, bool gen_mipmaps = false);
+
 // Mark a texture page to skip mipmap generation (call before texture is uploaded).
 void ge_texture_set_no_mipmaps(int32_t page);
 

@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "engine/input/gamepad.h"
+#include "engine/platform/host_globals.h" // ShellActive
 #include "engine/platform/sdl3_bridge.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
@@ -18,6 +19,7 @@
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/input_frame.h"
+#include "game/action_map/act_cinematic.h" // ACT_CINE_OUTRO_QUIT_*
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
@@ -44,8 +46,8 @@ void OS_joy_poll(void)
     }
 
     // Stick axis is 0..65535 (centre 32768). Convert to -1..+1.
-    OS_joy_x = (float(input_stick_x_axis(INPUT_STICK_LEFT)) / 32768.0F) - 1.0F;
-    OS_joy_y = (float(input_stick_y_axis(INPUT_STICK_LEFT)) / 32768.0F) - 1.0F;
+    OS_joy_x = (float(input_stick_x_axis(ACT_CINE_OUTRO_AIM_GAXIS)) / 32768.0F) - 1.0F;
+    OS_joy_y = (float(input_stick_y_axis(ACT_CINE_OUTRO_AIM_GAXIS)) / 32768.0F) - 1.0F;
 
     ULONG last = OS_joy_button;
     ULONG now = 0;
@@ -125,17 +127,22 @@ void OS_ticks_reset()
 // ========================================================
 
 // Processes Windows messages and maps keyboard/joystick input.
-// Note: the function returns early at OS_CARRY_ON before the message pump —
-// the message pump code below is unreachable dead code from the original.
+// Returns OS_QUIT_GAME on app exit (Alt+F4 / window-X → on_close set
+// ShellActive=FALSE) so MAIN_main bails out of the outro loop on the
+// first try. Returns OS_CARRY_ON otherwise.
 // uc_orig: OS_process_messages (fallen/outro/os.cpp)
 SLONG OS_process_messages()
 {
     SHELL_ACTIVE;
 
+    if (!ShellActive)
+        return OS_QUIT_GAME;
+
     gamepad_poll();
     OS_joy_poll();
 
-    if (input_key_just_pressed(KB_ESC)) {
+    if (input_key_just_pressed(ACT_CINE_OUTRO_QUIT_KKEY)
+        || input_btn_just_pressed(ACT_CINE_OUTRO_QUIT_GBTN)) {
         KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 

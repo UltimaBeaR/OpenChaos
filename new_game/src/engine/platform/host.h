@@ -21,13 +21,17 @@ void ResetHost(void);
 BOOL LibShellActive(void);
 
 // Apply any window-resize event accumulated since the last call. Normally
-// called once per LibShellActive iteration, but secondary loops that
-// pump SDL events themselves (notably the video player, which uses raw
-// SDL_PollEvent and therefore bypasses LibShellActive) need to call this
-// too — otherwise resize events queued during their loop would never
-// drive ge_resize_display, and the scene FBO would stay at the pre-loop
-// size until the next LibShellActive iteration. Safe no-op when nothing
-// is pending.
+// called once per LibShellActive iteration. Secondary loops that pump
+// SDL events themselves (notably the video player) call this once per
+// iteration too — otherwise resize events queued during their loop
+// would never drive ge_resize_display.
 void host_process_pending_resize(void);
+
+// SDL3 focus-event callback target. Updates app_inactive and the OS
+// cursor visibility (the latter only in fullscreen — windowed mode
+// lets the cursor stay visible at the desktop level). Mouse capture
+// release on focus loss is handled separately via mouse_capture_update
+// reading app_inactive.
+void host_on_focus_changed(bool focused);
 
 #endif // ENGINE_PLATFORM_HOST_H

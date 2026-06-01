@@ -28,14 +28,28 @@ void CONTROLS_set_inventory(Thing* darci, Thing* player, SLONG count);
 // uc_orig: CONTROLS_get_selected_item (fallen/Source/Controls.cpp)
 SBYTE CONTROLS_get_selected_item(Thing* darci, Thing* player);
 
-// uc_orig: CONTROLS_get_best_item (fallen/Source/Controls.cpp)
-SBYTE CONTROLS_get_best_item(Thing* darci, Thing* player);
-
 // uc_orig: CONTROLS_new_inventory (fallen/Source/Controls.cpp)
 SLONG CONTROLS_new_inventory(Thing* darci, Thing* player);
 
-// uc_orig: CONTROLS_rot_inventory (fallen/Source/Controls.cpp)
-void CONTROLS_rot_inventory(Thing* darci, Thing* player, SBYTE dir, SLONG pull_it_out_ooooerrr);
+// OpenChaos: canonical ordered weapon list (pistol, AK, shotgun, grenade, bat,
+// knife, other drawables, fist-last). Single source of truth for the inventory
+// popup draw order AND the scroll. Fills `out` with item tokens (SPECIAL_GUN for
+// the pistol, SpecialType for specials, SPECIAL_NONE for the fist), owned only,
+// up to `max` entries; returns the count.
+SLONG CONTROLS_build_weapon_list(Thing* darci, CBYTE* out, SLONG max);
+
+// OpenChaos: the weapon Darci is currently using OR actively drawing
+// (SPECIAL_GUN for the pistol, SpecialType for specials, SPECIAL_NONE for
+// fists). Accounts for the in-progress draw animation so callers see the
+// just-selected weapon on the SAME frame instead of a transient "fists" while
+// the draw plays. Single source of truth shared by the equip/scroll logic and
+// the inventory popup highlight.
+SLONG CONTROLS_current_weapon_type(Thing* darci);
+
+// OpenChaos: the special Thing Darci is currently using OR actively drawing
+// (NULL on the pistol or fists). In-progress-draw aware like the function above;
+// needed where the item's own Thing is required (e.g. ammo/timer readout).
+Thing* CONTROLS_current_special_thing(Thing* darci);
 
 // uc_orig: context_music (fallen/Source/Controls.cpp)
 void context_music(void);

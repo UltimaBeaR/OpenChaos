@@ -430,7 +430,7 @@ void FARFACET_draw(
     float draw_dist,
     float lens)
 {
-    // Original pre-release PC code had `if (!Keys[KB_R]) return;` here,
+    // Original pre-release PC code had `if (!Keys[KKEY_R]) return;` here,
     // inside `#ifndef TARGET_DC`, which disabled far-facet silhouettes on PC
     // unless the R key was held. Dreamcast (`TARGET_DC`) always ran the full
     // path. The final retail PC release flipped this — far facets were

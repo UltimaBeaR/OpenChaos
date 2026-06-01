@@ -10,16 +10,115 @@
 #include "map/level_pools.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+#include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness, camera_is_*
+#include "camera/cam_trig.h"    // cam_arctan_psx_fp8 — high-precision atan for FC_look_at_focus
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
-#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
+#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
+#include "game/action_map/act_foot.h" // ACT_FOOT_CAMERA_LOOK_GAXIS
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active
+#include "game/input_actions.h" // input_backwalk_held (suppress get-behind while back-walking)
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 #include "navigation/wmove.h" // WMOVE_face for rigid platform inheritance
+
+// Cutscene gates — these globals live in other subsystems and we only read
+// them. Local extern declarations avoid pulling EWAY / PLAYCUTS headers
+// into the camera layer for two flags. Used by FC_process to freeze the
+// camera state at the script-set position while a cut-scene is playing,
+// so EWAY's separate framing (EWAY_cam_*) owns the visible camera and
+// FC_cam is restored unchanged when gameplay resumes.
+extern SLONG EWAY_cam_active;
+extern BOOL PLAYCUTS_playing;
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.
 // uc_orig: CAM_MORE_IN (fallen/Source/fc.cpp)
 #define CAM_MORE_IN (0.75F)
+
+// Mouse-driven camera orbit sensitivity (OpenChaos -- no original).
+//
+// MOUSE_SENSITIVITY: 0..100 (= 0.0..1.0 user slider, just in percent
+//   so it stays integer). Maps linearly between two compile-time
+//   bounds expressed in Q8 fixed-point game-angle units per pixel:
+//     0   -> MOUSE_SENS_MIN_Q8 (slow / comfortable feel)
+//     100 -> MOUSE_SENS_MAX_Q8 (fast / original default)
+//   When the settings UI lands, this becomes a runtime variable;
+//   the conversion stays the same (slider * 100 -> this value).
+// MOUSE_HEIGHT_SCALE (per-pixel height delta) is fully derived below
+//   from MOUSE_YAW_SCALE_Q8 using the right stick's height-to-yaw
+//   ratio, so vertical and horizontal mouse motion feel proportionally
+//   consistent across sensitivity values, and the proportion itself
+//   matches the right stick.
+// MOUSE_INVERT_Y: 1 = mouse-up lowers the camera (FPS-style "inverted
+//   look"), 0 = mouse-up raises the camera. Mouse only -- the right
+//   stick keeps its own convention.
+// MOUSE_ORBIT_LAG: residual yaw lag (game-angle units) retained for the
+//   "rubber band" smoothing tail. Capped here because mouse input is
+//   unbounded -- values above ~60 start to expose chord shrinkage in
+//   the position smoothing for sustained fast flicks.
+// STICK_ORBIT_LAG: same idea for the right stick. Stick input is
+//   bounded to ~61 game-angle units per tick at full deflection, so
+//   setting this to 61 means the rotation path is identical to the
+//   legacy gamepad feel (no sync, full smoothing tail) while still
+//   using exact rotation math (no distance inflation).
+#define MOUSE_SENS_MIN_Q8   51     // ~0.2 game-units/px
+#define MOUSE_SENS_MAX_Q8   768    // ~3.0 game-units/px
+#define MOUSE_SENSITIVITY   22     // 0..100, see comment above.
+#define MOUSE_INVERT_Y      1
+// Residual angular lag the rotation path leaves unsynced each tick,
+// closed afterwards by the standard position+angle smoothing. Higher =
+// more "rubber band" tail; lower = snappier.
+//
+// These constants are the SHIPPING DEFAULTS — i.e. the residual at
+// rubberness 0.5 (preserves the legacy gamepad rubber feel). At runtime
+// the actual residual is scaled by `orbit_lag_for_rubberness(default)`:
+//   rubberness 0.0  → 0   (snap, no residual)
+//   rubberness 0.5  → 61  (shipping)
+//   rubberness 1.0  → 244 (4× residual — distinctly laggier)
+//
+// Only used in AUTO camera mode. MANUAL mode does full snap on both
+// want and fc (no residual) — see the mdx block in FC_process and the
+// stick-X block below for the gated paths.
+//
+// 61 game-angle units ≈ stick deflection at full per-tick, so at the
+// shipping default the stick effectively contributes 0 "sync" while
+// leaving the entire motion to be smoothed by the position/angle pass.
+// Mouse uses the same default value so AUTO + mouse and AUTO + gamepad
+// feel identical at rubberness 0.5.
+#define MOUSE_ORBIT_LAG     61
+#define STICK_ORBIT_LAG     61
+
+// Camera Y range, relative to focus_y (the character's vertical position).
+// Same numbers for mouse and gamepad — the camera-elevation range must
+// not depend on which input device is active. Lower bound is kept well
+// above the character's feet so the camera doesn't dip into ground
+// geometry and trigger the wall-collision system on the floor (whose
+// EXIT fade then produces a visible jerk on liftoff).
+#define FC_CAM_Y_MIN_ABOVE_FOCUS  0x6000   // ~3/4 m above feet
+#define FC_CAM_Y_MAX_ABOVE_FOCUS  0x28000  // ~5 m above feet
+
+// Compile-time resolved scales. When MOUSE_SENSITIVITY becomes a
+// runtime variable, lift these inline into the call site.
+#define MOUSE_YAW_SCALE_Q8 \
+    (MOUSE_SENS_MIN_Q8 + (MOUSE_SENS_MAX_Q8 - MOUSE_SENS_MIN_Q8) * MOUSE_SENSITIVITY / 100)
+
+// Height scale derived from yaw scale using the right stick's own
+// height/yaw ratio: STICK_HEIGHT_MAX (0x3100, height-units per tick at
+// full stick deflection) / STICK_YAW_MAX (61, game-angle units per
+// tick at full stick deflection) ~ 205.6 height-units per game-unit.
+// Multiplied by per-pixel yaw scale in game-units (= MOUSE_YAW_SCALE_Q8
+// / 256) gives per-pixel height scale that mirrors the stick feel at
+// any sensitivity. Result for sens=100: ~617 (vs the previous 1024,
+// which made vertical feel too aggressive relative to horizontal).
+#define MOUSE_HEIGHT_SCALE \
+    (MOUSE_YAW_SCALE_Q8 * 0x3100 / (61 * 256))
+
+// OpenChaos: master switch for the vehicle enter/exit camera "scene override"
+// (programmatic lock-rotation behind the car + manual-input block during the
+// enter/exit animations). Applies to BOTH entering and exiting, so the exit
+// reverse-climb gets the same locked camera rotation as the entry.
+// uc_orig: n/a (OpenChaos addition)
+static constexpr bool CAR_ENTER_EXIT_CAM_LOCK = true;
 
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
@@ -313,7 +412,11 @@ void FC_calc_focus(FC_Cam* fc)
                 fc->platform_thing = 0;
             }
 
-            if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
+            if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE) {
+                // Same framing offset for the exit (reverse) animation as for
+                // entry — the clip (ANIM_ENTER_CAR / ENTER_TAXI) is the same, so
+                // the camera frames the door the same way on the way out.
                 if (fc->focus->Draw.Tweened->CurrentAnim == ANIM_ENTER_TAXI) {
                     fc->focus_yaw -= 712;
                     fc->focus_yaw &= 2047;
@@ -515,18 +618,29 @@ void FC_look_at_focus(FC_Cam* fc)
         dz -= COS(angle) >> 8;
     }
 
-    SLONG dxz = QDIST2(abs(dx), abs(dz));
+    // OpenChaos: was QDIST2 (fast |a|+|b|/2 approximation), which
+    // has 3-11% error depending on the dx/dz ratio. As the camera
+    // orbits around the focus, dx and dz swap dominance each tick,
+    // so the QDIST2 result oscillates by ~40 units at constant true
+    // distance. Through Arctan(dy, dxz) that translates into a
+    // per-tick pitch swing of ~0.4 degrees -- the source of the
+    // "camera trembles vertically while rotating" feel. Using a
+    // real square-root removes the oscillation. Tiny mean pitch
+    // shift (a few degrees more down-tilt) is the unavoidable
+    // side-effect: QDIST2 systematically over-estimated by ~6%, so
+    // pitch was systematically biased toward horizontal.
+    SLONG dxz = Root(dx * dx + dz * dz);
 
-    fc->want_yaw = -Arctan(dx, dz);
-    fc->want_pitch = Arctan(dy, dxz);
-    fc->want_roll = 1024;
-
-    fc->want_yaw &= 2047;
-    fc->want_pitch &= 2047;
-
-    fc->want_yaw <<= 8;
-    fc->want_pitch <<= 8;
-    fc->want_roll <<= 8;
+    // Compute yaw/pitch directly in the 11.8 fixed-point format used by
+    // FC_Cam yaw/pitch/roll (256 == 1 PSX game-angle unit). Avoids the
+    // legacy round-to-integer-PSX step that loses the bottom 8 bits of
+    // precision and produces ±1 PSX unit per-tick jitter on steady
+    // rotation (~the micro-jerks visible at high frame rates with
+    // smoothing snap modes).
+    constexpr SLONG YAW_FP8_RANGE = 2048 * 256;
+    fc->want_yaw   = ((-cam_arctan_psx_fp8(dx, dz)) % YAW_FP8_RANGE + YAW_FP8_RANGE) % YAW_FP8_RANGE;
+    fc->want_pitch = cam_arctan_psx_fp8(dy, dxz);
+    fc->want_roll  = 1024 << 8;
 
     if (fc->focus->Class == CLASS_PERSON && (fc->focus->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
         Thing* p_vehicle = TO_THING(fc->focus->Genus.Person->InCar);
@@ -662,6 +776,110 @@ void FC_setup_camera_for_warehouse(SLONG cam)
     fc->toonear = UC_FALSE;
 }
 
+// Apply a Y delta to (px, py, pz) point relative to fc->focus AND adjust
+// the XZ position so the 3D distance to focus is preserved. Geometrically
+// equivalent to rotating the point around focus in its meridional plane
+// (the vertical plane containing focus, the point, and the world Y axis).
+//
+// Used by the mouse vertical orbit: mouse-Y motion ARCS the camera up/down
+// around the focus character (camera rises and moves closer in XZ when
+// looking up, lowers and moves farther in XZ when looking down) — same
+// philosophy as horizontal mouse, which orbits in the XZ plane around
+// focus. The plain Y-translation that this replaces produced a visible
+// "camera lifts straight up while view tilts to keep aiming at focus"
+// effect that felt off once vertical smoothing was tightened to match
+// horizontal snappiness.
+//
+// The Y value is clamped UNCONDITIONALLY to the same focus-relative range
+// the gamepad stick path uses (FC_CAM_Y_MIN/MAX_ABOVE_FOCUS). An earlier
+// "only clamp if THIS call crosses the boundary" version let overshoot
+// accumulate (e.g. focus_y moves DOWN, max_y drops, want_y now above new
+// max_y — but `old_py <= max_y` condition then failed and the clamp
+// silently stopped working, so further mouse-up pushed want_y past the
+// nominal limit without bound).
+// Pitch angle limits in game-angle units (2048 = 360°). Matched to the
+// gamepad's effective pitch range at default cam_dist:
+//   MIN: atan(FC_CAM_Y_MIN_ABOVE_FOCUS / target_xz) ≈ 11° = ~64 units
+//   MAX: atan(FC_CAM_Y_MAX_ABOVE_FOCUS / target_xz) ≈ 53° = ~302 units
+// The clamp is on the ANGLE itself, not on Y position — so the camera
+// never pitches steeper than ~53° (no bird's-eye view) regardless of
+// dist3d. Earlier Y-position-based clamping allowed pitch to approach
+// 90° when dist3d was small (camera straight above focus, looking down).
+static const SLONG MOUSE_PITCH_MIN = 64;
+static const SLONG MOUSE_PITCH_MAX = 302;
+
+static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLONG y_delta)
+{
+    if (y_delta == 0)
+        return;
+
+    const int64_t old_dx = (int64_t)(*px) - fc->focus_x;
+    const int64_t old_dz = (int64_t)(*pz) - fc->focus_z;
+    const int64_t old_off_y = (int64_t)(*py) - fc->focus_y;
+    const int64_t old_xz_sq = old_dx * old_dx + old_dz * old_dz;
+    const int64_t dist3d_sq = old_xz_sq + old_off_y * old_off_y;
+
+    // dist3d (fc-units). Pre-shift by 16 to keep Root() input within SLONG.
+    const SLONG dist3d = (SLONG)((int64_t)Root((SLONG)(dist3d_sq >> 16)) << 8);
+
+    // Convert pitch limits to Y offset using off_y = dist3d * sin(pitch).
+    // SIN/COS in this engine return 16-bit fixed point ([-65536, +65536]),
+    // so shift the product right by 16 to get fc-units.
+    const int64_t pitch_max_off_y = ((int64_t)dist3d * SIN(MOUSE_PITCH_MAX)) >> 16;
+    const int64_t pitch_min_off_y = ((int64_t)dist3d * SIN(MOUSE_PITCH_MIN)) >> 16;
+
+    // Combine with gamepad's absolute Y range. Take the TIGHTER of the
+    // two per side so that:
+    //   - max never exceeds gamepad MAX (no extra-high camera at large dist3d).
+    //   - min never goes below gamepad MIN (no extra-low camera at small dist3d
+    //     — without this, pitch=11° on a shrunk dist3d gives a Y offset less
+    //     than the gamepad floor, which the user perceived as mouse allowing
+    //     the camera lower than the gamepad does).
+    int64_t max_off_y = (pitch_max_off_y < FC_CAM_Y_MAX_ABOVE_FOCUS)
+                        ? pitch_max_off_y
+                        : (int64_t)FC_CAM_Y_MAX_ABOVE_FOCUS;
+    int64_t min_off_y = (pitch_min_off_y > FC_CAM_Y_MIN_ABOVE_FOCUS)
+                        ? pitch_min_off_y
+                        : (int64_t)FC_CAM_Y_MIN_ABOVE_FOCUS;
+    if (min_off_y > max_off_y) min_off_y = max_off_y;
+
+    // Early-exit when user input pushes IN THE DIRECTION the position is
+    // already past a limit. See block comment at the top of this section.
+    if (y_delta > 0 && old_off_y > max_off_y) return;
+    if (y_delta < 0 && old_off_y < min_off_y) return;
+
+    int64_t new_off_y = old_off_y + y_delta;
+    if (new_off_y > max_off_y) new_off_y = max_off_y;
+    if (new_off_y < min_off_y) new_off_y = min_off_y;
+
+    const SLONG new_py = (SLONG)(new_off_y + fc->focus_y);
+    if (new_py == *py)
+        return;
+
+    // New XZ derived from preserved 3D distance.
+    int64_t new_xz_sq = dist3d_sq - new_off_y * new_off_y;
+    if (new_xz_sq < 0) new_xz_sq = 0;
+
+    *py = new_py;
+
+    if (old_xz_sq > 0) {
+        const SLONG old_xz_root = Root((SLONG)(old_xz_sq >> 16));
+        const SLONG new_xz_root = Root((SLONG)(new_xz_sq >> 16));
+        if (old_xz_root > 0) {
+            *px = fc->focus_x + (SLONG)(old_dx * new_xz_root / old_xz_root);
+            *pz = fc->focus_z + (SLONG)(old_dz * new_xz_root / old_xz_root);
+        }
+    } else if (new_xz_sq > 0) {
+        // Degenerate recovery: old XZ was 0 (legacy state from before
+        // pitch was angle-clamped). Place point behind the character
+        // per fc->focus_yaw — same direction as FC_setup_initial_camera.
+        const SLONG new_xz = (SLONG)((int64_t)Root((SLONG)(new_xz_sq >> 16)) << 8);
+        const SLONG fyaw = fc->focus_yaw & 2047;
+        *px = fc->focus_x - (SLONG)(((int64_t)SIN(fyaw) * new_xz) >> 16);
+        *pz = fc->focus_z - (SLONG)(((int64_t)COS(fyaw) * new_xz) >> 16);
+    }
+}
+
 // Main camera update called once per frame. Processes each active camera in FC_cam[].
 // Steps per camera:
 //   1. Skip if focus == NULL (inactive).
@@ -692,6 +910,35 @@ void FC_process()
 
     FC_Cam* fc;
 
+    // Previous-tick focus snapshot used by the XZ translation-tracking
+    // block and the Y delta-tracking block. Lifted here (out of those
+    // blocks) so the cut-scene short-circuit below can keep them in sync
+    // with the current focus while we skip the trackers — otherwise the
+    // first post-cutscene tick would see a stale delta and jolt the
+    // camera. Per-cam to support split-screen.
+    static SLONG s_prev_focus_x[FC_MAX_CAMS] = {};
+    static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
+    static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
+
+    // Aim (over-the-shoulder / first-person) entry ramp, per cam. On entry the
+    // camera EASES into the aim pose (gradual zoom like the gamepad), then the
+    // ease RATE ramps up to a full snap so sustained mouse-look is responsive.
+    // Ramping the rate (instead of an ease→snap switch) means there is no
+    // residual jump at the hand-off — the rate is already ~snap by the time the
+    // delta is tiny. s_prev_aim: was the camera in aim last tick? s_aim_ramp:
+    // 0 (full ease, 0.25/tick) → 256 (full snap), Q8. Reset on aim exit.
+    static UBYTE s_prev_aim[FC_MAX_CAMS] = {};
+    static SLONG s_aim_ramp[FC_MAX_CAMS] = {};
+
+    // Zoom-OUT ramp: ticks remaining in the "leaving the aim pose" window. While
+    // > 0 the camera eases back out at a gentler fixed rate (UNZOOM_RATE_Q8)
+    // instead of the default follow, so the un-zoom doesn't feel abrupt — and
+    // looks the same whether the character is standing (just released the
+    // modifier) or walking (pushed the stick to leave zoom). Both camera modes.
+    static SLONG s_unzoom_ticks[FC_MAX_CAMS] = {};
+
+    const bool cutscene_active = (EWAY_cam_active != 0) || PLAYCUTS_playing;
+
     for (cam = 0; cam < FC_MAX_CAMS; cam++) {
         fc = &FC_cam[cam];
 
@@ -705,12 +952,29 @@ void FC_process()
 
         FC_calc_focus(fc);
 
+        // "Manual Y input is active this tick" — set by the mouse and
+        // stick input blocks below when a non-zero vertical input arrived.
+        // Consumed by the Y-tracking block further down to decide between
+        // AUTO-mode default-height convergence (no input) and AUTO-mode
+        // delta-tracking (input active). MANUAL mode ignores this and
+        // always delta-tracks. Default false so a tick with no input
+        // block running counts as idle. Declared at cam-loop scope
+        // because the input blocks and the Y-tracking block live in
+        // separate `if (!fc->toonear)` sub-scopes within the loop.
+        bool manual_y_input_this_tick = false;
+
         // Rigidly inherit vehicle motion when the focus person stands on
         // a moving vehicle: translate camera by vehicle's per-tick world
         // delta and rotate it around the vehicle's pivot by the per-tick
         // yaw delta. Result: camera is glued to the vehicle's reference
         // frame, so standing still on a moving/turning vehicle gives the
         // exact same camera behaviour as standing still on the ground.
+        //
+        // plat_focus_dx/dz: the platform's rigid contribution to the FOCUS
+        // point this tick (stays 0 when not on a moving platform). MANUAL
+        // translation tracking subtracts it so the camera follows only the
+        // character's motion RELATIVE to the vehicle. Filled in the block below.
+        SLONG plat_focus_dx = 0, plat_focus_dz = 0;
         if (fc->platform_thing) {
             Thing* p_vehicle = TO_THING(fc->platform_thing);
             SLONG cur_x = p_vehicle->WorldPos.X;
@@ -743,6 +1007,25 @@ void FC_process()
                 INHERIT_PT(fc->x, fc->z);
                 INHERIT_PT(fc->want_x, fc->want_z);
 #undef INHERIT_PT
+
+                // Platform's rigid contribution to the FOCUS point this tick:
+                // how far the focus moved purely from the vehicle's motion
+                // (the character rides the vehicle). MANUAL tracking subtracts
+                // it below to isolate the character's motion RELATIVE to the
+                // vehicle. Uses the SAME transform as INHERIT_PT above (same
+                // pivot, same `>>4` prescale + `>>12`) — the `>>4` is NOT
+                // optional precision, it's part of the Q16 SIN/COS fixed-point
+                // scale; dropping it inflates the result 16×. Matching the
+                // camera transform exactly keeps plat_focus consistent with the
+                // motion inheritance already applied to want.
+                {
+                    SLONG frx = s_prev_focus_x[cam] - fc->platform_last_x;
+                    SLONG frz = s_prev_focus_z[cam] - fc->platform_last_z;
+                    SLONG nfx = cur_x + (((frx >> 4) * c + (frz >> 4) * s) >> 12);
+                    SLONG nfz = cur_z + (((frz >> 4) * c - (frx >> 4) * s) >> 12);
+                    plat_focus_dx = nfx - s_prev_focus_x[cam];
+                    plat_focus_dz = nfz - s_prev_focus_z[cam];
+                }
 
                 // Yaw stored as angle << 8.
                 SLONG yaw_mask = (2048 << 8) - 1;
@@ -778,6 +1061,51 @@ void FC_process()
             }
         } else {
             fc->lookabove = 0xa000;
+        }
+
+        // Cut-scene freeze.
+        //
+        // While EWAY / PLAYCUTS plays a cinematic, the visible camera
+        // is driven from EWAY_cam_* (see vis_cam.cpp: VC_state is set
+        // to OFF and render-interp pulls EWAY_cam_*). FC_cam is hidden
+        // for the duration. We must NOT keep mutating fc->want_* /
+        // fc->yaw / pitch / shake here — otherwise auto-corrections
+        // (get-behind, Y-convergence, translation tracking, mouse /
+        // stick orbit if the player nudges input during a cinematic)
+        // accumulate while the cinematic plays, and when it ends the
+        // gameplay camera snaps to whatever auto-corrected state we
+        // built up instead of the script-set position. Symptom: the
+        // first frame of gameplay shows the camera in a different
+        // place each time depending on cut-scene length / mouse
+        // motion / focus-character motion during the cinematic.
+        //
+        // Things still done here:
+        //   • Drain the mouse-relative accumulator so any cursor
+        //     motion during the cinematic doesn't bleed into the
+        //     first gameplay tick.
+        //   • Sync the previous-focus snapshots used by the XZ /
+        //     Y delta trackers so they compute zero delta on the
+        //     first post-cinematic tick (focus may have moved a
+        //     lot during the cinematic — e.g. character respawn,
+        //     warehouse transition).
+        //
+        // Things deliberately NOT done here: cut-scene skip (a
+        // button press routed through input_actions / EWAY), pause
+        // menu entry (GAMEMENU layer), shake decay (cut-scene runs
+        // briefly enough that residual shake is invisible anyway and
+        // FC_cam is hidden during the cinematic regardless).
+        //
+        // Platform inheritance and warehouse-transition snap above
+        // ARE allowed to run — they keep fc anchored to the right
+        // reference frame if the focus character is on a moving
+        // vehicle or crosses a warehouse boundary mid-cinematic.
+        if (cutscene_active) {
+            SLONG drain_x = 0, drain_y = 0;
+            input_mouse_consume_rel(&drain_x, &drain_y);
+            s_prev_focus_x[cam] = fc->focus_x;
+            s_prev_focus_y[cam] = fc->focus_y;
+            s_prev_focus_z[cam] = fc->focus_z;
+            continue;
         }
 
         if (!fc->toonear) {
@@ -817,22 +1145,227 @@ void FC_process()
             // angle; letting the player override with the right stick exposes
             // the trick. Released as soon as SubState transitions out of
             // ENTERING_VEHICLE (anim end).
-            const bool entering_vehicle = fc->focus
+            const bool entering_vehicle = CAR_ENTER_EXIT_CAM_LOCK
+                && fc->focus
                 && fc->focus->Class == CLASS_PERSON
-                && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+                && (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                    || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE);
+
+            // Mouse-driven orbital camera. Mirrors the right-stick block
+            // below — same orbit-around-focus math, same height-delta
+            // adjustment — but the input is mouse-relative-motion in
+            // window pixels instead of stick deflection. Two differences:
+            //
+            //   1. No TICK_RATIO scaling. Mouse delta is already per-
+            //      tick motion (events accumulate between consumes), so
+            //      the value is naturally frame-rate independent. The
+            //      stick path scales by TICK_RATIO because stick
+            //      deflection is constant — without the scale the rotation
+            //      rate would track the render frame rate.
+            //
+            //   2. Gated on mouse_capture_is_active() — that's the
+            //      single source of truth for "mouse is gameplay input
+            //      right now". Capture engages on click in the window
+            //      during active gameplay; see engine/input/mouse_capture.h.
+            //
+            // Tunables (top of file): MOUSE_YAW_SCALE, MOUSE_HEIGHT_SCALE,
+            // MOUSE_ORBIT_LAG. See those for what each knob does.
+            //
+            // TODO (post-1.0):
+            //   - Sensitivity option in the menu.
+            //   - Y-axis inversion option.
+            //   - Mouse-driven aim mode.
+            //   - Per-axis dead zone if micro-tremor turns out to matter.
+            // input_gameplay_enabled() gate: while F1 debug modifier is
+            // held, mouse motion is dropped so the camera doesn't swing
+            // around while the dev is using debug hotkeys. We DRAIN the
+            // accumulated motion (consume + discard) rather than just
+            // skipping, otherwise motion would burst all at once on F1
+            // release.
+            // Drain (consume + discard) accumulated mouse motion while the
+            // camera is locked for a vehicle enter/exit animation OR the debug
+            // modifier is held. Mouse motion accumulates between consumes, so
+            // just skipping the apply below would let it burst out as a jerk
+            // the moment the lock releases — drain keeps the released camera
+            // exactly where the programmatic rotation left it.
+            if (mouse_capture_is_active() && (entering_vehicle || !input_gameplay_enabled())) {
+                input_mouse_drain_rel();
+            }
+            if (!entering_vehicle && mouse_capture_is_active() && input_gameplay_enabled()) {
+                SLONG mdx = 0, mdy = 0;
+                input_mouse_consume_rel(&mdx, &mdy);
+
+                if (mdx != 0) {
+                    // Horizontal mouse orbit: rotate camera position
+                    // around focus in XZ by `angle`.
+                    //
+                    // MANUAL mode: full snap on both want AND fc (no
+                    // residual). Rotation is intentionally instant; the
+                    // angle smoothing block at the end of the pipeline
+                    // also snaps fc->yaw = want_yaw in MANUAL.
+                    //
+                    // AUTO mode: orbit want by full angle, orbit fc by
+                    // (angle - MOUSE_ORBIT_LAG) so a small residual
+                    // remains for position+angle smoothing to close
+                    // over the next few ticks. Mirrors the gamepad
+                    // stick's sync-with-residual approach so the two
+                    // input devices have a consistent rubber-band feel
+                    // in AUTO.
+                    //
+                    // CCW rotation (matches the original Euler-step
+                    // direction for positive mdx): new_rx = rx*c - rz*s,
+                    // new_rz = rx*s + rz*c. 64-bit math to avoid overflow
+                    // at large camera offsets.
+                    SLONG angle = mdx * MOUSE_YAW_SCALE_Q8 / 256;
+                    SLONG s_full = SIN(angle & 2047);
+                    SLONG c_full = COS(angle & 2047);
+                    int64_t rx, rz;
+#define ORBIT_PT(px, pz, s, c) \
+    rx = (int64_t)(px) - fc->focus_x; \
+    rz = (int64_t)(pz) - fc->focus_z; \
+    (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
+    (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
+
+                    ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
+
+                    if (camera_is_manual()) {
+                        // Snap fc — no residual lag.
+                        ORBIT_PT(fc->x, fc->z, s_full, c_full);
+                    } else {
+                        // AUTO: sync fc by (angle - lag), leaving the
+                        // rubberness-scaled residual to be smoothed.
+                        const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)MOUSE_ORBIT_LAG);
+                        SLONG sync_angle;
+                        if      (angle >  lag) sync_angle = angle - lag;
+                        else if (angle < -lag) sync_angle = angle + lag;
+                        else                   sync_angle = 0;
+                        if (sync_angle != 0) {
+                            SLONG s_sync = SIN(sync_angle & 2047);
+                            SLONG c_sync = COS(sync_angle & 2047);
+                            ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
+                            SLONG yaw_mask = (2048 << 8) - 1;
+                            fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                            fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
+                        }
+                    }
+#undef ORBIT_PT
+
+                    fc->nobehind = 0x2000;
+                    fc->last_manual_cam_turn = (SLONG)GAME_TURN;
+                }
+
+                if (mdy != 0) {
+                    manual_y_input_this_tick = true;
+                    // Vertical mouse = orbital pitch around focus.
+                    // Camera arcs up/down on a sphere around the focus
+                    // character — looking up lifts the camera AND moves
+                    // it closer in XZ; looking down lowers it AND moves
+                    // it farther in XZ. 3D distance to focus is held
+                    // constant by the helper.
+                    //
+                    // Same MOUSE_INVERT_Y semantics as before: =1 means
+                    // mouse-up lowers the camera (FPS-style inverted),
+                    // =0 means mouse-up raises it. mdy is positive when
+                    // mouse moves down (SDL convention).
+                    //
+                    // Full snap on both want AND fc — no rotation
+                    // rubber-band. fc->pitch is NOT explicitly updated
+                    // here: FC_look_at_focus (later in the pipeline)
+                    // recomputes want_pitch from the new want geometry,
+                    // and the KBM-gated angle smoothing block snaps
+                    // fc->pitch = want_pitch.
+                    //
+                    // No want_y clamp here — clamping is done inside the
+                    // helper, only when THIS call crosses the boundary,
+                    // so the focus-tracking delta below doesn't see a
+                    // double clamp (which historically produced a -2Δ
+                    // jerk when want_y was at the clamp AND focus_y
+                    // moved at the same time).
+                    SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
+
+                    // Apply pitch helper ONLY to want, then mirror the
+                    // resulting world-space delta onto fc.
+                    //
+                    // Calling the helper independently for want and fc was
+                    // broken: each call computes pitch_max_off_y from its
+                    // OWN dist3d, and want vs fc diverge over time
+                    // (position smoothing lag + want-only translation /
+                    // Y-focus tracking). At the upper limit, want correctly
+                    // saw eff_dy=0, but fc — with a larger dist3d — saw
+                    // a higher pitch_max and continued moving up by
+                    // thousands of fc-units per tick. Position smoothing
+                    // then dragged fc back down toward want each tick,
+                    // visible as drift at the limit on continued mouse-up.
+                    //
+                    // Mirroring the delta keeps want/fc in lockstep on
+                    // mouse motion (same as ORBIT_PT on both for mdx).
+                    // Other sources of want/fc divergence (translation,
+                    // Y-focus tracking, smoothing) keep working as before.
+                    const SLONG want_x_pre = fc->want_x;
+                    const SLONG want_y_pre = fc->want_y;
+                    const SLONG want_z_pre = fc->want_z;
+                    apply_pitch_y_delta(fc, &fc->want_x, &fc->want_y, &fc->want_z, height_delta);
+                    if (camera_is_manual()) {
+                        // MANUAL: mirror the world-space delta onto fc
+                        // so vertical rotation is instant (no rubber).
+                        fc->x += (fc->want_x - want_x_pre);
+                        fc->y += (fc->want_y - want_y_pre);
+                        fc->z += (fc->want_z - want_z_pre);
+                    }
+                    // AUTO: leave fc alone — position smoothing pulls it
+                    // toward want over the next few ticks (rubber tail).
+
+                    fc->nobehind = 0x2000;
+                }
+            }
 
             if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                SLONG stick_x = input_stick_x_axis(INPUT_STICK_RIGHT) - 32768; // signed, -32768..+32767
-                SLONG stick_y = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                SLONG stick_x = input_stick_x_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768; // signed, -32768..+32767
+                SLONG stick_y = input_stick_y_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768;
 
                 if (abs(stick_x) > 8000) {
-                    SLONG rot_speed = (stick_x * 0x600) / 32767;
+                    // True rotation with constant-residual lag -- see
+                    // the comment in the mouse block for the full
+                    // rationale. Scale: original Euler effective theta
+                    // at full deflection ~ 0.187 rad = ~61 game units;
+                    // we preserve that magnitude. TICK_RATIO scaling
+                    // kept so per-tick angle is framerate-independent.
+                    SLONG angle = (stick_x * 61) / 32767;
+                    angle = angle * TICK_RATIO >> TICK_SHIFT;
 
-                    dx = fc->focus_x - fc->want_x >> 3;
-                    dz = fc->focus_z - fc->want_z >> 3;
+                    // MANUAL mode: sync fc by FULL angle (no residual
+                    // lag) — instant rotation. AUTO mode: keep a
+                    // rubberness-scaled residual for the rubber tail.
+                    SLONG sync_angle;
+                    if (camera_is_manual()) {
+                        sync_angle = angle;
+                    } else {
+                        const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)STICK_ORBIT_LAG);
+                        if      (angle >  lag) sync_angle = angle - lag;
+                        else if (angle < -lag) sync_angle = angle + lag;
+                        else                   sync_angle = 0;
+                    }
 
-                    fc->want_x += dz * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
-                    fc->want_z -= dx * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
+                    SLONG s_full = SIN(angle & 2047);
+                    SLONG c_full = COS(angle & 2047);
+                    int64_t rx, rz;
+#define ORBIT_PT(px, pz, s, c) \
+    rx = (int64_t)(px) - fc->focus_x; \
+    rz = (int64_t)(pz) - fc->focus_z; \
+    (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
+    (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
+
+                    ORBIT_PT(fc->want_x, fc->want_z, s_full, c_full);
+
+                    if (sync_angle != 0) {
+                        SLONG s_sync = SIN(sync_angle & 2047);
+                        SLONG c_sync = COS(sync_angle & 2047);
+                        ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
+                        SLONG yaw_mask = (2048 << 8) - 1;
+                        fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                        fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
+                    }
+#undef ORBIT_PT
 
                     fc->nobehind = 0x2000;
                     fc->last_manual_cam_turn = (SLONG)GAME_TURN; // hand rotate -> lock fight trigger
@@ -841,16 +1374,24 @@ void FC_process()
                 // Height: directly move want_y (bypasses the slow Y smoothing).
                 // Stick up (negative Y) = raise camera, stick down = lower camera.
                 if (abs(stick_y) > 8000) {
+                    manual_y_input_this_tick = true;
                     SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
+                    const SLONG want_y_pre = fc->want_y;
                     fc->want_y += height_delta;
 
-                    // Clamp: don't go below character feet, don't go too high above.
-                    SLONG min_y = fc->focus_y + 0x2000;
-                    SLONG max_y = fc->focus_y + 0x28000;
+                    SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
+                    SLONG max_y = fc->focus_y + FC_CAM_Y_MAX_ABOVE_FOCUS;
                     if (fc->want_y < min_y)
                         fc->want_y = min_y;
                     if (fc->want_y > max_y)
                         fc->want_y = max_y;
+
+                    if (camera_is_manual()) {
+                        // MANUAL: mirror the clamped delta onto fc.y so
+                        // vertical input is instant. AUTO: leave fc.y
+                        // alone — position smoothing pulls it.
+                        fc->y += (fc->want_y - want_y_pre);
+                    }
 
                     fc->nobehind = 0x2000;
                 }
@@ -934,13 +1475,150 @@ void FC_process()
             }
         }
 
-        if (!fc->toonear) {
-            if (fc->nobehind) {
+        // Excess-speed translation tracking: when the focus moves
+        // faster than VC_FOCUS_SPEED_CAP per tick (= when driving),
+        // anchor want_x/z to the EXCESS portion of the focus motion
+        // (everything above the cap). Below the cap nothing is
+        // applied — the camera-relative-to-focus geometry then sees
+        // an effective focus motion of at most the cap value.
+        //
+        // Two outcomes:
+        //   • Running / walking (focus speed below cap): tracking
+        //     contributes 0, default get-behind/orbit behaviour kept
+        //     verbatim → "snap to behind on movement" feel preserved.
+        //   • Driving fast (focus speed above cap): tracking absorbs
+        //     the excess, so the camera follows the car closely AND
+        //     stick rotation only fights against `cap`-per-tick drag
+        //     instead of full vehicle speed → manual orbit reaches
+        //     the front of the car.
+        //
+        // Guard against huge deltas (focus teleport on level load /
+        // mission start) so we don't launch want across the map.
+        // (s_prev_focus_x/z lifted to FC_process scope for the
+        // cut-scene short-circuit at the top of the loop.)
+        {
+            SLONG focus_dx = fc->focus_x - s_prev_focus_x[cam];
+            SLONG focus_dz = fc->focus_z - s_prev_focus_z[cam];
+            const SLONG VC_FOCUS_SPEED_CAP   = 0x3000;   // ~9 cm/tick
+            const SLONG TELEPORT_THRESHOLD   = 0x40000;
+            // Guard against huge deltas (focus teleport on level load /
+            // mission start) so we don't launch want across the map.
+            if (abs(focus_dx) < TELEPORT_THRESHOLD
+                && abs(focus_dz) < TELEPORT_THRESHOLD) {
+                if (camera_is_manual()) {
+                    // MANUAL: rigidly translate the camera by the FULL
+                    // focus delta — not just the excess above a cap. This
+                    // is what keeps the camera's world-space angle FIXED
+                    // relative to the character: if camera and focus move
+                    // by the same vector each tick, the camera→focus
+                    // offset is constant, so look_at_focus computes the
+                    // same want_yaw and the camera never spontaneously
+                    // rotates on character motion. Manual input is the
+                    // ONLY thing that changes the angle.
+                    //
+                    // On a vehicle platform, the platform_thing block above
+                    // already moved want_x/z by the vehicle's rigid motion
+                    // (rotate + translate around the pivot). The raw focus
+                    // delta ALSO contains that vehicle motion plus the
+                    // character's motion across the deck. Adding the raw delta
+                    // would DOUBLE-APPLY the vehicle motion → want over-shoots
+                    // the focus → look_at_focus sees a yaw offset → camera
+                    // auto-rotates while standing on a moving car. But simply
+                    // SKIPPING tracking on a platform (the previous fix) means
+                    // running across the deck isn't followed at all — the
+                    // jerky-follow bug.
+                    //
+                    // So subtract the platform's own contribution to the focus
+                    // (plat_focus_dx/dz, computed above): what's left is the
+                    // character's motion RELATIVE to the vehicle. Standing on a
+                    // moving car → ~0 (no double-apply, no auto-rotation);
+                    // running on the deck → the run (camera follows). Off a
+                    // platform plat_focus_* = 0, so this is the plain full-delta
+                    // 1:1 follow that keeps the world-space angle fixed (only
+                    // manual input rotates the camera). Position smoothing,
+                    // distance clamp and focus-side smoothing all still run.
+                    fc->want_x += focus_dx - plat_focus_dx;
+                    fc->want_z += focus_dz - plat_focus_dz;
+                } else {
+                    // AUTO: excess-speed tracking. Below cap the
+                    // contribution is 0 (original walk/run feel kept,
+                    // get-behind decides where the camera ends up);
+                    // above cap the excess is absorbed so manual orbit
+                    // can fight only `cap`-per-tick drag instead of full
+                    // vehicle speed.
+                    SLONG track_dx = 0;
+                    SLONG track_dz = 0;
+                    if      (focus_dx >  VC_FOCUS_SPEED_CAP) track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dx < -VC_FOCUS_SPEED_CAP) track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
+                    if      (focus_dz >  VC_FOCUS_SPEED_CAP) track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dz < -VC_FOCUS_SPEED_CAP) track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
+                    fc->want_x += track_dx;
+                    fc->want_z += track_dz;
+                }
+            }
+            s_prev_focus_x[cam] = fc->focus_x;
+            s_prev_focus_z[cam] = fc->focus_z;
+        }
+
+        // L2-held suppression: while the player holds L2 on the gamepad,
+        // freeze the auto-get-behind logic completely so the camera doesn't
+        // swing behind the character while they are walking BACKWARD (the
+        // back-walk modifier — gamepad L1 / keyboard E). Without this the
+        // camera would chase around behind the retreating character and flip
+        // the view. The get-behind math has no accumulator — every tick it
+        // recomputes from focus_x/focus_yaw — so skipping it while the modifier
+        // is held has no lingering state; the next tick after release resumes
+        // auto-positioning immediately.
+        //
+        // fc->nobehind is left untouched here on purpose: it's the
+        // *manual cam input* suppression mechanism (mouse / right-stick
+        // orbit / zoom rotate refresh it on demand), and we don't want
+        // modifier release to wipe an active mouse-orbit lock-out. The two
+        // suppressions are independent.
+        const bool backwalk_freeze_get_behind = input_backwalk_held();
+
+        // Scene override — vehicle entry: the enter animation programmatically
+        // rotates the camera behind the (entry-facing) character REGARDLESS of
+        // camera mode. The player's manual input is already suppressed during
+        // entry (see the `entering_vehicle` gates on the mouse / stick input
+        // blocks above), so on KBM/MANUAL the camera would otherwise just sit
+        // still. Force get-behind here, and bypass the nobehind / fight skips
+        // so a mouse orbit done right before entry can't block the lock. Auto-
+        // released when SubState leaves ENTERING_VEHICLE (anim end).
+        const bool entering_vehicle_scene = CAR_ENTER_EXIT_CAM_LOCK
+            && fc->focus
+            && fc->focus->Class == CLASS_PERSON
+            && (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE
+                || fc->focus->SubState == SUB_STATE_EXITING_VEHICLE);
+
+        // Exit specifically: the climb-out starts immediately (no door-open
+        // pause), so the camera rotation must complete faster than on entry to
+        // hide Darci emerging through the closed car body. Used to speed up the
+        // position and angle smoothing below (the get-behind rate is bumped
+        // inline in the get-behind block).
+        const bool exiting_vehicle_scene = entering_vehicle_scene
+            && fc->focus->SubState == SUB_STATE_EXITING_VEHICLE;
+
+        // MANUAL mode: no automatic camera rotation at all. Manual input
+        // (mouse / stick orbit) is the ONLY thing that rotates the camera
+        // — no get-behind pull when the character moves, no inactivity-
+        // timer snap-back. Same philosophy as modern FPS / TPS games.
+        // We still let `nobehind` decrement normally so that if the
+        // player switches back to AUTO mode the state is sane (the
+        // residual manual-input lockout counts down rather than being
+        // frozen at whatever the last manual orbit set it to).
+        const bool manual_freeze_get_behind = camera_is_manual() && !entering_vehicle_scene;
+        if (!fc->toonear && !backwalk_freeze_get_behind) {
+            if (fc->nobehind && !entering_vehicle_scene) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
                 }
-            } else if (fc->focus->Class == CLASS_PERSON
+            } else if (manual_freeze_get_behind) {
+                // MANUAL mode: skip auto get-behind entirely.
+                // Manual orbit is the sole camera rotation source.
+            } else if (!entering_vehicle_scene
+                && fc->focus->Class == CLASS_PERSON
                 && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT
                 && (SLONG)GAME_TURN >= fc->fight_behind_until) {
                 // Don't get behind fighting people -- except briefly
@@ -958,6 +1636,13 @@ void FC_process()
                 if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
                     fc->want_x += dx >> 3;
                     fc->want_z += dz >> 3;
+                } else if (fc->focus->SubState == SUB_STATE_EXITING_VEHICLE) {
+                    // Exit starts climbing out immediately (no door-open pause
+                    // at the start like entry), so push the camera behind a bit
+                    // faster — it has to be behind before Darci emerges through
+                    // the (visually closed) car body. ~37%/tick vs entry's 25%.
+                    fc->want_x += dx >> 2;
+                    fc->want_z += dz >> 2;
                 } else if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     fc->want_x += dx >> 5;
                     fc->want_z += dz >> 5;
@@ -974,53 +1659,131 @@ void FC_process()
         }
 
         if (!fc->toonear) {
-            // Track the desired Y height above the focus character.
-            SLONG goto_y = fc->focus_y + FC_focus_above(fc) + offset_height;
+            // Track focus character vertically.
+            //
+            // Mouse and gamepad need different semantics here:
+            //   • Gamepad with stick Y idle: stick is at neutral. The
+            //     camera should drift back to a default height above
+            //     the character — original convergence toward
+            //     goto_y = focus_y + FC_focus_above + offset_height.
+            //   • Gamepad with stick Y deflected: stick is actively
+            //     setting the height. Convergence would fight the
+            //     input — every tick the stick subtracts ~3000 from
+            //     want_y and the convergence's 0xd00 cap adds it
+            //     right back, so the camera doesn't move (and jerks
+            //     between the two values). Use the same delta-track
+            //     path as mouse — want_y stays where the stick puts
+            //     it, only character vertical motion is tracked.
+            //   • Mouse: there is no "released" position. Once the
+            //     player moves the mouse to set a height, that height
+            //     should PERSIST — no drift toward a default. We still
+            //     have to track the character's own vertical motion
+            //     (jumps, stairs, platforms) so the camera doesn't
+            //     get left behind, so we apply only the focus_y
+            //     DELTA from the previous tick, not absolute
+            //     convergence.
+            // (s_prev_focus_y lifted to FC_process scope for the
+            // cut-scene short-circuit at the top of the loop.)
+            SLONG focus_y_delta = fc->focus_y - s_prev_focus_y[cam];
 
-            if (GAME_FLAGS & GF_NO_FLOOR) {
-                if (goto_y < 0x28000) {
-                    goto_y = 0x28000;
-                }
+            // Mode-driven Y behaviour:
+            //   MANUAL: always delta-track (no auto convergence — player
+            //           sets the height with manual input, it persists).
+            //   AUTO + manual Y input this tick: delta-track (input would
+            //           otherwise fight the convergence pull each tick).
+            //   AUTO + no manual Y input: converge toward default height
+            //           above focus (idle-return feature of AUTO mode).
+            //
+            // `manual_y_input_this_tick` is set by the mouse and stick
+            // input blocks above when a non-zero vertical input arrived.
+            // For gamepad we also detect a held-deflection that didn't
+            // pass through the input block this tick (input block runs
+            // on a different path but the held-stick semantics are the
+            // same — convergence would still fight it).
+            if (!manual_y_input_this_tick && input_gamepad_connected()) {
+                SLONG sy = input_stick_y_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768;
+                if (abs(sy) > 8000) manual_y_input_this_tick = true;
             }
 
-            dy = goto_y - fc->want_y;
-
-            if (dy > 0x10000) {
-                // Well below target: move faster.
-                dy >>= 3;
-                if (dy > 0x2000) {
-                    dy = 0x2000;
-                }
+            if (camera_is_manual() || manual_y_input_this_tick) {
+                fc->want_y += focus_y_delta;
+                // Clamp to the unified Y range.
+                SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
+                SLONG max_y = fc->focus_y + FC_CAM_Y_MAX_ABOVE_FOCUS;
+                if (fc->want_y < min_y)
+                    fc->want_y = min_y;
+                if (fc->want_y > max_y)
+                    fc->want_y = max_y;
             } else {
-                dy >>= 3;
-                if (dy > 0x0d00) {
-                    dy = 0x0d00;
-                }
-                if (dy < -0x0c00) {
-                    dy = -0x0c00;
-                }
-            }
+                // AUTO + no manual Y input: track character vertical
+                // motion 1:1 AND slowly drift toward default height
+                // above focus (idle-return feature).
+                //
+                // 1:1 delta tracking is necessary so the camera Y stays
+                // locked to character Y when running over bumps, curbs,
+                // jumps, climbs. Without it, want_y would only converge
+                // toward default via the slow >>3 step below — at the
+                // moment focus_y bumps up, want_y lags by ~1 second
+                // before catching up, and look-at-focus computes a
+                // shifting want_pitch (camera looking up at character)
+                // → at low rubberness the angle snap to that shifting
+                // pitch reads as a camera jerk on every step.
+                //
+                // The drift then closes the residual offset (e.g. after
+                // player released Y stick at a non-default height) over
+                // ~1 second per the >>3 cap rate. Drift's per-tick cap
+                // is intentionally NOT scaled by rubberness — translation
+                // is always smoothed.
+                fc->want_y += focus_y_delta;
 
-            if (dy > 0) {
-                if (fc->focus->Class == CLASS_PERSON) {
-                    Thing* p_person = fc->focus;
+                SLONG goto_y = fc->focus_y + FC_focus_above(fc) + offset_height;
 
-                    // Moving platform: follow the platform much faster.
-                    if (p_person->OnFace > 0) {
-                        ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
-
-                        PrimFace4* f4 = &prim_faces4[p_person->OnFace];
-
-                        ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
-
-                        if (f4->FaceFlags & FACE_FLAG_WMOVE) {
-                            dy <<= 5;
-                        }
+                if (GAME_FLAGS & GF_NO_FLOOR) {
+                    if (goto_y < 0x28000) {
+                        goto_y = 0x28000;
                     }
                 }
+
+                dy = goto_y - fc->want_y;
+
+                if (dy > 0x10000) {
+                    // Well below target: move faster.
+                    dy >>= 3;
+                    if (dy > 0x2000) {
+                        dy = 0x2000;
+                    }
+                } else {
+                    dy >>= 3;
+                    if (dy > 0x0d00) {
+                        dy = 0x0d00;
+                    }
+                    if (dy < -0x0c00) {
+                        dy = -0x0c00;
+                    }
+                }
+
+                // Removed: WMOVE-platform ×32 multiplier on dy. The
+                // original engine had a hack that multiplied the
+                // convergence step by 32 when the character was
+                // standing on a face flagged FACE_FLAG_WMOVE
+                // (escalators, moving lifts, cars). Intended to keep
+                // the camera caught up to a rising platform, but the
+                // flag is set in level data regardless of whether
+                // the platform is actually moving — so a parked car
+                // (also WMOVE-flagged in its walkable face) triggers
+                // the ×32 multiplier and produces an overshoot when
+                // the camera converges back to default after a stick
+                // height-down input. Camera-convergence rate should
+                // depend only on want/goto/time, not on what's
+                // underfoot; if a real moving lift later looks too
+                // laggy, tune the base convergence rate (dy >> 3 /
+                // 0xd00 cap) instead of re-introducing surface-
+                // dependent speed bumps.
+
+                fc->want_y += dy;
             }
 
-            fc->want_y += dy;
+            s_prev_focus_y[cam] = fc->focus_y;
         }
 
         // Distance clamp: keep camera within [FC_DIST_MIN, FC_DIST_MAX] from focus XZ.
@@ -1036,7 +1799,49 @@ void FC_process()
             dist <<= 8;
         }
 
-        if (dist < FC_DIST_MIN) {
+        // On keyboard+mouse the XZ-distance clamp is one-sided: ONLY the
+        // "too far" branch runs. The "too close" branch (push want away
+        // from focus when XZ < target) would undo the mouse orbital
+        // pitch on every tick — orbital deliberately shrinks XZ as the
+        // camera arcs up around the focus. Skipping it preserves orbital.
+        //
+        // The "too far" branch is kept because it provides sprint
+        // recovery: during sprint, want's XZ stays at target (translation
+        // tracking preserves the offset), but `fc` lags via position
+        // smoothing and the visible camera-to-focus XZ distance grows
+        // (the zoom-out effect — desired immersion). When the sprint
+        // ends, the position smoothing collapse threshold (`if QDIST3 <
+        // 0x800 { want = fc }`) pins want at fc's lagged position. The
+        // very next tick this clamp catches it (want's XZ > target),
+        // pulls want back to target XZ, and fc smooths in.
+        // MANUAL mode skips the "too close" clamp: manual vertical orbit
+        // (mouse pitch / stick orbit) deliberately shrinks XZ as the camera
+        // arcs up around the focus; min-clamping would undo that on every
+        // tick. The "too far" branch below is kept for both modes — it
+        // provides sprint recovery (lagged fc catches up to want after
+        // sprint zoom-out ends) and that feels right on MANUAL too.
+        //
+        // EXCEPTION — vehicle entry: keep the min-clamp ON even in MANUAL so
+        // the programmatic get-behind orbits AROUND the character (constant
+        // radius) like it does on the gamepad. Without it, want is pulled in a
+        // straight chord to the behind point and the camera cuts directly
+        // across instead of arcing round.
+        //
+        // EXCEPTION — driving: keep the min-clamp ON while the player is in a car
+        // (even in MANUAL). Otherwise, when the car drives INTO the camera (focus
+        // translating toward want faster than want escapes — e.g. accelerating
+        // with the camera facing the car's front, or reversing into it), want's
+        // XZ distance shrinks below target and, with no min-clamp to push it back
+        // out, stays permanently shrunk → the camera is "rammed" into the car and
+        // never recovers its distance. Matches AUTO/gamepad driving behaviour.
+        // Cost: no manual vertical-orbit shrink while driving on KBM (acceptable —
+        // driving framing is horizontal, same as on the pad).
+        const bool driving = fc->focus
+            && fc->focus->Class == CLASS_PERSON
+            && fc->focus->Genus.Person
+            && fc->focus->Genus.Person->InCar;
+        const bool min_clamp_enabled = camera_is_auto() || entering_vehicle_scene || driving;
+        if (min_clamp_enabled && dist < FC_DIST_MIN) {
             if (!fc->toonear) {
                 ddist = FC_DIST_MIN - dist;
 
@@ -1070,10 +1875,78 @@ void FC_process()
         dy = fc->want_y - fc->y;
         dz = fc->want_z - fc->z;
 
-        if (QDIST3(abs(dx), abs(dy), abs(dz)) > 0x800) {
-            fc->x += dx >> 2;
+        // Aim pose (toonear with the 0x90000 sentinel — distinct from
+        // wall-collision toonear). On entry s_aim_ramp starts at 0 (ease rate
+        // 0.25/tick = gradual zoom, like the gamepad) and climbs to 256 (snap),
+        // so the camera glides into the pose and then mouse-look is responsive,
+        // with no residual jump at the hand-off. AUTO ignores this (always
+        // smooth via its own path below).
+        constexpr SLONG AIM_RAMP_STEP    = 22;  // ~12 ticks ease → snap
+        constexpr SLONG AIM_RATE_BASE_Q8 = 64;  // 0.25/tick at entry start
+        // Zoom-OUT ease: gentler than the default follow (>>2 = 0.25/tick = 64),
+        // applied for UNZOOM_WINDOW_TICKS after leaving the aim pose so the
+        // camera glides back out instead of snapping. Tune by feel.
+        constexpr SLONG UNZOOM_RATE_Q8     = 32; // 0.125/tick — ~half the default follow
+        constexpr SLONG UNZOOM_WINDOW_TICKS = 20; // ~1 s at 20 Hz — covers the visible pull-back
+        const bool aim_now = (fc->toonear && fc->toonear_dist == 0x90000);
+        if (!aim_now || !s_prev_aim[cam]) {
+            s_aim_ramp[cam] = 0;
+        } else if (s_aim_ramp[cam] < 256) {
+            s_aim_ramp[cam] += AIM_RAMP_STEP;
+            if (s_aim_ramp[cam] > 256) {
+                s_aim_ramp[cam] = 256;
+            }
+        }
+        // Zoom-out window: start it the tick we leave the aim pose, tick it down
+        // afterwards, keep it cleared while still in aim (so re-entering zoom
+        // doesn't carry over the gentle rate).
+        if (aim_now) {
+            s_unzoom_ticks[cam] = 0;
+        } else if (s_prev_aim[cam]) {
+            s_unzoom_ticks[cam] = UNZOOM_WINDOW_TICKS;
+        } else if (s_unzoom_ticks[cam] > 0) {
+            s_unzoom_ticks[cam]--;
+        }
+        s_prev_aim[cam] = aim_now ? 1 : 0;
+        // Per-tick ease fraction (Q8): AIM_RATE_BASE_Q8 (0.25) → 256 (1.0=snap).
+        const SLONG aim_rate_q8 = AIM_RATE_BASE_Q8 + s_aim_ramp[cam] * (256 - AIM_RATE_BASE_Q8) / 256;
+
+        if (camera_is_manual() && aim_now) {
+            // Manual aim: ease position toward the over-the-shoulder pose at the
+            // aim ramp rate (gradual on entry → snap once ramped up), in
+            // lockstep with the angle below. No 0x800 dead-zone, so slow
+            // mouse-look doesn't stutter. Character is rooted while aiming, so
+            // there's no translation being smoothed away here.
+            fc->x += (SLONG)(((int64_t)dx * aim_rate_q8) >> 8);
+            fc->z += (SLONG)(((int64_t)dz * aim_rate_q8) >> 8);
+            fc->y += (SLONG)(((int64_t)dy * aim_rate_q8) >> 8);
+        } else if (QDIST3(abs(dx), abs(dy), abs(dz)) > 0x800) {
+            // Position smoothing — camera following the character.
+            // ALWAYS on in BOTH modes (rubberness does NOT scale this):
+            // even in MANUAL the camera should smoothly follow jumps,
+            // stairs, platforms etc. without snapping. Rubberness is
+            // specifically about rotation rubber (angle / wall / orbit
+            // lag), not position rubber.
+            //
+            // Vehicle EXIT scene: faster XZ follow (~37.5%/tick = >>2 + >>3)
+            // so the camera orbits behind quickly enough to hide Darci emerging
+            // before the climb-out anim shows her through the car body — but
+            // not as snappy as a flat >>1.
+            if (s_unzoom_ticks[cam] > 0) {
+                // Leaving the aim pose — ease XZ back out gently (UNZOOM_RATE_Q8)
+                // so the un-zoom is smooth and the same whether the character is
+                // standing or walking. Y keeps its default rate (the pull-back
+                // that felt abrupt is horizontal).
+                fc->x += (SLONG)(((int64_t)dx * UNZOOM_RATE_Q8) >> 8);
+                fc->z += (SLONG)(((int64_t)dz * UNZOOM_RATE_Q8) >> 8);
+            } else if (exiting_vehicle_scene) {
+                fc->x += (dx >> 2) + (dx >> 3);
+                fc->z += (dz >> 2) + (dz >> 3);
+            } else {
+                fc->x += dx >> 2;
+                fc->z += dz >> 2;
+            }
             fc->y += dy >> 3;
-            fc->z += dz >> 2;
         } else {
             fc->want_x = fc->x;
             fc->want_y = fc->y;
@@ -1083,33 +1956,102 @@ void FC_process()
 
         FC_look_at_focus(fc);
 
-        // Smooth angles: want → actual >>2.
-        SLONG dyaw = fc->want_yaw - fc->yaw;
-        SLONG dpitch = fc->want_pitch - fc->pitch;
-        SLONG droll = fc->want_roll - fc->roll;
-
-        dyaw &= (2048 << 8) - 1;
-        dpitch &= (2048 << 8) - 1;
-        droll &= (2048 << 8) - 1;
-
-        if (dyaw > (1024) << 8) {
-            dyaw -= (2048 << 8);
-        }
-        if (dpitch > (1024) << 8) {
-            dpitch -= (2048 << 8);
-        }
-        if (droll > (1024) << 8) {
-            droll -= (2048 << 8);
-        }
-
-        if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
-            fc->yaw += dyaw >> 2;
-            fc->pitch += dpitch >> 2;
-            fc->roll += droll >> 2;
+        // Smooth angles: want → actual.
+        //
+        // MANUAL mode: zero rotation smoothing — any smoothing here is
+        // perceived as a rubber-band tail on manual rotation (the mouse
+        // mdx/mdy blocks above also snap fc directly to want for the same
+        // reason). Just collapse fc = want every tick.
+        //
+        // AUTO mode: smoothing scaled by rubberness. Shipping default
+        // (rubberness 0.5) keeps the legacy `>>2` step exactly — i.e.
+        // 25%/tick toward want. Lower rubberness → snappier. Higher →
+        // laggier rubber-band.
+        //
+        // EXCEPTION — vehicle entry: use the smoothed path even in MANUAL so
+        // the programmatic entry rotation eases the same way it does on the
+        // gamepad (AUTO). Without this the snap makes the lock-rotation look
+        // abrupt on KBM.
+        if (camera_is_manual() && aim_now) {
+            // Manual aim: ease angle at the aim ramp rate, in lockstep with the
+            // position above (gradual on entry → snap once ramped). Wrap-safe
+            // signed deltas, then scale by the Q8 rate.
+            SLONG dyaw   = fc->want_yaw   - fc->yaw;
+            SLONG dpitch = fc->want_pitch - fc->pitch;
+            SLONG droll  = fc->want_roll  - fc->roll;
+            dyaw   &= (2048 << 8) - 1;
+            dpitch &= (2048 << 8) - 1;
+            droll  &= (2048 << 8) - 1;
+            if (dyaw   > (1024 << 8)) dyaw   -= (2048 << 8);
+            if (dpitch > (1024 << 8)) dpitch -= (2048 << 8);
+            if (droll  > (1024 << 8)) droll  -= (2048 << 8);
+            fc->yaw   += (SLONG)(((int64_t)dyaw   * aim_rate_q8) >> 8);
+            fc->pitch += (SLONG)(((int64_t)dpitch * aim_rate_q8) >> 8);
+            fc->roll  += (SLONG)(((int64_t)droll  * aim_rate_q8) >> 8);
+        } else if (camera_is_manual() && !entering_vehicle_scene) {
+            fc->yaw   = fc->want_yaw;
+            fc->pitch = fc->want_pitch;
+            fc->roll  = fc->want_roll;
         } else {
-            fc->want_yaw = fc->yaw;
-            fc->want_pitch = fc->pitch;
-            fc->want_roll = fc->roll;
+            SLONG dyaw = fc->want_yaw - fc->yaw;
+            SLONG dpitch = fc->want_pitch - fc->pitch;
+            SLONG droll = fc->want_roll - fc->roll;
+
+            dyaw &= (2048 << 8) - 1;
+            dpitch &= (2048 << 8) - 1;
+            droll &= (2048 << 8) - 1;
+
+            if (dyaw > (1024) << 8) {
+                dyaw -= (2048 << 8);
+            }
+            if (dpitch > (1024) << 8) {
+                dpitch -= (2048 << 8);
+            }
+            if (droll > (1024) << 8) {
+                droll -= (2048 << 8);
+            }
+
+            if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
+                // Legacy step was `>> 2` (drop 25% of remaining delta per
+                // tick → keep 75% of the old angle). Express that as a
+                // "keep" fraction so rubberness can scale it. At
+                // rubberness 0.5 the helper returns exactly 0.75, the
+                // multiplication below collapses to `* 0.25` = `>>2`,
+                // bit-identical to the original.
+                //
+                // CAP at default (0.75): position smoothing is fixed at
+                // `>>2` (keep 0.75) and NOT rubberness-scaled — if angle
+                // smoothing went slower than position smoothing (keep
+                // approaching 1.0 at high rubberness), fc.x/z would
+                // reach the target orbital position several ticks before
+                // fc.yaw caught up to want_yaw. Camera physically there
+                // but looking in old direction → character drifts off-
+                // centre during rotation. Capping at 0.75 keeps angle
+                // and position smoothing rates equal, so the camera
+                // tracks the look target throughout the catch-up.
+                //
+                // Effectively rubberness [0..0.5] scales angle smoothing
+                // from snap to default; rubberness [0.5..1] leaves angle
+                // at default. The extra "laziness" of rubberness > 0.5
+                // is then expressed via the wall-collision blend (which
+                // doesn't interact with position smoothing) and the
+                // orbit-lag residual for fast mouse flicks.
+                float keep = keep_for_rubberness(0.75f);
+                if (keep > 0.75f) keep = 0.75f;
+                // Vehicle EXIT scene: drop ~37.5%/tick (keep 0.625) to match
+                // the faster exit position smoothing above — angle and position
+                // stay in lockstep so the character doesn't drift off-centre
+                // while the camera rotates quickly behind.
+                if (exiting_vehicle_scene) keep = 0.625f;
+                const float drop = 1.0f - keep;
+                fc->yaw   += (SLONG)((float)dyaw   * drop);
+                fc->pitch += (SLONG)((float)dpitch * drop);
+                fc->roll  += (SLONG)((float)droll  * drop);
+            } else {
+                fc->want_yaw = fc->yaw;
+                fc->want_pitch = fc->pitch;
+                fc->want_roll = fc->roll;
+            }
         }
 
         // Fixed lens (FOV). Fight zoom is commented out in original.

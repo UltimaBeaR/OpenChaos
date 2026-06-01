@@ -28,6 +28,7 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "game/input_actions.h"
+#include "game/action_map/act_car.h" // ACT_CAR_ACCEL_GTRIG, ACT_CAR_*_GBTN
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_trigger_raw
@@ -82,10 +83,9 @@ static void do_car_input(Thing* p_thing);
 
 // uc_orig: SKID_START (fallen/Source/Vehicle.cpp)
 #define SKID_START 3
-// uc_orig: SKID_FORCE (fallen/Source/Vehicle.cpp)
-#define SKID_FORCE 8500
-// uc_orig: NEAR_SKID_FORCE (fallen/Source/Vehicle.cpp)
-#define NEAR_SKID_FORCE 5000
+// SKID_FORCE / NEAR_SKID_FORCE (uc_orig) removed — they only fed the
+// corner-skid onset, which is gone (see do_car_input). The hard-brake skid
+// uses its own thresholds in pedals().
 // uc_orig: STABLE_COUNT (fallen/Source/Vehicle.cpp)
 #define STABLE_COUNT 16
 // uc_orig: CAR_VEL_SHIFT (fallen/Source/Vehicle.cpp)
@@ -103,6 +103,152 @@ void get_car_door_offsets(SLONG type, SLONG door, SLONG* dx, SLONG* dz)
     }
 
     *dz = (veh_info[type].DZ[door + 1] * 50) >> 8;
+}
+
+// OpenChaos: world-space XZ teleport point for the vehicle-enter animation.
+//
+// Lateral (across-the-car) placement keeps the ORIGINAL behaviour — same as
+// get_car_enter_xz with the enter-anim (sneaky) width, which is already correct
+// (Darci lines up with the wheel centre on both sides). Only the LONGITUDINAL
+// (along-the-body) placement is changed: instead of the original magic-scaled
+// wheel Z (which mirrored the two doors to front/rear), the point sits at the
+// FRONT wheel Z plus a per-model, per-door `along` offset (veh_enter_tune).
+// Entry DETECTION still uses get_car_enter_xz — only the teleport changed.
+void get_car_enter_anim_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
+{
+    ASSERT(p_vehicle->Class == CLASS_VEHICLE);
+    ASSERT(door == 0 || door == 1);
+
+    const SLONG type = p_vehicle->Genus.Vehicle->Type;
+    ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
+
+    // Lateral: original enter-anim width (door-specific side, x450 scale).
+    const SLONG width = (veh_info[type].DX[door + 1] * 450) >> 8;
+
+    // Longitudinal: front-wheel Z (front wheels are indices 2/3 and share the
+    // same Z) plus the per-model `along` offset (+ = toward the rear). The two
+    // doors use separate offsets — each enter animation grabs a different door
+    // edge, so the door width shifts them differently.
+    const SLONG along         = (door == 0) ? veh_enter_tune[type].alongLeft
+                                            : veh_enter_tune[type].alongRight;
+    const SLONG front_wheel_z = veh_info[type].DZ[2];
+    const SLONG target_z      = front_wheel_z + along;
+
+    // Forward axis maps a positive `length` toward the nose (−Z at angle 0), so
+    // length = −target_z places the point at car-local Z = target_z.
+    const SLONG length = -target_z;
+
+    const SLONG dx = -SIN(p_vehicle->Genus.Vehicle->Angle);
+    const SLONG dz = -COS(p_vehicle->Genus.Vehicle->Angle);
+
+    SLONG ix = p_vehicle->WorldPos.X >> 8;
+    SLONG iz = p_vehicle->WorldPos.Z >> 8;
+
+    ix += (dx * length) >> 16; // longitudinal (front wheel + along)
+    iz += (dz * length) >> 16;
+
+    ix += (dz * width) >> 16; // lateral (original behaviour)
+    iz -= (dx * width) >> 16;
+
+    *cx = ix;
+    *cz = iz;
+}
+
+// Rise window as a fraction of the enter animation's progress (0..1): Darci
+// stays on the ground until START (opening the door), then rises smoothly but
+// quickly to the door bottom across [START, END], then holds at the top for the
+// rest of the animation. Smoothstep inside the window gives a soft accel/decel
+// (no snap at either end). Move START earlier / END later to widen or shift the
+// climb; keep START < END.
+//
+// Separate windows per side because the two enter animations (left =
+// ANIM_ENTER_CAR, right = ANIM_ENTER_TAXI) climb in at different moments.
+// uc_orig: n/a (OpenChaos addition)
+#define CAR_ENTER_RISE_START_L 0.40
+#define CAR_ENTER_RISE_END_L   0.70
+#define CAR_ENTER_RISE_START_R 0.40
+#define CAR_ENTER_RISE_END_R   0.70
+
+// Safety cap when walking the keyframe chain to find its length.
+// uc_orig: n/a (OpenChaos addition)
+#define CAR_ENTER_RISE_MAX_FRAMES 64
+
+// OpenChaos: set the person's height for one physics tick of the enter
+// animation — Darci waits on the ground, then climbs to the door bottom during
+// a window of the animation (veh_enter_tune.up above the ground; larger Y is
+// higher in this engine).
+//
+// The climb is driven by the ANIMATION's own progress (FrameIndex + AnimTween
+// over the clip's total keyframes), so it always matches the animation's length
+// and has no quantization (unlike recovering progress from the integer Y, which
+// stalls on the flat part of the curve for small `up`). No-op when up == 0.
+void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
+{
+    const SLONG type = p_vehicle->Genus.Vehicle->Type;
+    ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
+
+    // Which side: the two enter animations differ (left = ANIM_ENTER_CAR,
+    // right = ANIM_ENTER_TAXI) and use separate height and window tuning.
+    DrawTween* dt = p_person->Draw.Tweened;
+    const bool is_right = (dt && dt->CurrentAnim == ANIM_ENTER_TAXI);
+
+    const SLONG up = is_right ? veh_enter_tune[type].upRight : veh_enter_tune[type].upLeft;
+    if (up == 0)
+        return;
+
+    // Animation progress in [0,1] from the CURRENT frame's position in the
+    // keyframe chain — direction-agnostic, so it works for both the forward
+    // enter climb and the backward exit climb (FrameIndex can't be used: it
+    // counts up even when playing backwards). `before` = frames from the start
+    // to the current frame, `after` = frames from current to the last; the
+    // 0..255 AnimTween is the sub-frame blend.
+    double prog01 = 1.0;
+    if (dt && dt->CurrentFrame) {
+        SLONG before = 0;
+        for (GameKeyFrame* p = dt->CurrentFrame;
+             p->PrevFrame && before < CAR_ENTER_RISE_MAX_FRAMES; p = p->PrevFrame)
+            before++;
+
+        SLONG after = 0;
+        for (GameKeyFrame* g = dt->CurrentFrame;
+             g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && after < CAR_ENTER_RISE_MAX_FRAMES; g = g->NextFrame)
+            after++;
+
+        const SLONG total = before + after + 1; // keyframes in clip
+        const SLONG pos   = before * 256 + (dt->AnimTween & 0xff);
+        if (total > 0)
+            prog01 = (double)pos / (double)(total * 256);
+        if (prog01 < 0.0)
+            prog01 = 0.0;
+        else if (prog01 > 1.0)
+            prog01 = 1.0;
+    }
+
+    const double start = is_right ? CAR_ENTER_RISE_START_R : CAR_ENTER_RISE_START_L;
+    const double end   = is_right ? CAR_ENTER_RISE_END_R : CAR_ENTER_RISE_END_L;
+
+    // Height fraction: flat on the ground before the window, smoothstep rise
+    // across [start, end], flat at the top after — so there is a distinct
+    // moment in the animation where the climb happens.
+    double h;
+    if (prog01 <= start)
+        h = 0.0;
+    else if (prog01 >= end)
+        h = 1.0;
+    else {
+        const double u = (prog01 - start) / (end - start);
+        h = u * u * (3.0 - 2.0 * u); // smoothstep
+    }
+
+    // Ground reference is sampled under the VEHICLE (the street it sits on),
+    // NOT under the person at the door point. The door point can land on top of
+    // a low obstacle next to the car; sampling there would make the rise climb
+    // onto the obstacle instead of staying at door level. Using the car's own
+    // ground keeps the animation at the proper height (clipping through any
+    // adjacent obstacle, like the original instant teleport did).
+    const SLONG ground = PAP_calc_map_height_at(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Z >> 8) << 8;
+
+    p_person->WorldPos.Y = ground + (SLONG)((double)(up << 8) * h);
 }
 
 // uc_orig: get_vehicle_body_prim (fallen/Source/Vehicle.cpp)
@@ -622,6 +768,11 @@ void reinit_vehicle(Thing* p_thing)
     vp->Health = 300;
     vp->Siren = 0;
     vp->GrabAction = 0;
+    vp->GasLatch = 0;
+    vp->RevLatch = 0;
+    vp->GasTimer = 0;
+    vp->RevTimer = 0;
+    vp->Animator = 0;
     vp->LastSmokeSpawn = 0;
 
     for (int ii = 0; ii < 6; ii++) {
@@ -805,7 +956,10 @@ void draw_car(Thing* p_car)
 
         case -2:
             p_car->Genus.Vehicle->Brakelight = 0;
-            if (p_car->Genus.Vehicle->DControl & VEH_DECEL)
+            // Reverse lamp: shown while actively reversing. Original keyed this
+            // on VEH_DECEL (brake+reverse were one button); reverse now has its
+            // own VEH_REVERSE bit (player reverse key + AI reverse).
+            if (p_car->Genus.Vehicle->DControl & VEH_REVERSE)
                 colour = 0x303030;
             break;
 
@@ -1944,7 +2098,9 @@ SLONG GetRunoverHP(Thing* p_car, Thing* p_person)
 // uc_orig: VEH_throw_out_person (fallen/Source/Vehicle.cpp)
 void VEH_throw_out_person(Thing* p_person, Thing* p_vehicle)
 {
-    set_person_exit_vehicle(p_person);
+    // Forced ejection (vehicle destroyed / scared off): instant teleport-out,
+    // never the climb-out animation, and never revives the vehicle.
+    set_person_exit_vehicle(p_person, /*forced=*/true);
 
     knock_person_down(
         p_person,
@@ -2269,12 +2425,24 @@ static void siren(Vehicle* veh, UBYTE play)
     if (veh->Siren == play)
         return;
 
-    if ((veh->Type == VEH_TYPE_POLICE) || (veh->Type == VEH_TYPE_AMBULANCE) || (veh->Type == VEH_TYPE_MEATWAGON)) {
-        if (play)
-            MFX_play_ambient(VEHICLE_NUMBER(veh), S_CAR_SIREN1, MFX_LOOPED);
-        else
-            MFX_stop(VEHICLE_NUMBER(veh), S_CAR_SIREN1);
-    }
+    // Only vehicles that actually have a siren respond — gated by the SAME
+    // check as the visual flashing lights (veh_info[].FLZ != 0, see the
+    // emergency-lights draw in process_car). FLZ != 0 is exactly the police /
+    // ambulance / meatwagon set (the original sound gate tested those three
+    // types explicitly — equivalent, but FLZ keeps sound, lights and the
+    // DualSense lightbar siren effect on one source of truth).
+    //
+    // OpenChaos: for a non-siren car we now return WITHOUT setting veh->Siren.
+    // The original set the flag unconditionally; it was harmless in-game (no
+    // sound, no lights), but the DualSense lightbar reads veh->Siren directly,
+    // so a stray flag fired the red/blue strobe on ordinary cars.
+    if (veh_info[veh->Type].FLZ == 0)
+        return;
+
+    if (play)
+        MFX_play_ambient(VEHICLE_NUMBER(veh), S_CAR_SIREN1, MFX_LOOPED);
+    else
+        MFX_stop(VEHICLE_NUMBER(veh), S_CAR_SIREN1);
 
     veh->Siren = play;
 }
@@ -2288,6 +2456,11 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 {
     SLONG inc = TICK_RATIO;
 
+    // Max wheel deflection = full lock. The speed-sensitive limiting now lives
+    // on the steering INPUT accumulator (apply_button_input_car), so here we
+    // just clamp to the mechanical full-lock range.
+    const SLONG wheel_limit = WHEELTIME << TICK_SHIFT;
+
     if (!(veh->Flags & FLAG_FURN_DRIVING) || (veh->Flags & FLAG_VEH_IN_AIR)) {
         // No driver or airborne: bring wheel toward centre.
         if (veh->Wheel > inc)
@@ -2299,17 +2472,16 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
     } else {
         if (player) {
             velocity = abs(velocity);
-
             if (velocity > 1000)
                 velocity = 1000;
 
             if (veh->IsAnalog) {
                 veh->Wheel = (veh->Steering * (700 - (velocity >> 1))) >> (3);
 
-                if (veh->Wheel > (WHEELTIME << TICK_SHIFT)) {
-                    veh->Wheel = WHEELTIME << TICK_SHIFT;
-                } else if (veh->Wheel < -(WHEELTIME << TICK_SHIFT)) {
-                    veh->Wheel = -(WHEELTIME << TICK_SHIFT);
+                if (veh->Wheel > wheel_limit) {
+                    veh->Wheel = wheel_limit;
+                } else if (veh->Wheel < -wheel_limit) {
+                    veh->Wheel = -wheel_limit;
                 }
                 goto steering_done;
             } else {
@@ -2324,16 +2496,16 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
                 else
                     veh->Wheel += inc;
 
-                if (veh->Wheel > (WHEELTIME << TICK_SHIFT))
-                    veh->Wheel = WHEELTIME << TICK_SHIFT;
+                if (veh->Wheel > wheel_limit)
+                    veh->Wheel = wheel_limit;
             } else if (veh->Steering < 0) {
                 if (veh->Wheel > 0)
                     veh->Wheel = 0;
                 else
                     veh->Wheel -= inc;
 
-                if (veh->Wheel < -(WHEELTIME << TICK_SHIFT))
-                    veh->Wheel = -(WHEELTIME << TICK_SHIFT);
+                if (veh->Wheel < -wheel_limit)
+                    veh->Wheel = -wheel_limit;
             } else {
                 if (veh->Wheel > 0)
                     veh->Wheel >>= 1;
@@ -2353,68 +2525,51 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction, UWORD& move_cancel, SWORD& accel, Thing* p_thing)
 {
 
-    if (veh->DControl & VEH_ACCEL)
+    // Cancelling a skid happens only when gas is the EFFECTIVE control. Brake
+    // and reverse take priority over gas, so a held gas must NOT wipe the skid
+    // while the player is actually braking (original couldn't hold gas+brake
+    // at once; now they can, so this gate keeps the brake skid alive).
+    if ((veh->DControl & VEH_ACCEL) && !(veh->DControl & (VEH_DECEL | VEH_REVERSE)))
         veh->Skid = 0;
 
-    // Gate Darci's exit condition.
-    if (veh->DControl & (VEH_ACCEL | VEH_DECEL)) {
+    // Release the throttle hold + pause timer the moment its key is let go, so
+    // a release+re-press at zero speed drives the other way immediately.
+    if (!(veh->DControl & VEH_REVERSE)) {
+        veh->RevLatch = 0;
+        veh->RevTimer = 0;
+    }
+    if (!(veh->DControl & VEH_ACCEL)) {
+        veh->GasLatch = 0;
+        veh->GasTimer = 0;
+    }
+
+    // Gate Darci's exit condition: any pedal held marks the action grabbed.
+    if (veh->DControl & (VEH_ACCEL | VEH_DECEL | VEH_REVERSE)) {
         veh->GrabAction = 1;
     } else if (!(veh->DControl & VEH_FASTER)) {
         veh->GrabAction = 0;
     }
 
+    // The "press twice" hold (see Vehicle::RevLatch / GasLatch) is player-only;
+    // AI never latches, so bots get a seamless brake-then-reverse crossover.
+    const bool is_player = is_driven_by_player(p_thing);
+
+    // Priority: brake > reverse > gas (else-if order). The brake key is the
+    // original "brake" half (with skid). The reverse key decelerates forward
+    // motion WITHOUT skid (it's not a hard brake) and then drives backwards,
+    // which keeps the original reverse side effects (rear-end lift, reverse
+    // lights, reverse engine sound). Gas is the original forward throttle.
     if (!(veh->Flags & FLAG_FURN_DRIVING)) {
         // No driver: coast to stop with strong friction.
         siren(veh, 0);
         veh->Dir = 0;
         friction -= 4;
-    } else if (veh->DControl & VEH_ACCEL) {
-
-        if (veh->Dir < 0) {
-            // Braking while in reverse.
-            veh->Dir = -1;
-            friction -= 4;
-            accel = vinfo->SoftBrake;
-            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_ACCELERATE : INPUT_CAR_PAD_ACCELERATE;
-        } else {
-            veh->Dir = +2;
-            accel = vinfo->FwdAccel;
-            if (veh->DControl & VEH_FASTER) {
-                if (velocity < VEH_SPEED_LIMIT)
-                    accel <<= 1;
-                else if (velocity < VEH_SPEED_LIMIT * 2)
-                    accel += (accel >> 1);
-            } else {
-                if (velocity >= VEH_SPEED_LIMIT)
-                    accel = 0;
-            }
-
-            // Analog throttle: scale accel by R2 trigger position (gamepad only).
-            // Full press = full accel, partial press = proportional.
-            // Cross button always gives full accel (digital).
-            const int r2 = input_trigger_raw(16);
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
-            }
-
-            if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
-                veh->Smokin = 1;
-            }
-        }
     } else if (veh->DControl & VEH_DECEL) {
-        if ((veh->Dir > 0) || (velocity > 200)) {
-            // Braking while going forwards.
+        // BRAKE — hard brake with skid while going forwards; never reverses.
+        if ((veh->Dir > 0) || (velocity > VEH_BRAKE_SPEED)) {
             veh->Dir = +1;
             friction -= 4;
             accel = -vinfo->SoftBrake;
-            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_DECELERATE : INPUT_CAR_PAD_DECELERATE;
-
-            // Analog brake: scale braking force by L2 trigger position (gamepad only).
-            // Square button always gives full brake (digital).
-            const int l2 = input_trigger_raw(15);
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && l2 > 0 && l2 < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * l2) / 255);
-            }
 
             if (!veh->Skid) {
                 if ((veh->DControl & VEH_FASTER) && (velocity > 1600))
@@ -2436,9 +2591,73 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
                 }
             }
         } else {
-            // Accelerating backwards.
+            // Slow/stopped (or braking a backward roll) — no skid: gentle stop.
+            friction -= VEH_SOFT_DECEL_FRICTION_DROP;
+            if ((veh->Dir == +1) || (veh->Dir == -1))
+                veh->Dir = 0;
+        }
+    } else if (veh->DControl & VEH_REVERSE) {
+        // REVERSE — overrides gas. While moving forwards, GENTLY decelerate (no
+        // skid); once stopped and still held, pause ~0.5 s, then drive backwards
+        // on its own. Release resets the pause (re-press reverses at once).
+        if ((veh->Dir > 0) || (velocity > VEH_BRAKE_SPEED)) {
+            veh->Dir = +1;
+            friction -= VEH_THROTTLE_DECEL_FRICTION_DROP;
+            accel = -VEH_THROTTLE_DECEL_CONST;
+            if (is_player) {
+                veh->RevLatch = 1;
+                veh->RevTimer = 0;
+            }
+        } else if (is_player && veh->RevLatch && veh->RevTimer < VEH_THROTTLE_HOLD_TICKS) {
+            // Stopped after braking, still held: count the pause, hold at zero.
+            veh->Dir = 0;
+            friction -= 4;
+            veh->RevTimer++;
+        } else {
+            // Pause elapsed, fresh press at rest, or already reversing: drive
+            // backwards (rear-end lift + reverse lights/sound, as the original).
             veh->Dir = -2;
             accel = -vinfo->BkAccel;
+        }
+    } else if (veh->DControl & VEH_ACCEL) {
+        // GAS — lowest priority. While rolling backwards, GENTLY decelerate (no
+        // skid); once stopped and still held, pause ~0.5 s, then drive forwards.
+        if (veh->Dir < 0) {
+            veh->Dir = -1;
+            friction -= VEH_THROTTLE_DECEL_FRICTION_DROP;
+            accel = VEH_THROTTLE_DECEL_CONST;
+            if (is_player) {
+                veh->GasLatch = 1;
+                veh->GasTimer = 0;
+            }
+        } else if (is_player && veh->GasLatch && veh->GasTimer < VEH_THROTTLE_HOLD_TICKS) {
+            // Stopped after braking the reverse, still held: pause at zero.
+            veh->Dir = 0;
+            friction -= 4;
+            veh->GasTimer++;
+        } else {
+            veh->Dir = +2;
+            accel = vinfo->FwdAccel;
+            if (veh->DControl & VEH_FASTER) {
+                if (velocity < VEH_SPEED_LIMIT)
+                    accel <<= 1;
+                else if (velocity < VEH_SPEED_LIMIT * 2)
+                    accel += (accel >> 1);
+            } else {
+                if (velocity >= VEH_SPEED_LIMIT)
+                    accel = 0;
+            }
+
+            // Analog throttle: scale accel by R2 trigger position (gamepad
+            // only). Full press = full accel, partial = proportional.
+            const int r2 = input_trigger_raw(ACT_CAR_ACCEL_GTRIG);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
+            }
+
+            if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
+                veh->Smokin = 1;
+            }
         }
     } else {
         // Engine braking only.
@@ -2518,14 +2737,14 @@ static void do_car_input(Thing* p_thing)
         bool stopped = false;
 
         if ((veh->Dir == +2) || (veh->Dir == -2)) {
-            if (!accel && (newmag < 10))
+            if (!accel && (newmag < VEH_STOP_SPEED))
                 stopped = true;
         } else if ((veh->Dir == +1) || (veh->Dir == -1)) {
-            if ((newmag < 10) || (newmag > oldmag))
+            if ((newmag < VEH_STOP_SPEED) || (newmag > oldmag))
                 stopped = true;
         } else {
             ASSERT(accel == 0);
-            if (newmag < 10)
+            if (newmag < VEH_STOP_SPEED)
                 stopped = true;
         }
 
@@ -2602,7 +2821,9 @@ static void do_car_input(Thing* p_thing)
             veh->Skid = 0;
         }
 
-        veh->Dir = (veh->DControl & VEH_DECEL) ? +1 : 0;
+        // Skid ending while still braking (either the brake or reverse key)
+        // keeps decelerating-forward direction; otherwise stopped.
+        veh->Dir = (veh->DControl & (VEH_DECEL | VEH_REVERSE)) ? +1 : 0;
 
         veh->Smokin = 1;
     }
@@ -2691,29 +2912,14 @@ static void do_car_input(Thing* p_thing)
         dangle = 0;
     }
 
-    // Detect skid onset from lateral force.
-    if ((veh->VelX || veh->VelZ) && (veh->Skid < SKID_START)) {
-        SLONG ax, az;
-        SLONG vx, vz, vv;
-        SLONG av;
-
-        ax = dx - veh->VelX;
-        az = dz - veh->VelZ;
-
-        vx = veh->VelX;
-        vz = veh->VelZ;
-        vv = vx * vx + vz * vz;
-        if (vv) {
-            vv = Root(vv);
-
-            av = (ax * vz) - (az * vx);
-
-            if (abs(av) > SKID_FORCE * vv)
-                veh->Skid = SKID_START;
-            else if (abs(av) > ((NEAR_SKID_FORCE * vinfo->FwdAccel) >> 5) * vv)
-                MFX_play_thing(THING_NUMBER(p_thing), SOUND_Range(S_SKID_SLOW_START, S_SKID_SLOW_END), MFX_MOVING, p_thing);
-        }
-    }
+    // Corner-skid onset REMOVED (OpenChaos) — for everyone, player and AI.
+    // The original lateral-force skid compared the turn's desired velocity to
+    // the actual velocity vector, but that vector picks up noise (precision /
+    // kerbs / collisions): it fired RANDOM skids on near-straight driving yet
+    // often missed genuinely sharp turns. Tried threshold scaling and a
+    // drift-free angular-rate metric — still erratic, unstable junk. Cars no
+    // longer break into a skid from cornering. (The deliberate hard-brake skid
+    // set in pedals() is separate and still applies.)
 
     if (veh->Skid < SKID_START) {
         veh->VelX = dx;
@@ -2743,7 +2949,9 @@ static void do_car_input(Thing* p_thing)
             else
                 state = VEH_FWD_DECEL;
         } else {
-            if ((veh->DControl & VEH_DECEL) && !veh->Skid)
+            // Reverse-accelerate engine sound: active reverse is now its own
+            // VEH_REVERSE bit (was VEH_DECEL when brake+reverse shared a button).
+            if ((veh->DControl & VEH_REVERSE) && !veh->Skid)
                 state = VEH_REV_ACCEL;
             else
                 state = VEH_REV_DECEL;
@@ -2851,8 +3059,35 @@ static void process_car(Thing* p_car)
     vp = p_car->Genus.Vehicle;
     info = &veh_info[vp->Type];
 
+    // OpenChaos: keep the enter-reservation honest. FLAG_VEH_ANIMATING is set
+    // while a person plays the ENTER animation (Animator = that person). The
+    // moment they stop entering — completed, killed, knocked into recoil, or
+    // ANY other state change — release the reservation so the car never gets
+    // stuck "occupied". A person either ends up properly inside (handled by
+    // set_person_in_vehicle, which clears the flag) or is detached as "out".
     if (vp->Flags & FLAG_VEH_ANIMATING) {
-        // Reserved for animated car sequences (not active in this build).
+        Thing* p_anim = vp->Animator ? TO_THING(vp->Animator) : nullptr;
+        const bool still_entering = p_anim
+            && p_anim->Class == CLASS_PERSON
+            && p_anim->Genus.Person->InCar == THING_NUMBER(p_car)
+            && p_anim->SubState == SUB_STATE_ENTERING_VEHICLE;
+
+        if (!still_entering) {
+            vp->Flags &= ~FLAG_VEH_ANIMATING;
+            // If the animator was interrupted before reaching the seat, detach
+            // it so it's cleanly "out" (no stale InCar on a killed/recoiled
+            // person). A person who actually made it in is INSIDE/driving and
+            // is left untouched.
+            if (p_anim
+                && p_anim->Class == CLASS_PERSON
+                && p_anim->Genus.Person->InCar == THING_NUMBER(p_car)
+                && p_anim->SubState != SUB_STATE_INSIDE_VEHICLE
+                && !(p_anim->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
+                p_anim->Genus.Person->InCar = 0;
+                p_anim->Genus.Person->Flags &= ~(FLAG_PERSON_DRIVING | FLAG_PERSON_PASSENGER);
+            }
+            vp->Animator = 0;
+        }
     }
 
     make_car_matrix(vp);

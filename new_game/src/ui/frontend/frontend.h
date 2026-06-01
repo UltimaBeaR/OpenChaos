@@ -95,10 +95,6 @@ struct MissionCache {
 #define FE_CONFIG_VIDEO (8)
 // uc_orig: FE_CONFIG_AUDIO (fallen/Source/frontend.cpp)
 #define FE_CONFIG_AUDIO (9)
-// uc_orig: FE_CONFIG_INPUT_KB (fallen/Source/frontend.cpp)
-#define FE_CONFIG_INPUT_KB (10)
-// uc_orig: FE_CONFIG_INPUT_JP (fallen/Source/frontend.cpp)
-#define FE_CONFIG_INPUT_JP (11)
 // uc_orig: FE_CONFIG_OPTIONS (fallen/Source/frontend.cpp)
 #define FE_CONFIG_OPTIONS (13)
 // uc_orig: FE_QUIT (fallen/Source/frontend.cpp)
@@ -127,16 +123,8 @@ struct MissionCache {
 #define OT_SLIDER (3)
 // uc_orig: OT_MULTI (fallen/Source/frontend.cpp)
 #define OT_MULTI (4)
-// uc_orig: OT_KEYPRESS (fallen/Source/frontend.cpp)
-#define OT_KEYPRESS (5)
 // uc_orig: OT_LABEL (fallen/Source/frontend.cpp)
 #define OT_LABEL (6)
-// uc_orig: OT_PADPRESS (fallen/Source/frontend.cpp)
-#define OT_PADPRESS (7)
-// uc_orig: OT_RESET (fallen/Source/frontend.cpp)
-#define OT_RESET (8)
-// uc_orig: OT_PADMOVE (fallen/Source/frontend.cpp)
-#define OT_PADMOVE (9)
 
 // uc_orig: MC_YN (fallen/Source/frontend.cpp)
 #define MC_YN (CBYTE*)(1)
@@ -232,10 +220,6 @@ void FRONTEND_kibble_draw();
 void FRONTEND_DrawSlider(MenuData* md);
 // uc_orig: FRONTEND_DrawMulti (fallen/Source/frontend.cpp)
 void FRONTEND_DrawMulti(MenuData* md, ULONG rgb);
-// uc_orig: FRONTEND_DrawKey (fallen/Source/frontend.cpp)
-void FRONTEND_DrawKey(MenuData* md);
-// uc_orig: FRONTEND_DrawPad (fallen/Source/frontend.cpp)
-void FRONTEND_DrawPad(MenuData* md);
 
 // uc_orig: FRONTEND_kibble_init_one (fallen/Source/frontend.cpp)
 void FRONTEND_kibble_init_one(Kibble* k, UBYTE type);

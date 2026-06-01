@@ -216,6 +216,13 @@ extern SLONG TEXTURE_page_meteor;
 // uc_orig: TEXTURE_page_splash (fallen/DDEngine/Source/texture.cpp)
 extern SLONG TEXTURE_page_splash;
 
+// Input-prompt glyph atlas pages (Kenney Input Prompts, embedded PNGs).
+// New in OpenChaos — no original counterpart.
+extern SLONG TEXTURE_page_glyph_kbm;
+extern SLONG TEXTURE_page_glyph_generic;
+extern SLONG TEXTURE_page_glyph_ps;
+extern SLONG TEXTURE_page_glyph_deck;
+
 // Alternative texture mapping table for people3 body-part substitution.
 // Used by figure.cpp for character skinning.
 // uc_orig: alt_texture (fallen/DDEngine/Source/texture.cpp)

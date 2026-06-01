@@ -3,6 +3,8 @@
 
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "game/action_map/act_foot.h" // ACT_FOOT_*
+#include "game/action_map/act_car.h" // ACT_CAR_*
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
@@ -44,6 +46,7 @@
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active (aim mouse-look)
 #include "game/game_globals.h"
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/console/console.h" // CONSOLE_text_at
@@ -56,17 +59,72 @@ extern SLONG set_person_search(Thing* p_person, SLONG ob_index, SLONG ox, SLONG 
 extern SLONG set_person_search_corpse(Thing* p_person, Thing* p_personb);
 extern SLONG find_searchable_person(Thing* p_person);
 
-// Analog stick X axis: packed into bits 18-24 of the input ULONG, range -128..+127.
-// uc_orig: GET_JOYX (fallen/Source/interfac.cpp)
-#define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
-// Analog stick Y axis: packed into bits 25-31 of the input ULONG, range -128..+127.
-// uc_orig: GET_JOYY (fallen/Source/interfac.cpp)
-#define GET_JOYY(input) (((input >> 24) & 0xfe) - 128)
+// Analog stick X / Y are packed into bits 18-31 of the input ULONG (range
+// -128..+126, even). They are read back via input_virtual_axis(input, VAXIS_*)
+// — see input_actions.h. (Replaces the old GET_JOYX / GET_JOYY macros, which
+// had no source-name argument; behaviour is byte-identical.)
 
 // Minimum analog stick velocity below which movement is ignored (game logic deadzone).
 // PC: 8/128. The hardware-level deadzone is NOISE_TOLERANCE in get_hardware_input().
 // uc_orig: ANALOGUE_MIN_VELOCITY (fallen/Source/interfac.cpp)
 #define ANALOGUE_MIN_VELOCITY 8
+
+// OpenChaos: stick "pure axis" cone — the dominant axis must be at least
+// STICK_AXIS_DOMINANCE_RATIO times bigger than the minor axis for the stick
+// to count as "pure" (horizontal or vertical). 2 = ~27° cone around the
+// dominant axis. Used in several places to discriminate intentional axis-
+// dominant input from diagonal mix-ins:
+//   - L2 forward↔back zone tracker (PURE_FORWARD / PURE_BACK / SIDE_ISH)
+//   - hug-wall stick handling (pure-side → step along, else → break out)
+//   - dangling stick handling (pure-vertical → pull up / drop, else → side
+//     traverse)
+//
+// The ratio is paired with NOISE_TOLERANCE (the in-game stick deadzone, read
+// from config in get_hardware_input; default 8192 raw) for the "stick past
+// deadzone" test.
+#define STICK_AXIS_DOMINANCE_RATIO 2
+
+// OpenChaos: rotate a camera-relative stick vector (raw_dx, raw_dy) into the
+// character-relative frame.
+//
+// Camera and character angles are in PSX game-units (2048 = 360°). Output
+// convention matches the input convention used everywhere else in this file:
+//   - dy_out < 0  → stick points in character's forward direction
+//   - dy_out > 0  → stick points in character's backward direction
+//   - dx_out > 0  → stick points to character's right
+//   - dx_out < 0  → stick points to character's left
+// Magnitude is preserved (modulo integer truncation).
+//
+// Source-agnostic by design: ANY input source that produces (dx, dy) in
+// camera frame feeds this helper. A future keyboard WASD path is by
+// construction already in character frame and should NOT go through this
+// rotation — feed (dx, dy) downstream directly (or pass cam_angle ==
+// char_angle to get the identity transform).
+//
+// Derivation: the screen-frame stick angle relates to its world direction
+// by `world = screen + cam_angle`; the char-frame angle is `char_rel =
+// world - char_angle = screen + (cam - char)`. So we rotate the (dx, dy)
+// vector by `delta = cam_angle - char_angle`. Sign of the rotation matches
+// the Arctan(-dx, dy) convention used by player_turn_left_right_analogue
+// and the snap-angle formulae in apply_button_input — verified by checking
+// that delta == 1024 (character facing 180° from camera) maps stick "up"
+// to stick "down" in the char frame, which is what tank-relative controls
+// require.
+//
+// 64-bit intermediates: raw_dx / raw_dy can reach ±32768 and SIN/COS are
+// 16-bit signed fixed-point (65536 = 1.0). Each product fits in 32 bits
+// only just (2^15 × 2^16 = 2^31), and the sum of two such terms can
+// overflow a signed 32-bit accumulator.
+static inline void stick_camera_to_char_frame(
+    SLONG raw_dx, SLONG raw_dy, SLONG cam_angle, SLONG char_angle,
+    SLONG* out_dx, SLONG* out_dy)
+{
+    const SLONG delta = (cam_angle - char_angle) & 2047;
+    const SLONG s = SIN(delta);
+    const SLONG c = COS(delta);
+    *out_dx = (SLONG)(((int64_t)raw_dx * c + (int64_t)raw_dy * s) >> 16);
+    *out_dy = (SLONG)((-(int64_t)raw_dx * s + (int64_t)raw_dy * c) >> 16);
+}
 
 // uc_orig: INPUT_KEYS (fallen/Source/interfac.cpp)
 #define INPUT_KEYS 0
@@ -83,12 +141,56 @@ extern SLONG find_searchable_person(Thing* p_person);
 // uc_orig: INPUT_ACTION_MASK (fallen/Source/interfac.cpp)
 #define INPUT_ACTION_MASK (~0x3f)
 
+// OpenChaos: "player just transitioned into MOVEING from non-MOVEING" counter
+// (ticks). Armed via player_arm_run_entry_snap() from set_person_running when
+// prior State was not MOVEING; decremented once at the top of apply_button_input.
+//
+// Used by ACTION_RUNNING_JUMP to apply the same stick+camera angle snap that
+// ACTION_STANDING_JUMP already performs. Race-prone scenarios:
+//  - Stand + (W slightly before Space): on the W tick action tree fires no
+//    action; player_interface_move runs the rotation pass with State=IDLE
+//    max_angle=1024 and snaps Angle — but if the camera is STILL rotating
+//    when W lands, the snap goes to an intermediate camera angle. Then
+//    process_analogue_movement transitions to MOVEING. On the next tick(s)
+//    rotation max_angle drops to 192/(velocity/8) ≈ 38/tick and the character
+//    lags far behind the (still-moving) camera. Space arrives → action_run →
+//    ACTION_RUNNING_JUMP. Without snap, set_person_running_jump bakes the
+//    half-rotated facing.
+//  - Landing on a ledge with W held: SUB_STATE_DROP_DOWN_LAND end →
+//    set_person_idle → continue_moveing fallback → set_person_running. Same
+//    half-rotated Angle problem on next-tick ACTION_RUNNING_JUMP.
+//
+// Counter value bounds the snap window: small enough that "running steady +
+// camera flip + jump" (the user-requested behaviour where the character does
+// NOT spin to face the camera mid-flight) is preserved — that scenario starts
+// with counter == 0 because the character has been MOVEING for many ticks.
+// Large enough to cover the typical 1-3 tick window between transition into
+// MOVEING and the JUMP press.
+//
+// 5 ticks @ 50 Hz design rate ≈ 100 ms — within "almost simultaneously" but
+// outside any deliberate run-then-jump-later input pattern.
+#define PLAYER_RUN_ENTRY_SNAP_TICKS 5
+static SLONG g_player_run_entry_ticks = 0;
+
+// Called from set_person_running (person.cpp) whenever the player transitions
+// from a non-MOVEING state into MOVEING — regardless of the path that led
+// there (process_analogue_movement IDLE→MOVEING, set_person_idle landing-then-
+// continue-moveing fallback, dangling drop, etc.). Centralising the arm here
+// keeps the magic constant and global private to this translation unit.
+void player_arm_run_entry_snap()
+{
+    g_player_run_entry_ticks = PLAYER_RUN_ENTRY_SNAP_TICKS;
+}
+
 // Action tables: each array lists valid transitions from a specific player action/state.
 // Indexed via action_tree[] below.
 // uc_orig: action_idle (fallen/Source/interfac.cpp)
+// OpenChaos: removed priority-entries that routed JUMP+LEFT/RIGHT directly to
+// ACTION_FLIP_LEFT/RIGHT (original entries 0-1). All JUMP presses now route
+// through ACTION_STANDING_JUMP, whose body picks roll-vs-jump per analogue flag
+// (see body for details). D-pad / keyboard path still produces rolls; stick
+// path no longer does (stick rolls will return as an L2 chord later).
 struct ActionInfo action_idle[] = {
-    { ACTION_FLIP_LEFT, 1, INPUT_MASK_JUMP | INPUT_MASK_LEFT },
-    { ACTION_FLIP_RIGHT, 1, INPUT_MASK_JUMP | INPUT_MASK_RIGHT },
     { ACTION_STANDING_JUMP, 0, INPUT_MASK_JUMP },
     { ACTION_FIGHT_PUNCH, 0, INPUT_MASK_PUNCH },
     { ACTION_FIGHT_KICK, 0, INPUT_MASK_KICK },
@@ -122,9 +224,14 @@ struct ActionInfo action_run[] = {
 };
 
 // uc_orig: action_standing_jump (fallen/Source/interfac.cpp)
+// OpenChaos: removed mid-jump switch to FLIP_LEFT/RIGHT (original entries 0-1).
+// A short side-tap during a jump used to instantly switch the action to a roll.
+// Body now produces only forward / vertical jumps for stick; for D-pad /
+// keyboard the body still triggers rolls on side+jump at press time. The
+// mid-jump-tap switch path is gone for all inputs (minor original-behavior
+// loss; cleaner UX), all roll triggering happens at the entry of
+// ACTION_STANDING_JUMP. Will be replaced by L2-chord scheme later.
 struct ActionInfo action_standing_jump[] = {
-    { ACTION_FLIP_LEFT, 1, INPUT_MASK_LEFT },
-    { ACTION_FLIP_RIGHT, 1, INPUT_MASK_RIGHT },
     { ACTION_FIGHT_KICK, 0, INPUT_MASK_KICK },
     { 0, 0, 0 }
 };
@@ -335,64 +442,6 @@ struct ActionInfo* action_tree[] = {
     0,
 };
 
-// Fills joypad_button_use[] and keybrd_button_use[] with physical button indices
-// for each logical function (JOYPAD_BUTTON_*). Joypad bindings are hardcoded
-// (gamepad Joypad config menu was removed); keyboard bindings come from config.json.
-// uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
-void init_joypad_config(void)
-{
-    // PS1 Config 0 (Classic) adapted for Xbox/DualSense layout.
-    // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
-    // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
-    // 15=LT/L2(digital), 16=RT/R2(digital).
-    //
-    // Live mapping (post 2026-04-25 rework):
-    //   Cross / A           : jump
-    //   Circle / B          : action (interact — doors / vehicles / pickups /
-    //                         get out of car). Stays on Circle because L2 is
-    //                         the brake while driving and an L2-bound ACTION
-    //                         couldn't be triggered without also braking;
-    //                         Circle has no in-car conflict.
-    //   Square / X          : (unbound — punch lives on R2 trigger only)
-    //   Triangle / Y        : menu cancel; toggles siren while driving (read
-    //                         directly from button index 3 — see get_hardware_input)
-    //   L1 / LB             : aim mode (held); also alias for camera-toggle press
-    //   R1 / RB             : kick (on foot; suppressed while driving)
-    //   L2 / LT (digital)   : on-foot unbound; in-car brake (read directly in
-    //                         apply_button_input_car)
-    //   R2 / RT (digital)   : punch / shoot (analog trigger via weapon_feel)
-    //   Walk-mode toggle    : removed — partial left-stick deflection produces
-    //                         walking speed, no dedicated button needed
-    joypad_button_use[JOYPAD_BUTTON_JUMP] = 0; // A / Cross
-    joypad_button_use[JOYPAD_BUTTON_ACTION] = 1; // B / Circle
-    joypad_button_use[JOYPAD_BUTTON_PUNCH] = 2; // X / Square (gameplay-unbound; index kept for legacy code paths)
-    joypad_button_use[JOYPAD_BUTTON_KICK] = 10; // RB / R1
-    joypad_button_use[JOYPAD_BUTTON_SELECT] = 4; // Back / Select
-    joypad_button_use[JOYPAD_BUTTON_START] = 6; // Start
-    joypad_button_use[JOYPAD_BUTTON_CAMERA] = 9; // LB / L1
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON] = 9; // LB / L1 (held = aim)
-    joypad_button_use[JOYPAD_BUTTON_MOVE] = 31; // unbound (walk mode removed; stub index, never read in gameplay)
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT] = 15; // LT / L2 (legacy alias; in-car brake only)
-    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT] = 16; // RT / R2
-
-    keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("left", 203, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("right", 205, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_FORWARDS] = ENV_get_value_number("forward", 200, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_BACK] = ENV_get_value_number("back", 208, "Keyboard");
-
-    keybrd_button_use[JOYPAD_BUTTON_PUNCH] = ENV_get_value_number("punch", 44, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_KICK] = ENV_get_value_number("kick", 45, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_ACTION] = ENV_get_value_number("action", 46, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_MOVE] = ENV_get_value_number("run", 47, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_JUMP] = ENV_get_value_number("jump", 57, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_START] = ENV_get_value_number("start", 15, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_SELECT] = ENV_get_value_number("select", 28, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAMERA] = ENV_get_value_number("camera", 207, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT] = ENV_get_value_number("cam_left", 211, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("cam_right", 209, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("1stperson", 30, "Keyboard");
-}
-
 // If the player is holding a grenade or explosives, activates/primes it.
 // Returns 1 if any in-hand item action was performed.
 // uc_orig: player_activate_in_hand (fallen/Source/interfac.cpp)
@@ -463,6 +512,18 @@ SLONG player_activate_in_hand(Thing* p_person)
 // uc_orig: set_player_shoot (fallen/Source/interfac.cpp)
 void set_player_shoot(Thing* p_person, SLONG param)
 {
+    // OpenChaos: shooting during walk_back is fully blocked. Several
+    // attempts to "exit walk_back then shoot cleanly" produced
+    // anim glitches (frozen walk-back pose with fire effect, no shoot
+    // anim playing for pistol, single shot then stuck for AK / shotgun).
+    // Walk_back + shoot anim/state combinations are messy across weapons —
+    // simpler to disallow firing entirely while backing up. Player
+    // releases the back stick to shoot. Applies to all call sites
+    // (apply_button_input ACTION_SHOOT body, PUNCH-while-gun-out path,
+    // aim-mode first-person shoot path).
+    if (p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
+        return;
+
     if (person_has_gun_out(p_person)) {
         set_person_shoot(p_person, param);
         return;
@@ -714,9 +775,12 @@ SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 // uc_orig: person_get_in_specific_car (fallen/Source/interfac.cpp)
 SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 {
-    if (p_vehicle->Genus.Vehicle->Driver) {
+    if (p_vehicle->Genus.Vehicle->Driver
+        || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)) {
         //
-        // This vehicle is already occupied.
+        // This vehicle is already occupied, or someone is mid enter/exit
+        // animation (Driver is only set once the enter animation finishes, so
+        // FLAG_VEH_ANIMATING covers the in-between window).
         //
 
         return UC_FALSE;
@@ -845,12 +909,13 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
     if (p_thing->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
         Thing* p_vehicle = TO_THING(p_thing->Genus.Person->InCar);
 
-        if (p_vehicle->Genus.Vehicle->GrabAction && (p_vehicle->Velocity > 5)) {
-            return 0; // button grabbed by car
-        }
+        // Max speed (signed Velocity units) at which the driver may bail out.
+        // The original effectively required a dead stop; OpenChaos lets you step
+        // out while still moving slowly. Tunable — raise for an easier exit.
+        constexpr SLONG CAR_EXIT_MAX_SPEED = 250;
 
-        if (abs(p_vehicle->Velocity) >= 50) {
-            return 0; // moving too fast
+        if (abs(p_vehicle->Velocity) >= CAR_EXIT_MAX_SPEED) {
+            return 0; // moving too fast to step out
         }
 
         if (p_vehicle->Genus.Vehicle->Skid >= 3) // SKID_START defined in vehicle.cpp!
@@ -1335,45 +1400,12 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         }
     }
 
-    if (p_thing->State == STATE_IDLE || p_thing->State == STATE_MOVEING) {
-
-        if (p_thing->State == STATE_IDLE || p_thing->State == STATE_GUN) {
-            //
-            // failed to do any of the other stuff (pickup/flick switch/enter car/...), so croutch
-            //
-            switch (p_thing->SubState) {
-            case 0:
-                set_person_croutch(p_thing);
-                return 0; //  we need to hold this down so dont use up the action button //INPUT_MASK_ACTION;
-                break;
-            case SUB_STATE_IDLE_CROUTCH:
-            case SUB_STATE_IDLE_CROUTCHING:
-                return (0);
-                break;
-            }
-        }
-
-        if (p_thing->State == STATE_MOVEING) {
-            //
-            // failed to do any of the other stuff (pickup/flick switch/enter car/...), so croutch
-            //
-            switch (p_thing->SubState) {
-            case SUB_STATE_RUNNING:
-                if ((p_thing->Genus.Person->Stamina > 3) && (p_thing->Genus.Person->PersonType != PERSON_ROPER)) {
-                    p_thing->Genus.Person->Mode = PERSON_MODE_SPRINT;
-                    return (0);
-                }
-                break;
-            case SUB_STATE_WALKING:
-                p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
-                break;
-            }
-        }
-    } else if (p_thing->State == STATE_GUN) {
-        set_person_croutch(p_thing);
-        return (0);
-    }
-
+    // OpenChaos: the old sprint (moving → PERSON_MODE_SPRINT) and stealth-crouch
+    // (idle/gun → set_person_croutch) fallbacks used to live here, so the single
+    // ACTION button did all three. They were split onto their own buttons and now
+    // live in the central input dispatch (see INPUT_MASK_SPRINT / INPUT_MASK_-
+    // STEALTH). do_an_action is now purely the interaction multitool: if none of
+    // the interactions above matched, it does nothing.
     return (0); // INPUT_MASK_ACTION);
 }
 
@@ -1428,6 +1460,33 @@ SLONG get_camera_angle(void)
     return (ca);
 }
 
+// OpenChaos: returns true if the movement input points in the character's
+// own forward direction. Used by sit-stand transitions so the stand-up
+// trigger respects character orientation rather than camera/screen
+// orientation — e.g. if the character is facing the camera after backing
+// into a bench, stick UP on the controller is char-back (don't stand up),
+// and stick DOWN is char-forward (stand up).
+//
+// Analog stick: rotate raw stick (dx, dy) into the character frame and
+// check the Y component. Digital input (stick in deadzone, e.g. keyboard
+// W) falls back to INPUT_MASK_FORWARDS — keyboard WASD will get its own
+// char-rel translation in the keyboard scheme work.
+static bool input_is_char_rel_forward(Thing* p_person, ULONG input)
+{
+    const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+    if ((raw_dx != 0 || raw_dy != 0) && p_person->Draw.Tweened) {
+        SLONG dx_p, dy_p;
+        stick_camera_to_char_frame(raw_dx, raw_dy,
+            get_camera_angle(),
+            p_person->Draw.Tweened->Angle,
+            &dx_p, &dy_p);
+        constexpr SLONG kPackedThreshold = 16;
+        return dy_p < -kPackedThreshold;
+    }
+    return (input & INPUT_MASK_FORWARDS) != 0;
+}
+
 // uc_orig: player_stop_move (fallen/Source/interfac.cpp)
 // Transitions the player from a moving state into the stopping sub-state.
 // Has no effect when already in non-moving states (fighting, grappling, etc.).
@@ -1473,7 +1532,8 @@ void player_interface_move(Thing* p_thing, ULONG input)
 void init_user_interface(void)
 {
     USER_INTERFACE = 0;
-    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_TRUE, "Game");
+    // Default UC_FALSE: radar rotation follows the camera, not Darci's facing.
+    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_FALSE, "Game");
 }
 
 // Maximum turn speed per frame when rotating (controls animation frame advance rate).
@@ -1488,8 +1548,8 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     SLONG dx = 0, dz = 0;
     SLONG angle = -1;
 
-    dx = GET_JOYX(input);
-    dz = GET_JOYY(input);
+    dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
     angle = Arctan(-dx, dz);
 
@@ -1503,6 +1563,373 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     }
     return (angle);
 }
+
+// Back-walk regime — written in get_hardware_input (the STICKY_BACK state of the
+// back-walk machine, which lives on the ZOOM/BACK-WALK modifier — gamepad L1 /
+// keyboard E), read by player_turn_left_right_analogue to force walk_back
+// entry/exit. Only NONE / ACTIVE are used.
+enum {
+    BACKWALK_REGIME_NONE = 0,
+    BACKWALK_REGIME_ACTIVE,
+};
+static int g_backwalk_regime = BACKWALK_REGIME_NONE;
+
+// L2/Ctrl tap-window counter. Set to L2_ROLL_WINDOW_TICKS when the modifier
+// transitions from not-held → held. Decremented each tick in get_hardware_input.
+// It marks the "quick tap" interval: if the modifier is RELEASED while it is
+// still > 0 with the stick deflected, a ROLL fires (the machine posts
+// g_l2_roll_request, which the roll dispatch fires as a flip — no ✕, no jump).
+// If the modifier is instead HELD past the window, no roll fires and the hold
+// SLOW-WALK runs as usual. Reset to 0 on release.
+//
+// L2_ROLL_WINDOW_TICKS = 10 ticks at 20 Hz ≈ 500 ms — the longest a press can
+// last and still count as a tap; a longer press is treated as a hold.
+static constexpr SLONG L2_ROLL_WINDOW_TICKS = 10; // ~500 ms at 20 Hz
+static SLONG g_l2_engage_window_ticks = 0;
+
+// L2 ROLL request. Set by the L2 machine (get_hardware_input) on the L2 release
+// edge when it was a quick tap with the stick deflected; consumed by the roll
+// dispatch (apply_button_input / _fight) the same tick.
+//   g_l2_roll_request    : 0 = none, 1 = roll requested.
+//   g_l2_roll_target_angle: WORLD direction the roll should travel toward
+//                           (0..2047) — the stick direction at release, camera-
+//                           considered, independent of how the character rotated.
+//   g_l2_roll_flip_dir    : which flip animation (0 = left, 1 = right). The flip
+//                           moves perpendicular to facing (facing+512 for left,
+//                           facing-512 for right; see SUB_STATE_FLIPING), so the
+//                           dispatch snaps facing to target∓512 to send the
+//                           motion toward target. The two candidates are 180°
+//                           apart; the side is chosen to keep the character's
+//                           toward/away-from-camera orientation, falling back to
+//                           the last movement near the camera axis (see
+//                           compute_l2_roll_dir).
+// Deliberately NOT routed through INPUT_MASK_JUMP: the request only ever fires a
+// flip in a jump-capable state and is dropped otherwise, so L2 can never produce
+// an actual jump. Reset to 0 every tick at the top of the L2 machine.
+static SLONG g_l2_roll_request = 0;
+static SLONG g_l2_roll_target_angle = 0;
+static SLONG g_l2_roll_flip_dir = 0;
+
+// Last steering side: -1 = left, +1 = right, 0 = none. Two sources feed the same
+// sign so keyboard and mouse stay consistent (read by compute_l2_roll_dir to
+// break the near-camera-axis tie):
+//   1. Lateral stick component (A/D, W+D, gamepad tilt) — direct intent, holds
+//      through release. It also SUPPRESSES source 2 for a short while, so the
+//      "return to straight" turn after releasing a key (the character rotating
+//      back to forward) doesn't flip the sign the wrong way.
+//   2. The character's actual TURN (world-frame facing rotation) — captures
+//      camera/mouse steering while running pure-forward (the character turns to
+//      follow the camera even though the stick stays pure-forward). Used only
+//      when there's been no recent lateral input.
+static SLONG g_l2_last_side_sign = 0;
+static constexpr SLONG L2_LEAN_MIN_RAW = 8192;     // clear lateral lean (raw camera-frame X, ±32768)
+// Net accumulated facing change (2048 = 360°) that registers a turn — accumulating
+// per-tick deltas catches slow, gradual mouse steering that never spikes in one tick.
+static constexpr SLONG L2_TURN_ACCUM_THRESH = 32;  // ≈ 5.6° net turn
+static constexpr SLONG L2_LATERAL_HOLD_TICKS = 15; // suppress the turn source this long after a lateral input
+
+// Back-walk-modifier held flag (gamepad L1 / keyboard E). Set by the zoom/
+// back-walk machine (process_zoomwalk) each tick. Read by other modules that
+// need to know the player is in the back-walk modifier — the camera (fc.cpp:
+// suppress auto get-behind so it doesn't swing behind while retreating) and
+// collision (collide.cpp: lenient bump-into-bench sit while walking backward).
+// Accessed externally via input_backwalk_held().
+static bool g_backwalk_held = false;
+
+// OpenChaos: see input_actions.h for purpose.
+bool input_backwalk_held(void)
+{
+    return g_backwalk_held;
+}
+
+// Zoom / back-walk modifier mode — written once per tick by process_zoomwalk
+// (called from get_hardware_input for whichever input device is active), read by
+// apply_button_input_first_person to decide whether to run the zoom/look pose.
+// The modifier (bound via ACT_FOOT_AIM_* — gamepad L1 / keyboard E) is a HOLD
+// with two mutually exclusive modes for the duration of one hold:
+//   ZOOM — entered only from a standstill with the stick/WASD untouched: the
+//          aim/look pose (camera pulls close, character pivots in place via mouse
+//          / right stick). The instant the stick/WASD is touched it latches to
+//          WALK for the rest of the hold; it never returns to zoom until the
+//          modifier is released and re-pressed.
+//   WALK — entered when the modifier is pressed while already moving, or when the
+//          stick is touched during zoom. Runs the BACK-WALK machine: a deflection
+//          into the rear semicircle walks the character backward (camera-relative,
+//          tank-turn); any other deflection is normal movement; re-centring
+//          re-arms. No zoom, no in-place crank.
+enum {
+    ZOOMWALK_OFF = 0,
+    ZOOMWALK_ZOOM,
+    ZOOMWALK_WALK,
+};
+static int g_zoomwalk_mode = ZOOMWALK_OFF;
+
+// Shared zoom / back-walk machine: ZOOM (standstill look pose) ↔ WALK (back-walk
+// machine). Called once per tick from get_hardware_input by whichever input
+// device is active (gamepad L1 / keyboard E). Updates g_zoomwalk_mode, sets
+// g_backwalk_held, and drives g_backwalk_regime + m_bForceWalk while walking
+// backward. Camera-frame stick offset: dx_c = right+, dy_c = back+;
+// stick_in_deadzone = stick centred. p_pc = the player character.
+static void process_zoomwalk(bool engaged, SLONG dx_c, SLONG dy_c,
+                             bool stick_in_deadzone, Thing* p_pc)
+{
+    static bool prev_engaged = false;
+    const bool was_engaged = prev_engaged;
+    prev_engaged = engaged;
+
+    // BACK-WALK sticky sub-state (used only in WALK):
+    //  - ARMED (stick centred) → await a deflection.
+    //  - ARMED + deflection into the rear semicircle (char-frame dy_p > 0)
+    //    → STICKY_BACK (camera-relative back-walk).
+    //  - ARMED + any other deflection → STICKY_PASS (normal movement).
+    //  - either sticky mode re-arms when the stick re-centres.
+    // Reset to ARMED on the engage edge so a fresh hold always starts disarmed
+    // (a previous hold that ended in STICKY_BACK must not carry over).
+    enum { BW_ARMED, BW_STICKY_BACK, BW_STICKY_PASS };
+    static int bw_state = BW_ARMED;
+    if (!was_engaged)
+        bw_state = BW_ARMED;
+
+    g_backwalk_held = engaged;
+
+    if (!engaged) {
+        g_zoomwalk_mode = ZOOMWALK_OFF;
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
+        return;
+    }
+
+    const bool stick_active = !stick_in_deadzone;
+
+    if (g_zoomwalk_mode == ZOOMWALK_OFF) {
+        // First held tick: decide the mode for this whole hold. Touching the
+        // stick or already being on the move means the player wants to walk,
+        // not to zoom; a clean standstill with a neutral stick enters zoom.
+        const bool moving = p_pc && (p_pc->State == STATE_MOVEING);
+        g_zoomwalk_mode = (stick_active || moving) ? ZOOMWALK_WALK : ZOOMWALK_ZOOM;
+    } else if (g_zoomwalk_mode == ZOOMWALK_ZOOM) {
+        // The moment the stick is touched in zoom, latch to walk for the rest of
+        // the hold (zoom never auto-resumes — needs a fresh press).
+        if (stick_active)
+            g_zoomwalk_mode = ZOOMWALK_WALK;
+    }
+    // WALK stays latched until the modifier is released (handled above). Outside
+    // WALK (zoom or just-pressed-standstill) there's no back-walk: re-arm and
+    // clear the regime.
+    if (g_zoomwalk_mode != ZOOMWALK_WALK) {
+        bw_state = BW_ARMED;
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
+        return;
+    }
+
+    // Char-frame stick (camera-considered) for the rear-zone test.
+    SLONG dx_p = dx_c, dy_p = dy_c;
+    if (p_pc && p_pc->Draw.Tweened)
+        stick_camera_to_char_frame(dx_c, dy_c, get_camera_angle(),
+            p_pc->Draw.Tweened->Angle, &dx_p, &dy_p);
+    const bool stick_in_back_cone = (dy_p > 0);
+
+    if (stick_in_deadzone)
+        bw_state = BW_ARMED;
+    else if (bw_state == BW_ARMED)
+        bw_state = stick_in_back_cone ? BW_STICKY_BACK : BW_STICKY_PASS;
+
+    if (bw_state == BW_STICKY_BACK) {
+        g_backwalk_regime = BACKWALK_REGIME_ACTIVE;
+        m_bForceWalk = UC_TRUE;
+    } else {
+        g_backwalk_regime = BACKWALK_REGIME_NONE;
+    }
+}
+
+// Absolute angular distance between two game angles (0..2047, 2048 = 360°).
+// Result in 0..1024.
+static SLONG l2_angle_abs_diff(SLONG a, SLONG b)
+{
+    SLONG d = (a - b) & 2047;
+    if (d > 1024)
+        d = 2048 - d;
+    return d;
+}
+
+// Compute a roll toward the camera-frame stick vector (sx = right+, sy = back+,
+// any scale). Fills *out_target with the WORLD direction the roll should travel
+// (stick angle + camera yaw) and *out_flip with the flip animation side
+// (0 = left, 1 = right). The flip moves perpendicular to facing, so the caller
+// snaps facing to out_target∓512; the two candidate facings are 180° apart.
+//
+// Flip-side choice: normally pick it to KEEP p_person's toward/away-from-camera
+// orientation across the roll. BUT when the roll travels nearly straight
+// toward/away from the camera (target within ROLL_FLIP_CAM_AXIS_BUFFER of the
+// camera view axis), both candidate facings sit symmetrically on the screen-left
+// / screen-right sides — toward/away can't disambiguate, and a fixed pick looks
+// wrong. In that buffer zone fall back to the last left/right movement
+// (g_l2_last_side_sign): left input → left flip, right input → right flip.
+//
+// Returns false if the stick is centred (no direction).
+static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
+                                SLONG* out_target, SLONG* out_flip)
+{
+    if (sx == 0 && sy == 0)
+        return false;
+    const SLONG cam = get_camera_angle() & 2047;
+    const SLONG target = (Arctan(-sx, sy) + cam + 2048) & 2047;
+    SLONG char_face = cam;
+    if (p_person && p_person->Draw.Tweened)
+        char_face = p_person->Draw.Tweened->Angle & 2047;
+    const bool faces_away = l2_angle_abs_diff(char_face, cam) < 512;
+    const SLONG face_left  = (target - 512 + 2048) & 2047; // LEFT flip facing
+    const SLONG face_right = (target + 512 + 2048) & 2047; // RIGHT flip facing
+    const bool left_is_away =
+        l2_angle_abs_diff(face_left, cam) < l2_angle_abs_diff(face_right, cam);
+    *out_target = target;
+    // XNOR: keep away when facing away, keep toward when facing toward.
+    SLONG flip = (faces_away == left_is_away) ? 0 : 1;
+
+    // Buffer zone around the camera view axis (roll ~straight toward/away from
+    // the camera): the away/toward test is ambiguous there, so disambiguate by
+    // the last left/right movement instead. ~20° (2048 = 360°).
+    constexpr SLONG ROLL_FLIP_CAM_AXIS_BUFFER = 114; // ≈ 20°
+    const SLONG roll_vs_cam = l2_angle_abs_diff(target, cam); // 0 = away, 1024 = toward
+    const bool near_cam_axis =
+        (roll_vs_cam < ROLL_FLIP_CAM_AXIS_BUFFER)
+        || (roll_vs_cam > 1024 - ROLL_FLIP_CAM_AXIS_BUFFER);
+    if (near_cam_axis && g_l2_last_side_sign != 0)
+        flip = (g_l2_last_side_sign < 0) ? 1 : 0; // inverted inside the buffer (by feel)
+
+    *out_flip = flip;
+    return true;
+}
+
+// Shared L2 / Ctrl tactical-mode machine: TAP-RELEASE ROLL + HOLD BACK-WALK.
+// Driven from a single trigger-engaged flag plus the camera-frame stick offset
+// (dx_c = right+, dy_c = back+; stick_in_deadzone = stick centred). Called once
+// per physics tick by whichever input device is active — gamepad (L2 + analog
+// stick) or keyboard (Ctrl + WASD-emulated stick) — so both share identical
+// behaviour and state. p_pc = the player character (NET_PERSON(0)).
+//
+// Outputs (file-scope): g_l2_roll_request/_target_angle/_flip_dir (the roll,
+// fired by the dispatch in apply_button_input / _fight), m_bForceWalk (the slow
+// walk, applied in the normal movement path) and the tap window. Back-walk is
+// NOT here — it lives on the separate zoom/back-walk modifier (process_zoomwalk).
+static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
+                                bool stick_in_deadzone, Thing* p_pc)
+{
+    static bool prev_engaged = false;
+    const bool was_engaged = prev_engaged;
+    prev_engaged = engaged;
+
+    // One-shot roll request: cleared every tick; set below only on the exact
+    // release tick of a quick tap with the stick deflected.
+    g_l2_roll_request = 0;
+
+    // Track the last steering side (g_l2_last_side_sign) from two sources — see
+    // that global's comment for the full rationale. Source 1 is the direct
+    // lateral stick input; source 2 is the character's actual turn (camera/mouse
+    // steering), skipped briefly after lateral input and while flipping so the
+    // return-to-straight turn / the roll's own facing snap don't corrupt it.
+    // (+angle = char's left, see SUB_STATE_FLIPING in person.cpp.)
+    {
+        static SLONG prev_face = -1;
+        static SLONG turn_accum = 0;
+        static SLONG lateral_hold = 0;
+        if (stick_in_deadzone) {
+            // Not moving → forget everything.
+            g_l2_last_side_sign = 0;
+            turn_accum = 0;
+            lateral_hold = 0;
+            prev_face = -1;
+        } else {
+            // Source 1: lateral stick component (direct, holds through release).
+            if (abs(dx_c) > L2_LEAN_MIN_RAW) {
+                g_l2_last_side_sign = (dx_c < 0) ? -1 : +1;
+                lateral_hold = L2_LATERAL_HOLD_TICKS;
+            } else if (lateral_hold > 0) {
+                --lateral_hold;
+            }
+
+            // Source 2: the character's actual turn (camera/mouse steering),
+            // only when no recent lateral input (so the post-release return turn
+            // doesn't flip the sign).
+            if (lateral_hold == 0 && p_pc && p_pc->Draw.Tweened
+                && p_pc->SubState != SUB_STATE_FLIPING) {
+                const SLONG face = p_pc->Draw.Tweened->Angle & 2047;
+                if (prev_face >= 0) {
+                    SLONG d = (face - prev_face) & 2047;
+                    if (d > 1024)
+                        d -= 2048; // signed turn this tick, [-1024, 1024]
+                    turn_accum += d;
+                    // Register a side once the NET turn passes the threshold, then
+                    // reset (gradual steering accumulates; a reversal cancels).
+                    if (turn_accum > L2_TURN_ACCUM_THRESH) {
+                        g_l2_last_side_sign = -1; // net turn left
+                        turn_accum = 0;
+                    } else if (turn_accum < -L2_TURN_ACCUM_THRESH) {
+                        g_l2_last_side_sign = +1; // net turn right
+                        turn_accum = 0;
+                    }
+                }
+                prev_face = face;
+            } else {
+                prev_face = -1; // re-baseline (skip during the lateral-hold / flip)
+                turn_accum = 0;
+            }
+        }
+    }
+
+    // Tap window. Opens on the engage edge, closes on release, ticks down
+    // otherwise. Capture its pre-update value first — the update zeroes it on
+    // release, and the tap-vs-hold test below needs to know it was still open at
+    // release.
+    const SLONG window_before = g_l2_engage_window_ticks;
+    if (!was_engaged && engaged) {
+        g_l2_engage_window_ticks = L2_ROLL_WINDOW_TICKS;
+    } else if (!engaged) {
+        g_l2_engage_window_ticks = 0;
+    } else if (g_l2_engage_window_ticks > 0) {
+        --g_l2_engage_window_ticks;
+    }
+
+    // TAP-RELEASE ROLL: on the release edge, if it was a quick tap (window still
+    // open) and the stick is deflected, roll toward the stick's world direction.
+    if (was_engaged && !engaged && window_before > 0 && !stick_in_deadzone) {
+        SLONG t, f;
+        if (compute_l2_roll_dir(p_pc, dx_c, dy_c, &t, &f)) {
+            g_l2_roll_target_angle = t;
+            g_l2_roll_flip_dir = f;
+            g_l2_roll_request = 1;
+        }
+    }
+
+    // HOLD SLOW-WALK: while the modifier is HELD with the stick deflected, force
+    // a slow camera-relative walk (m_bForceWalk caps the run to walk speed +
+    // plays the step anim; direction comes from the normal movement path). The
+    // tap-release roll above is independent — a quick tap rolls instead. Any
+    // stick direction slow-walks that way (back-walk is a different modifier).
+    if (engaged && !stick_in_deadzone)
+        m_bForceWalk = UC_TRUE;
+}
+
+
+// Post-climb jump suppression counter. Set when pull_up animation ends (in
+// person.cpp), decremented in apply_button_input. While > 0, INPUT_MASK_JUMP
+// is cleared so no jump action fires.
+//
+// Purpose: without this, JUMP pressed during a climb (commonly spammed
+// because player wants to immediately leap off the ledge) would fire as
+// ACTION_STANDING_JUMP the instant pull_up animation ends — character is
+// still facing the climb direction (analog rotation toward stick hasn't
+// caught up yet) and standing-jump direction logic misses for stick
+// deflections below the digital threshold, so the jump goes forward (climb
+// direction) instead of where the player is holding the stick. By delaying
+// JUMP a few ticks the character has time to (a) enter STATE_MOVEING via
+// process_analogue_movement and (b) rotate toward the stick direction. When
+// JUMP unblocks, ACTION_RUNNING_JUMP fires from MOVEING state and jumps in
+// the (now-aligned) facing direction. Held JUMP press just feels slightly
+// delayed; player doesn't perceive a lost input.
+//
+// Exposed via `extern SLONG g_post_climb_jump_block_ticks` from person.cpp
+// (no shared header — minimal touching).
+SLONG g_post_climb_jump_block_ticks = 0;
 
 // uc_orig: player_turn_left_right_analogue (fallen/Source/interfac.cpp)
 // Legacy analog-stick rotation system (used on PSX/DC). On PC, player_turn_left_right() is used instead.
@@ -1524,6 +1951,53 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
         --reduce_turn;
     }
 
+    // L2 BACKWARD regime: explicit walk_back entry / exit. Backing is
+    // CAMERA-RELATIVE (player_relative stays 0): the walk_back target is in
+    // world space, so the character converges toward a fixed backing direction,
+    // and rotating the stick around the rim steers where it backs. We force-
+    // enter walk_back here when the regime becomes ACTIVE (the sticky back-
+    // walk latch in get_hardware_input), and force-exit on regime change (stick
+    // returned to centre / modifier released) so the character doesn't get stuck.
+    if (g_backwalk_regime == BACKWALK_REGIME_ACTIVE) {
+        // Allow force-entry from any normal locomotion state. STATE_IDLE
+        // alone misses the deceleration window (State still MOVEING when
+        // player engages L2+back fast after a run). STATE_GUN must also be
+        // included — character with a firearm out (pistol / AK / shotgun)
+        // sits in STATE_GUN at rest; without this entry, BACKWARD regime
+        // forces m_bForceWalk + player_relative=0 but walk_back is never
+        // entered, so process_analogue_movement falls through to
+        // set_person_running and the character spins to face the camera
+        // (back-stick in camera-relative analog = "go toward camera") before
+        // actually moving. Matches the keyboard-back handler in
+        // apply_button_input which also includes STATE_GUN as a walk_back
+        // entry point. STATE_HIT_RECOIL covered for symmetry with that
+        // handler's set_person_running default.
+        if ((p_thing->State == STATE_IDLE
+             || p_thing->State == STATE_MOVEING
+             || p_thing->State == STATE_GUN
+             || p_thing->State == STATE_HIT_RECOIL)
+            && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS
+            && p_thing->Genus.Person->Action != ACTION_SIT_BENCH) {
+            // Don't yank the character out of the sit-down animation:
+            // set_person_sit_down sets Action=ACTION_SIT_BENCH and
+            // SubState=SIMPLE_ANIM, but L2 is still held in regime
+            // BACKWARD, and SIMPLE_ANIM ≠ WALKING_BACKWARDS, so without
+            // this gate the next tick would call set_person_walk_backwards
+            // again, cancelling the sit. The result was a rapid sit→
+            // walk-back→sit loop visible to the player as "stuck next
+            // to the bench, never sitting."
+            set_person_walk_backwards(p_thing);
+            return (0);
+        }
+    } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+        // Regime no longer BACKWARD → exit walk_back. Safe because under
+        // the current scheme the only entry into walk_back for the player
+        // is via this regime (tank-mode auto-entry is gated on
+        // player_relative=1 which is no longer set anywhere).
+        set_person_running(p_thing);
+        return (0);
+    }
+
     if (p_thing->State == STATE_SEARCH) {
     } else if (p_thing->Genus.Person->Action == ACTION_SIDE_STEP) {
         return 1;
@@ -1542,8 +2016,8 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
         SLONG angle = -1;
         SLONG velocity;
 
-        dx = GET_JOYX(input);
-        dz = GET_JOYY(input);
+        dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+        dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
         velocity = QDIST2(abs(dx), abs(dz));
 
@@ -1575,7 +2049,15 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             }
 
             angle += ca;
-            if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+            // OpenChaos: +1024 offset for backflip too. Backflip enters with
+            // a snap to (stick + cam + 1024) (see ACTION_STANDING_JUMP body,
+            // BACKWARD branch); during the backflip flight player_turn_left_
+            // right_analogue still runs and rotates toward target. Without
+            // the +1024 here, target = stick + cam → 180° away from snap →
+            // capped rotation (TURN_CAP_JUMP=24/tick × ~10 ticks of backflip)
+            // curves the trajectory off the intended direction.
+            if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS
+                || p_thing->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS) {
                 angle += 1024;
             }
             angle = (angle + 2048) & 2047;
@@ -1623,7 +2105,14 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
                         }
 
                     } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
-                        if (abs(dangle) > 600) {
+                        // Back-walk regime: keep character in walk_back even when
+                        // stick angle pulls dangle below the exit threshold.
+                        // Without this gate, rotating the stick from straight back
+                        // toward forward (e.g. full circle) drops |dangle| below
+                        // 600 and the engine switches to forward running mid-back-
+                        // walk — user perceives "stick forward → suddenly walking
+                        // forward" mid-backing.
+                        if (g_backwalk_regime != BACKWALK_REGIME_ACTIVE && abs(dangle) > 600) {
                             set_person_running(p_thing);
                             return (0);
                         }
@@ -1653,8 +2142,8 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
     SLONG angle = -1;
     SLONG ca;
 
-    dx = GET_JOYX(input);
-    dz = GET_JOYY(input);
+    dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+    dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
 
     velocity = QDIST2(abs(dx), abs(dz));
 
@@ -1685,21 +2174,44 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
 
     if (velocity > ANALOGUE_MIN_VELOCITY) {
         switch (p_thing->State) {
+        case STATE_HUG_WALL:
+            // OpenChaos: side-dominant analog stick stays in the hug and
+            // lets ACTION_HUG_LEFT/RIGHT (from action_hug_wall, fed by
+            // INPUT_MASK_LEFT/RIGHT) step along the wall. Forward/back-
+            // dominant stick breaks out of the hug into normal movement —
+            // matches the D-pad / keyboard behaviour where forward/back
+            // arrows leave the hug and only side arrows step along it.
+            // (Original behaviour broke out on ANY stick input, including
+            // pure side, which made the hug-step impossible on the stick.)
+            //
+            // We call set_person_running directly rather than fall through
+            // to the default path because the case-fallthrough chain below
+            // hits STATE_CARRY which has its own `if (SubState != STAND_CARRY)
+            // return;` gate — hug-wall's SubState is never STAND_CARRY so
+            // that path swallows the input.
+            //
+            // HUG_WALL_TURN sub-state is the turn-into-wall animation; never
+            // interrupt it.
+            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                return;
+            // Pure-side cone (|dx| > ratio*|dz|) → stay in hug. Outside the
+            // cone (diagonals, pure forward, pure back) → break out into
+            // running.
+            if (abs(dx) > STICK_AXIS_DOMINANCE_RATIO * abs(dz))
+                return;
+            set_person_running(p_thing); // forward/back/diagonal-dominant → break out
+            return;
         case STATE_CARRY:
             if (p_thing->SubState != SUB_STATE_STAND_CARRY)
                 return;
         case STATE_IDLE:
-        case STATE_HUG_WALL:
-            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
-                return;
-
         case STATE_HIT_RECOIL:
         case STATE_GUN:
             switch (p_thing->SubState) {
             case 0:
             case SUB_STATE_SIDLE:
             default:
-                set_person_running(p_thing);
+                set_person_running(p_thing); // arms run-entry snap via player_arm_run_entry_snap()
                 break;
             case SUB_STATE_IDLE_CROUTCHING:
                 set_person_crawling(p_thing);
@@ -1720,12 +2232,24 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
             case SUB_STATE_RUNNING:
                 if (p_thing->Genus.Person->Mode != PERSON_MODE_SPRINT) {
                     if (p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
-                        p_thing->Velocity = (velocity * 60) >> 8;
+                        // OpenChaos: was scaled by stick magnitude
+                        // (`(velocity * 60) >> 8`), which gave slow running
+                        // for partial stick deflection. With slow-walk by
+                        // magnitude removed and slow walk now exclusively
+                        // L2-gated, partial stick should give full-speed
+                        // running. Constant matches max of the old formula
+                        // (full diagonal: QDIST2(128,128) * 60 / 256 ≈ 42).
+                        // L2 path still scales below via the walking branch.
+                        p_thing->Velocity = 42;
                     } else {
                         p_thing->Velocity = (velocity * 51) >> 8;
                     }
 
-                    if ((p_thing->Velocity < 20 || m_bForceWalk) && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+                    // OpenChaos: removed Velocity < 20 from the running →
+                    // walking transition. Slow walking is now only triggered
+                    // by the L2 modifier (m_bForceWalk), not by weak stick
+                    // deflection.
+                    if (m_bForceWalk && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
                         if (!(p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING)) {
                             if (p_thing->Velocity > 20)
                                 p_thing->Velocity = 20;
@@ -1747,7 +2271,13 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
                 } else {
                     p_thing->Velocity = (velocity * 51) >> 8;
                 }
-                if ((p_thing->Velocity > 24 || p_thing->Genus.Person->AnimType == ANIM_TYPE_ROPER) && !m_bForceWalk) {
+                // OpenChaos: removed Velocity > 24 from the walking → running
+                // transition. Walking is now exclusively an L2-modifier mode,
+                // so as soon as L2 is released we want to leave walking
+                // regardless of stick magnitude — otherwise releasing L2 with
+                // a weakly-deflected stick would leave the character stuck
+                // walking until the stick passed the run threshold.
+                if (p_thing->Genus.Person->AnimType == ANIM_TYPE_ROPER || !m_bForceWalk) {
                     set_person_running(p_thing);
                     p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
                 } else {
@@ -1929,7 +2459,7 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         wMaxTurn >>= 1;
     }
 
-    SWORD wJoyX = GET_JOYX(input);
+    SWORD wJoyX = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
     SWORD wTurn;
     if ((input & INPUT_MASK_LEFT) || (input & INPUT_MASK_RIGHT)) {
         // Keyboard detection: if the analog bits (18-31) are all zero while a direction bit is set,
@@ -2286,29 +2816,125 @@ void person_enter_fight_mode(Thing* p_person)
 // Returns the bitmask of inputs consumed/processed this frame.
 ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 {
+    // Decrement the post-IDLE→MOVEING snap window once per physics tick.
+    // See PLAYER_RUN_ENTRY_SNAP_TICKS comment for full rationale. Decrement
+    // happens BEFORE the action tree dispatch so the counter reflects the
+    // window state at jump-decision time.
+    if (g_player_run_entry_ticks > 0)
+        --g_player_run_entry_ticks;
+
+    // Post-climb jump suppression — see g_post_climb_jump_block_ticks comment.
+    // Suppress JUMP for a few ticks after climb-up so the buffered jump press
+    // fires from running state (RUNNING_JUMP, facing-aligned) rather than the
+    // standing-jump path immediately on climb-end (still facing climb direction).
+    if (g_post_climb_jump_block_ticks > 0) {
+        input &= ~INPUT_MASK_JUMP;
+        --g_post_climb_jump_block_ticks;
+    }
+
+    // Dangling pre-filter: when the character is hanging on a ledge before a
+    // climb-up, action_dangling priority is { PULL_UP on FWD, DROP on BACK,
+    // TRAVERSE_LEFT, TRAVERSE_RIGHT }. With raw INPUT_MASK_* from the stick
+    // any slight forward tilt sets FORWARDS → PULL_UP wins and the player
+    // can't side-traverse when they want to. Filter the input here to a
+    // single dominant axis using the L2 pure-axis cone
+    // (STICK_AXIS_DOMINANCE_RATIO):
+    //
+    //   stick pure-vertical (|dy| > ratio*|dx|) → keep FWD/BACK, clear LEFT/RIGHT
+    //   else (diagonal or pure-side past deadzone) → keep LEFT/RIGHT, clear FWD/BACK/MOVE
+    //
+    // Gated on stick being past the deadzone so keyboard input still flows
+    // through unchanged (when stick is centred, dx_c/dy_c are ~0 and the
+    // dominance check would mis-classify centred-stick as side-ish).
+    if (p_person->State == STATE_DANGLING && input_gamepad_connected()) {
+        const SLONG axis_x = input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
+        const SLONG axis_y = input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
+        const SLONG dx_c = axis_x - 32768;
+        const SLONG dy_c = axis_y - 32768;
+        const bool stick_active = (abs(dx_c) > 8192) || (abs(dy_c) > 8192);
+        if (stick_active) {
+            const bool dy_dominates_dx = abs(dy_c) > STICK_AXIS_DOMINANCE_RATIO * abs(dx_c);
+            if (dy_dominates_dx) {
+                input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
+            } else {
+                input &= ~(INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS | INPUT_MASK_MOVE);
+            }
+        }
+    }
+
     ULONG input_used = 0;
     ULONG processed = 0;
 
-    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
-        CONSOLE_text_at(400, 400, 50, "Fight mode");
+    // L2 SIDE ROLL (non-fight). Fired from g_l2_roll_request (set in
+    // get_hardware_input on a quick L2 tap released with the stick to a side).
+    // It must produce a roll or NOTHING — never a jump — so the action tree is
+    // only PROBED (with INPUT_MASK_JUMP) to confirm the character is in a
+    // jump-capable state (the same gating the old ✕ roll relied on); the flip is
+    // then triggered directly. No jump is ever dispatched.
+    if (g_l2_roll_request && should_i_jump(p_person)) {
+        ULONG probe_used;
+        const SLONG probe = find_best_action_from_tree(
+            p_person->Genus.Person->Action, INPUT_MASK_JUMP, &probe_used);
+        if (probe == ACTION_STANDING_JUMP || probe == ACTION_RUNNING_JUMP) {
+            // Snap facing so the flip's perpendicular motion travels toward the
+            // requested world direction (left flip → facing+512, right → -512;
+            // see SUB_STATE_FLIPING in person.cpp).
+            const SLONG facing = (g_l2_roll_flip_dir == 0)
+                ? (g_l2_roll_target_angle - 512)
+                : (g_l2_roll_target_angle + 512);
+            p_person->Draw.Tweened->Angle = (facing + 2048) & 2047;
+            set_person_flip(p_person, g_l2_roll_flip_dir);
+            g_l2_roll_request = 0;
+            return processed | input_used; // roll committed — nothing else this tick
+        }
     }
 
+    // Min stamina (Stamina units) to START a sprint — original threshold.
+    constexpr SLONG PERSON_SPRINT_MIN_STAMINA = 3;
+
+    // USE — interaction multitool (Square / F). The old sprint and crouch
+    // fallbacks that used to live at the tail of do_an_action are split out onto
+    // their own buttons below, so do_an_action is now pure "interact".
     if (input & INPUT_MASK_ACTION) {
         processed |= do_an_action(p_person, input);
         input &= ~processed;
+    }
 
-    } else {
-
-        {
-            if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
+    // SPRINT (Circle / Shift) — hold while running to sprint; release drops back
+    // to a normal run.
+    if (input & INPUT_MASK_SPRINT) {
+        if (p_person->State == STATE_MOVEING) {
+            if (p_person->SubState == SUB_STATE_RUNNING) {
+                if (p_person->Genus.Person->Stamina > PERSON_SPRINT_MIN_STAMINA
+                    && p_person->Genus.Person->PersonType != PERSON_ROPER)
+                    p_person->Genus.Person->Mode = PERSON_MODE_SPRINT;
+            } else if (p_person->SubState == SUB_STATE_WALKING) {
                 p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+            }
         }
+    } else {
+        if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
+            p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+    }
 
+    // STEALTH (Triangle / C) — hold to crouch (stealth pose); release to stand.
+    // Pure crouch: arrest stays on the USE button (do_an_action), so crouching
+    // next to a suspect no longer arrests them.
+    if (input & INPUT_MASK_STEALTH) {
+        if (p_person->State == STATE_IDLE && p_person->SubState == 0)
+            set_person_croutch(p_person);
+        else if (p_person->State == STATE_GUN)
+            set_person_croutch(p_person);
+    } else {
         if (p_person->SubState == SUB_STATE_IDLE_CROUTCHING) {
-            MSG_add("no action so stand up");
+            MSG_add("no stealth so stand up");
             set_person_idle_uncroutch(p_person);
         }
     }
+
+    // SPRINT/STEALTH were handled directly above — drop their bits so the action
+    // tree below (find_best_action_from_tree) never sees them.
+    input &= ~(INPUT_MASK_SPRINT | INPUT_MASK_STEALTH);
 
     if (p_person->State == STATE_CARRY) {
         if (p_person->SubState == SUB_STATE_PICKUP_CARRY || p_person->SubState == SUB_STATE_DROP_CARRY) {
@@ -2320,6 +2946,29 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
         SLONG new_action;
 
         new_action = find_best_action_from_tree(p_person->Genus.Person->Action, input, &input_used);
+
+        // OpenChaos: char-relative stand-up override. While sitting,
+        // the player's stand-up intent is "stick in the direction the
+        // character is facing", not "stick UP in camera frame". While the
+        // back-walk modifier is held the entire stand-up path is blocked
+        // (you backed into the bench and are still holding it). Otherwise:
+        //   - char-rel forward + raw FORWARDS not set (e.g. char faces
+        //     camera so player pushes stick DOWN = char-forward):
+        //     action_sit table didn't return UNSIT, so force it here.
+        //   - char-rel not-forward but action tree returned UNSIT
+        //     (raw FORWARDS held but stick is actually char-back):
+        //     suppress the unsit.
+        if (p_person->Genus.Person->Action == ACTION_SIT_BENCH
+            && !input_backwalk_held()) {
+            const bool char_fwd = input_is_char_rel_forward(p_person, input);
+            if (char_fwd) {
+                new_action = ACTION_UNSIT;
+                input_used = INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
+            } else if (new_action == ACTION_UNSIT) {
+                new_action = 0;
+                input_used = 0;
+            }
+        }
 
         switch (new_action) {
         case ACTION_KICK_FLAG:
@@ -2345,6 +2994,16 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             input_used = 0;
             break;
         case ACTION_UNSIT:
+            // OpenChaos: while the back-walk modifier is held the same
+            // stick they used to back into the chair is typically still
+            // held, which the action_sit table would otherwise read as a
+            // stand-up command. Just block unsit until the modifier is
+            // released; nothing else is affected because it isn't held
+            // during normal play.
+            if (input_backwalk_held()) {
+                input_used = 0;
+                break;
+            }
             void set_person_unsit(Thing * p_person);
             set_person_unsit(p_person);
             break;
@@ -2411,32 +3070,154 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
                 break;
             case ACTION_STANDING_JUMP:
-
-                if (should_i_jump(p_person)) {
-                    if (input & INPUT_MASK_FORWARDS)
-                        set_person_standing_jump_forwards(p_person);
-                    else if ((input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
+                // ✕ during BACK-WALK → backflip toward the live stick direction.
+                // The player commits to walk-back (zoom/back-walk modifier — L1 /
+                // E) and flips out of it with jump. Side rolls do NOT come through
+                // here (posted via g_l2_roll_request, never a jump). Standard
+                // +1024 facing snap.
+                if (should_i_jump(p_person) && g_backwalk_regime == BACKWALK_REGIME_ACTIVE) {
+                    if (should_person_backflip(p_person)) {
+                        const SLONG raw_dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG raw_dy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+                        SLONG target_angle = Arctan(-raw_dx, raw_dy) + get_camera_angle() + 1024;
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
                         set_person_standing_jump_backwards(p_person);
-                    else if (input & INPUT_MASK_LEFT)
+                    } else {
+                        set_person_standing_jump(p_person); // blocked → vertical jump
+                    }
+                    break;
+                }
+
+                // Source-aware fallback (not back-walking).
+                //
+                // Analog stick (analogue == 1): light side / back stick taps produced
+                // unwanted rolls / backflips — including right after a climb (player
+                // mashes side + jump while still in pull-up, gets a roll and falls off
+                // the ledge). Stick path now produces only forward-jump (on FORWARDS)
+                // or snap-and-forward (any movement direction).
+                //
+                // D-pad / keyboard arrows (analogue == 0): legacy auto-roll /
+                // auto-backflip on side / back + jump is kept intact until the L2
+                // modifier scheme replaces it across all input sources too. The
+                // action priority entries in action_idle / action_standing_jump
+                // tables were removed so all routes (stick and digital) flow
+                // through this body with a single analogue gate.
+                //
+                // can_jump (should_i_jump): false in warehouse-doorway-like tiles
+                // and right after climb — for stick that means do nothing (avoid
+                // climb-edge rolls); for D-pad/keyboard, legacy roll-anyway path
+                // is preserved.
+                if (should_i_jump(p_person)) {
+                    if (input & INPUT_MASK_FORWARDS) {
+                        // OpenChaos: snap facing to stick+camera direction
+                        // before jumping. apply_button_input dispatches the
+                        // action tree BEFORE player_interface_move runs the
+                        // rotation pass, so on the first tick of (idle +
+                        // forward + jump) the character's Tweened->Angle is
+                        // still the pre-rotation value. Without the snap,
+                        // set_person_standing_jump_forwards bakes that stale
+                        // angle and the jump flies in the OLD facing instead
+                        // of the camera-relative direction the player aimed
+                        // at. Race-prone: if forward and jump arrive on
+                        // separate ticks the character has already rotated
+                        // (1-tick max_angle=1024 snap from STATE_IDLE in
+                        // player_turn_left_right_analogue), so the bug only
+                        // shows when both inputs land on the same physics
+                        // tick → user perceives "sometimes works, sometimes
+                        // jumps the wrong way" on stand → forward + jump.
+                        //
+                        // Same snap formula as the side/back-stick branch
+                        // below and the L2-tactical branches above. Guarded
+                        // on (dx|dz) != 0 to skip the digital-pure-arrow
+                        // case where bits 18-31 carry no stick value
+                        // (Arctan(0,0) is undefined) — there the legacy
+                        // non-analog rotation in player_turn_left_right
+                        // path handles facing.
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+                        if (dx != 0 || dz != 0) {
+                            SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                            target_angle = (target_angle + 2048) & 2047;
+                            p_person->Draw.Tweened->Angle = target_angle;
+                        }
+                        set_person_standing_jump_forwards(p_person);
+                    } else if (analogue && (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_BACKWARDS))) {
+                        // Stick: any movement direction → forward jump in stick
+                        // direction (same end-call as running jump). Without
+                        // this, slow-walk side/back + jump produced a feel-wrong
+                        // vertical jump on spot, while slow-walk forward + jump
+                        // already did a directional jump.
+                        //
+                        // Snap the character facing to stick direction first.
+                        // In most cases analog rotation has already aligned them
+                        // (running and slow-walk both continuously rotate the
+                        // character to face the stick), so the snap is a no-op.
+                        // But in transitional states where rotation was suppressed
+                        // — e.g. character just finished a climb-up, was locked
+                        // facing forward throughout the pull-up anim — the
+                        // character is still facing the old direction at the
+                        // instant the buffered jump fires. Without snap,
+                        // running_jump propels them in that old direction
+                        // instead of where the player is holding the stick.
+                        //
+                        // Same stick → world angle formula as
+                        // process_analogue_movement.
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+                        SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
+                        set_person_standing_jump_forwards(p_person);
+                    }
+                    else if (!analogue && (input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
+                        set_person_standing_jump_backwards(p_person);
+                    else if (!analogue && (input & INPUT_MASK_LEFT))
                         set_person_flip(p_person, 0);
-                    else if (input & INPUT_MASK_RIGHT)
+                    else if (!analogue && (input & INPUT_MASK_RIGHT))
                         set_person_flip(p_person, 1);
                     else
                         set_person_standing_jump(p_person);
-                } else {
+                } else if (!analogue) {
                     if (input & INPUT_MASK_LEFT)
                         set_person_flip(p_person, 0);
                     else if (input & INPUT_MASK_RIGHT)
                         set_person_flip(p_person, 1);
                 }
-
                 break;
             case ACTION_RUNNING_JUMP:
                 if (p_person->SubState == SUB_STATE_RUNNING_SKID_STOP) {
                     p_person->Genus.Person->Flags &= ~FLAG_PERSON_SLIDING;
                     MFX_stop(THING_NUMBER(p_person), S_SLIDE_START);
                 }
+                // No ✕ backflip here: back-walk caps velocity to walk speed, so a
+                // jump while backing resolves to ACTION_STANDING_JUMP (handled
+                // there). Side rolls never come through here either (posted via
+                // g_l2_roll_request, never a jump).
                 if (should_i_jump(p_person)) {
+                    // OpenChaos: snap facing to stick+camera direction when
+                    // the character JUST transitioned from IDLE → MOVEING
+                    // (g_player_run_entry_ticks > 0). Mirrors the snap in
+                    // ACTION_STANDING_JUMP and covers the residual 5% of the
+                    // "stand → W+Space" race where W landed one tick earlier
+                    // (state switched to MOVEING + Angle partially rotated
+                    // toward camera). Without this, ACTION_RUNNING_JUMP fires
+                    // through the action_run table on the Space tick and
+                    // set_person_running_jump bakes the half-rotated facing
+                    // → jump goes in an in-between direction.
+                    //
+                    // Window-gated (counter expires after a few ticks), so a
+                    // deliberate "running steady + camera flip + jump" keeps
+                    // its existing behaviour (no snap, jump in current facing).
+                    if (g_player_run_entry_ticks > 0) {
+                        const SLONG dx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+                        const SLONG dz = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+                        if (dx != 0 || dz != 0) {
+                            SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                            target_angle = (target_angle + 2048) & 2047;
+                            p_person->Draw.Tweened->Angle = target_angle;
+                        }
+                    }
                     set_person_running_jump(p_person);
                 }
                 break;
@@ -2476,6 +3257,13 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 break;
             case ACTION_FIGHT_PUNCH:
                 if (person_has_gun_out(p_person)) {
+                    // OpenChaos: shooting blocked during walk_back (see
+                    // set_player_shoot for rationale). action_walk_back
+                    // maps PUNCH to ACTION_FIGHT_PUNCH which calls
+                    // set_person_shoot directly here, bypassing
+                    // set_player_shoot — so the gate has to repeat here.
+                    if (p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
+                        break;
                     set_person_shoot(p_person, 0);
                 } else if (!player_activate_in_hand(p_person))
                     if (turn_to_target_and_punch(p_person)) {
@@ -2490,7 +3278,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             }
         }
     }
-    if ((input & INPUT_MOVEMENT_MASK) || (input_mouse_active() && input_mouse_dx())) {
+    if (input & INPUT_MOVEMENT_MASK) {
         if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)) {
             switch (p_person->State) {
             case STATE_HIT_RECOIL:
@@ -2518,7 +3306,16 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             }
         } else {
             if (p_person->Genus.Person->Action == ACTION_SIT_BENCH) {
-                if (input & (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)) {
+                // OpenChaos: stand-up via this path uses the same gates
+                // as the action_sit / ACTION_UNSIT dispatch above — the
+                // back-walk modifier hold blocks stand-up entirely;
+                // otherwise the input must be CHAR-RELATIVE forward, not
+                // raw camera-frame forward. Without char-rel the raw stick
+                // UP held to back into the bench (= char-back when char
+                // faces the camera) would yank her out of the sit anim one
+                // tick after set_person_sit_down.
+                if (!input_backwalk_held()
+                    && input_is_char_rel_forward(p_person, input)) {
                     input_used |= INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
 
                     set_person_idle(p_person);
@@ -2638,7 +3435,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         && !oc_combat_busy(p_person->SubState)) {
         ULONG pin = pl->Input;
         const SLONG STICK_DEADZONE = 8;                      // ANALOGUE_MIN_VELOCITY
-        SLONG sy = (SLONG)(((pin >> 24) & 0xfe) - 128);      // GET_JOYY (<0 = fwd)
+        SLONG sy = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back intent (<0 = fwd)
         bool fwd = (pin & INPUT_MASK_FORWARDS) || (sy < -STICK_DEADZONE);
         if (fwd && find_best_grapple(p_person)) {
             pl->DoneSomething = UC_TRUE;
@@ -2667,6 +3464,35 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         switch (new_action) {
         case ACTION_RESPAWN:
             break;
+        }
+    }
+
+    // OpenChaos: combat directional ROLL — ✕ and L2 are full equivalents. A
+    // press of ✕ with the stick held in a direction, OR a quick L2 tap
+    // (g_l2_roll_request), rolls toward the stick's WORLD direction (same as the
+    // on-foot roll) — any direction, not just left/right. Runs before the
+    // fight-step / step-✕ handlers below so the chord rolls instead of stepping.
+    // Allowed from the idle stance or a fight step, and not mid punch/kick.
+    {
+        SLONG roll_target = 0, roll_flip = 0;
+        bool do_roll = false;
+        if (g_l2_roll_request) {
+            roll_target = g_l2_roll_target_angle;
+            roll_flip   = g_l2_roll_flip_dir;
+            g_l2_roll_request = 0;
+            do_roll = true;
+        } else if (pl->Pressed & INPUT_MASK_JUMP) {
+            const SLONG sx = input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS);
+            const SLONG sy = input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS);
+            do_roll = compute_l2_roll_dir(p_person, sx, sy, &roll_target, &roll_flip);
+        }
+        if (do_roll
+            && (pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0
+            && (p_person->State == STATE_IDLE || p_person->SubState == SUB_STATE_STEP_FORWARD)) {
+            const SLONG facing = (roll_flip == 0) ? (roll_target - 512) : (roll_target + 512);
+            p_person->Draw.Tweened->Angle = (facing + 2048) & 2047;
+            set_person_flip(p_person, roll_flip);
+            return (0);
         }
     }
 
@@ -2929,6 +3755,24 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             ...directional punch code (commented out in original)...
             */
             {
+                // OpenChaos: before a forward punch fires, re-target onto
+                // whatever the player is actually looking at (closest
+                // enemy inside a narrow cone around the camera ray). The
+                // original game only re-aims through the body-cone search
+                // once the attack runs, so the locked target stuck around
+                // even after the player had turned the camera onto a
+                // different enemy. snap_body == 1 also points Darci at
+                // the new target so the punch animation starts already
+                // facing it -- consistent with how the forward-kick path
+                // (turn_to_target_and_kick) snaps via find_attack_stance.
+                // No-op when nothing is in the cone -- existing flow
+                // resumes unchanged. Same busy-gate as the Circle target
+                // switch above: mid-grapple/throw/arrest we leave the
+                // locked target alone so the committed action plays out.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 1 /*snap_body*/);
+                }
                 // Forward punch.
                 set_player_punch(p_person);
             }
@@ -2975,6 +3819,16 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             }
 
             if (p_person->State != STATE_JUMPING) {
+                // OpenChaos: see the matching note in the forward-punch
+                // branch above. Camera-cone re-target also runs before
+                // the forward kick. Directional kicks (left/right/back)
+                // intentionally skip this -- those are an explicit
+                // off-camera input and should not be hijacked back
+                // toward whatever the camera is on.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 1 /*snap_body*/);
+                }
                 // Forward kick.
                 turn_to_target_and_kick(p_person);
             }
@@ -2993,12 +3847,29 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         // Combo queuing: set REQUEST flags when buttons pressed during a fighting animation.
         if (pl->Pressed & INPUT_MASK_PUNCH) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH)) {
+                // OpenChaos: re-target on every queued punch in a combo,
+                // same camera-cone logic as the fresh-attack branches.
+                // snap_body == 0: Darci is already mid-animation, so the
+                // next combo node's aim_at_victim handles the smooth
+                // turn toward the new target. A snap here would visibly
+                // pop her mid-anim. Same busy-gate as Circle / fresh
+                // attacks: grapple/throw/arrest keep the locked target.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 0 /*no snap*/);
+                }
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
             }
         }
 
         if (pl->Pressed & INPUT_MASK_KICK) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK)) {
+                // OpenChaos: same camera-cone re-target for queued kicks.
+                // See the note in the matching punch branch above.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 0 /*no snap*/);
+                }
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
             }
         }
@@ -3009,8 +3880,8 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
 
 // uc_orig: apply_button_input_car (fallen/Source/interfac.cpp)
 // Translates the input bitmask into steering/throttle/brake for the vehicle the player is driving.
-// Analogue: uses joypad X axis with damping (STEERING_MAX_DELTA per frame).
-// Digital: steering = -1/0/+1.
+// Steering: always the damped analogue path — the wheel accumulator eases toward
+// the joypad/WASD X axis at a constant rate (STEERING_MAX_DELTA per tick).
 ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 {
     ULONG processed_input = 0;
@@ -3019,67 +3890,89 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     Vehicle* veh = p_furn->Genus.Vehicle;
 
-    if (analogue) {
-
-        // Damped analogue steering.
-        static SWORD wCurrentSteering = 0;
+    // Player car steering is ALWAYS the analogue damper path — there is no
+    // digital fallback. This keeps the wheel centring at one consistent rate
+    // whether gassing or coasting (the old digital ">>1" path only ran while
+    // coasting, so the wheel lingered far longer on a coast-release than on a
+    // gas-release — felt like the car kept turning after letting go). KBM packs
+    // a centred stick baseline when no WASD is held, so GET_JOYX reads 0 there;
+    // the gamepad reads its stick; AI steers via pcom, not through here.
+    //
+    // The accumulator eases toward the input at a constant rate (the original
+    // damping). Speed-sensitive steering caps/rates were tried here but made the
+    // feel unstable near the skid threshold — reverted to this simple, stable form.
+    static SWORD wCurrentSteering = 0;
 #define STEERING_MAX_DELTA 30
-        SWORD wSteering = (GET_JOYX(input));
-        if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
-            wSteering = 0;
-        }
 
-        if (wCurrentSteering > wSteering) {
-            wCurrentSteering -= STEERING_MAX_DELTA;
-            if (wCurrentSteering < wSteering) {
-                wCurrentSteering = wSteering;
-            }
-        } else {
-            wCurrentSteering += STEERING_MAX_DELTA;
-            if (wCurrentSteering > wSteering) {
-                wCurrentSteering = wSteering;
-            }
-        }
-        veh->Steering = wCurrentSteering;
-
-        veh->IsAnalog = 1;
-
-    } else {
-        veh->IsAnalog = 0;
-        veh->Steering = 0;
-
-        if (input & INPUT_MASK_LEFT)
-            veh->Steering--;
-        if (input & INPUT_MASK_RIGHT)
-            veh->Steering++;
+    SWORD wSteering = input_virtual_axis(input, ACT_CAR_STEER_VAXIS);
+    if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
+        wSteering = 0;
     }
+
+    if (wCurrentSteering > wSteering) {
+        wCurrentSteering -= STEERING_MAX_DELTA;
+        if (wCurrentSteering < wSteering)
+            wCurrentSteering = wSteering;
+    } else {
+        wCurrentSteering += STEERING_MAX_DELTA;
+        if (wCurrentSteering > wSteering)
+            wCurrentSteering = wSteering;
+    }
+    veh->Steering = wCurrentSteering;
+    veh->IsAnalog = 1;
 
     veh->DControl = 0;
 
-    // Keyboard uses PC button→action mapping (Z=accel, X=brake, Space=siren).
-    // Gamepad uses PSX mapping (Cross=accel, Square=brake, Triangle=siren).
-    if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
-        if (input & INPUT_CAR_KB_ACCELERATE)
-            veh->DControl |= VEH_ACCEL;
-        else if (input & INPUT_CAR_KB_DECELERATE)
-            veh->DControl |= VEH_DECEL;
-        if (input & INPUT_CAR_KB_GOFASTER)
-            veh->DControl |= VEH_FASTER;
-    } else {
-        // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
-        // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
-        // crosses ~half-deflection inside the gamepad layer); btn_held below
-        // reads exactly those bits, not the analog uint8_t triggers.
-        bool r2 = input_btn_held(16);
-        bool l2 = input_btn_held(15);
+    // Three independent in-car controls — gas, brake, reverse:
+    //   Keyboard: W=gas, Space=brake, S=reverse, A/D=steer, E=siren.
+    //   Gamepad:  R2=gas, L1=brake, L2=reverse, stick X=steer (Y ignored),
+    //             Triangle=siren.
+    //
+    // VEH_FASTER: always-on, unconditionally, no input gating. The flag
+    // historically had keyboard and gamepad binding chords to toggle it,
+    // but in manual testing no perceptible vehicle behavior change was
+    // observed. To avoid wasting a chord (and to free the chord component
+    // keys for the new WASD car layout), the flag is just always set
+    // every tick. If a future audit of vehicle.cpp shows the flag actually
+    // does something undesirable when always-on, gate it here.
+    veh->DControl |= VEH_FASTER;
 
-        if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
-            veh->DControl |= VEH_ACCEL;
-        else if ((input & INPUT_CAR_PAD_DECELERATE) || l2)
-            veh->DControl |= VEH_DECEL;
-        if ((input & INPUT_CAR_PAD_GOFASTER) || r2 || l2)
-            veh->DControl |= VEH_FASTER;
+    bool ctl_accel;
+    bool ctl_brake;
+    bool ctl_reverse;
+    if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+        // Read W / S / Space DIRECTLY as independent gas / reverse / brake
+        // keys. We must NOT go through the WASD analog-stick bits here: W and
+        // S are opposite ends of the same stick Y axis, so holding BOTH cancels
+        // to centre (neither FORWARDS nor BACKWARDS) — which made W+S do
+        // nothing instead of reversing. Steering (A/D) still rides the stick X
+        // axis read at the top of this function. Gated by input_gameplay_enabled
+        // so the F1 debug modifier suppresses driving, same as the stick path.
+        const bool gameplay = input_gameplay_enabled();
+        ctl_accel   = gameplay && input_key_held(ACT_CAR_ACCEL_KKEY);   // W
+        ctl_reverse = gameplay && input_key_held(ACT_CAR_REVERSE_KKEY); // S
+        ctl_brake   = gameplay && input_key_held(ACT_CAR_BRAKE_KKEY);   // Space
+    } else {
+        // Triggers/bumpers read as digital bits here. Analog trigger position
+        // (for proportional gas) is read separately in vehicle.cpp.
+        // Left stick is STEERING ONLY (X axis); stick Y is intentionally
+        // ignored for gas/brake — the previous stick-Y mapping auto-braked
+        // mid-corner on slight pull-back / drift ("car brakes by itself").
+        ctl_accel   = input_btn_held(ACT_CAR_ACCEL_GBTN);   // R2
+        ctl_brake   = input_btn_held(ACT_CAR_BRAKE_GBTN);   // L1
+        ctl_reverse = input_btn_held(ACT_CAR_REVERSE_GBTN); // L2
     }
+
+    // Set every held control; pedals() resolves the priority brake > reverse
+    // > gas. Setting all bits (rather than an else-if chain) is what makes
+    // simultaneous presses behave: gas+brake -> brake wins, gas+reverse ->
+    // reverse wins (the old else-if let gas mask the brake — BUG-6).
+    if (ctl_accel)
+        veh->DControl |= VEH_ACCEL;
+    if (ctl_reverse)
+        veh->DControl |= VEH_REVERSE;
+    if (ctl_brake)
+        veh->DControl |= VEH_DECEL;
 
     // Siren toggle: edge-triggered via input_frame's sticky press_pending.
     // do_car_input reads VEH_SIREN and calls siren(veh, !veh->Siren) — without
@@ -3097,15 +3990,18 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     //
     // Drain rule: the call site (`do_packets` else-branch when not driving)
     // also consumes both pendings every physics tick to prevent stale flags
-    // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
-    // into the first car-entry tick as a spurious toggle.
+    // from outside-car presses (Triangle pressed on foot, SPACE = jump)
+    // leaking into the first car-entry tick as a spurious toggle. Triangle
+    // on foot is currently unbound, but the press_pending flag is still set
+    // by the input layer whenever it's physically pressed.
     {
-        const SLONG kb_siren_key  = keybrd_button_use[JOYPAD_BUTTON_JUMP];
-        constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
-        const bool kb_siren  = input_key_press_pending(kb_siren_key);
-        const bool pad_siren = input_btn_press_pending(pad_siren_btn);
-        input_key_consume(kb_siren_key);
-        input_btn_consume(pad_siren_btn);
+        // Suppress KB siren read when F1 debug modifier is held (gameplay-
+        // input gate). Gamepad siren read stays unconditional — F1 is a
+        // keyboard concept.
+        const bool kb_siren  = input_gameplay_enabled() && input_key_press_pending(ACT_CAR_SIREN_KKEY);
+        const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
+        input_key_consume(ACT_CAR_SIREN_KKEY);
+        input_btn_consume(ACT_CAR_SIREN_GBTN);
         if (kb_siren || pad_siren) {
             veh->DControl |= VEH_SIREN;
         }
@@ -3128,16 +4024,28 @@ ULONG get_hardware_input(UWORD type)
 
     ULONG input = 0;
 
+    // On-foot modifier flags are re-evaluated from scratch every tick.
+    // L2-held on the gamepad (below) may set m_bForceWalk (in any L2 regime
+    // except NONE). player_relative is currently never set to 1 by anything —
+    // it's reset here to keep the orphan global at a known value. BACKWARD
+    // regime uses player_relative=0 (camera-relative) plus explicit walk_back
+    // entry/exit in player_turn_left_right_analogue, not tank-mode auto-entry.
+    m_bForceWalk = UC_FALSE;
+    player_relative = 0;
+
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
-    // Deadzone constants for the analogue stick: raw axis 0..65535, centre 32768.
-    // Threshold is wider than the input_stick_held menu threshold (4096 from
-    // centre) — gameplay needs more deadzone than menu nav so light drift
-    // doesn't produce spurious INPUT_MASK_FORWARDS / INPUT_MASK_MOVE bits.
+    // Deadzone for the analogue stick: raw axis 0..65535, centre 32768. The
+    // deadzone width (NOISE_TOLERANCE) is now read from config at startup
+    // (gamepad.gameplay_stick_deadzone, a 0..1 fraction) instead of a hardcoded
+    // 8192 — input_gameplay_deadzone_raw() returns the raw value (default 0.25 =
+    // 8192, unchanged). Menu navigation has its own, separately-configured
+    // threshold (gamepad.menu_stick_deadzone) so the two can be tuned apart.
+    // AXIS_MIN/MAX bracket the centre by the deadzone.
 #define AXIS_CENTRE 32768
-#define NOISE_TOLERANCE 8192
-#define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
-#define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
+    const SLONG NOISE_TOLERANCE = input_gameplay_deadzone_raw();
+    const SLONG AXIS_MIN = AXIS_CENTRE - NOISE_TOLERANCE;
+    const SLONG AXIS_MAX = AXIS_CENTRE + NOISE_TOLERANCE;
 
     // gamepad_state is filled by input_frame_update() → gamepad_poll() each
     // render frame; we read it through the input_frame API below.
@@ -3145,15 +4053,42 @@ ULONG get_hardware_input(UWORD type)
     DWORD dwCurrentTime = 0;
 
     if (type & INPUT_TYPE_JOY) {
-        if (input_gamepad_connected()) {
+        // Skip the entire gamepad block when KBM is the active input device.
+        // Without this, gamepad data leaks into the input mask (stick packing
+        // into bits 18-31, button bits, etc.) and tints the player input even
+        // though the user is on keyboard. Specifically: the gamepad block
+        // unconditionally packs CENTER stick into bits 18-31, which the
+        // keyboard path then relies on as the "neutral stick" baseline — so
+        // disconnecting the gamepad made GET_JOYX/Y return -128 (raw zero
+        // bits decode as full-deflection), the character was forced into
+        // STATE_MOVEING, action_run mapped PUNCH → ACTION_SHOOT, no gun →
+        // silent no-op → "click doesn't punch" bug.
+        //
+        // active_input_device is auto-switched by the input_frame layer when
+        // it sees any gamepad input, so the gate doesn't lock the user into
+        // KBM — the first gamepad input flips active_input_device to PAD and
+        // this block resumes running.
+        if (input_gamepad_connected() && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) {
             {
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
 
-                const SLONG axis_x = input_stick_x_axis(INPUT_STICK_LEFT);
-                const SLONG axis_y = input_stick_y_axis(INPUT_STICK_LEFT);
+                // OpenChaos: D-Pad no longer drives on-foot movement. Use the
+                // raw (pre-D-Pad-override) stick axes — D-Pad presses don't
+                // mirror into the stick reading, so the D-Pad alone produces
+                // no character movement here. D-Pad buttons themselves are
+                // still readable via input_btn_held(11..14) for menu nav and
+                // any other consumer that wants them.
+                // While R3 (inventory) is held the left stick is repurposed as
+                // the weapon-popup scroll (read separately via the stick virtual-
+                // direction in process_controls), so suppress its on-foot
+                // movement here — otherwise the character would run while the
+                // player browses weapons. R3 isn't reachable in the car.
+                const bool r3_inventory_held = input_btn_held(ACT_FOOT_INVENTORY_GBTN);
+                const SLONG axis_x = r3_inventory_held ? (SLONG)AXIS_CENTRE : input_stick_x_axis_raw(ACT_FOOT_MOVE_GAXIS);
+                const SLONG axis_y = r3_inventory_held ? (SLONG)AXIS_CENTRE : input_stick_y_axis_raw(ACT_FOOT_MOVE_GAXIS);
 
-                if (input_gamepad_connected() && !input_dpad_active()) {
+                if (input_gamepad_connected()) {
                     // Analog stick mode: pack position into bits 18-31.
                     // process_analogue_movement() uses these for proportional speed.
                     // Digital direction flags set only for menus (not movement).
@@ -3168,13 +4103,13 @@ ULONG get_hardware_input(UWORD type)
                         pack_y = AXIS_CENTRE;
                     input |= ((pack_x >> 9) + 0) << 18;
                     input |= ((pack_y >> 9) + 0) << 25;
-
                 } else {
-                    // D-Pad or no gamepad: digital mode (full speed).
+                    // No gamepad: digital mode (full speed). Keyboard branch
+                    // below also sets analogue=0 if movement keys are pressed.
                     analogue = 0;
                 }
 
-                // Always set digital direction flags from axes (needed for menus, D-Pad).
+                // Always set digital direction flags from axes (needed for menus).
                 if (axis_x > (SLONG)ulAxisMax) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_RIGHT;
@@ -3192,40 +4127,91 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // Walk-mode toggle (was R1 hold) removed — partial left-stick
-                // deflection produces walking speed, no dedicated button needed.
-                // m_bForceWalk stays false (its global init).
+                // L2 on-foot tactical modifier: ROLL (quick tap) + SLOW-WALK
+                // (hold).
+                //
+                // ROLL: a quick L2 TAP (press + release within the window) with
+                // the stick deflected in ANY direction at release → a roll toward
+                // the stick's WORLD direction (its camera-frame angle + camera
+                // yaw), independent of how the character rotated to follow the
+                // stick. So "stick points there → roll there", not a fixed
+                // left/right relative to the current facing. The flip animation
+                // only moves perpendicular to facing, so the dispatch snaps facing
+                // to send the motion the right way; the left/right flip side is
+                // chosen to KEEP the character's toward/away-from-camera
+                // orientation across the roll. The machine posts g_l2_roll_request
+                // on the release edge; the roll dispatch fires the flip — never a
+                // jump.
+                //
+                // SLOW-WALK (L2 HELD past the window with the stick deflected):
+                // m_bForceWalk caps the run to walk speed + plays the step anim;
+                // direction comes from the normal camera-relative movement path.
+                // Any stick direction slow-walks that way. (Back-walk is NOT here —
+                // it's on the separate zoom/back-walk modifier below.)
+                //
+                // Hysteresis on the L2 trigger value engages near the BOTTOM of
+                // travel (~88 %) and releases on a short ease-up (~78 %) — see the
+                // threshold constants below. l2_engaged is driven to false when
+                // input_trigger_raw returns 0 (no pad).
+                {
+                    // L2 analog trigger → engaged flag with hysteresis: engage at
+                    // the BOTTOM of travel (~88%), release on a short ease-up
+                    // (~78%) — same feel as the R2 bare-hand punch (weapon_feel
+                    // melee fire 225 / reset 200, raw 0..255). The shared
+                    // process_l2_tactical machine then does the rest, identically
+                    // to the keyboard Ctrl path. Operators mirror weapon_feel
+                    // (> fire / <= reset).
+                    static bool l2_engaged = false;
+                    const SLONG l2_raw = input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG);
+                    constexpr SLONG L2_ENGAGE_THRESHOLD  = 225; // ~88% — near end of travel
+                    constexpr SLONG L2_RELEASE_THRESHOLD = 200; // ~78% — short release stroke
+                    if (!l2_engaged && l2_raw > L2_ENGAGE_THRESHOLD)
+                        l2_engaged = true;
+                    else if (l2_engaged && l2_raw <= L2_RELEASE_THRESHOLD)
+                        l2_engaged = false;
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_JUMP])) {
+                    // Camera-frame stick offset for the shared machine.
+                    const SLONG dx_c = axis_x - AXIS_CENTRE;
+                    const SLONG dy_c = axis_y - AXIS_CENTRE;
+                    const bool stick_in_deadzone =
+                        (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
+
+                    process_l2_tactical(l2_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+
+                    // Zoom / back-walk modifier (L1): held from a standstill =
+                    // zoom; held + stick = back-walk (rear stick → walk backward).
+                    // See process_zoomwalk.
+                    process_zoomwalk(input_btn_held(ACT_FOOT_AIM_GBTN), dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+                }
+
+                if (input_btn_held(ACT_FOOT_JUMP_GBTN)) {
                     input |= INPUT_MASK_JUMP;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // Triangle / Y — menu CANCEL + driving siren toggle. Read by raw
-                // index 3 (constant across PS / Xbox layouts) because the
-                // JOYPAD_BUTTON_KICK alias has been rebound to R1 for the
-                // on-foot kick action and no longer points here.
-                // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
-                // the triangle press must also emit INPUT_MASK_KICK to flip
-                // the siren / lights.
-                if (input_btn_held(3)) {
-                    input |= INPUT_MASK_CANCEL;
-                    {
-                        Thing* p_darci = NET_PERSON(0);
-                        const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
-                        if (driving)
-                            input |= INPUT_MASK_KICK;
+                // Triangle / Y — driving siren toggle (in-car only). The kick
+                // action lives on R1 (button 10) and no longer fires from
+                // Triangle. INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while
+                // driving the triangle press emits INPUT_MASK_KICK to flip
+                // the siren / lights. INPUT_MASK_CANCEL (widget-UI back-out)
+                // now comes from Circle (see ACT_FOOT_SPRINT_GBTN block below)
+                // — modern PlayStation convention: Cross confirms, Circle cancels.
+                if (input_btn_held(ACT_CAR_SIREN_GBTN)) {
+                    Thing* p_darci = NET_PERSON(0);
+                    const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (driving) {
+                        input |= INPUT_MASK_KICK;
+                        g_dwLastInputChangeTime = dwCurrentTime;
                     }
-                    g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // R1 / RB — on-foot kick (JOYPAD_BUTTON_KICK = 10). Suppressed
+                // R1 / RB — on-foot kick (button 10). Suppressed
                 // while driving because the player has no kick action in a
                 // vehicle (and the in-car CAN_PAD_SIREN bit is already covered
                 // by the Triangle path above; firing it again from R1 would
                 // toggle siren on every R1 press, which the player does not
                 // expect in-car).
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_KICK])) {
+                if (input_btn_held(ACT_FOOT_KICK_GBTN)) {
                     Thing* p_darci = NET_PERSON(0);
                     const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
@@ -3238,23 +4224,36 @@ ULONG get_hardware_input(UWORD type)
                 // punch & shoot live only on R2. Keep the button unbound in
                 // gameplay — nothing to do here.
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_START])) {
+                if (input_btn_held(ACT_FOOT_START_GBTN)) {
                     input |= INPUT_MASK_START;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
                 // Weapon cycle / inventory rotation moved from Share/Back
-                // (JOYPAD_BUTTON_SELECT) to R3 (right stick click). Index 8
-                // in rgbButtons matches SDL3_BTN_RIGHT_STICK and the DualSense
-                // R3 mapping.
-                if (input_btn_held(8)) {
+                // (button 4) to R3 (right stick click). Index 8 in rgbButtons
+                // matches SDL3_BTN_RIGHT_STICK and the DualSense R3 mapping.
+                if (input_btn_held(ACT_FOOT_INVENTORY_GBTN)) {
                     input |= INPUT_MASK_SELECT;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_CAMERA])) {
-                    input |= INPUT_MASK_CAMERA;
-                    g_dwLastInputChangeTime = dwCurrentTime;
+                // This button doubles as camera-type toggle / force-behind, but
+                // ONLY when the zoom/back-walk modifier enters the ZOOM mode
+                // (standstill). Gating on g_zoomwalk_mode keeps the camera
+                // snap-to-back exclusive to zoom entry — pressing it on the move
+                // enters back-walk (process_zoomwalk) and must NOT jerk the
+                // camera behind the character. In the car this button is the
+                // BRAKE, so the driving guard suppresses it there too.
+                // g_zoomwalk_mode is computed just above (machine runs before
+                // this block), and ZOOM implies the button is held.
+                {
+                    Thing* p_drv = NET_PERSON(0);
+                    const bool drv_driving = p_drv && p_drv->Genus.Person
+                        && (p_drv->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (!drv_driving && g_zoomwalk_mode == ZOOMWALK_ZOOM) {
+                        input |= INPUT_MASK_CAMERA;
+                        g_dwLastInputChangeTime = dwCurrentTime;
+                    }
                 }
 
                 // L2/R2 no longer map to camera rotation on gamepad — right stick handles camera.
@@ -3318,8 +4317,8 @@ ULONG get_hardware_input(UWORD type)
                                 mag_empty = true;
                         }
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
-                            current_weapon, input_trigger_raw(16),
-                            input_trigger_raw(15), weapon_drawn, mag_empty);
+                            current_weapon, input_trigger_raw(ACT_FOOT_PUNCH_GTRIG),
+                            input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG), weapon_drawn, mag_empty);
                         if (fd.shoot) {
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
@@ -3331,14 +4330,31 @@ ULONG get_hardware_input(UWORD type)
                     }
                 }
 
-                // Circle / B — ACTION (interact / get-in-or-out of car / pick
-                // up items). Fires both on foot and while driving (the get-
-                // out-of-car flow consumes ACTION). No `!driving` gate here:
-                // an L2-bound ACTION couldn't coexist with the in-car brake
-                // (every brake tap would fire ACTION mid-drive), but Circle
-                // doesn't double as a vehicle control, so it can fire freely.
-                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_ACTION])) {
+                // Square / X — USE (the interaction multitool: get-in-or-out of
+                // car, pick up, search, arrest, levers, ...). Fires both on foot
+                // and while driving (the get-out-of-car flow consumes it).
+                if (input_btn_held(ACT_FOOT_USE_GBTN)) {
                     input |= INPUT_MASK_ACTION;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // Circle / B — SPRINT (hold while running) AND widget-UI CANCEL
+                // (back-out of in-game dialogs like the form_leave_map "Leave
+                // area?" prompt). CANCEL stays on Circle (the PlayStation "back"
+                // button); INPUT_MASK_CANCEL is read by widget.cpp::FORM_Process
+                // to dismiss in-game forms and harmlessly coexists with SPRINT on
+                // foot (no widget dialog → mask is ignored).
+                if (input_btn_held(ACT_FOOT_SPRINT_GBTN)) {
+                    input |= INPUT_MASK_SPRINT | INPUT_MASK_CANCEL;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // Triangle / Y — STEALTH (hold to crouch). On-foot only behaviour;
+                // while driving Triangle is the car siren (separate act_car map),
+                // and the dispatch ignores STEALTH unless idle/gun, so setting the
+                // bit here is harmless in the car.
+                if (input_btn_held(ACT_FOOT_STEALTH_GBTN)) {
+                    input |= INPUT_MASK_STEALTH;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
@@ -3347,50 +4363,30 @@ ULONG get_hardware_input(UWORD type)
                 // Works on DualSense (Share+L1+L2) and Xbox (Back+LB+LT).
                 {
                     static bool bCheatLastFrame = false;
-                    bool cheat_combo = input_btn_held(4)  // Select/Back
-                        && input_btn_held(9)              // L1/LB
-                        && input_btn_held(15);            // L2/LT (digital)
+                    bool cheat_combo = input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
+                        && input_btn_held(ACT_FOOT_CHEAT_MOD_L1_GBTN)
+                        && input_btn_held(ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN);
 
                     if (cheat_combo) {
-                        if (input_btn_held(11)) {
-                            // D-pad Up: toggle immortality (invulnerability flag on player).
+                        if (input_btn_held(ACT_FOOT_CHEAT_IMMORTAL_GBTN)) {
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
-                                if (NET_PERSON(0)->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
-                                    CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
-                                else
-                                    CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+                                cheat_apply_immortal_toggle();
                             }
-                        } else if (input_btn_held(12)) {
-                            // D-pad Down: full health.
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_FULL_HEALTH_GBTN)) {
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->Health = 1000;
-                                CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+                                cheat_apply_full_health();
                             }
-                        } else if (input_btn_held(13)) {
-                            // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN)) {
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-#define CHEAT_RING_SIZE 128
-                                alloc_special(SPECIAL_AK47, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE - 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE - 32, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 32, 0);
-#undef CHEAT_RING_SIZE
-                                CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+                                cheat_apply_spawn_weapons();
                             }
-                        } else if (input_btn_held(14)) {
-                            // D-pad Right: max ammo for all weapon types.
+                        } else if (input_btn_held(ACT_FOOT_CHEAT_MAX_AMMO_GBTN)) {
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_pistol = 240;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_shotgun = 240;
-                                NET_PERSON(0)->Genus.Person->ammo_packs_ak47 = 240;
-                                CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
+                                cheat_apply_max_ammo();
                             }
                         } else {
                             bCheatLastFrame = false;
@@ -3415,108 +4411,182 @@ ULONG get_hardware_input(UWORD type)
     // When gamepad is connected, disable analog mode if keyboard provides input
     // (analog mode is re-enabled next frame if gamepad has stick input).
 
-    if (type & INPUT_TYPE_KEY) {
+    if ((type & INPUT_TYPE_KEY) && input_gameplay_enabled()) {
 
         // Movement / action buttons: level reads through input_key_held
         // (continuous "while held" semantic — these drive INPUT_MASK_* bits
         // that downstream consumers sample as level state per physics tick).
-        // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
-        // toggles → just_pressed (edge-detect via input_frame).
+        //
+        // The whole block is gated by input_gameplay_enabled() — when the
+        // F1 debug modifier is held (or any other "suppress gameplay"
+        // condition fires in the future), keyboard input is dropped so a
+        // debug-key press doesn't ALSO drive the character.
 
-        const bool kb_fwd   = input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS]);
-        const bool kb_back  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK]);
-        const bool kb_left  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT]);
-        const bool kb_right = input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT]);
+        // WASD analog-stick emulation. Each held key contributes a unit
+        // signed component (W=-Y, S=+Y, A=-X, D=+X). When two perpendicular
+        // keys are held (e.g. W+D), the deflection vector is clamped to the
+        // unit circle — same magnitude as a real stick at 45° (≈0.7071 per
+        // axis, not 1.0+1.0 = √2). Result is packed into bits 18-31 of the
+        // input mask using the same encoding as the gamepad stick path
+        // (lines ~3778-3779 in this file), so downstream consumers
+        // (process_analogue_movement, etc.) see WASD identically to a stick.
+        //
+        // Runs AFTER the gamepad stick branch above, so if both gamepad
+        // stick and WASD are active, WASD takes precedence (overwrites the
+        // analog bits). Pragmatic: a player using both at once isn't a
+        // realistic case to optimize for; the simpler "last writer wins"
+        // rule avoids cross-source blending edge cases.
+        const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
+        const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
+        const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
+        const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
 
-        // If any movement key is pressed, switch to digital mode
-        // (analog mode only makes sense with a stick).
-        // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
-        // non-zero upper bits and treats centered stick (value 0) as analog input.
         if (kb_fwd || kb_back || kb_left || kb_right) {
-            analogue = 0;
+            // Signed direction along each axis.
+            const SLONG vx_sign = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
+            const SLONG vy_sign = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+
+            // Deflection magnitude per axis:
+            //   1 axis active  → full deflection  AXIS_CENTRE = 32768
+            //   2 axes active  → diagonal — 32768 / sqrt(2) ≈ 23170 per
+            //                   axis, so the (vx, vy) magnitude stays at
+            //                   32768 just like a stick on its rim.
+            constexpr SLONG WASD_FULL_DEFLECTION_PER_AXIS = 32768;
+            constexpr SLONG WASD_DIAG_DEFLECTION_PER_AXIS = 23170;
+            const SLONG mag = (vx_sign != 0 && vy_sign != 0)
+                ? WASD_DIAG_DEFLECTION_PER_AXIS
+                : WASD_FULL_DEFLECTION_PER_AXIS;
+
+            SLONG axis_x = AXIS_CENTRE + vx_sign * mag;
+            SLONG axis_y = AXIS_CENTRE + vy_sign * mag;
+            if (axis_x < 0)     axis_x = 0;
+            if (axis_x > 65535) axis_x = 65535;
+            if (axis_y < 0)     axis_y = 0;
+            if (axis_y > 65535) axis_y = 65535;
+
+            // Clear any previous bits-18-31 packing from the JOY branch
+            // before writing WASD's, otherwise OR'ing in WASD on top of a
+            // partially-set gamepad packing would garble the magnitude.
             input &= 0x0003FFFF;
-        }
+            analogue = 1;
+            input |= ((axis_x >> 9) + 0) << 18;
+            input |= ((axis_y >> 9) + 0) << 25;
 
-        if (kb_fwd) {
-            input |= INPUT_MASK_FORWARDS;
-        }
-
-        if (kb_back)
-            input |= INPUT_MASK_BACKWARDS;
-
-        if (kb_left) {
-            if (ShiftFlag)
-                input |= INPUT_MASK_STEP_LEFT;
-            else
-                input |= INPUT_MASK_LEFT;
-        }
-
-        if (kb_right) {
-            if (ShiftFlag)
-                input |= INPUT_MASK_STEP_RIGHT;
-            else
+            // Digital direction flags — same thresholds as gamepad stick path.
+            if (axis_x > (SLONG)AXIS_MAX)
                 input |= INPUT_MASK_RIGHT;
+            else if (axis_x < (SLONG)AXIS_MIN)
+                input |= INPUT_MASK_LEFT;
+
+            if (axis_y > (SLONG)AXIS_MAX) {
+                input |= INPUT_MASK_BACKWARDS;
+            } else if (axis_y < (SLONG)AXIS_MIN) {
+                input |= INPUT_MASK_FORWARDS;
+                input |= INPUT_MASK_MOVE;
+            }
+
+            g_dwLastInputChangeTime = dwCurrentTime;
+        } else if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            // No WASD held AND KBM is the active device. Pack CENTER stick
+            // (bits 18-31) so GET_JOYX/Y returns 0 — without this baseline,
+            // raw zero bits in 18-31 decode as -128 (full deflection), which
+            // process_analogue_movement interprets as "stick fully zenged" →
+            // character forced into STATE_MOVEING / ACTION_RUN → action_run
+            // table maps PUNCH → ACTION_SHOOT → no gun → silent no-op
+            // (the click-doesn't-punch bug).
+            //
+            // Previously the gamepad block above provided this baseline
+            // (always packing CENTER even when stick was at rest), but with
+            // gamepad now gated by active_input_device != KBM, that path no
+            // longer fires when KBM is active — so KBM must provide its own
+            // neutral baseline. Also covers the gamepad-disconnected case
+            // identically: bits 18-31 always have a valid encoding.
+            //
+            // Clear bits 18-31 first to drop any stale gamepad packing from
+            // a previous tick (in case active device was just switched).
+            constexpr SLONG WASD_AXIS_CENTRE_PACKED = 64;  // AXIS_CENTRE >> 9
+            input &= 0x0003FFFF;
+            input |= WASD_AXIS_CENTRE_PACKED << 18;
+            input |= WASD_AXIS_CENTRE_PACKED << 25;
+            analogue = 0;
         }
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_SELECT]))
+        // Keyboard L2 equivalent — Ctrl + WASD drive the SAME tactical-mode
+        // machine as the gamepad's L2 + stick: tap Ctrl → roll toward the WASD
+        // direction, hold Ctrl → slow-walk. Gated on KBM being the active device
+        // so it never fights the gamepad path. WASD maps to a camera-frame stick
+        // offset; only the 8-way direction and "anything held" matter to the
+        // machine, so a fixed full deflection per held axis is fine.
+        if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            const bool ctrl_engaged = input_key_held(ACT_FOOT_TACTICAL_MODE_KKEY);
+            const SLONG kb_vx = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
+            const SLONG kb_vy = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+            constexpr SLONG KB_DEFLECTION = 32768; // full per-axis (well past deadzone)
+            const SLONG dx_c = kb_vx * KB_DEFLECTION;
+            const SLONG dy_c = kb_vy * KB_DEFLECTION;
+            const bool stick_in_deadzone = (kb_vx == 0 && kb_vy == 0);
+            process_l2_tactical(ctrl_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+
+            // Zoom / back-walk modifier on KBM = E key (ACT_FOOT_AIM_KKEY): held
+            // from a standstill = zoom (mouse rotates), held + WASD = back-walk.
+            // The keyboard counterpart of the gamepad's L1. Gated by
+            // input_gameplay_enabled() so F1-debug suppresses it (matches the
+            // first-person zoom pose gate).
+            const bool e_held = input_gameplay_enabled() && input_key_held(ACT_FOOT_AIM_KKEY);
+            process_zoomwalk(e_held, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
+        }
+
+        // Tanky-arrow reference implementation — kept here commented in
+        // case anyone wants to bring back the old PC control scheme as an
+        // opt-in setting. Not on the roadmap. Original Shift+arrow behavior
+        // was strafe (STEP_LEFT/RIGHT) vs unmodified arrow = tank turn
+        // (LEFT/RIGHT).
+        //
+        // const bool kb_tank_fwd   = input_key_held(ACT_FOOT_MOVE_TANK_FORWARD_KKEY);
+        // const bool kb_tank_back  = input_key_held(ACT_FOOT_MOVE_TANK_BACKWARD_KKEY);
+        // const bool kb_tank_left  = input_key_held(ACT_FOOT_MOVE_TANK_TURN_LEFT_KKEY);
+        // const bool kb_tank_right = input_key_held(ACT_FOOT_MOVE_TANK_TURN_RIGHT_KKEY);
+        //
+        // if (kb_tank_fwd || kb_tank_back || kb_tank_left || kb_tank_right) {
+        //     analogue = 0;
+        //     input &= 0x0003FFFF;
+        // }
+        //
+        // if (kb_tank_fwd)  input |= INPUT_MASK_FORWARDS;
+        // if (kb_tank_back) input |= INPUT_MASK_BACKWARDS;
+        // if (kb_tank_left) {
+        //     if (ShiftFlag) input |= INPUT_MASK_STEP_LEFT;
+        //     else           input |= INPUT_MASK_LEFT;
+        // }
+        // if (kb_tank_right) {
+        //     if (ShiftFlag) input |= INPUT_MASK_STEP_RIGHT;
+        //     else           input |= INPUT_MASK_RIGHT;
+        // }
+
+        if (input_key_held(ACT_FOOT_INVENTORY_KKEY))
             input |= INPUT_MASK_SELECT;
 
-        // Edge-triggered camera actions: use press_pending + consume.
-        // just_pressed loses presses when render fps > physics fps (input_frame
-        // snapshot updates per render frame, but get_hardware_input runs only on
-        // physics tick — edges latched in skipped-physics frames vanish before
-        // they're read). press_pending latches the edge until explicit consume,
-        // so it survives across frames regardless of tick cadence.
-        if (input_key_press_pending(KB_F5)) {
-            input_key_consume(KB_F5);
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM1;
-        }
-        if (input_key_press_pending(KB_F6)) {
-            input_key_consume(KB_F6);
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM2;
-        }
-        if (input_key_press_pending(KB_F7)) {
-            input_key_consume(KB_F7);
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM3;
-        }
-
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAMERA]);
-            input |= INPUT_MASK_CAM_BEHIND;
-        }
-
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]);
-            input |= INPUT_MASK_CAM_LEFT;
-        }
-        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
-            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]);
-            input |= INPUT_MASK_CAM_RIGHT;
-        }
-
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_JUMP]))
+        if (input_key_held(ACT_FOOT_JUMP_KKEY))
             input |= INPUT_MASK_JUMP;
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_PUNCH]))
+        // LMB = punch (R2-trigger equivalent), RMB = kick (R1 equivalent).
+        // Digital reads: trigger-pull strength is not modeled on mouse —
+        // weapon_feel_evaluate_fire is bypassed on this path (same as the
+        // historical keyboard Z punch behavior). For melee that's fine;
+        // for gun fire the weapon's own cyclic-rate gating applies.
+        if (input_mouse_btn_held(ACT_FOOT_PUNCH_MBTN))
             input |= INPUT_MASK_PUNCH;
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_KICK])) {
-            MSG_add(" HARDWARE KICK");
+        if (input_mouse_btn_held(ACT_FOOT_KICK_MBTN))
             input |= INPUT_MASK_KICK;
-        }
 
-        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_ACTION])) {
+        // F = USE (interaction multitool), Shift = SPRINT (hold while running),
+        // C = STEALTH (hold to crouch). See act_foot.h.
+        if (input_key_held(ACT_FOOT_USE_KKEY))
             input |= INPUT_MASK_ACTION;
-        }
-
-        if (kb_fwd) {
-            input |= INPUT_MASK_MOVE;
-        }
+        if (input_key_held(ACT_FOOT_SPRINT_KKEY))
+            input |= INPUT_MASK_SPRINT;
+        if (input_key_held(ACT_FOOT_STEALTH_KKEY))
+            input |= INPUT_MASK_STEALTH;
     }
 
     if (input) {
@@ -3542,7 +4612,8 @@ ULONG pre_process_input(SLONG mode, ULONG input)
 }
 
 // uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
-// Handles first-person look-around mode when JOYPAD_BUTTON_1STPERSON is held.
+// Handles first-person look-around mode when the 1st-person hotkey is held
+// (KKEY_A on keyboard / L1 on gamepad).
 // Rotates the camera pitch and character angle without consuming movement input.
 // Returns non-zero if first-person mode is active this frame.
 ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed)
@@ -3552,8 +4623,14 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_1STPERSON])
-        || input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])) {
+    // Zoom/look pose is active only while the zoom-walk modifier is in ZOOM mode
+    // (see process_zoomwalk, driven from get_hardware_input). The machine enters
+    // ZOOM only from a standstill with a neutral stick; the instant the stick is
+    // touched it latches to SLOWWALK, fpm goes false here, and the normal
+    // movement dispatcher runs the slow camera-relative step instead. The held
+    // state of the modifier (incl. the input_gameplay_enabled gate for MMB) is
+    // already folded into g_zoomwalk_mode by the machine.
+    if (g_zoomwalk_mode == ZOOMWALK_ZOOM) {
         fpm = UC_TRUE;
     }
 
@@ -3577,24 +4654,12 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             look_pitch &= 2047;
         }
 
-        if (input_mouse_active()) {
-            const SLONG mdy = input_mouse_dy();
-            const SLONG mdx = input_mouse_dx();
-            if (mdy) {
-                look_pitch -= mdy;
-            }
-            if (mdx) {
-                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - mdx) & 2047;
-            }
-        }
-
-        // Aim-mode look is now driven by the RIGHT stick (gamepad) and the
-        // arrow keys (keyboard). LEFT stick is left free to drive movement
-        // via the standard INPUT_MASK_MOVE path below — the player can walk
-        // while aiming. Pre-rework the LEFT stick was repurposed as the
-        // look stick (FORWARDS/BACKWARDS/LEFT/RIGHT bits drove pitch + yaw)
-        // and movement was force-cleared in this scope; that conflicted with
-        // the natural FPS-style "left=move, right=look" layout.
+        // Zoom-mode look is driven by the RIGHT stick (gamepad), the mouse and
+        // the arrow keys (keyboard). The LEFT stick / WASD does NOT look here:
+        // touching it leaves zoom for the slow-walk mode (process_zoomwalk),
+        // so zoom is always a rooted pose with a neutral movement stick. (The
+        // INPUT_MASK_MOVE clear further down keeps the pose rooted for the tick
+        // the transition is detected.)
         //
         // Vertical inverted to match the non-aim camera convention: in non-
         // aim mode right-stick UP raises the orbital camera (so the view
@@ -3606,12 +4671,19 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             constexpr SLONG STICK_PITCH_MAX = 13; // per-frame pitch step at full deflection
             constexpr SLONG STICK_YAW_MAX = 32; // per-frame angle delta at full deflection
 
-            // Right stick — gamepad. Only consume it while a controller is
-            // the active input device, so a stuck/idle stick on a connected
-            // controller doesn't fight keyboard input.
+            // Gamepad sticks — only the RIGHT stick drives yaw + pitch in the
+            // zoom/look pose. The LEFT stick is reserved for movement: touching
+            // it leaves zoom for the slow-walk mode (process_zoomwalk), so
+            // it must NOT also crank the look here — that was the duplicate
+            // rotation we removed. (Pre-rework the left stick was a second look
+            // source via a per-axis fallback; that is gone now.)
+            //
+            // Only consume the stick while a controller is the active input
+            // device, so an idle stick on a connected controller doesn't fight
+            // keyboard input.
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                SLONG sx = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
-                SLONG sy = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                const SLONG sx = (SLONG)input_stick_x_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
+                const SLONG sy = (SLONG)input_stick_y_axis(ACT_FOOT_AIM_LOOK_GAXIS) - 32768;
 
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)
@@ -3630,19 +4702,45 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS])) {
+            if (input_key_held(ACT_FOOT_AIM_LOOK_UP_KKEY)) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK])) {
+            if (input_key_held(ACT_FOOT_AIM_LOOK_DOWN_KKEY)) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT])) {
+                if (input_key_held(ACT_FOOT_AIM_LOOK_LEFT_KKEY)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT])) {
+                if (input_key_held(ACT_FOOT_AIM_LOOK_RIGHT_KKEY)) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
+            }
+
+            // Mouse-look in aim (KBM): mouse motion rotates the character
+            // (yaw) and pitches the look — the mouse counterpart of the right
+            // stick above. CONSUMING the mouse here also drains the relative-
+            // motion accumulator so it can't pile up while aiming and burst out
+            // as a camera jerk the moment aim is released (the non-aim camera
+            // mouse-orbit in fc.cpp is gated off while toonear). The camera
+            // then follows the new facing via FC_position_for_lookaround + the
+            // camera-mode angle smoothing — snappy in MANUAL, rubberness-
+            // smoothed in AUTO — so it matches normal mouse-look.
+            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE
+                && input_gameplay_enabled() && mouse_capture_is_active()) {
+                SLONG mdx = 0, mdy = 0;
+                input_mouse_consume_rel(&mdx, &mdy);
+                // Starting sensitivities (Q8 game-units per pixel) — tune by
+                // feel; ~matches the non-aim mouse-orbit yaw scale (~0.8 u/px).
+                constexpr SLONG MOUSE_AIM_YAW_Q8   = 205;
+                constexpr SLONG MOUSE_AIM_PITCH_Q8 = 96;
+                // Yaw: mouse right → turn right (Angle decreases) — same sign
+                // as the right stick above.
+                p_person->Draw.Tweened->Angle =
+                    (p_person->Draw.Tweened->Angle - (mdx * MOUSE_AIM_YAW_Q8 / 256)) & 2047;
+                // Pitch: mouse up → look up (non-inverted). look_pitch
+                // increases = look up (matches the stick).
+                look_pitch += (mdy * MOUSE_AIM_PITCH_Q8 / 256);
             }
         }
 
@@ -3743,11 +4841,24 @@ SLONG can_darci_change_weapon(Thing* p_person)
 // (driving / fight / normal).
 void process_hardware_level_input_for_player(Thing* p_player)
 {
-    // Modal input debug panel — bail out entirely so neither the packet
-    // path nor the direct Keys[]/rgbButtons[] reads inside this dispatcher
-    // (e.g. apply_button_input_first_person) can drive the player.
-    if (input_debug_is_active())
+    // Modal input debug panel — drive the dispatcher with input=0 so the
+    // state machine transitions the character into idle (continue_moveing
+    // returns 0, jump→fall→land terminates as idle, etc.) instead of
+    // freezing whatever bits the player was holding before the panel
+    // opened. Then bail out before the rest of the per-tick logic so
+    // the panel stays modal (no first-person aim, no camera switching,
+    // no inventory / weapon hotkeys process from this dispatcher).
+    if (input_debug_is_active()) {
+        if (p_player && p_player->Genus.Player) {
+            Thing* p_person = p_player->Genus.Player->PlayerPerson;
+            if (p_person && p_person->Genus.Person) {
+                apply_button_input(p_player, p_person, 0);
+            } else {
+                p_player->Genus.Player->Input = 0;
+            }
+        }
         return;
+    }
 
     SLONG i;
 
@@ -3876,52 +4987,9 @@ void process_hardware_level_input_for_player(Thing* p_player)
     input &= ~(p_player->Genus.Player->InputDone);
 
     if (!no_control) {
-        if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
-            // Can't draw weapons while driving.
-        } else {
-            // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
-            // — single press = single switch, regardless of FPS.
-            if (can_darci_change_weapon(p_person)) {
-                if (input_key_just_pressed(KB_1)) {
-                    if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
-                        set_person_gun_away(p_person);
-                    }
-                }
-
-                if (input_key_just_pressed(KB_2)) {
-                    if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
-                        if (p_person->Flags & FLAGS_HAS_GUN) {
-                            if (p_person->Genus.Person->SpecialUse) {
-                                set_person_item_away(p_person);
-                            }
-
-                            set_person_draw_gun(p_person);
-                        } else {
-                        }
-                    }
-                }
-
-                SLONG special_type = SPECIAL_NONE;
-
-                if (input_key_just_pressed(KB_3)) special_type = SPECIAL_SHOTGUN;
-                if (input_key_just_pressed(KB_4)) special_type = SPECIAL_AK47;
-                if (input_key_just_pressed(KB_5)) special_type = SPECIAL_GRENADE;
-                if (input_key_just_pressed(KB_6)) special_type = SPECIAL_EXPLOSIVES;
-                if (input_key_just_pressed(KB_7)) special_type = SPECIAL_KNIFE;
-                if (input_key_just_pressed(KB_8)) special_type = SPECIAL_BASEBALLBAT;
-
-                if (special_type) {
-                    if (person_has_special(p_person, special_type)) {
-                        if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
-                            set_person_gun_away(p_person);
-                        }
-
-                        set_person_draw_item(p_person, special_type);
-                    } else {
-                    }
-                }
-            }
-        }
+        // Weapon switching (keyboard 1-4 + Tab melee, MMB disarm, mouse wheel
+        // scroll, gamepad D-pad / R3) is handled centrally in
+        // game_tick.cpp::process_controls — not here.
 
         if (!apply_button_input_first_person(p_player, p_person, input, &processed)) {
 
@@ -3933,13 +5001,15 @@ void process_hardware_level_input_for_player(Thing* p_player)
             } else {
                 // Not driving — drain the car-siren press_pending flags every
                 // physics tick so that a press of these buttons outside the
-                // car (Triangle = menu cancel, SPACE = jump) doesn't leak into
-                // the first car-entry tick as a spurious siren toggle. Both
-                // sources are dual-use, and apply_button_input_car is the only
-                // consumer of their press_pending flag — without this drain,
-                // the flag would sit set indefinitely from any outside press.
-                input_key_consume(keybrd_button_use[JOYPAD_BUTTON_JUMP]);
-                input_btn_consume(3); // Triangle/Y
+                // car (Triangle on foot, SPACE = jump) doesn't leak into the
+                // first car-entry tick as a spurious siren toggle. SPACE is
+                // dual-use (jump on foot), Triangle on foot is currently
+                // unbound but the input layer still sets press_pending on
+                // every physical press. apply_button_input_car is the only
+                // consumer of these flags — without this drain, the flag
+                // would sit set indefinitely from any outside press.
+                input_key_consume(ACT_CAR_SIREN_KKEY);
+                input_btn_consume(ACT_CAR_SIREN_GBTN);
             }
             {
                 // Main input dispatcher: fight mode vs normal run mode.
@@ -4123,8 +5193,8 @@ SLONG continue_moveing(Thing* p_person)
         if (analogue) {
             SLONG angle, dx, dy;
 
-            dx = abs((SLONG)GET_JOYX(input));
-            dy = abs((SLONG)GET_JOYY(input));
+            dx = abs((SLONG)input_virtual_axis(input, ACT_FOOT_MOVE_X_VAXIS));
+            dy = abs((SLONG)input_virtual_axis(input, ACT_FOOT_MOVE_Y_VAXIS));
 
             if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
                 return (0);
@@ -4171,4 +5241,67 @@ SLONG continue_blocking(Thing* p_person)
     } else {
         return 0;
     }
+}
+
+// ---- Cheat helpers ----------------------------------------------------------
+// Ported from Dreamcast cheats (fallen/Source/interfac.cpp). Each helper
+// performs the gameplay effect AND prints the corresponding on-screen
+// message — same behavior whether triggered by the gamepad combo
+// (Select+L1+L2+DPad) or by the keyboard F9-console command.
+
+void cheat_apply_immortal_toggle()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    p_darci->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
+    if (p_darci->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
+        CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
+    else
+        CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+}
+
+void cheat_apply_full_health()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    // 1000 HP — same value as the original Dreamcast cheat. Darci's normal
+    // max is 100 (gameplay HP scale) so 1000 is effectively "you can't die
+    // from anything that hits you in one shot".
+    constexpr SLONG CHEAT_FULL_HEALTH_HP = 1000;
+    p_darci->Genus.Person->Health = CHEAT_FULL_HEALTH_HP;
+    CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+}
+
+void cheat_apply_spawn_weapons()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci) return;
+    // Spawn ring of weapons around the player: AK47, shotgun, pistol, 3
+    // grenades. Each weapon offsets by CHEAT_RING_SIZE world-units from
+    // Darci's position so the player doesn't auto-pick them up immediately
+    // and can choose what to grab.
+    constexpr SLONG CHEAT_RING_SIZE = 128;
+    const SLONG px = p_darci->WorldPos.X >> 8;
+    const SLONG py = p_darci->WorldPos.Y >> 8;
+    const SLONG pz = p_darci->WorldPos.Z >> 8;
+    alloc_special(SPECIAL_AK47,    SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GUN,     SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE - 32, py, pz - CHEAT_RING_SIZE - 32, 0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE + 32, py, pz - CHEAT_RING_SIZE + 32, 0);
+    CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+}
+
+void cheat_apply_max_ammo()
+{
+    Thing* p_darci = NET_PERSON(0);
+    if (!p_darci || !p_darci->Genus.Person) return;
+    // 240 ammo packs each — original Dreamcast cheat value, well past any
+    // realistic mission requirement.
+    constexpr SLONG CHEAT_MAX_AMMO = 240;
+    p_darci->Genus.Person->ammo_packs_pistol  = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_shotgun = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_ak47    = CHEAT_MAX_AMMO;
+    CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
 }

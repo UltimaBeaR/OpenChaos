@@ -22,6 +22,7 @@
 #include "map/supermap_globals.h" // next_dfacet
 #include "buildings/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
 #include "map/map.h" // MAP_WIDTH, MAP_HEIGHT
+#include "ui/input_glyphs/input_glyphs.h" // input_glyphs_init
 
 // Internal page-count constants.
 // uc_orig: TEXTURE_NORM_SIZE (fallen/DDEngine/Source/texture.cpp)
@@ -397,6 +398,15 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_page_snowflake = TEXTURE_NUM_STANDARD + 74;
     TEXTURE_page_fade_MF = TEXTURE_NUM_STANDARD + 75;
 
+    // Input-prompt glyph atlases (Kenney Input Prompts, embedded PNGs).
+    // Reserved in the free standard-page range (76..79); uploaded by
+    // input_glyphs_init() further below. TEXTURE_num_textures already covers
+    // these slots (NUM_STANDARD + 110 > NUM_STANDARD + 79), so no bump needed.
+    TEXTURE_page_glyph_kbm = TEXTURE_NUM_STANDARD + 76;
+    TEXTURE_page_glyph_generic = TEXTURE_NUM_STANDARD + 77;
+    TEXTURE_page_glyph_ps = TEXTURE_NUM_STANDARD + 78;
+    TEXTURE_page_glyph_deck = TEXTURE_NUM_STANDARD + 79;
+
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
 #define TEXTURE_EXTRA_DIR "server/textures/extras/"
@@ -558,6 +568,11 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         ge_texture_load_tga(TEXTURE_page_people3 + 29, TEXTURE_PEOPLE3_DIR "FEMBAK3.tga");
         LOADED_THIS_MANY_TEXTURES(3);
     }
+
+    // Decode and upload the embedded input-prompt glyph atlases (Kenney Input
+    // Prompts). GL context and texture system are ready here, and the glyph
+    // pages were reserved above (TEXTURE_page_glyph_*).
+    input_glyphs_init();
 
     // Load warehouse roof textures.
     {

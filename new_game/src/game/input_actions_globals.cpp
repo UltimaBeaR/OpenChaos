@@ -15,10 +15,6 @@ bool g_bPunishMePleaseICheatedOnThisLevel = UC_FALSE;
 // uc_orig: input_mode (fallen/Source/interfac.cpp)
 SLONG input_mode = 0;
 
-// uc_orig: mouse_input (fallen/Source/interfac.cpp)
-// Set to 1 when mouse input is active (PC only).
-SLONG mouse_input = 0;
-
 // uc_orig: analogue (fallen/Source/interfac.cpp)
 // Analog stick mode: smooth movement speed based on stick deflection.
 // Dynamically set to 1 when gamepad is active, 0 for keyboard.
@@ -30,12 +26,6 @@ bool g_bEngineVibrations = UC_TRUE;
 
 // uc_orig: m_bForceWalk (fallen/Source/interfac.cpp)
 bool m_bForceWalk = UC_FALSE;
-
-// uc_orig: joypad_button_use (fallen/Source/interfac.cpp)
-UBYTE joypad_button_use[16];
-
-// uc_orig: keybrd_button_use (fallen/Source/interfac.cpp)
-UBYTE keybrd_button_use[16];
 
 // Current pitch angle for first-person look mode (0..2047).
 // uc_orig: look_pitch (fallen/Source/interfac.cpp)

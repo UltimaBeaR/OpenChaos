@@ -153,7 +153,24 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
             tri_van,
             tri_car,
             tri_car,
-            tri_police,
+            // VEH_TYPE_POLICE — was tri_police; switched to tri_car (OpenChaos).
+            // The authored tri_police indices (kept above for reference) point
+            // at the wrong vertices on the police body prim, so the walkable
+            // ridge ends up nowhere near the roof. Symptom in the original:
+            // can't climb on the standard police car (a known pre-1.0 quirk —
+            // recorded in known_issues_and_bugs_resolved.md and in the retail
+            // PC version it behaves the same way). Once vis_cam started using
+            // the same WMOVE faces as the ceiling of the camera-vs-vehicle
+            // collision hull, the broken ridge also meant camera collisions
+            // against the police car fell through to the flat box-top
+            // fallback instead of the real roof shape. The car body prim
+            // (PRIM_OBJ_CAR_BODY) and the police body prim
+            // (PRIM_OBJ_POLICE_BODY) are built off the same template (very
+            // similar point layout), so the car-indexed ridge maps cleanly
+            // onto the police roof — fixes both climbing and camera
+            // collision in one. The "police SUV" (VEH_TYPE_SEDAN below,
+            // PRIM_OBJ_SEDAN_BODY) was already on tri_car and unaffected.
+            tri_car,
             tri_ambulance,
             tri_jeep,
             tri_jeep, // Meatwagon model is the same as the jeep nowadays.

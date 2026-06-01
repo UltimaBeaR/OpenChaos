@@ -42,6 +42,17 @@ void* sdl3_window_get_native_handle();
 // Returns true if the window is currently maximized.
 bool sdl3_window_is_maximized();
 
+// Returns true if the window is currently minimized OR hidden (not on
+// screen). False when it's just unfocused but still visible.
+bool sdl3_window_is_minimized();
+
+// Returns true if the window currently has keyboard / mouse input focus
+// at the OS level. Polled state — useful when event delivery is suspect
+// (e.g. inside the video player's secondary event loop, where SDL focus
+// events have been observed to arrive coalesced or out of order during
+// fullscreen click-to-refocus).
+bool sdl3_window_has_focus();
+
 // Maximize the window. Safe to call on hidden windows.
 void sdl3_window_maximize();
 
@@ -54,6 +65,11 @@ void sdl3_get_global_mouse_pos(int* x, int* y);
 // Show / hide the system cursor.
 void sdl3_show_cursor();
 void sdl3_hide_cursor();
+
+// Toggle SDL3 relative mouse mode. When enabled, the cursor is hidden,
+// pinned to the window, and SDL delivers infinite relative motion via
+// mouse-motion events (cursor never reaches a screen edge).
+void sdl3_set_relative_mouse_mode(bool enabled);
 
 // ---------------------------------------------------------------------------
 // Keyboard
@@ -102,8 +118,16 @@ void sdl3_gl_configure_vsync(bool vsync_enabled);
 struct SDL3_Callbacks {
     void (*on_key_down)(uint8_t scancode); // scancode = game KB_* code
     void (*on_key_up)(uint8_t scancode);
-    void (*on_mouse_move)(int x, int y);
-    void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=right, 2=middle
+    // x, y: absolute window-pixel coordinates of the cursor. xrel, yrel:
+    // relative motion delta since the previous event (signed). In SDL3
+    // relative-mouse-mode the absolute coords are pinned but xrel/yrel
+    // keep flowing — that's how the mouse camera reads infinite motion.
+    void (*on_mouse_move)(int x, int y, int xrel, int yrel);
+    void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=middle, 2=right (MBTN_*)
+    // Vertical mouse-wheel scroll. dy > 0 = scroll up / away from user,
+    // dy < 0 = scroll down / toward user (SDL convention). One notch is
+    // typically ±1. May be null if the host doesn't consume scroll.
+    void (*on_mouse_wheel)(int dy);
     void (*on_focus_gained)();
     void (*on_focus_lost)();
     void (*on_window_moved)();

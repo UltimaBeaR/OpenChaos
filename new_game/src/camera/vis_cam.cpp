@@ -2,6 +2,7 @@
 #include "ai/mav.h"                   // MAV_inside, MAVHEIGHT
 #include "buildings/prim.h"           // get_prim_info, PrimInfo
 #include "buildings/ware.h"           // WARE_inside (indoor sampler)
+#include "camera/camera_mode.h"       // get_active_camera_mode, keep_for_rubberness
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/core/fixed_math.h"   // MUL64
@@ -92,29 +93,43 @@ static const SLONG VC_CAMERA_RADIUS = 0x4000;
 // How far back from a hit point the camera should keep itself, measured
 // from focus toward the hit. Half a metre — keeps a visible breathing
 // margin so decorative bumps on the wall geometry don't punch into the
-// near edge of the frame.
+// near edge of the frame. Applied to the XZ component of the camera-
+// to-hit vector (horizontal step back from walls).
 static const SLONG VC_WALL_OFFSET = 0x5000;
 
-// Extra padding subtracted on top of VC_WALL_OFFSET to account for the
-// near-clip plane: the renderer's frustum extends slightly past the camera
-// position toward focus (POLY_ZCLIP_PLANE), so a wall that is exactly at
-// the offset distance can still clip through the near plane and show
-// back-faces. Small padding gives a numerical safety margin without
-// noticeably changing the camera distance.
-static const SLONG VC_NEAR_CLIP_PAD = 0x800;
+// Y component of the same buffer — kept TINY (1/8 of XZ offset, ~7 cm)
+// so the camera only steps a hair off the floor/ceiling. Just enough
+// to prevent the near-clip plane from clipping floor/ceiling polygons
+// when the camera kisses them; larger Y offsets reintroduce the
+// orbital-at-low-Y phantom collision bumps at building foundations.
+static const SLONG VC_WALL_OFFSET_Y = VC_WALL_OFFSET / 8;
 
 // Sample count per ray. 32 is what the previous baseline (013b1e82) used and
 // what the original 8-step push covered with much wider steps; 32 gives ~1
 // MAV cell of resolution along a typical 3–4m third-person distance.
 static const SLONG VC_RAY_SAMPLES = 32;
 
-// Lerp weight applied to the freshly computed camera position when both the
-// previous and current physics tick were in collision. Lower = smoother
-// (and laggier). Applied per-tick: vc = lerp(prev_vc, computed_vc, num/den).
-// Only kicks in for sustained collision — entry into and exit from collision
-// stay snap-responsive on purpose.
-static const SLONG VC_SMOOTH_ALPHA_NUM = 6;
-static const SLONG VC_SMOOTH_ALPHA_DEN = 10;
+// Shipping default lerp weight for sustained-collision smoothing in AUTO
+// at rubberness 0.5: each tick `vc = prev_vc * 0.4 + computed_vc * 0.6`
+// (60/40 blend → "keep 40% of the previous position"). The actual keep
+// fraction is `keep_for_rubberness(VC_KEEP_DEFAULT)` — wall-orbit lag
+// is a ROTATION-rubber case per the camera-mode spec (the camera adjusts
+// its orbit around focus when contact with a wall pulls it in), and
+// rubberness scales it in lockstep with the rest of the rotation
+// smoothings. r=0 → snap (instant vc update). r=0.5 → 60/40. r=1 → laggy.
+//
+// MANUAL mode hard-codes keep=0 (= no smoothing) regardless of
+// rubberness. Why: MANUAL rotation is INSTANT (no angle smoothing), so
+// a single fast manual flick can land fc deep inside a wall in one
+// tick. Snapping vc to raw_vc each tick keeps the camera outside the
+// wall — see the entry-tick comment in `VC_process` for the full
+// inside-wall-render avoidance rationale.
+//
+// Why smoothing matters for AUTO: the gamepad R-stick rotates slowly
+// and `min_d_hit` jitters by ~one probe step each tick. Snapping vc to
+// raw_vc on every tick would show that jitter as visible pumping while
+// sliding along walls. The 0.4 keep averages it out.
+static constexpr float VC_KEEP_DEFAULT = 0.4f;
 
 // MAVHEIGHT delta above the focus cell needed to count a sample as "wall".
 // Without this, MAV_inside returns true on every step along flat ground —
@@ -176,9 +191,8 @@ static const SLONG VC_MAX_VEHICLE_CANDIDATES = 8;
 // Extra slack (world>>8 units) added to (camera distance + vehicle bounding
 // radius) when deciding whether a vehicle is close enough to bother probing.
 // 0x100 ≈ one map cell — comfortably covers the camera sphere radius
-// (VC_CAMERA_RADIUS>>8 = 0x40) plus the ray extension
-// ((VC_WALL_OFFSET+VC_NEAR_CLIP_PAD)>>8 = 0x58) with margin, so the
-// broad-phase never rejects a vehicle the ray walk could still hit.
+// (VC_CAMERA_RADIUS>>8 = 0x40) with margin, so the broad-phase never
+// rejects a vehicle the ray walk could still hit.
 static const SLONG VC_VEHICLE_REACH_MARGIN = 0x100;
 
 // Max WMOVE top-surface quads kept per vehicle. The authored tables top out
@@ -383,29 +397,44 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
 {
     if (ncands == 0) return true;
 
-    // Same ray-extension trick as vc_probe_mav: walk past the camera by
-    // WALL_OFFSET + NEAR_CLIP_PAD so first contact is smooth instead of
-    // jumping the camera in by the offset on the first hit frame.
+    // Probe ray runs from focus to the target (camera sample point),
+    // EXTENDED past the target by VC_WALL_OFFSET in the XZ direction
+    // only. The extension gives early-detection so collision response
+    // starts smoothly (d_new ≈ d_now when wall first enters the
+    // OFFSET-margin past the camera). Y is NOT extended — without
+    // this, a low camera ray dips below ground level in extension,
+    // hitting building-foundation MAV cells and producing phantom
+    // bumps as the camera orbits past corners.
     SLONG cdx = tx - focus.x;
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
+    SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                     + (std::int64_t)cdz * cdz));
+    SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                       + (std::int64_t)cdy * cdy
+                                       + (std::int64_t)cdz * cdz));
+    SLONG ext_tx = tx;
+    SLONG ext_ty = ty;
+    SLONG ext_tz = tz;
+    if (cd_xz > 0) {
+        ext_tx = tx + (SLONG)((std::int64_t)cdx * VC_WALL_OFFSET / cd_xz);
+        ext_tz = tz + (SLONG)((std::int64_t)cdz * VC_WALL_OFFSET / cd_xz);
+    }
+    // Y extension uses the tiny VC_WALL_OFFSET_Y — just enough to
+    // keep the camera's near-clip from clipping floor/ceiling polys
+    // when it kisses them, small enough that the probe ray doesn't
+    // sample meaningfully past camera Y (which kills the orbital-at-
+    // low-Y phantom collision bumps at building foundations).
+    if (cd_full > 0) {
+        ext_ty = ty + (SLONG)((std::int64_t)cdy * VC_WALL_OFFSET_Y / cd_full);
     }
 
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (ext_tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (ext_tz - sz) / VC_RAY_SAMPLES;
 
     for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
         sx += step_x;
@@ -444,9 +473,9 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
             }
             if (py > ceil_y) continue;
 
-            SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-                std::abs(extended_ty - focus.y),
-                std::abs(extended_tz - focus.z));
+            SLONG full_len = QDIST3(std::abs(ext_tx - focus.x),
+                std::abs(ty - focus.y),
+                std::abs(ext_tz - focus.z));
             *d_hit_out = (SLONG)((std::int64_t)full_len * step / VC_RAY_SAMPLES);
             return false;
         }
@@ -482,34 +511,46 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     SLONG focus_mavh, SLONG* d_hit_out)
 {
-    // Extend the ray past the target by (VC_WALL_OFFSET + VC_NEAR_CLIP_PAD)
-    // along focus→target. Without this extension, the first time a wall
-    // enters contact with the camera (d_hit ≈ d_now) the response immediately
-    // pulls the camera in by VC_WALL_OFFSET — a visible jump on the first
-    // contact frame. Extending the ray lets us detect the wall earlier (when
-    // it's still WALL_OFFSET past the camera), so d_hit ≈ d_now + OFFSET and
-    // d_new ≈ d_now: contact starts smooth. As the wall keeps approaching,
-    // d_new shrinks continuously.
+    // Probe ray runs from focus to the target (camera sample point),
+    // EXTENDED past the target by VC_WALL_OFFSET in the XZ direction
+    // only. The XZ extension gives smooth pull-in: probe detects a wall
+    // while it is still up to VC_WALL_OFFSET past the camera, so the
+    // collision response starts with d_new ≈ d_now (no jump) and grows
+    // gradually as the wall closes. Y is NOT extended — extending Y too
+    // makes a low-camera ray dip below ground past the camera and hit
+    // building-foundation MAV cells / "below ground" PAP checks at
+    // building footprints, producing phantom collision bumps as the
+    // camera orbits past corners.
     SLONG cdx = tx - focus.x;
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
+    SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                     + (std::int64_t)cdz * cdz));
+    SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                       + (std::int64_t)cdy * cdy
+                                       + (std::int64_t)cdz * cdz));
+    SLONG ext_tx = tx;
+    SLONG ext_ty = ty;
+    SLONG ext_tz = tz;
+    if (cd_xz > 0) {
+        ext_tx = tx + (SLONG)((std::int64_t)cdx * VC_WALL_OFFSET / cd_xz);
+        ext_tz = tz + (SLONG)((std::int64_t)cdz * VC_WALL_OFFSET / cd_xz);
+    }
+    // Y extension uses the tiny VC_WALL_OFFSET_Y — just enough to
+    // keep the camera's near-clip from clipping floor/ceiling polys
+    // when it kisses them, small enough that the probe ray doesn't
+    // sample meaningfully past camera Y (which kills the orbital-at-
+    // low-Y phantom collision bumps at building foundations).
+    if (cd_full > 0) {
+        ext_ty = ty + (SLONG)((std::int64_t)cdy * VC_WALL_OFFSET_Y / cd_full);
     }
 
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (ext_tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (ext_tz - sz) / VC_RAY_SAMPLES;
 
     for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
         sx += step_x;
@@ -531,12 +572,6 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
         }
 
         // Condition 2: sample below local ground (slope/hill).
-        // NOTE: don't try to skip PAP_FLAG_HIDDEN cells here — outdoor raised
-        // geometry (decorative platforms, steps) sets that flag too, and
-        // those cells are precisely the ones whose elevation we need.
-        // Indoor focus uses vc_probe_ware instead, so this path won't fire
-        // inside warehouses where PAP_calc_map_height_at would return a
-        // ceiling-height sentinel.
         if (!hit) {
             SLONG ground_y = PAP_calc_map_height_at(sx >> 8, sz >> 8) << 8;
             if (sy < ground_y) hit = true;
@@ -544,12 +579,11 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 
         if (!hit) continue;
 
-        // Hit. Distance is the fraction of the full focus→extended-target
-        // span we traversed, mapped back to QDIST3 of that extended vector
-        // (so the hit-distance metric matches the per-sample step length).
-        SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-            std::abs(extended_ty - focus.y),
-            std::abs(extended_tz - focus.z));
+        // Hit. Distance is the fraction of the focus→ext_target span we
+        // traversed, mapped back to QDIST3 of that vector.
+        SLONG full_len = QDIST3(std::abs(ext_tx - focus.x),
+            std::abs(ty - focus.y),
+            std::abs(ext_tz - focus.z));
         *d_hit_out = (SLONG)((std::int64_t)full_len * step / VC_RAY_SAMPLES);
         return false;
     }
@@ -577,33 +611,44 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 // by 8 at the call. MAV_inside in the outdoor probe takes the same
 // convention but we shifted at the call there too.
 //
-// Same ray-extension trick as vc_probe_mav: walk past the camera by
-// WALL_OFFSET + NEAR_CLIP_PAD so first contact is smooth rather than
-// jumping the camera in by the offset on the first hit frame.
 static bool vc_probe_ware(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     UBYTE ware, SLONG* d_hit_out)
 {
+    // Probe ray runs from focus to the target (camera sample point),
+    // EXTENDED past the target by VC_WALL_OFFSET in the XZ direction
+    // only (Y not extended — see vc_probe_mav comment). Gives smooth
+    // pull-in when approaching interior walls.
     SLONG cdx = tx - focus.x;
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
+    SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                     + (std::int64_t)cdz * cdz));
+    SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
+                                       + (std::int64_t)cdy * cdy
+                                       + (std::int64_t)cdz * cdz));
+    SLONG ext_tx = tx;
+    SLONG ext_ty = ty;
+    SLONG ext_tz = tz;
+    if (cd_xz > 0) {
+        ext_tx = tx + (SLONG)((std::int64_t)cdx * VC_WALL_OFFSET / cd_xz);
+        ext_tz = tz + (SLONG)((std::int64_t)cdz * VC_WALL_OFFSET / cd_xz);
+    }
+    // Y extension uses the tiny VC_WALL_OFFSET_Y — just enough to
+    // keep the camera's near-clip from clipping floor/ceiling polys
+    // when it kisses them, small enough that the probe ray doesn't
+    // sample meaningfully past camera Y (which kills the orbital-at-
+    // low-Y phantom collision bumps at building foundations).
+    if (cd_full > 0) {
+        ext_ty = ty + (SLONG)((std::int64_t)cdy * VC_WALL_OFFSET_Y / cd_full);
     }
 
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (ext_tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (ext_tz - sz) / VC_RAY_SAMPLES;
 
     // LOS flags for the DFacet-aware check below. Some interior walls (e.g.
     // RTA police station) aren't in the WARE height grid — they're DFacets.
@@ -659,7 +704,7 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
 
     bool full_los_clear = there_is_a_los(
         focus.x >> 8, focus.y >> 8, focus.z >> 8,
-        extended_tx >> 8, extended_ty >> 8, extended_tz >> 8,
+        ext_tx >> 8, ty >> 8, ext_tz >> 8,
         LOS_FLAGS);
 
     if (!full_los_clear) {
@@ -701,9 +746,9 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
 
     if (!hit_found) return true;
 
-    SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-        std::abs(extended_ty - focus.y),
-        std::abs(extended_tz - focus.z));
+    SLONG full_len = QDIST3(std::abs(ext_tx - focus.x),
+        std::abs(ty - focus.y),
+        std::abs(ext_tz - focus.z));
     *d_hit_out = (SLONG)((std::int64_t)full_len * hit_step / VC_RAY_SAMPLES);
     return false;
 }
@@ -754,10 +799,20 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
 
     // Focus→camera vector and distance. Needed both as the broad-phase reach
     // for vehicle gathering and, later, to scale the camera toward focus.
+    // OpenChaos: was QDIST3 (fast |max|+|mid|/4+|min|/4 approximation). Its
+    // 3-15% error depends on the dx/dy/dz ratio, so as the camera orbits,
+    // d_now wobbled per-tick at constant true distance. Through the scale
+    // `vc = focus + delta * d_new / d_now` (line below) that wobble became
+    // visible per-tick camera position jitter -- the "tremor during
+    // rotation" feel that survived all the FC-side fixes. Real sqrt is
+    // marginally more expensive but removes the wobble entirely. 64-bit
+    // intermediate to avoid overflow (dx etc reach hundreds of thousands).
     SLONG dx = vc.x - focus.x;
     SLONG dy = vc.y - focus.y;
     SLONG dz = vc.z - focus.z;
-    SLONG d_now = QDIST3(std::abs(dx), std::abs(dy), std::abs(dz));
+    SLONG d_now = (SLONG)sqrt((double)((std::int64_t)dx * dx
+                                     + (std::int64_t)dy * dy
+                                     + (std::int64_t)dz * dz));
     if (d_now <= 0) return false; // degenerate — camera coincident with focus
 
     // Nearby vehicles, gathered once per tick (not per ray/sample) to keep
@@ -831,33 +886,47 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
 
     if (fail_count == 0) return false;
 
-    // dx/dy/dz/d_now were computed up front (also used for vehicle reach).
-    SLONG d_new = min_d_hit - VC_WALL_OFFSET;
+    // Pull-in distances. SEPARATE XZ and Y buffers:
+    //   • XZ: full VC_WALL_OFFSET — pulls camera horizontally back
+    //     from walls so decorative geometry (mouldings, signs, etc.)
+    //     doesn't poke into the frame.
+    //   • Y: tiny VC_WALL_OFFSET_Y — pulls camera only a hair off
+    //     floors/ceilings, just enough to stay clear of the near-clip
+    //     plane. Larger Y offsets cause phantom orbital bumps at low
+    //     camera Y near building foundations (probe samples dipped
+    //     below ground hit raised-MAVHEIGHT cells around buildings).
+    SLONG d_new_xz = min_d_hit - VC_WALL_OFFSET;
+    SLONG d_new_y  = min_d_hit - VC_WALL_OFFSET_Y;
 
-    // Guard against moving the camera OUT (away from focus). vc_probe_mav
-    // extends rays past the corner by (WALL_OFFSET + NEAR_PAD) for early
-    // detection, which means d_hit can register past d_now — in that case
-    // d_new would land at or above d_now, and writing it back would push
-    // the camera further from focus. Skip in that range. The boundary
-    // (d_new == d_now) is where the wall first enters its NEAR_PAD margin;
-    // a fraction past that, d_new < d_now and we start pulling the camera
-    // in smoothly.
-    if (d_new >= d_now) return false;
+    // Guard: probe-extension can register a hit past the camera (d_hit
+    // > d_now); after subtracting the offset, if d_new_xz still lands
+    // at or above d_now, the hit is outside our buffer in the XZ axis
+    // and we shouldn't pull the camera back at all. Y uses its own
+    // smaller buffer but tracks the same boundary semantics.
+    if (d_new_xz >= d_now) return false;
 
-    if (d_new <= 0) {
-        // Hit closer than the wall-offset clearance — slide the camera all
-        // the way onto focus. Overshooting focus (camera ends up on the far
-        // side) is acceptable by design when Darci is flush against a wall.
+    if (d_new_xz <= 0) {
+        // XZ hit closer than the buffer — slide camera horizontally
+        // onto focus. Y stays scaled by its own (much smaller) factor.
         vc.x = focus.x;
-        vc.y = focus.y;
         vc.z = focus.z;
+        if (d_new_y <= 0 || d_now <= 0) {
+            vc.y = focus.y;
+        } else {
+            vc.y = focus.y + (SLONG)((std::int64_t)dy * d_new_y / d_now);
+        }
     } else {
-        // Scale (vc - focus) by d_new/d_now. 64-bit intermediate to avoid
-        // overflow — dx and d_new can each reach hundreds of thousands in
-        // shifted units, and their product can exceed 2^31.
-        vc.x = focus.x + (SLONG)((std::int64_t)dx * d_new / d_now);
-        vc.y = focus.y + (SLONG)((std::int64_t)dy * d_new / d_now);
-        vc.z = focus.z + (SLONG)((std::int64_t)dz * d_new / d_now);
+        // Scale XZ by d_new_xz/d_now, Y by d_new_y/d_now (a higher
+        // ratio because the Y buffer is smaller). 64-bit intermediate
+        // to avoid overflow — products can exceed 2^31 in shifted
+        // units.
+        vc.x = focus.x + (SLONG)((std::int64_t)dx * d_new_xz / d_now);
+        vc.z = focus.z + (SLONG)((std::int64_t)dz * d_new_xz / d_now);
+        if (d_new_y <= 0) {
+            vc.y = focus.y;
+        } else {
+            vc.y = focus.y + (SLONG)((std::int64_t)dy * d_new_y / d_now);
+        }
     }
     return true;
 }
@@ -907,21 +976,42 @@ void VC_process(void)
             fc->focus, incar_vehicle);
 
         if (in_collision) {
-            // COLLISION mode. First tick of contact is a snap (no lerp);
-            // sustained ticks blend prev → freshly computed vc.
+            // COLLISION mode.
+            //   Sustained ticks: blend prev → freshly computed raw_vc.
+            //   First tick of contact (BOTH modes): use raw_vc
+            //     immediately, no fc-identity snap. fc can land inside
+            //     the wall in one tick when rotation is fast enough
+            //     (MANUAL rotation is INSTANT; AUTO rotation at low
+            //     rubberness is also instant via the angle smoothing
+            //     snap; AUTO rotation at higher rubberness can still
+            //     burst far on a fast stick flick or mouse motion).
+            //     Snapping vc to fc on the entry tick would render one
+            //     frame from INSIDE the wall in all of those cases.
+            //     Using raw_vc (which already has the wall offset
+            //     applied by vc_process_one) keeps the camera outside.
+            //     The ~10 cm pull-in jerk on entry is preferable to a
+            //     one-frame inside-wall render.
+            const bool manual = camera_is_manual();
+            // Per-tick "keep" fraction (share of previous position kept).
+            // MANUAL → 0 (snap to raw_vc). AUTO → rubberness-scaled,
+            // with rubberness 0.5 yielding the shipping 0.4 keep = 60/40
+            // blend. Wall orbit-pullin is a rotation-rubber case (the
+            // camera's orbit around focus adjusts when hitting a wall),
+            // so it follows the same scaling as angle/orbit-lag smoothing.
+            // double for the blend math — camera positions are 16.16
+            // fixed-point with magnitudes up to ~8M, where 32-bit float
+            // only has ~1-unit precision and can pump visibly.
+            const double keep_d = manual ? 0.0 : (double)keep_for_rubberness(VC_KEEP_DEFAULT);
             if (s.mode == VC_SM_COLLISION) {
-                SLONG keep = VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM;
-                vc.x = (SLONG)(((std::int64_t)s.prev_x * keep
-                        + (std::int64_t)vc.x * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
-                vc.y = (SLONG)(((std::int64_t)s.prev_y * keep
-                        + (std::int64_t)vc.y * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
-                vc.z = (SLONG)(((std::int64_t)s.prev_z * keep
-                        + (std::int64_t)vc.z * VC_SMOOTH_ALPHA_NUM)
-                    / VC_SMOOTH_ALPHA_DEN);
+                const double blend_d = 1.0 - keep_d;
+                vc.x = (SLONG)((double)s.prev_x * keep_d + (double)vc.x * blend_d);
+                vc.y = (SLONG)((double)s.prev_y * keep_d + (double)vc.y * blend_d);
+                vc.z = (SLONG)((double)s.prev_z * keep_d + (double)vc.z * blend_d);
             } else {
                 s.mode = VC_SM_COLLISION;
+                // Leave vc at vc_process_one's computed wall-offset
+                // position (raw_vc) for both modes — no fc-identity
+                // override. See entry-tick comment above for rationale.
             }
             s.prev_x = vc.x;
             s.prev_y = vc.y;
@@ -951,20 +1041,18 @@ void VC_process(void)
                     // because the lerp mechanism is unchanged — only the
                     // target switched (from collision-shifted to identity)
                     // and the weight started shrinking.
-                    SLONG keep_num = (VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM)
-                                     * s.exit_ticks_left;
-                    SLONG keep_den = VC_EXIT_TICKS * VC_SMOOTH_ALPHA_DEN;
-                    SLONG drop_num = keep_den - keep_num;
+                    // Mode-driven keep, linearly scaled by exit_ticks_left
+                    // so the smoothing tail fades to 0 (vc → fc) over
+                    // VC_EXIT_TICKS. MANUAL → 0 keep (instant) regardless
+                    // of ticks_left; AUTO → rubberness-scaled keep × fade.
+                    const bool manual = camera_is_manual();
+                    const double base_keep = manual ? 0.0 : (double)keep_for_rubberness(VC_KEEP_DEFAULT);
+                    const double keep_d = base_keep * ((double)s.exit_ticks_left / (double)VC_EXIT_TICKS);
+                    const double drop_d = 1.0 - keep_d;
                     SLONG fc_x = vc.x, fc_y = vc.y, fc_z = vc.z;
-                    vc.x = (SLONG)(((std::int64_t)s.prev_x * keep_num
-                                    + (std::int64_t)fc_x * drop_num)
-                                   / keep_den);
-                    vc.y = (SLONG)(((std::int64_t)s.prev_y * keep_num
-                                    + (std::int64_t)fc_y * drop_num)
-                                   / keep_den);
-                    vc.z = (SLONG)(((std::int64_t)s.prev_z * keep_num
-                                    + (std::int64_t)fc_z * drop_num)
-                                   / keep_den);
+                    vc.x = (SLONG)((double)s.prev_x * keep_d + (double)fc_x * drop_d);
+                    vc.y = (SLONG)((double)s.prev_y * keep_d + (double)fc_y * drop_d);
+                    vc.z = (SLONG)((double)s.prev_z * keep_d + (double)fc_z * drop_d);
                     s.prev_x = vc.x;
                     s.prev_y = vc.y;
                     s.prev_z = vc.z;

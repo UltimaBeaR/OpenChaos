@@ -4,6 +4,12 @@
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 
+// Character atlas is 256x256 pixels with a 16px row height. The drawn letter
+// cell height in pixels at scale 256 (1.0). Exported so callers laying text out
+// alongside other elements (e.g. inline input glyphs) can size lines to match.
+// uc_orig: FONT2D_LETTER_HEIGHT (fallen/DDEngine/Source/font2d.cpp)
+#define FONT2D_LETTER_HEIGHT 16
+
 // Per-character UV coordinates and pixel width for the 2D font atlas.
 // uc_orig: FONT2D_Letter (fallen/DDEngine/Headers/font2d.h)
 typedef struct

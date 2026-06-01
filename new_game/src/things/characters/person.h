@@ -253,11 +253,6 @@ void actually_fire_gun(Thing* p_person);
 // uc_orig: set_person_running_shoot (fallen/Source/Person.cpp)
 void set_person_running_shoot(Thing* p_person);
 
-// Returns the best special weapon type with ammo the person is carrying.
-// Returns SPECIAL_NONE if no viable weapon found.
-// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
-SLONG get_persons_best_weapon_with_ammo(Thing* p_person);
-
 // Returns true if NPC should hold fire due to an active cutscene.
 // uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
 SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target);
@@ -358,8 +353,10 @@ void remove_person_from_passenger_list(Thing* p_person, Thing* p_vehicle);
 void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door);
 
 // Exits person from vehicle: tries both doors, repositions, removes from driver/passenger lists.
+// `forced` = thrown out (vehicle destroyed / scared off) — uses the instant
+// teleport-out, never the climb-out animation, and never revives the vehicle.
 // uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
-void set_person_exit_vehicle(Thing* p_person);
+void set_person_exit_vehicle(Thing* p_person, bool forced = false);
 
 // Selects the correct walk animation for person type and equipped weapon.
 // uc_orig: set_anim_walking (fallen/Source/Person.cpp)

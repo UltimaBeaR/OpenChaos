@@ -75,29 +75,15 @@ RawMenuData raw_menu_data[] = {
     { 0, OT_BUTTON, X_CANCEL, 0, FE_BACK },
     { FE_CONFIG, OT_BUTTON, X_OPTIONS, 0, FE_CONFIG_OPTIONS },
     { 0, OT_BUTTON, X_SOUND, 0, FE_CONFIG_AUDIO },
-    { 0, OT_BUTTON, X_KEYBOARD, 0, FE_CONFIG_INPUT_KB },
+    // Здесь раньше был пункт Options→Keyboard и связанный sub-screen с
+    // переназначением клавиш (OT_KEYPRESS items + OT_RESET). Снесено в
+    // action_map шаге 1b: переназначение в UI отключено в 1.0, биндинги
+    // хардкодятся через ACT_* константы. История — git log.
+    // См. new_game_devlog/input_system/action_map/plan.md.
     { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
     { FE_CONFIG_AUDIO, OT_SLIDER, X_VOLUME, 0, 128 },
     { 0, OT_SLIDER, X_AMBIENT, 0, 128 },
     { 0, OT_SLIDER, X_MUSIC, 0, 128 },
-    { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
-    { FE_CONFIG_INPUT_KB, OT_KEYPRESS, X_LEFT, 0, 0 },
-    { 0, OT_KEYPRESS, X_RIGHT, 0, 0 },
-    { 0, OT_KEYPRESS, X_FORWARDS, 0, 0 },
-    { 0, OT_KEYPRESS, X_BACKWARDS, 0, 0 },
-    { 0, OT_KEYPRESS, X_PUNCH, 0, 0 },
-    { 0, OT_KEYPRESS, X_KICK, 0, 0 },
-    { 0, OT_KEYPRESS, X_ACTION, 0, 0 },
-    // X_RUN entry is commented out in original
-    { 0, OT_KEYPRESS, X_JUMP, 0, 0 },
-    { 0, OT_KEYPRESS, X_START, 0, 0 },
-    { 0, OT_KEYPRESS, X_SELECT, 0, 0 },
-    { 0, OT_LABEL, X_CAMERA, 0, 0 },
-    { 0, OT_KEYPRESS, X_JUMP, 0, 0 },
-    { 0, OT_KEYPRESS, X_LEFT, 0, 0 },
-    { 0, OT_KEYPRESS, X_RIGHT, 0, 0 },
-    { 0, OT_KEYPRESS, X_LOOK_AROUND, 0, 0 },
-    { 0, OT_RESET, X_RESET_DEFAULT, 0, 0 },
     { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
     { FE_CONFIG_VIDEO, OT_MULTI, X_STARS, MC_YN, 1 },
     { 0, OT_MULTI, X_SHADOWS, MC_YN, 1 },
@@ -167,12 +153,6 @@ MenuState menu_state;
 // uc_orig: menu_buffer (fallen/Source/frontend.cpp)
 CBYTE menu_buffer[2048];
 
-// uc_orig: grabbing_key (fallen/Source/frontend.cpp)
-BOOL grabbing_key = 0;
-// uc_orig: grabbing_pad (fallen/Source/frontend.cpp)
-BOOL grabbing_pad = 0;
-// uc_orig: m_bMovingPanel (fallen/Source/frontend.cpp)
-BOOL m_bMovingPanel = UC_FALSE;
 
 // uc_orig: kibble (fallen/Source/frontend.cpp)
 Kibble kibble[512];
@@ -255,9 +235,6 @@ SLONG GammaIndex = 0;
 
 // uc_orig: m_bGoIntoSaveScreen (fallen/Source/frontend.cpp)
 bool m_bGoIntoSaveScreen = UC_FALSE;
-
-// uc_orig: bCanChangeJoypadButtons (fallen/Source/frontend.cpp)
-BOOL bCanChangeJoypadButtons = UC_FALSE;
 
 // ---- DirectDraw background surfaces ----------------------------------------
 

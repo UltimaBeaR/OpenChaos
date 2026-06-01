@@ -4,6 +4,7 @@
 // (lines ~1-1757 of original Person.cpp)
 
 #include "game/game_types.h" // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
+#include "game/action_map/act_bangunsnotgames.h" // ACT_BANG_SPEED_BOOST_KKEY
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/input/input_frame.h"
 #include "things/characters/cop.h"
@@ -207,7 +208,6 @@ extern SWORD people_types[50];
 extern Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 // might_i_be_a_villain: defined in this file (chunk 10 below)
 // chunk 5 additional externs (Person.cpp later chunks or other files not yet migrated)
-extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz);
 extern SLONG find_best_grapple(Thing* p_person);
 extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
@@ -2312,6 +2312,20 @@ void person_pick_best_target(Thing* p_person, SLONG dir)
         if (PCOM_person_wants_to_kill(p_found) != THING_NUMBER(p_person))
             continue;
 
+        // OpenChaos: skip targets the player isn't allowed to hit
+        // (innocent cops, civilians in non-violence mode, gang
+        // mates, bodyguard clients...). Without this the circle
+        // button would happily lock onto an innocent cop fighting
+        // alongside the player, and the next attack would whiff
+        // (hit-resolution rejects the same victim downstream).
+        // people_allowed_to_hit_each_other is the canonical
+        // predicate used by hit resolution itself, driven by
+        // PersonType + flags (FLAG2_PERSON_GUILTY etc.), so this
+        // stays correct under debug "play as X", flag toggles, and
+        // VIOLENCE-off levels.
+        if (!people_allowed_to_hit_each_other(p_found, p_person))
+            continue;
+
         SLONG dx = (p_found->WorldPos.X - p_person->WorldPos.X) >> 8;
         SLONG dz = (p_found->WorldPos.Z - p_person->WorldPos.Z) >> 8;
 
@@ -2784,8 +2798,8 @@ void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz)
     dx = dx * ratio >> TICK_SHIFT;
     dz = dz * ratio >> TICK_SHIFT;
 
-    if (allow_debug_keys)
-        if (ShiftFlag && input_key_held(KB_Q)) {
+    if (input_debug_modifier_active())
+        if (ShiftFlag && input_key_held(ACT_BANG_SPEED_BOOST_KKEY)) {
             dx <<= 2;
             dz <<= 2;
         }
@@ -3895,47 +3909,6 @@ void set_person_running_shoot(Thing* p_person)
     }
 }
 
-// Returns the best weapon type (with ammo) from the person's inventory.
-// Priority: AK47 > shotgun > gun > bat > knife.
-// Returns SPECIAL_NONE if no viable weapon found.
-// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
-SLONG get_persons_best_weapon_with_ammo(Thing* p_person)
-{
-    Thing* p_special;
-
-    static UBYTE weapon_order[5] = {
-        SPECIAL_AK47,
-        SPECIAL_SHOTGUN,
-        SPECIAL_GUN,
-        SPECIAL_BASEBALLBAT,
-        SPECIAL_KNIFE
-    };
-
-    SLONG i;
-
-    for (i = 0; i < 5; i++) {
-        if (i == 2) {
-            if (p_person->Flags & FLAGS_HAS_GUN) {
-                if (p_person->Genus.Person->Ammo) {
-                    return SPECIAL_GUN;
-                }
-            }
-        } else {
-            if (p_special = person_has_special(p_person, weapon_order[i])) {
-                if (i < 2) {
-                    if (p_special->Genus.Special->ammo) {
-                        return weapon_order[i];
-                    }
-                } else {
-                    return weapon_order[i];
-                }
-            }
-        }
-    }
-
-    return SPECIAL_NONE;
-}
-
 // Returns UC_TRUE if a cutscene is in progress and the NPC should not shoot p_target.
 // uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
 SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target)
@@ -4081,25 +4054,12 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
 
-        if (p_person->Genus.Person->PlayerID && ammo != HAD_TO_CHANGE_CLIP) {
-            // Auto-switch to best available weapon.
-            SLONG special = get_persons_best_weapon_with_ammo(p_person);
-
-            if (special) {
-                if (special == SPECIAL_GUN) {
-                    set_person_draw_gun(p_person);
-                } else {
-                    set_person_draw_item(p_person, special);
-                }
-            } else {
-                if (p_person->Genus.Person->SpecialUse) {
-                    set_person_item_away(p_person);
-                } else {
-                    set_person_gun_away(p_person);
-                }
-            }
-        }
-
+        // OpenChaos: the player's gun no longer auto-switches when the magazine
+        // runs dry — it just dry-clicks and stays equipped, leaving the weapon
+        // change to the player. (A firearm out of ammo remains in the inventory,
+        // so there is nothing to fall back FROM; the grenade "last one thrown →
+        // empty hands" case is handled in SPECIAL_throw_grenade, which clears
+        // SpecialUse directly.) NPCs never reached this branch (PlayerID gate).
         return;
     }
 
@@ -4623,22 +4583,6 @@ void set_person_locked_idle_ready(Thing* p_person)
 // uc_orig: set_person_flip (fallen/Source/Person.cpp)
 void set_person_flip(Thing* p_person, SLONG dir)
 {
-    // OpenChaos: per-player cooldown on the evasive side flip/roll so it
-    // can't be spammed. Gated for the player only (every flip the
-    // player initiates -- out of combat and in fight mode -- comes
-    // through here); NPC/vehicle-driven flips have PlayerID 0 and are
-    // never gated, so AI behaviour is unchanged. Checked before any
-    // state change: a blocked press simply does nothing.
-    if (p_person->Genus.Person->PlayerID) {
-        SLONG pid = p_person->Genus.Person->PlayerID;
-        if (!combat_cooldown_ready(pid, COOLDOWN_ROLL)) {
-            combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", false);
-            return;
-        }
-        combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", true);
-        combat_cooldown_arm(pid, COOLDOWN_ROLL);
-    }
-
     MSG_add(" start flipping");
     switch (dir) {
     case 0:
@@ -4661,6 +4605,23 @@ void set_person_flip(Thing* p_person, SLONG dir)
 // uc_orig: set_person_running (fallen/Source/Person.cpp)
 void set_person_running(Thing* p_person)
 {
+    // OpenChaos: arm the "just transitioned to MOVEING" snap window for the
+    // player on ANY entry to MOVEING from a non-MOVEING state. This catches
+    // every path — process_analogue_movement IDLE→MOVEING, set_person_idle
+    // (called from landing animations) with continue_moveing fallback into
+    // set_person_running, dangling drop-out, etc. — without each call site
+    // needing its own arm. See PLAYER_RUN_ENTRY_SNAP_TICKS comment in
+    // input_actions.cpp for full rationale.
+    //
+    // Prior-State gate: walk→run / run→walk transitions stay inside
+    // STATE_MOVEING and don't need a snap (the character has been rotating
+    // toward the camera-relative target for many ticks already). Only the
+    // non-MOVEING → MOVEING transitions are race-prone.
+    if (p_person->Genus.Person->PlayerID && p_person->State != STATE_MOVEING) {
+        extern void player_arm_run_entry_snap();
+        player_arm_run_entry_snap();
+    }
+
     p_person->Draw.Tweened->Locked = 0;
     p_person->Genus.Person->Timer1 = 0;
 
@@ -4855,7 +4816,9 @@ void position_person_for_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 
     ASSERT(door == 0 || door == 1);
 
-    get_car_enter_xz(p_vehicle, door, &ix, &iz);
+    // OpenChaos: teleport to the front-wheel-based entry point (+ per-model
+    // hand-tuned offsets), not the old wheelbase heuristic used for detection.
+    get_car_enter_anim_xz(p_vehicle, door, &ix, &iz);
 
     new_position.X = ix << 8;
     new_position.Z = iz << 8;
@@ -4881,7 +4844,16 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 {
     ASSERT(door == 0 || door == 1);
 
-    if (p_vehicle->Genus.Vehicle->Driver) {
+    // Reserve the car for the duration of the ENTER animation. Driver is only
+    // set once the animation completes (set_person_in_vehicle), so the
+    // FLAG_VEH_ANIMATING reservation stops a second person from climbing in
+    // meanwhile. The flag is set below at the start of the enter animation and
+    // released either on completion OR, if the animation is interrupted by ANY
+    // means (the animator killed / knocked / any state change), by the per-tick
+    // guard in process_car (which watches Vehicle::Animator). Exit does NOT set
+    // the flag — leaving the car immediately enterable as the driver climbs out.
+    if (p_vehicle->Genus.Vehicle->Driver
+        || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)) {
         p_person->Genus.Person->InCar = 0;
         return;
     }
@@ -4920,7 +4892,11 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
 
     set_locked_anim(p_person, (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR, SUB_OBJECT_LEFT_FOOT);
     p_person->Genus.Person->InCar = THING_NUMBER(p_vehicle);
+    // Reserve the car for this enter animation and remember WHO is animating, so
+    // process_car can release the reservation the instant this person stops
+    // entering (completes, or is interrupted by any state change / death).
     p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_ANIMATING;
+    p_vehicle->Genus.Vehicle->Animator = THING_NUMBER(p_person);
 
     MFX_play_thing(THING_NUMBER(p_vehicle), S_CAR_DOOR, 0, p_vehicle);
 }
@@ -4992,7 +4968,7 @@ void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG do
 // Exits person from vehicle: finds a door (tries both sides), repositions on map,
 // removes from driver/passenger lists, stops engine sounds.
 // uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
-void set_person_exit_vehicle(Thing* p_person)
+void set_person_exit_vehicle(Thing* p_person, bool forced)
 {
     Thing* p_vehicle;
 
@@ -5025,6 +5001,8 @@ try_again:;
 
     door_y = PAP_calc_map_height_at(door_x + dx, door_z + dz);
 
+    bool degenerate = false;
+
     if (abs(door_y - (p_person->WorldPos.Y >> 8)) > 150 || (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) || !there_is_a_los(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Y + 0x6000 >> 8, p_vehicle->WorldPos.Z >> 8, door_x + dx, door_y + 0x60, door_z + dz, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
         if (!otherside) {
             side = !side;
@@ -5032,10 +5010,100 @@ try_again:;
 
             goto try_again;
         } else {
-            // Both doors blocked — exit inside the vehicle footprint.
+            // Both doors blocked — exit inside the vehicle footprint (no anim).
+            degenerate = true;
             door_x = p_vehicle->WorldPos.X >> 8;
             door_z = p_vehicle->WorldPos.Z >> 8;
         }
+    }
+
+    // OpenChaos: play the ENTER animation in reverse as an exit animation —
+    // mirror of set_person_enter_vehicle, reusing the entry door point + per-
+    // model rise tuning (veh_enter_tune). SUB_STATE_EXITING_VEHICLE drives the
+    // clip backwards via person_backwards_animate, so Darci climbs out and down
+    // to the ground.
+    //
+    // Side = whatever the door-find above chose (original logic): the driver
+    // door normally, the passenger door if the driver side is blocked. Under
+    // normal circumstances that's the driver/left door, matching the original
+    // game (Darci always slides to the driver seat, so she leaves the driver
+    // side).
+    //
+    // Skipped (falls through to the original instant teleport-out below) when:
+    //   - both doors blocked (degenerate — Darci would pop out at a weird spot,
+    //     so no animation), or
+    //   - the leaver is a passenger (NPC) — passengers use the instant path,
+    //     which also handles passenger-list removal, or
+    //   - `forced` (thrown out by a destroyed / scared vehicle), or the vehicle
+    //     is dead — must NOT run the calm climb-out anim, and must not touch the
+    //     vehicle state (the original instant path leaves the dead car dead).
+    if (!forced && p_vehicle->State != STATE_DEAD && !degenerate
+        && !(p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER)) {
+        const SLONG door = side ? 1 : 0;
+        const SLONG anim = (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR;
+
+        // Normalize the residual pose first. Entry leaves the person in the
+        // seated pose of the side they got in (ENTER_TAXI for the passenger
+        // side, ENTER_CAR for the driver side). The setup below anchors the
+        // foot from the CURRENT pose, so a mismatched residual pose makes the
+        // exit land in a different spot depending on entry side (seen as
+        // exiting "from the rear" after a passenger-side entry). Forcing the
+        // exit clip's own seated last frame here makes the residual identical
+        // for both entry sides.
+        locked_anim_change_end(p_person, SUB_OBJECT_LEFT_FOOT, anim);
+
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_TRUE;
+        position_person_for_vehicle(p_person, p_vehicle, door);
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_FALSE;
+
+        // Entry-style setup (mirror of set_person_enter_vehicle): stand at the
+        // door (first frame, foot planted), then jump to the seated last frame
+        // keeping the same foot anchor. Backward playback then climbs back out
+        // to standing at the door. With the normalized residual above this is
+        // now deterministic regardless of which side Darci entered.
+        set_locked_anim(p_person, anim, SUB_OBJECT_LEFT_FOOT);
+        locked_anim_change_end(p_person, SUB_OBJECT_LEFT_FOOT, anim);
+
+        add_thing_to_map(p_person);
+
+        // Apply the initial (seated) height NOW, before marking the teleport.
+        // The clip starts at its last frame (progress ~1) so the rise puts the
+        // person at the seated height; doing it here means the very first
+        // EXITING tick doesn't jump Y from ground to seated and get
+        // interpolated into a visible pop (most obvious on NPCs — the camera
+        // masks it for the player). Mark the teleport AFTER, so the snapshot
+        // captures the correct start pose/position with no lerp.
+        car_enter_anim_rise(p_person, p_vehicle);
+        render_interp_mark_teleport(p_person);
+
+        set_thing_velocity(p_person, 0);
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+        p_person->SubState = SUB_STATE_EXITING_VEHICLE;
+        p_person->Genus.Person->Action = ACTION_ENTER_VEHICLE;
+        p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_DRIVING;
+
+        // Free the car IMMEDIATELY at the start of the exit: clear the driver
+        // and the enter-reservation now, so the car is enterable the moment the
+        // driver starts climbing out (no risk of a stuck "occupied" flag if the
+        // exit animation is interrupted). The person keeps InCar only to drive
+        // its own climb-out animation, finalized in set_person_out_of_vehicle.
+        // NOTE: do NOT change the vehicle State here — the original exit didn't,
+        // and forcing STATE_NORMAL would revive a dead car (re-enterable wreck).
+        p_vehicle->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+        p_vehicle->Genus.Vehicle->Animator = 0;
+        p_vehicle->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+        p_vehicle->Genus.Vehicle->Driver = NULL;
+
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_START);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_CRUISE);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_IDLE);
+        if (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_FX_STATE) {
+            p_vehicle->Genus.Vehicle->Flags &= ~FLAG_VEH_FX_STATE;
+        }
+        MFX_stop(THING_NUMBER(p_vehicle), MFX_WAVE_ALL);
+        MFX_play_thing(THING_NUMBER(p_vehicle), S_CAR_DOOR, 0, p_vehicle);
+        return;
     }
 
     newpos.X = door_x << 8;
@@ -5741,13 +5809,12 @@ void set_person_arrest(Thing* p_person, SLONG s_index)
 void set_person_croutch(Thing* p_person)
 {
     SLONG anim;
-    SLONG index;
 
-    if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
-        set_person_arrest(p_person, index);
-        return;
-    }
-
+    // OpenChaos: arrest used to live here too (crouch next to a suspect →
+    // arrest), but it only ever fired for the player and was already unreachable
+    // via the action button (do_an_action handles arrest first and returns). Now
+    // that stealth-crouch is its own button, arrest must NOT ride along with it —
+    // it stays solely on the USE button (do_an_action). Plain crouch only.
     set_generic_person_state_function(p_person, STATE_IDLE);
     if (person_has_gun_out(p_person)) {
         if (person_holding_2handed(p_person)) {
@@ -7616,7 +7683,10 @@ void set_person_in_vehicle(Thing* p_person, Thing* p_car)
     p_person->SubState = SUB_STATE_INSIDE_VEHICLE;
     remove_thing_from_map(p_person);
     p_car->Genus.Vehicle->Flags |= FLAG_FURN_DRIVING;
+    // Enter animation finished: release the reservation (occupancy is now the
+    // real Driver below).
     p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+    p_car->Genus.Vehicle->Animator = 0;
     p_car->Genus.Vehicle->Driver = THING_NUMBER(p_person);
     set_state_function(p_car, STATE_FDRIVING);
 }
@@ -7638,6 +7708,9 @@ void set_person_out_of_vehicle(Thing* p_person)
     set_person_locked_idle_ready(p_person);
     plant_feet(p_person);
     p_car->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+    // Defensive: ensure no stale enter-reservation survives a finished exit.
+    p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+    p_car->Genus.Vehicle->Animator = 0;
 }
 
 // Changes to a fresh animation while keeping a specific limb locked in world-space.
@@ -9250,6 +9323,20 @@ void fn_person_dangling(Thing* p_person)
 
             // This is a subset of set_person_idle (the set_anim stuff is removed).
             set_person_idle(p_person);
+
+            // Post-climb jump suppression: block JUMP for a short window so a
+            // held / spammed jump press doesn't fire ACTION_STANDING_JUMP the
+            // instant pull_up ends (character is still facing the climb
+            // direction and hasn't had time to rotate toward the stick → jump
+            // lands in the wrong direction). After the block expires the
+            // character has typically transitioned to RUNNING via analog stick
+            // input, and the jump fires as a running-jump in the correctly
+            // aligned facing direction. See g_post_climb_jump_block_ticks
+            // comment in input_actions.cpp for details. ~8 ticks = ~0.4s at
+            // 20 Hz physics — enough for analog rotation to catch up but
+            // short enough not to feel like a missed input.
+            extern SLONG g_post_climb_jump_block_ticks;
+            g_post_climb_jump_block_ticks = 8;
         }
         break;
 
@@ -9499,12 +9586,23 @@ void fn_person_moveing(Thing* p_person)
     }
     SlideSoundCheck(p_person);
     switch (p_person->SubState) {
-    case SUB_STATE_ENTERING_VEHICLE:
+    case SUB_STATE_ENTERING_VEHICLE: {
         end = person_normal_animate(p_person);
-        if (end) {
-            set_person_in_vehicle(p_person, TO_THING(p_person->Genus.Person->InCar));
+
+        // OpenChaos: ease-in vertical rise to the door bottom over the enter
+        // animation (cars sit at different heights; without this Darci stays at
+        // ground level the whole climb). Driven by animation progress, so it
+        // matches the clip length. Skip on the final tick — the anim's
+        // FrameIndex has reset and the person is about to be seated anyway.
+        Thing* p_car = TO_THING(p_person->Genus.Person->InCar);
+        if (!end) {
+            car_enter_anim_rise(p_person, p_car);
         }
-        break;
+
+        if (end) {
+            set_person_in_vehicle(p_person, p_car);
+        }
+    } break;
 
     case SUB_STATE_INSIDE_VEHICLE:
 
@@ -9519,12 +9617,21 @@ void fn_person_moveing(Thing* p_person)
 
         break;
 
-    case SUB_STATE_EXITING_VEHICLE:
-        end = person_normal_animate(p_person);
+    case SUB_STATE_EXITING_VEHICLE: {
+        // OpenChaos: exit plays the ENTER animation in reverse (set up by
+        // set_person_exit_vehicle). Backward playback makes the per-model rise
+        // descend (animation progress decreases), so Darci climbs down to the
+        // ground; reuses the same veh_enter_tune as entry. On reaching the
+        // start of the clip the person is on the ground at the door point.
+        end = person_backwards_animate(p_person);
+        Thing* p_car = TO_THING(p_person->Genus.Person->InCar);
+        if (!end) {
+            car_enter_anim_rise(p_person, p_car);
+        }
         if (end) {
             set_person_out_of_vehicle(p_person);
         }
-        break;
+    } break;
 
     case SUB_STATE_SLIPPING_END:
         change_velocity_to(p_person, 0);

@@ -2,10 +2,11 @@
 #include "engine/platform/host_globals.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/oc_config.h"
-#include "engine/platform/wind_procs_globals.h" // app_inactive, restore_surfaces
+#include "engine/platform/wind_procs_globals.h" // app_inactive
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
+#include "engine/input/mouse_capture.h"
 #include "engine/input/input_frame.h"
 
 #include <stdio.h>
@@ -21,6 +22,17 @@
 // Forward declaration for best-found device initialisation.
 void init_best_found(void);
 
+// Windows accessibility-shortcut suppression (Sticky/Filter/Toggle Keys popups).
+// Real implementation in crash_handler_win.cpp; no-ops elsewhere. Disabled while
+// the game window is focused, restored on focus loss / exit. See that file.
+#ifdef _WIN32
+extern "C" void win_disable_accessibility_shortcuts(void);
+extern "C" void win_restore_accessibility_shortcuts(void);
+#else
+static inline void win_disable_accessibility_shortcuts(void) {}
+static inline void win_restore_accessibility_shortcuts(void) {}
+#endif
+
 // ---------------------------------------------------------------------------
 // SDL3 event callbacks
 // ---------------------------------------------------------------------------
@@ -35,36 +47,66 @@ static void on_key_up(uint8_t scancode)
     keyboard_key_up(scancode);
 }
 
-static void on_mouse_move(int x, int y)
+static void on_mouse_move(int x, int y, int xrel, int yrel)
 {
-    mouse_on_move(x, y);
+    mouse_on_move(x, y, xrel, yrel);
 }
 
-static void on_mouse_button(int button, bool down, int x, int y)
+static void on_mouse_button(int button, bool down, int /*x*/, int /*y*/)
 {
-    mouse_on_button(button, down, x, y);
+    // Capture state machine consumes the engagement click. Subsequent
+    // clicks (capture already engaged) pass through to input_frame, which
+    // exposes them to gameplay via input_mouse_btn_*(). The wait-for-
+    // release gate inside input_frame (armed on UI overlay close by
+    // input_consume_all_held_until_released) prevents a held button from
+    // leaking across overlay transitions.
+    if (mouse_capture_on_button(button, down))
+        return;
+    if (down)
+        input_frame_on_mouse_button_down(button);
+    else
+        input_frame_on_mouse_button_up(button);
+}
+
+static void on_mouse_wheel(int dy)
+{
+    input_frame_on_mouse_wheel(dy);
+}
+
+void host_on_focus_changed(bool focused)
+{
+    if (focused) {
+        app_inactive = UC_FALSE;
+        // In fullscreen there's no reason for the OS cursor to be
+        // visible — the game covers the entire screen. In windowed
+        // mode the cursor stays visible by default so the user can
+        // interact with the title bar / desktop without alt-tabbing.
+        // (Capture for camera control toggles SDL relative mouse mode
+        // independently — that hides the cursor regardless of this
+        // setting.)
+        if (ge_is_fullscreen())
+            sdl3_hide_cursor();
+    } else {
+        app_inactive = UC_TRUE;
+        // Show the cursor while focus is elsewhere so the user can
+        // interact with whatever they alt-tabbed into.
+        if (ge_is_fullscreen())
+            sdl3_show_cursor();
+    }
 }
 
 static void on_focus_gained()
 {
-    app_inactive = UC_FALSE;
-    restore_surfaces = UC_TRUE;
-
-    // Re-hide the cursor when returning from alt-tab etc. SDL is supposed
-    // to persist the hidden state across focus changes, but being explicit
-    // here avoids driver/platform quirks.
-    if (ge_is_fullscreen())
-        sdl3_hide_cursor();
+    host_on_focus_changed(true);
+    // Suppress the Windows Sticky/Filter/Toggle Keys popups while we have focus.
+    win_disable_accessibility_shortcuts();
 }
 
 static void on_focus_lost()
 {
-    app_inactive = UC_TRUE;
-
-    // Show the cursor while focus is elsewhere so the user can interact
-    // with whatever they alt-tabbed into, even if our window overlaps it.
-    if (ge_is_fullscreen())
-        sdl3_show_cursor();
+    host_on_focus_changed(false);
+    // Restore the user's accessibility settings so they work on the desktop.
+    win_restore_accessibility_shortcuts();
 }
 
 static void on_window_moved()
@@ -139,6 +181,12 @@ static void on_window_resize_live()
 
 static void on_close()
 {
+    // Tear down everything immediately. ShellActive=FALSE breaks any
+    // `while (SHELL_ACTIVE)` loop (top-level game(), mission loop,
+    // outro). GAME_STATE=0 kept for legacy paths that branched on it.
+    // Without this, Alt+F4 / window-X used to drop the player back into
+    // the main menu instead of exiting on the first try.
+    ShellActive = UC_FALSE;
     GAME_STATE = 0;
 }
 
@@ -178,6 +226,7 @@ BOOL SetupHost(ULONG flags)
     cb.on_key_up = on_key_up;
     cb.on_mouse_move = on_mouse_move;
     cb.on_mouse_button = on_mouse_button;
+    cb.on_mouse_wheel = on_mouse_wheel;
     cb.on_focus_gained = on_focus_gained;
     cb.on_focus_lost = on_focus_lost;
     cb.on_window_moved = on_window_moved;
@@ -219,26 +268,39 @@ BOOL LibShellActive(void)
         ShellActive = UC_FALSE;
     }
 
+    // Authoritative focus polling. SDL3 focus events in fullscreen-desktop
+    // on Windows 11 have been observed to lag the OS state (Win-key press
+    // didn't deliver FOCUS_LOST cleanly; click-to-refocus took multiple
+    // attempts before FOCUS_GAINED fired). sdl3_window_has_focus reads
+    // GetForegroundWindow directly on Windows — same edge-detection here
+    // as in the video player's secondary loop. SDL event-driven path
+    // (on_focus_gained / on_focus_lost) stays as a no-cost redundancy:
+    // host_on_focus_changed is idempotent on identical state.
+    {
+        static bool s_last_focused = true;
+        const bool focused_now = sdl3_window_has_focus();
+        if (focused_now != s_last_focused) {
+            host_on_focus_changed(focused_now);
+            s_last_focused = focused_now;
+        }
+    }
+
     // After pumping events, apply any debounced window resize. Running this
     // here — at the top of the frame, before game logic / rendering begins —
     // guarantees the scene FBO is not destroyed mid-frame (see Risk #2 in
     // new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
     host_process_pending_resize();
 
-    if (restore_surfaces) {
-        ge_restore_all_surfaces();
-
-        extern void FRONTEND_restore_screenfull_surfaces(void);
-        FRONTEND_restore_screenfull_surfaces();
-
-        restore_surfaces = UC_FALSE;
-    }
-
     // Per-frame input aggregator: snapshot keyboard + gamepad after SDL events
     // pumped, compute edges. All consumers (game / menu / frontend / debug)
     // can read unified state via input_key_*/input_btn_*. Sticky press_pending
     // for keyboard is set inline in keyboard_key_down → input_frame_on_key_down.
     input_frame_update();
+
+    // Apply mouse-capture state for the upcoming frame. One-frame lag after
+    // game-state transitions (pause/resume, mission end) is fine: cursor
+    // re-appears next frame, imperceptible to the user.
+    mouse_capture_update();
 
     return ShellActive;
 }
@@ -277,6 +339,9 @@ static void exit_log_handler(void)
         return;
     g_exit_log_written = true;
 
+    // Restore system-global accessibility settings on normal exit.
+    win_restore_accessibility_shortcuts();
+
     FILE* f = fopen("crash_log.txt", "w");
     if (!f)
         return;
@@ -296,6 +361,9 @@ static void abort_signal_handler(int sig)
         return;
     }
     g_exit_log_written = true;
+
+    // Restore system-global accessibility settings before aborting.
+    win_restore_accessibility_shortcuts();
 
     FILE* f = fopen("crash_log.txt", "w");
     if (f) {
@@ -390,6 +458,11 @@ int HOST_run(int argc_in, char* argv_in[])
     signal(SIGSEGV, crash_signal_handler);
     signal(SIGFPE, crash_signal_handler);
 #endif
+
+    // Suppress the Windows accessibility-shortcut popups (Sticky/Filter/Toggle
+    // Keys) up front — the window starts focused, and on_focus_gained re-applies
+    // it on every alt-tab back. Restored on focus loss and on all exit paths.
+    win_disable_accessibility_shortcuts();
 
     init_best_found();
 

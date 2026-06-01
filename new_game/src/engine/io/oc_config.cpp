@@ -41,10 +41,17 @@ static void build_defaults_and_migrate(const char* ini_path)
     // Hardcoded defaults — all sections, all keys.
     g_config = {
         { "audio", { { "ambient_volume", 127 }, { "music_volume", 127 }, { "fx_volume", 127 } } },
-        { "keyboard", { { "left", 203 }, { "right", 205 }, { "forward", 200 }, { "back", 208 }, { "punch", 44 }, { "kick", 45 }, { "action", 46 }, { "run", 47 }, { "jump", 57 }, { "start", 15 }, { "select", 28 }, { "camera", 207 }, { "cam_left", 211 }, { "cam_right", 209 }, { "1stperson", 30 } } },
         { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true } } },
-        { "game", { { "scanner_follows", true } } },
-        { "movie", { { "play_movie", true } } }
+        // scanner_follows: true = radar rotates with Darci's facing, false =
+        // rotates with the camera (position is always relative to Darci). Default
+        // false — the radar tracks where the camera looks.
+        { "game", { { "scanner_follows", false } } },
+        { "movie", { { "play_movie", true } } },
+        // Stick deadzones as a fraction 0..1 of full deflection (center→edge).
+        // gameplay = in-game movement/aim deadzone (raw 8192 = 0.25, unchanged).
+        // menu = menu-navigation virtual-direction threshold (was raw 4096;
+        // raised to 0.25 so controller drift doesn't auto-scroll menus).
+        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 } } }
     };
 
     // Migrate integer value from config.ini (only if the key actually exists there).
@@ -93,26 +100,9 @@ static void build_defaults_and_migrate(const char* ini_path)
     // [Movie]
     try_ini_bool("movie", "play_movie", "Movie", "play_movie");
 
-    // [Keyboard] — DirectInput scan codes, compatible with our keyboard system
-    // JSON key names drop the "keyboard_" prefix; INI key names preserved as-is.
-    try_ini_int("keyboard", "left", "Keyboard", "keyboard_left");
-    try_ini_int("keyboard", "right", "Keyboard", "keyboard_right");
-    try_ini_int("keyboard", "forward", "Keyboard", "keyboard_forward");
-    try_ini_int("keyboard", "back", "Keyboard", "keyboard_back");
-    try_ini_int("keyboard", "punch", "Keyboard", "keyboard_punch");
-    try_ini_int("keyboard", "kick", "Keyboard", "keyboard_kick");
-    try_ini_int("keyboard", "action", "Keyboard", "keyboard_action");
-    try_ini_int("keyboard", "run", "Keyboard", "keyboard_run");
-    try_ini_int("keyboard", "jump", "Keyboard", "keyboard_jump");
-    try_ini_int("keyboard", "start", "Keyboard", "keyboard_start");
-    try_ini_int("keyboard", "select", "Keyboard", "keyboard_select");
-    try_ini_int("keyboard", "camera", "Keyboard", "keyboard_camera");
-    try_ini_int("keyboard", "cam_left", "Keyboard", "keyboard_cam_left");
-    try_ini_int("keyboard", "cam_right", "Keyboard", "keyboard_cam_right");
-    try_ini_int("keyboard", "1stperson", "Keyboard", "keyboard_1stperson");
-
-    // [Joypad] intentionally NOT migrated — old DirectInput indices are
-    // incompatible with our SDL3 button mapping. Gamepad bindings are hardcoded.
+    // [Keyboard] intentionally NOT migrated — custom key rebinding was removed;
+    // keyboard bindings are hardcoded in the action map (act_*.h). [Joypad] is
+    // likewise not migrated (old DirectInput indices don't map to SDL3).
 }
 
 void OC_CONFIG_load(const char* ini_path)

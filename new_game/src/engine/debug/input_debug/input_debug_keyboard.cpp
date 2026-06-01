@@ -24,215 +24,215 @@ constexpr int MAX_ROWS = 20;
 const char* key_name(UBYTE sc)
 {
     switch (sc) {
-    case KB_ESC:
+    case KKEY_ESCAPE:
         return "Esc";
-    case KB_1:
+    case KKEY_1:
         return "1";
-    case KB_2:
+    case KKEY_2:
         return "2";
-    case KB_3:
+    case KKEY_3:
         return "3";
-    case KB_4:
+    case KKEY_4:
         return "4";
-    case KB_5:
+    case KKEY_5:
         return "5";
-    case KB_6:
+    case KKEY_6:
         return "6";
-    case KB_7:
+    case KKEY_7:
         return "7";
-    case KB_8:
+    case KKEY_8:
         return "8";
-    case KB_9:
+    case KKEY_9:
         return "9";
-    case KB_0:
+    case KKEY_0:
         return "0";
-    case KB_MINUS:
+    case KKEY_MINUS:
         return "-";
-    case KB_PLUS:
+    case KKEY_EQUALS:
         return "=";
-    case KB_BS:
+    case KKEY_BACKSPACE:
         return "Bksp";
 
-    case KB_TAB:
+    case KKEY_TAB:
         return "Tab";
-    case KB_Q:
+    case KKEY_Q:
         return "Q";
-    case KB_W:
+    case KKEY_W:
         return "W";
-    case KB_E:
+    case KKEY_E:
         return "E";
-    case KB_R:
+    case KKEY_R:
         return "R";
-    case KB_T:
+    case KKEY_T:
         return "T";
-    case KB_Y:
+    case KKEY_Y:
         return "Y";
-    case KB_U:
+    case KKEY_U:
         return "U";
-    case KB_I:
+    case KKEY_I:
         return "I";
-    case KB_O:
+    case KKEY_O:
         return "O";
-    case KB_P:
+    case KKEY_P:
         return "P";
-    case KB_LBRACE:
+    case KKEY_LEFT_BRACKET:
         return "[";
-    case KB_RBRACE:
+    case KKEY_RIGHT_BRACKET:
         return "]";
-    case KB_ENTER:
+    case KKEY_ENTER:
         return "Enter";
 
-    case KB_LCONTROL:
+    case KKEY_LEFT_CONTROL:
         return "L-Ctrl";
-    case KB_A:
+    case KKEY_A:
         return "A";
-    case KB_S:
+    case KKEY_S:
         return "S";
-    case KB_D:
+    case KKEY_D:
         return "D";
-    case KB_F:
+    case KKEY_F:
         return "F";
-    case KB_G:
+    case KKEY_G:
         return "G";
-    case KB_H:
+    case KKEY_H:
         return "H";
-    case KB_J:
+    case KKEY_J:
         return "J";
-    case KB_K:
+    case KKEY_K:
         return "K";
-    case KB_L:
+    case KKEY_L:
         return "L";
-    case KB_COLON:
+    case KKEY_SEMICOLON:
         return ";";
-    case KB_QUOTE:
+    case KKEY_APOSTROPHE:
         return "'";
-    case KB_TILD:
+    case KKEY_GRAVE:
         return "`";
 
-    case KB_LSHIFT:
+    case KKEY_LEFT_SHIFT:
         return "L-Shift";
-    case KB_BACKSLASH:
+    case KKEY_BACKSLASH:
         return "\\";
-    case KB_Z:
+    case KKEY_Z:
         return "Z";
-    case KB_X:
+    case KKEY_X:
         return "X";
-    case KB_C:
+    case KKEY_C:
         return "C";
-    case KB_V:
+    case KKEY_V:
         return "V";
-    case KB_B:
+    case KKEY_B:
         return "B";
-    case KB_N:
+    case KKEY_N:
         return "N";
-    case KB_M:
+    case KKEY_M:
         return "M";
-    case KB_COMMA:
+    case KKEY_COMMA:
         return ",";
-    case KB_POINT:
+    case KKEY_PERIOD:
         return ".";
-    case KB_FORESLASH:
+    case KKEY_SLASH:
         return "/";
-    case KB_RSHIFT:
+    case KKEY_RIGHT_SHIFT:
         return "R-Shift";
-    case KB_ASTERISK:
+    case KKEY_NUMPAD_ASTERISK:
         return "P*";
-    case KB_LALT:
+    case KKEY_LEFT_ALT:
         return "L-Alt";
-    case KB_SPACE:
+    case KKEY_SPACE:
         return "Space";
-    case KB_CAPSLOCK:
+    case KKEY_CAPS_LOCK:
         return "Caps";
 
-    case KB_F1:
+    case KKEY_F1:
         return "F1";
-    case KB_F2:
+    case KKEY_F2:
         return "F2";
-    case KB_F3:
+    case KKEY_F3:
         return "F3";
-    case KB_F4:
+    case KKEY_F4:
         return "F4";
-    case KB_F5:
+    case KKEY_F5:
         return "F5";
-    case KB_F6:
+    case KKEY_F6:
         return "F6";
-    case KB_F7:
+    case KKEY_F7:
         return "F7";
-    case KB_F8:
+    case KKEY_F8:
         return "F8";
-    case KB_F9:
+    case KKEY_F9:
         return "F9";
-    case KB_F10:
+    case KKEY_F10:
         return "F10";
-    case KB_F11:
+    case KKEY_F11:
         return "F11";
-    case KB_F12:
+    case KKEY_F12:
         return "F12";
 
-    case KB_NUMLOCK:
+    case KKEY_NUM_LOCK:
         return "NumLk";
-    case KB_SCROLLLOCK:
+    case KKEY_SCROLL_LOCK:
         return "ScrLk";
 
-    case KB_P7:
+    case KKEY_NUMPAD_7:
         return "P7";
-    case KB_P8:
+    case KKEY_NUMPAD_8:
         return "P8";
-    case KB_P9:
+    case KKEY_NUMPAD_9:
         return "P9";
-    case KB_PMINUS:
+    case KKEY_NUMPAD_MINUS:
         return "P-";
-    case KB_P4:
+    case KKEY_NUMPAD_4:
         return "P4";
-    case KB_P5:
+    case KKEY_NUMPAD_5:
         return "P5";
-    case KB_P6:
+    case KKEY_NUMPAD_6:
         return "P6";
-    case KB_PPLUS:
+    case KKEY_NUMPAD_PLUS:
         return "P+";
-    case KB_P1:
+    case KKEY_NUMPAD_1:
         return "P1";
-    case KB_P2:
+    case KKEY_NUMPAD_2:
         return "P2";
-    case KB_P3:
+    case KKEY_NUMPAD_3:
         return "P3";
-    case KB_P0:
+    case KKEY_NUMPAD_0:
         return "P0";
-    case KB_PPOINT:
+    case KKEY_NUMPAD_PERIOD:
         return "P.";
 
     // Extended keys (scancode + 0x80).
-    case KB_RCONTROL:
+    case KKEY_RIGHT_CONTROL:
         return "R-Ctrl";
-    case KB_RALT:
+    case KKEY_RIGHT_ALT:
         return "R-Alt";
-    case KB_PRTSC:
+    case KKEY_PRINT_SCREEN:
         return "PrtSc";
-    case KB_PSLASH:
+    case KKEY_NUMPAD_SLASH:
         return "P/";
-    case KB_PENTER:
+    case KKEY_NUMPAD_ENTER:
         return "P-Enter";
 
-    case KB_INS:
+    case KKEY_INSERT:
         return "Ins";
-    case KB_HOME:
+    case KKEY_HOME:
         return "Home";
-    case KB_PGUP:
+    case KKEY_PAGE_UP:
         return "PgUp";
-    case KB_DEL:
+    case KKEY_DELETE:
         return "Del";
-    case KB_END:
+    case KKEY_END:
         return "End";
-    case KB_PGDN:
+    case KKEY_PAGE_DOWN:
         return "PgDn";
 
-    case KB_LEFT:
+    case KKEY_LEFT:
         return "Left";
-    case KB_UP:
+    case KKEY_UP:
         return "Up";
-    case KB_RIGHT:
+    case KKEY_RIGHT:
         return "Right";
-    case KB_DOWN:
+    case KKEY_DOWN:
         return "Down";
 
     default:

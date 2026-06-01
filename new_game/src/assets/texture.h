@@ -190,6 +190,13 @@ extern SLONG TEXTURE_page_meteor;
 // uc_orig: TEXTURE_page_splash (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_splash;
 
+// Input-prompt glyph atlas pages (Kenney Input Prompts, embedded PNGs).
+// New in OpenChaos — no original counterpart.
+extern SLONG TEXTURE_page_glyph_kbm;
+extern SLONG TEXTURE_page_glyph_generic;
+extern SLONG TEXTURE_page_glyph_ps;
+extern SLONG TEXTURE_page_glyph_deck;
+
 // uc_orig: TEXTURE_num_textures (fallen/DDEngine/Headers/texture.h)
 // Total number of texture pages loaded.
 extern SLONG TEXTURE_num_textures;

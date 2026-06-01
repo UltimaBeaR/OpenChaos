@@ -64,11 +64,35 @@ public:
     // transitions) that should fill the screen rather than be confined
     // to the framed UI region. Pops via the same pop_ui_mode().
     static void push_fullscreen_ui_mode();
+    // Uniform scale (g_frame_scale — same as the framed menus, so text and
+    // glyphs keep their proportions) with offset 0 and the scissor pinned to the
+    // whole FBO, so a draw can span the WHOLE FBO instead of being confined to
+    // the centred 4:3 frame. Unlike push_fullscreen_ui_mode (which stretches
+    // 640x480 non-uniformly and distorts text), this keeps everything square; the
+    // visible virtual extent is [0, g_screen_w_px/scale] x [0, g_screen_h_px/scale],
+    // so lay content out across that range. For full-window UI that must stay
+    // undistorted (e.g. the scrollable help screen). Pops via the same pop_ui_mode().
+    //
+    // ⚠ The POLY 2D clip window (POLY_screen_clip_*) is the virtual 640x480
+    // screen — clip_right scales with aspect, but clip_bottom is FIXED at 480.
+    // Content drawn below virtual y=480 in this mode is CULLED at POLY_add_quad
+    // time unless you first widen POLY_screen_clip_bottom (and restore it after).
+    // See GAMEMENU_draw_help_detail for how the help screen does exactly this.
+    static void push_uniform_fullscreen_ui_mode();
     static void pop_ui_mode();
     // True while at least one UI scope is active. Lets backend paths that
     // bypass AddFan (e.g. fullscreen background blit) decide whether to
     // honour the framed region.
     static bool in_ui_mode();
+
+    // Current virtual->screen UI affine (screen = virtual * scale + offset),
+    // as snapshotted by push_ui_mode. Lets a caller pixel-snap a quad to real
+    // framebuffer pixels (e.g. crisp glyph atlases). Identity (1,0) when no UI
+    // scope is active.
+    static float ui_scale_x() { return s_XScale; }
+    static float ui_scale_y() { return s_YScale; }
+    static float ui_offset_x() { return s_XOffset; }
+    static float ui_offset_y() { return s_YOffset; }
 
     // RAII wrappers around the push/pop pair. Use at the top of any UI
     // render entry-point so every return path pops correctly.

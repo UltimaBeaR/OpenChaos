@@ -2889,6 +2889,8 @@ void PCOM_set_person_ai_findcar(Thing* p_person, UWORD car)
 
             if (p_car->Genus.Vehicle->Driver) {
                 // Car already driven by someone.
+            } else if (p_car->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING) {
+                // Someone is mid enter/exit animation (Driver not set yet).
             } else if (p_car->State == STATE_DEAD) {
                 // Car is damaged.
             } else if (p_car->Genus.Vehicle->key != SPECIAL_NONE && !person_has_special(p_person, p_car->Genus.Vehicle->key)) {
@@ -5742,8 +5744,13 @@ void PCOM_process_findcar(Thing* p_person)
     case PCOM_AI_SUBSTATE_GOTOCAR:
 
         if (p_person->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER || p_person->Genus.Person->pcom_ai == PCOM_AI_DRIVER) {
-            // Drivers never enter a car that is already occupied by another driver.
-            if (p_vehicle->Genus.Vehicle->Driver) {
+            // Drivers never enter a car that is occupied, currently being
+            // entered/exited (FLAG_VEH_ANIMATING — Driver is only set when the
+            // enter animation finishes, so without this the NPC commits to a
+            // car someone is still climbing into and gets blocked), or dead.
+            if (p_vehicle->Genus.Vehicle->Driver
+                || (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_ANIMATING)
+                || p_vehicle->State == STATE_DEAD) {
                 PCOM_set_person_ai_findcar(p_person, NULL);
             }
         }
@@ -7210,7 +7217,7 @@ void PCOM_process_state_change(Thing* p_person)
 
     case PCOM_AI_BULLY:
 
-        //			if(Keys[KB_B])
+        //			if(Keys[KKEY_B])
         //				FC_cam[0].focus	= p_person;
 
         PCOM_process_default(p_person);
@@ -9267,10 +9274,18 @@ void DriveCar(Thing* p_person)
     dspeed = p_vehicle->Velocity - wspeed;
 
     if (dspeed < -10) {
+        // Need MORE velocity (speed up forward, or ease off too-fast reverse):
+        // VEH_ACCEL handles both — it brakes a backward roll, else drives forward.
         p_vehicle->Genus.Vehicle->DControl = VEH_ACCEL;
     }
     if (dspeed > +10) {
-        p_vehicle->Genus.Vehicle->DControl = VEH_DECEL;
+        // Need LESS velocity. If the AI's target speed is negative it actually
+        // wants to drive backwards -> VEH_REVERSE (the new dedicated reverse
+        // control). Otherwise it's just slowing down -> VEH_DECEL (brake).
+        // The original coupled brake+reverse onto VEH_DECEL; with the controls
+        // split, AI reverse must use VEH_REVERSE or the car would only brake
+        // to a stop and never back up (3-point turns, runover-reverse).
+        p_vehicle->Genus.Vehicle->DControl = (wspeed < 0) ? VEH_REVERSE : VEH_DECEL;
     }
 
     // shift up if PCOM_BENT_DILIGENT person (disabled in original, kept 1:1)
