@@ -54,51 +54,61 @@ static void build_defaults_and_migrate(const char* ini_path)
         { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 } } }
     };
 
-    // Migrate integer value from config.ini (only if the key actually exists there).
-    auto try_ini_int = [&](const char* sec_json, const char* key_json,
-                           const char* sec_ini, const char* key_ini) {
-        char buf[64];
-        if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
-            g_config[sec_json][key_json] = atoi(buf);
-    };
-    // Same but stores as JSON boolean (true/false) instead of integer.
-    auto try_ini_bool = [&](const char* sec_json, const char* key_json,
-                            const char* sec_ini, const char* key_ini) {
-        char buf[64];
-        if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
-            g_config[sec_json][key_json] = (atoi(buf) != 0);
-    };
-    auto try_ini_str = [&](const char* sec_json, const char* key_json,
-                           const char* sec_ini, const char* key_ini) {
-        char buf[256];
-        if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
-            g_config[sec_json][key_json] = std::string(buf);
-    };
-
-    // [Audio]
-    try_ini_int("audio", "ambient_volume", "Audio", "ambient_volume");
-    try_ini_int("audio", "music_volume", "Audio", "music_volume");
-    try_ini_int("audio", "fx_volume", "Audio", "fx_volume");
-
-    // [Game]
-    try_ini_bool("game", "scanner_follows", "Game", "scanner_follows");
-
-    // [Render] (config.ini section; stored under "video" in config.json)
-    try_ini_bool("video", "detail_shadows", "Render", "detail_shadows");
-    try_ini_bool("video", "detail_puddles", "Render", "detail_puddles");
-    try_ini_bool("video", "detail_dirt", "Render", "detail_dirt");
-    try_ini_bool("video", "detail_mist", "Render", "detail_mist");
-    try_ini_bool("video", "detail_rain", "Render", "detail_rain");
-    try_ini_bool("video", "detail_skyline", "Render", "detail_skyline");
-    try_ini_bool("video", "detail_crinkles", "Render", "detail_crinkles");
-    try_ini_bool("video", "detail_stars", "Render", "detail_stars");
-    try_ini_bool("video", "detail_moon_reflection", "Render", "detail_moon_reflection");
-    try_ini_bool("video", "detail_people_reflection", "Render", "detail_people_reflection");
-    try_ini_bool("video", "detail_filter", "Render", "detail_filter");
-    try_ini_bool("video", "detail_perspective", "Render", "detail_perspective");
-
-    // [Movie]
-    try_ini_bool("movie", "play_movie", "Movie", "play_movie");
+    // --- config.ini auto-import: TEMPORARILY DISABLED ---------------------
+    // We used to seed first-run config.json from the original game's config.ini
+    // (audio levels, render detail flags, etc). Disabled for now: our settings
+    // have diverged too far from the original — most notably the [Render] detail
+    // flags, whose original values are no longer desirable in the new version.
+    // Only a couple of keys (e.g. volumes) would be worth carrying over, and
+    // pulling in config.ini just for those isn't worth it. We prefer a config
+    // independent of config.ini. The migration code below is kept intact (not
+    // deleted) so we can re-enable it later if we decide to import select keys.
+    (void)ini_path; // unused while config.ini import is disabled
+    // // Migrate integer value from config.ini (only if the key actually exists there).
+    // auto try_ini_int = [&](const char* sec_json, const char* key_json,
+    //                        const char* sec_ini, const char* key_ini) {
+    //     char buf[64];
+    //     if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
+    //         g_config[sec_json][key_json] = atoi(buf);
+    // };
+    // // Same but stores as JSON boolean (true/false) instead of integer.
+    // auto try_ini_bool = [&](const char* sec_json, const char* key_json,
+    //                         const char* sec_ini, const char* key_ini) {
+    //     char buf[64];
+    //     if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
+    //         g_config[sec_json][key_json] = (atoi(buf) != 0);
+    // };
+    // auto try_ini_str = [&](const char* sec_json, const char* key_json,
+    //                        const char* sec_ini, const char* key_ini) {
+    //     char buf[256];
+    //     if (INI_get_string(ini_path, sec_ini, key_ini, buf, sizeof(buf)) && buf[0])
+    //         g_config[sec_json][key_json] = std::string(buf);
+    // };
+    //
+    // // [Audio]
+    // try_ini_int("audio", "ambient_volume", "Audio", "ambient_volume");
+    // try_ini_int("audio", "music_volume", "Audio", "music_volume");
+    // try_ini_int("audio", "fx_volume", "Audio", "fx_volume");
+    //
+    // // [Game]
+    // try_ini_bool("game", "scanner_follows", "Game", "scanner_follows");
+    //
+    // // [Render] (config.ini section; stored under "video" in config.json)
+    // try_ini_bool("video", "detail_shadows", "Render", "detail_shadows");
+    // try_ini_bool("video", "detail_puddles", "Render", "detail_puddles");
+    // try_ini_bool("video", "detail_dirt", "Render", "detail_dirt");
+    // try_ini_bool("video", "detail_mist", "Render", "detail_mist");
+    // try_ini_bool("video", "detail_rain", "Render", "detail_rain");
+    // try_ini_bool("video", "detail_skyline", "Render", "detail_skyline");
+    // try_ini_bool("video", "detail_crinkles", "Render", "detail_crinkles");
+    // try_ini_bool("video", "detail_stars", "Render", "detail_stars");
+    // try_ini_bool("video", "detail_moon_reflection", "Render", "detail_moon_reflection");
+    // try_ini_bool("video", "detail_people_reflection", "Render", "detail_people_reflection");
+    // try_ini_bool("video", "detail_filter", "Render", "detail_filter");
+    // try_ini_bool("video", "detail_perspective", "Render", "detail_perspective");
+    //
+    // // [Movie]
+    // try_ini_bool("movie", "play_movie", "Movie", "play_movie");
 
     // [Keyboard] intentionally NOT migrated — custom key rebinding was removed;
     // keyboard bindings are hardcoded in the action map (act_*.h). [Joypad] is
