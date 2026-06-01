@@ -1,7 +1,7 @@
 // Keyboard & mouse help bodies. Edit freely. Inline glyph tokens use kb_* / ms_*
 // ids from input_prompt_map. Shared device-agnostic prose lives in
-// help_content_common.h. (REFERENCE, MOVEMENT and COMBAT are written; WEAPONS
-// is still a placeholder.)
+// help_content_common.h. (REFERENCE, MOVEMENT, COMBAT and WEAPONS are written;
+// DRIVING and INTERACTION topics are still to be added.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -75,9 +75,10 @@ const char* const HELP_COMBAT_KBM =
     "FIGHTING STANCE\n"
     "Darci drops into a fighting stance by herself whenever a close fight "
     "starts. In it she stays focused on one enemy - switch target with {kb_f}. "
-    "You can't just run out of a fight: roll to break away - any roll cancels "
-    "the stance, and in a fight you can roll with {kb_ctrl} or {kb_space} as "
-    "long as you hold a direction.\n"
+    "You can't just run out of a fight: roll to break away - any roll drops the "
+    "stance, and in a fight you can roll with {kb_ctrl} or {kb_space} as long as "
+    "you hold a direction. Drawing a gun mid-fight also drops the stance (a bat "
+    "or knife does not).\n"
     "\n"
     "STRIKES AND COMBOS\n"
     "Attack with {ms_lmb} (hands) or {ms_rmb} (feet). Press them a few times, or "
@@ -108,4 +109,28 @@ const char* const HELP_COMBAT_KBM =
     "to stomp them.";
 
 const char* const HELP_WEAPONS_KBM =
-    "Pick up weapons found in the level. Press {ms_lmb} to fire the held weapon.";
+    "SHOOTING\n"
+    "With a gun out, fire with {ms_lmb}. Darci shoots wherever she is facing; she "
+    "locks onto people and certain objects near her line of sight so the shot "
+    "connects. You can fire on the move as well as standing still. {ms_lmb} "
+    "fires "
+    "one shot from the pistol or shotgun; hold it with the M16 for automatic "
+    "fire.\n"
+    "\n"
+    "RELOADING AND AMMO\n"
+    "When a gun runs dry the next {ms_lmb} reloads a spare magazine instead of "
+    "firing - press again to shoot. With no spares left you just get empty "
+    "clicks. Spare ammo and dropped guns are picked up automatically as you walk "
+    "over them.\n"
+    "\n"
+    "GRENADE\n"
+    "With the grenade selected, dotted lines show where it will land. Press "
+    "{ms_lmb} once to pull the pin - a countdown appears by the grenade icon - "
+    "and {ms_lmb} again to throw it. It goes off when the timer reaches zero, "
+    "wherever it is - with the right timing you can make it burst in mid-air.\n"
+    "\n"
+    "DRAWING AND SWITCHING\n"
+    "Pick a gun directly with {kb_1} (pistol), {kb_2} (M16), {kb_3} (shotgun) or "
+    "{kb_4} (grenade); {kb_tab} switches between the bat and knife. {ms_wheel} "
+    "steps through every weapon you are carrying, and {ms_mmb} holsters your "
+    "weapon for bare hands or draws the last one again.";

@@ -12,6 +12,11 @@ Writing rules (learned from review):
 - **No flowery / editorial wording** ("Darci is at her best on the move", "her
   fastest dodge", etc.). Plain, but not telegraphic — just describe what you can
   do and how.
+- **Stay GENERAL; don't enumerate edge cases** when there could be many. State
+  the capability, not every exception — e.g. "you can fire on the move", NOT a
+  list of every state where shooting is/isn't allowed (there are dozens: ladder,
+  ledge-hang, jumping, backing up...). The player finds the limits in play.
+  Detail is for how to PERFORM a move (button combos), not for listing cases.
 - **Use ALL-CAPS sub-headers** inside a topic to chunk it for quick visual
   navigation (e.g. MOVING / JUMPING / ROLLING / STEALTH / CAMERA / CLIMBING).
   The body font has no bold/colour, so caps is the only header cue.
@@ -94,6 +99,10 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
      just run away. Switch target with Action.
    - Hitting an armed enemy knocks their weapon to the ground; getting hit while
      you're armed drops yours.
+   - Drawing a GUN mid-fight drops the stance (a bat or knife does NOT — they
+     work within the stance). Gun out = no auto-stance until hit, when the gun
+     flies from her hands. BODY: brief note in the stance section. Use one verb
+     for ending the stance — "drops" (not "cancels").
 
    Strikes & combos — BODY KEEPS THIS SIMPLE: just "press the attack buttons a
    few times or alternate them to chain a combo; if a follow-up doesn't come
@@ -133,8 +142,50 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
    - Arrest: stand over a knocked-down (still alive) enemy and press Action.
    - Stomp: facing a downed enemy up close, press kick → downward stomp.
 
-4. **WEAPONS & SHOOTING** — guns. The four ranged weapons (pistol, M16, shotgun,
-   grenade), firing, aiming / zoom, ammo, selecting / cycling / drawing-holstering.
+4. **WEAPONS & SHOOTING** — guns. Mechanics (confirmed by the user):
+
+   Shooting:
+   - Darci shoots wherever she faces. With no target near her line of sight the
+     shot just goes nowhere ("you can, but it hits nothing").
+   - If an enemy / civilian / car / barrel (barrels explode when shot) — maybe
+     more — is near where she looks, it is auto-locked (narrow cone, best-target
+     pick) and the shot connects. BODY KEEPS GENERAL: "people and certain
+     objects" — no enumeration, no barrel detail (the player sees the lock-on
+     and figures it out).
+   - Swinging the camera alone does nothing; swing it then push forward and Darci
+     turns to face the camera, lining up the target you want. BODY OMITS this —
+     the player works out how to turn toward a target on their own.
+   - Can fire standing / walking / running. NOT in mid-air, NOT during other
+     actions, NOT while walking backwards.
+   - Pistol & shotgun: holding attack = one shot. M16: holding attack = automatic
+     fire.
+
+   Reload & ammo:
+   - Out of ammo: the next attack press RELOADS a spare magazine (no shot); press
+     again to fire. No spares left → just empty clicks.
+   - Spare ammo / dropped guns are picked up automatically by walking over them
+     (user not 100% sure on per-weapon clip distinction — keep it general).
+
+   Grenade (non-obvious — describe carefully):
+   - With the grenade selected, dotted trailing lines show where it will land.
+   - 1st attack press PULLS THE PIN — a countdown shows by the grenade HUD icon.
+     2nd attack press THROWS it. It explodes when the timer hits 0, wherever it
+     is (in hand or thrown).
+   - The pin CANNOT be un-pulled: switching weapons (timer then hidden) or holding
+     too long → it blows up in Darci's hands. Can't throw without pulling the pin.
+     With the right timing it can burst in mid-air.
+
+   Drawing & switching (SELF-CONTAINED — spell the buttons out here, don't make
+   the player go to the REFERENCE; the weapon-list cycle combo is non-obvious):
+   - Draw/holster toggles the last active weapon (holster = empty hands). KBM:
+     middle mouse. Pad: a TAP of R3.
+   - Quick-select: KBM 1/2/3/4 (pistol/M16/shotgun/grenade), Tab = bat/knife
+     toggle. Pad D-pad: up pistol, left M16, right shotgun, up+right grenade,
+     down = bat/knife toggle.
+   - Weapon-list cycle: KBM mouse wheel. Pad: HOLD R3 + D-pad up/down (the hold
+     combo is the non-obvious bit — must be spelled out).
+   - (The stance interaction — drawing a gun drops the stance, gun-out = no
+     stance until hit — is covered in COMBAT's FIGHTING STANCE, not here.)
 
 5. **DRIVING** — car. Gas / brake / reverse, steering, getting in and out, siren.
    - Car entry/exit is documented HERE only (not duplicated in INTERACTION).
@@ -143,6 +194,9 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
    button is context-sensitive: search bodies, press wall buttons, talk to NPCs,
    levers, etc. Only unique items that don't belong to another topic. No car
    entry (→ DRIVING), no arrest (→ COMBAT).
+   - Health packs: medkits lie around but do NOT auto-pickup — press Action next
+     to one and Darci uses it with an animation, healing if not at full HP (won't
+     pick it up at full HP). (Lives here, not in WEAPONS — it's an Action pickup.)
 
 ## Out of scope
 
@@ -155,7 +209,7 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
 - [x] 1. REFERENCE
 - [ ] 2. MOVEMENT  ← next
 - [x] 3. COMBAT
-- [ ] 4. WEAPONS & SHOOTING
+- [x] 4. WEAPONS & SHOOTING
 - [ ] 5. DRIVING
 - [ ] 6. INTERACTION
 

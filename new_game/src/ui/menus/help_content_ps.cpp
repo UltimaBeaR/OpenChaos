@@ -1,6 +1,7 @@
 // PlayStation help bodies. Edit freely. Inline glyph tokens use ps_* ids from
 // input_prompt_map. Shared device-agnostic prose lives in help_content_common.h.
-// (REFERENCE, MOVEMENT and COMBAT are written; WEAPONS is still a placeholder.)
+// (REFERENCE, MOVEMENT, COMBAT and WEAPONS are written; DRIVING and INTERACTION
+// topics are still to be added.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -72,8 +73,9 @@ const char* const HELP_COMBAT_PS =
     "Darci drops into a fighting stance by herself whenever a close fight "
     "starts. In it she stays focused on one enemy - switch target with "
     "{ps_square}. You can't just run out of a fight: roll to break away - any "
-    "roll cancels the stance, and in a fight you can roll with {ps_l2} or "
-    "{ps_cross} as long as you hold a direction.\n"
+    "roll drops the stance, and in a fight you can roll with {ps_l2} or "
+    "{ps_cross} as long as you hold a direction. Drawing a gun mid-fight also "
+    "drops the stance (a bat or knife does not).\n"
     "\n"
     "STRIKES AND COMBOS\n"
     "Attack with {ps_r2} (hands) or {ps_r1} (feet). Press them a few times, or "
@@ -104,4 +106,30 @@ const char* const HELP_COMBAT_PS =
     "{ps_r1} to stomp them.";
 
 const char* const HELP_WEAPONS_PS =
-    "Pick up weapons found in the level. Press {ps_r2} to fire the held weapon.";
+    "SHOOTING\n"
+    "With a gun out, fire with {ps_r2}. Darci shoots wherever she is facing; she "
+    "locks onto people and certain objects near her line of sight so the shot "
+    "connects. You can fire on the move as well as standing still. {ps_r2} "
+    "fires "
+    "one shot from the pistol or shotgun; hold it with the M16 for automatic "
+    "fire.\n"
+    "\n"
+    "RELOADING AND AMMO\n"
+    "When a gun runs dry the next {ps_r2} reloads a spare magazine instead of "
+    "firing - press again to shoot. With no spares left you just get empty "
+    "clicks. Spare ammo and dropped guns are picked up automatically as you walk "
+    "over them.\n"
+    "\n"
+    "GRENADE\n"
+    "With the grenade selected, dotted lines show where it will land. Press "
+    "{ps_r2} once to pull the pin - a countdown appears by the grenade icon - "
+    "and {ps_r2} again to throw it. It goes off when the timer reaches zero, "
+    "wherever it is - with the right timing you can make it burst in mid-air.\n"
+    "\n"
+    "DRAWING AND SWITCHING\n"
+    "Pick a gun directly on the {ps_dpad}: {ps_dpad_up} pistol, {ps_dpad_left} "
+    "M16, {ps_dpad_right} shotgun, {ps_dpad_up}+{ps_dpad_right} grenade; "
+    "{ps_dpad_down} switches between the bat and knife. To step through every "
+    "weapon you are carrying, hold {ps_r3} and press {ps_dpad_up} or "
+    "{ps_dpad_down}. A tap of {ps_r3} holsters your weapon for bare hands or "
+    "draws the last one again.";
