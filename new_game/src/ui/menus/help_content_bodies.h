@@ -25,4 +25,12 @@ extern const char* const HELP_WEAPONS_KBM;
 extern const char* const HELP_WEAPONS_XBOX;
 extern const char* const HELP_WEAPONS_PS;
 
+extern const char* const HELP_DRIVING_KBM;
+extern const char* const HELP_DRIVING_XBOX;
+extern const char* const HELP_DRIVING_PS;
+
+extern const char* const HELP_OTHER_KBM;
+extern const char* const HELP_OTHER_XBOX;
+extern const char* const HELP_OTHER_PS;
+
 #endif // UI_MENUS_HELP_CONTENT_BODIES_H

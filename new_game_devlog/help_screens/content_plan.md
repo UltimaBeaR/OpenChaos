@@ -4,8 +4,8 @@ The "How to Play" list is split into one cheat-sheet topic plus a few per-mode
 topics.
 
 Writing rules (learned from review):
-- **REFERENCE (topic 1) only** uses the flat `{glyph} - label` column layout
-  (a button map). The help-list itself is titled "Controls".
+- **CONTROLS (topic 1) only** uses the flat `{glyph} - label` column layout
+  (a button map). The help-list itself is titled "Mechanics".
 - **Every other topic is written mechanic-first, in prose**: describe the game
   capability in plain words and name the button only to explain HOW to do it.
   Do NOT restate the button map.
@@ -29,7 +29,7 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
 
 ## Topics
 
-1. **REFERENCE** (the button map) — ✅ done. Flat button reference: every
+1. **CONTROLS** (the button map) — ✅ done. Flat button reference: every
    button used during gameplay, one line each, all situations at once. A cheat
    sheet, not a guide.
 
@@ -176,7 +176,7 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
      With the right timing it can burst in mid-air.
 
    Drawing & switching (SELF-CONTAINED — spell the buttons out here, don't make
-   the player go to the REFERENCE; the weapon-list cycle combo is non-obvious):
+   the player go to the CONTROLS topic; the weapon-list cycle combo is non-obvious):
    - Draw/holster toggles the last active weapon (holster = empty hands). KBM:
      middle mouse. Pad: a TAP of R3.
    - Quick-select: KBM 1/2/3/4 (pistol/M16/shotgun/grenade), Tab = bat/knife
@@ -187,16 +187,43 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
    - (The stance interaction — drawing a gun drops the stance, gun-out = no
      stance until hit — is covered in COMBAT's FIGHTING STANCE, not here.)
 
-5. **DRIVING** — car. Gas / brake / reverse, steering, getting in and out, siren.
+5. **DRIVING** — car. Mechanics (confirmed by the user):
+   - Get in / out: Action next to a car (toggles). Some cars are LOCKED and won't
+     open. To take an occupied car: stand in front of it and shoot it — the
+     driver may get out, then you can get in.
+   - Gas / steer as expected. Reverse ALSO slows the car when rolling forward.
+   - Brake is a HANDBRAKE: throws the car into a sharp slide toward the steering
+     direction (slides off somewhere even when going straight) — for police-style
+     turns. (Quirk the body omits: car fully stops and sits briefly after.)
+   - Siren works only on EMERGENCY vehicles (police cars, ambulances) — toggles
+     the siren + beacon.
+   - A car explodes when its HP runs out — bail before a wreck goes up.
    - Car entry/exit is documented HERE only (not duplicated in INTERACTION).
 
-6. **INTERACTION** — world interactions NOT covered by other topics. The Action
-   button is context-sensitive: search bodies, press wall buttons, talk to NPCs,
-   levers, etc. Only unique items that don't belong to another topic. No car
-   entry (→ DRIVING), no arrest (→ COMBAT).
-   - Health packs: medkits lie around but do NOT auto-pickup — press Action next
-     to one and Darci uses it with an animation, healing if not at full HP (won't
-     pick it up at full HP). (Lives here, not in WEAPONS — it's an Action pickup.)
+6. **OTHER** — catch-all for misc mechanics not covered elsewhere (renamed from
+   INTERACTION; may gather more small mechanics over time). Mostly Action-button
+   interactions. No car entry (→ DRIVING), no arrest (→ COMBAT). Mechanics
+   (confirmed by the user):
+   - Search bodies: HOLD Action over a body → a "searching" progress bar; may
+     yield an item (weapon, ammo) but usually nothing.
+   - Wall buttons: Action to push → usually open doors.
+   - Valves (round metal handles): Action → Darci turns them; sometimes do
+     nothing, sometimes matter in a mission.
+   - Talk to NPCs: Action → the NPC says a line (not a cutscene); Darci pauses in
+     a "listening" pose for a couple seconds.
+   - Health packs: Action next to a medkit → uses it with an animation, heals
+     only if not at full HP (won't take at full).
+   - Empty can: pick up with Action → the attack button then throws it like a
+     grenade.
+   - Benches: back up to a bench (back-step: hold zoom + back) and Darci sits
+     down on her own (not an Action press).
+   - Riding on cars: jump onto a car and ride on its roof; if someone else is
+     driving it carries you along. (In OTHER, not DRIVING — you're not driving.)
+   - Stat pickups: items around the map that boost Darci's stats when collected
+     (Stamina / Constitution / Strength / Skill exist; exact effect + how they're
+     collected are UNVERIFIED — body keeps it vague: "raise Darci's abilities").
+     ⚠️ CONFIRM with the user later.
+   - Radar / objectives still OUT of scope (user: skip for now).
 
 ## Out of scope
 
@@ -206,12 +233,12 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
 
 ## Status
 
-- [x] 1. REFERENCE
+- [x] 1. CONTROLS
 - [ ] 2. MOVEMENT  ← next
 - [x] 3. COMBAT
 - [x] 4. WEAPONS & SHOOTING
-- [ ] 5. DRIVING
-- [ ] 6. INTERACTION
+- [x] 5. DRIVING
+- [x] 6. OTHER (was INTERACTION)
 
 Placeholder topics still in the table (MOVEMENT/COMBAT/CLIMBING/WEAPONS) get
 replaced/restructured into the above as each is written.

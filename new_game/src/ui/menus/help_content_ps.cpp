@@ -1,7 +1,6 @@
 // PlayStation help bodies. Edit freely. Inline glyph tokens use ps_* ids from
 // input_prompt_map. Shared device-agnostic prose lives in help_content_common.h.
-// (REFERENCE, MOVEMENT, COMBAT and WEAPONS are written; DRIVING and INTERACTION
-// topics are still to be added.)
+// (All topics written: CONTROLS, MOVEMENT, COMBAT, WEAPONS, DRIVING, OTHER.)
 
 #include "ui/menus/help_content_bodies.h"
 #include "ui/menus/help_content_common.h"
@@ -133,3 +132,57 @@ const char* const HELP_WEAPONS_PS =
     "weapon you are carrying, hold {ps_r3} and press {ps_dpad_up} or "
     "{ps_dpad_down}. A tap of {ps_r3} holsters your weapon for bare hands or "
     "draws the last one again.";
+
+const char* const HELP_DRIVING_PS =
+    "GETTING IN\n"
+    "Walk up to a car and press {ps_square} to get in; press {ps_square} again "
+    "to get out. Some cars are locked and will not open. To take a car that "
+    "already has a driver, stand in front of it and shoot it - the driver may "
+    "get out, and then you can get in.\n"
+    "\n"
+    "DRIVING\n"
+    "{ps_r2} accelerates and {ps_l2} reverses, which also slows you when you are "
+    "rolling forward. Steer with the {ps_ls}, and swing the camera around the "
+    "car with the {ps_rs}. A car blows up once it takes enough damage, so get "
+    "out before a wreck goes up.\n"
+    "\n"
+    "HANDBRAKE\n"
+    "{ps_l1} is a handbrake: tap it to throw the car into a sharp slide toward "
+    "the way you are steering - handy for police-style turns. It will slide off "
+    "somewhere even if you are driving straight.\n"
+    "\n"
+    "SIREN\n"
+    "On emergency vehicles - police cars and ambulances - press {ps_triangle} "
+    "to switch the siren and beacon on and off.";
+
+const char* const HELP_OTHER_PS =
+    "SEARCHING BODIES\n"
+    "Hold {ps_square} over a body to search it - a progress bar fills and you "
+    "may pull out whatever they were carrying, such as a weapon or ammo. Most "
+    "of the time there is nothing.\n"
+    "\n"
+    "DOORS AND SWITCHES\n"
+    "Press {ps_square} at a wall button to push it - these usually open doors. "
+    "The round valve handles you find also turn with {ps_square}; some do "
+    "nothing, others matter in a mission.\n"
+    "\n"
+    "TALKING\n"
+    "Press {ps_square} next to a person to hear what they have to say - Darci "
+    "stops to listen for a moment.\n"
+    "\n"
+    "HEALTH PACKS\n"
+    "Press {ps_square} beside a medkit to use it; Darci only takes it if she is "
+    "not at full health.\n"
+    "\n"
+    "BENCHES\n"
+    "Back up to a bench - hold {ps_l1} and push back - and Darci sits down on "
+    "her own.\n"
+    "\n"
+    "RIDING ON CARS\n"
+    "Jump onto a car with {ps_cross} and you can ride on its roof - if someone "
+    "else is driving, it carries you along as it goes.\n"
+    "\n"
+    "PICKUPS\n"
+    "Some items scattered around the city raise Darci's abilities when you "
+    "collect them. You can also pick up an empty can with {ps_square} and throw "
+    "it with {ps_r2}, like a grenade.";
