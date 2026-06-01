@@ -522,6 +522,7 @@ set(SOURCES_NEW
     # === Camera ===
     src/camera/camera_mode.cpp
     src/camera/fc.cpp
+    src/camera/look_sensitivity.cpp
     src/camera/fc_globals.cpp
     src/camera/vis_cam.cpp
 

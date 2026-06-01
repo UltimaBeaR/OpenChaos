@@ -220,8 +220,8 @@ void input_frame_init()
         if (f > 0.9f) f = 0.9f;
         return (int)(f * STICK_RAW_CENTER);
     };
-    s_gameplay_deadzone_raw = frac_to_raw(OC_CONFIG_get_float("gamepad", "gameplay_stick_deadzone", 0.25f));
-    s_menu_dir_press_raw    = frac_to_raw(OC_CONFIG_get_float("gamepad", "menu_stick_deadzone", 0.25f));
+    s_gameplay_deadzone_raw = frac_to_raw(OC_CONFIG_get_float("gamepad", "gameplay_stick_deadzone", 0.25f, 0.0f, 1.0f));
+    s_menu_dir_press_raw    = frac_to_raw(OC_CONFIG_get_float("gamepad", "menu_stick_deadzone", 0.25f, 0.0f, 1.0f));
     s_menu_dir_release_raw  = s_menu_dir_press_raw / 2; // half — hysteresis
 }
 

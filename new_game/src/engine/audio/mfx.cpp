@@ -11,6 +11,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/io/env.h"
+#include "engine/io/oc_config.h" // OC_CONFIG_get_float (audio volumes, 0..1)
 #include "engine/io/file.h"
 #include "assets/sound_id.h"
 #include "debug_config.h" // OC_DEBUG_SOUND_DISABLED
@@ -119,9 +120,10 @@ void MFX_init()
     sptr->linscale = 1.0;
     sptr->loading = false;
 
-    Volumes[SMP_Ambient] = float(ENV_get_value_number("ambient_volume", 127, "Audio")) / 127.0f;
-    Volumes[SMP_Music] = float(ENV_get_value_number("music_volume", 127, "Audio")) / 127.0f;
-    Volumes[SMP_Effect] = float(ENV_get_value_number("fx_volume", 127, "Audio")) / 127.0f;
+    // Volumes are stored in config as a 0..1 fraction (clamped on read).
+    Volumes[SMP_Ambient] = OC_CONFIG_get_float("audio", "ambient_volume", 1.0f, 0.0f, 1.0f);
+    Volumes[SMP_Music] = OC_CONFIG_get_float("audio", "music_volume", 1.0f, 0.0f, 1.0f);
+    Volumes[SMP_Effect] = OC_CONFIG_get_float("audio", "fx_volume", 1.0f, 0.0f, 1.0f);
 }
 
 // uc_orig: MFX_term (fallen/DDLibrary/Source/MFX.cpp)

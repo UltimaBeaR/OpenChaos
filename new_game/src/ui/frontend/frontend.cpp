@@ -40,6 +40,7 @@ extern SLONG ScreenHeight;
 #include "game/action_map/act_menu.h" // ACT_MENU_*
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
+#include "engine/io/oc_config.h" // OC_CONFIG_set_float (audio volumes persisted as 0..1)
 #include "game/game_types.h"
 
 // uc_orig: RandStream (fallen/Source/frontend.cpp)
@@ -2230,9 +2231,10 @@ static void FRONTEND_storedata(void)
     case FE_CONFIG_AUDIO:
         MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
         MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
-        ENV_set_value_number("fx_volume", menu_data[0].Data >> 1, "Audio");
-        ENV_set_value_number("ambient_volume", menu_data[1].Data >> 1, "Audio");
-        ENV_set_value_number("music_volume", menu_data[2].Data >> 1, "Audio");
+        // Persist as a 0..1 fraction: slider Data>>1 is the legacy 0..127 volume.
+        OC_CONFIG_set_float("audio", "fx_volume", (menu_data[0].Data >> 1) / 127.0f);
+        OC_CONFIG_set_float("audio", "ambient_volume", (menu_data[1].Data >> 1) / 127.0f);
+        OC_CONFIG_set_float("audio", "music_volume", (menu_data[2].Data >> 1) / 127.0f);
         break;
 
     case FE_CONFIG_OPTIONS:

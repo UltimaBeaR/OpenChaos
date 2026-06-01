@@ -40,18 +40,23 @@ static void build_defaults_and_migrate(const char* ini_path)
 {
     // Hardcoded defaults — all sections, all keys.
     g_config = {
-        { "audio", { { "ambient_volume", 127 }, { "music_volume", 127 }, { "fx_volume", 127 } } },
+        // Audio volumes as a 0..1 fraction (1.0 = full).
+        { "audio", { { "ambient_volume", 1.0 }, { "music_volume", 1.0 }, { "fx_volume", 1.0 } } },
         { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true } } },
         // scanner_follows: true = radar rotates with Darci's facing, false =
         // rotates with the camera (position is always relative to Darci). Default
         // false — the radar tracks where the camera looks.
         { "game", { { "scanner_follows", false } } },
         { "movie", { { "play_movie", true } } },
+        // camera_orbit_sensitivity: camera-rotation sensitivity, 0..1 (slow→fast).
+        // camera_orbit_invert_y: invert vertical of the camera rotation (boolean).
+        { "mouse", { { "camera_orbit_sensitivity", 0.4 }, { "camera_orbit_invert_y", false } } },
         // Stick deadzones as a fraction 0..1 of full deflection (center→edge).
         // gameplay = in-game movement/aim deadzone (raw 8192 = 0.25, unchanged).
         // menu = menu-navigation virtual-direction threshold (was raw 4096;
         // raised to 0.25 so controller drift doesn't auto-scroll menus).
-        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 } } }
+        // camera_orbit_*: same camera-rotation knobs as [mouse], for the stick.
+        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 }, { "camera_orbit_sensitivity", 0.4 }, { "camera_orbit_invert_y", false } } }
     };
 
     // --- config.ini auto-import: TEMPORARILY DISABLED ---------------------
@@ -150,6 +155,8 @@ void OC_CONFIG_load(const char* ini_path)
                     { "video", "crt_effect" },
                     { "game", "scanner_follows" },
                     { "movie", "play_movie" },
+                    { "mouse", "camera_orbit_invert_y" },
+                    { "gamepad", "camera_orbit_invert_y" },
                 };
                 bool upgraded = false;
                 for (auto& bf : bool_fields) {
@@ -183,43 +190,58 @@ void OC_CONFIG_load(const char* ini_path)
     config_save();
 }
 
-int OC_CONFIG_get_int(const char* section, const char* key, int def)
+int OC_CONFIG_get_int(const char* section, const char* key, int def, int lo, int hi)
 {
+    int v = def;
     std::string sec = to_lower(section);
     auto it = g_config.find(sec);
-    if (it == g_config.end())
-        return def;
-    auto jt = it->find(key);
-    if (jt == it->end())
-        return def;
-    if (jt->is_boolean())
-        return jt->get<bool>() ? 1 : 0;
-    if (jt->is_number_integer())
-        return jt->get<int>();
-    if (jt->is_number())
-        return (int)jt->get<double>();
-    // Bad value — reset to hardcoded default and save.
-    fprintf(stderr, "oc_config: bad value for %s.%s, resetting to %d\n", sec.c_str(), key, def);
-    *jt = def;
-    config_save();
-    return def;
+    if (it != g_config.end()) {
+        auto jt = it->find(key);
+        if (jt != it->end()) {
+            if (jt->is_boolean())
+                v = jt->get<bool>() ? 1 : 0;
+            else if (jt->is_number_integer())
+                v = jt->get<int>();
+            else if (jt->is_number())
+                v = (int)jt->get<double>();
+            else {
+                // Bad value (wrong type) — reset to hardcoded default and save.
+                fprintf(stderr, "oc_config: bad value for %s.%s, resetting to %d\n", sec.c_str(), key, def);
+                *jt = def;
+                config_save();
+                v = def;
+            }
+        }
+    }
+    // Clamp into the caller's valid range (trims out-of-range user edits).
+    if (v < lo) v = lo;
+    if (v > hi) v = hi;
+    return v;
 }
 
-float OC_CONFIG_get_float(const char* section, const char* key, float def)
+float OC_CONFIG_get_float(const char* section, const char* key, float def, float lo, float hi)
 {
+    float v = def;
     std::string sec = to_lower(section);
     auto it = g_config.find(sec);
-    if (it == g_config.end())
-        return def;
-    auto jt = it->find(key);
-    if (jt == it->end())
-        return def;
-    if (jt->is_number())
-        return (float)jt->get<double>();
-    fprintf(stderr, "oc_config: bad value for %s.%s, resetting to %g\n", sec.c_str(), key, (double)def);
-    *jt = def;
-    config_save();
-    return def;
+    if (it != g_config.end()) {
+        auto jt = it->find(key);
+        if (jt != it->end()) {
+            if (jt->is_number())
+                v = (float)jt->get<double>();
+            else {
+                // Bad value (wrong type) — reset to hardcoded default and save.
+                fprintf(stderr, "oc_config: bad value for %s.%s, resetting to %g\n", sec.c_str(), key, (double)def);
+                *jt = def;
+                config_save();
+                v = def;
+            }
+        }
+    }
+    // Clamp into the caller's valid range (trims out-of-range user edits).
+    if (v < lo) v = lo;
+    if (v > hi) v = hi;
+    return v;
 }
 
 void OC_CONFIG_set_int(const char* section, const char* key, int value)
@@ -235,6 +257,13 @@ void OC_CONFIG_set_int(const char* section, const char* key, int value)
             return;
         }
     }
+    g_config[sec][key] = value;
+    config_save();
+}
+
+void OC_CONFIG_set_float(const char* section, const char* key, float value)
+{
+    std::string sec = to_lower(section);
     g_config[sec][key] = value;
     config_save();
 }

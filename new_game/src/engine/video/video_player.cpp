@@ -7,6 +7,7 @@
 #include "engine/video/video_player.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/io/env.h"
+#include "engine/io/oc_config.h" // OC_CONFIG_get_float (fx volume, 0..1)
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h" // ShellActive
 #include "engine/platform/sdl3_bridge.h"
@@ -74,8 +75,8 @@ static bool audio_init(AudioStream* a, int sample_rate, int channels)
     // Non-spatialized: direct stereo output
     alSourcei(a->source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSource3f(a->source, AL_POSITION, 0.0f, 0.0f, 0.0f);
-    // Volume follows the "Volume" (fx) slider from Sound menu.
-    float gain = (float)ENV_get_value_number("fx_volume", 127, "Audio") / 127.0f;
+    // Volume follows the "Volume" (fx) slider from Sound menu (0..1 fraction).
+    float gain = OC_CONFIG_get_float("audio", "fx_volume", 1.0f, 0.0f, 1.0f);
     alSourcef(a->source, AL_GAIN, gain);
 
     // Initial accumulator

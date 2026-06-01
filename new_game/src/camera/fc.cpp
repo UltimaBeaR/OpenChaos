@@ -9,6 +9,7 @@
 #include "missions/eway.h"
 #include "map/level_pools.h"
 #include "camera/fc.h"
+#include "camera/look_sensitivity.h" // look-sensitivity knobs + derived scales (shared with zoom look)
 #include "camera/fc_globals.h"
 #include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness, camera_is_*
 #include "camera/cam_trig.h"    // cam_arctan_psx_fp8 — high-precision atan for FC_look_at_focus
@@ -35,36 +36,12 @@ extern BOOL PLAYCUTS_playing;
 // uc_orig: CAM_MORE_IN (fallen/Source/fc.cpp)
 #define CAM_MORE_IN (0.75F)
 
-// Mouse-driven camera orbit sensitivity (OpenChaos -- no original).
-//
-// MOUSE_SENSITIVITY: 0..100 (= 0.0..1.0 user slider, just in percent
-//   so it stays integer). Maps linearly between two compile-time
-//   bounds expressed in Q8 fixed-point game-angle units per pixel:
-//     0   -> MOUSE_SENS_MIN_Q8 (slow / comfortable feel)
-//     100 -> MOUSE_SENS_MAX_Q8 (fast / original default)
-//   When the settings UI lands, this becomes a runtime variable;
-//   the conversion stays the same (slider * 100 -> this value).
-// MOUSE_HEIGHT_SCALE (per-pixel height delta) is fully derived below
-//   from MOUSE_YAW_SCALE_Q8 using the right stick's height-to-yaw
-//   ratio, so vertical and horizontal mouse motion feel proportionally
-//   consistent across sensitivity values, and the proportion itself
-//   matches the right stick.
-// MOUSE_INVERT_Y: 1 = mouse-up lowers the camera (FPS-style "inverted
-//   look"), 0 = mouse-up raises the camera. Mouse only -- the right
-//   stick keeps its own convention.
-// MOUSE_ORBIT_LAG: residual yaw lag (game-angle units) retained for the
-//   "rubber band" smoothing tail. Capped here because mouse input is
-//   unbounded -- values above ~60 start to expose chord shrinkage in
-//   the position smoothing for sustained fast flicks.
-// STICK_ORBIT_LAG: same idea for the right stick. Stick input is
-//   bounded to ~61 game-angle units per tick at full deflection, so
-//   setting this to 61 means the rotation path is identical to the
-//   legacy gamepad feel (no sync, full smoothing tail) while still
-//   using exact rotation math (no distance inflation).
-#define MOUSE_SENS_MIN_Q8   51     // ~0.2 game-units/px
-#define MOUSE_SENS_MAX_Q8   768    // ~3.0 game-units/px
-#define MOUSE_SENSITIVITY   22     // 0..100, see comment above.
-#define MOUSE_INVERT_Y      1
+// Camera-look sensitivity knobs (>>> TUNE THESE <<<) and the derived
+// scales (MOUSE_YAW_SCALE_Q8, STICK_YAW_SCALE, the zoom-look scales, ...)
+// now live in camera/look_sensitivity.h — shared with the zoom/L1/E look
+// in input_actions.cpp so every look branch scales off the same numbers.
+// Tune them there.
+
 // Residual angular lag the rotation path leaves unsynced each tick,
 // closed afterwards by the standard position+angle smoothing. Higher =
 // more "rubber band" tail; lower = snappier.
@@ -96,22 +73,6 @@ extern BOOL PLAYCUTS_playing;
 // EXIT fade then produces a visible jerk on liftoff).
 #define FC_CAM_Y_MIN_ABOVE_FOCUS  0x6000   // ~3/4 m above feet
 #define FC_CAM_Y_MAX_ABOVE_FOCUS  0x28000  // ~5 m above feet
-
-// Compile-time resolved scales. When MOUSE_SENSITIVITY becomes a
-// runtime variable, lift these inline into the call site.
-#define MOUSE_YAW_SCALE_Q8 \
-    (MOUSE_SENS_MIN_Q8 + (MOUSE_SENS_MAX_Q8 - MOUSE_SENS_MIN_Q8) * MOUSE_SENSITIVITY / 100)
-
-// Height scale derived from yaw scale using the right stick's own
-// height/yaw ratio: STICK_HEIGHT_MAX (0x3100, height-units per tick at
-// full stick deflection) / STICK_YAW_MAX (61, game-angle units per
-// tick at full stick deflection) ~ 205.6 height-units per game-unit.
-// Multiplied by per-pixel yaw scale in game-units (= MOUSE_YAW_SCALE_Q8
-// / 256) gives per-pixel height scale that mirrors the stick feel at
-// any sensitivity. Result for sens=100: ~617 (vs the previous 1024,
-// which made vertical feel too aggressive relative to horizontal).
-#define MOUSE_HEIGHT_SCALE \
-    (MOUSE_YAW_SCALE_Q8 * 0x3100 / (61 * 256))
 
 // OpenChaos: master switch for the vehicle enter/exit camera "scene override"
 // (programmatic lock-rotation behind the car + manual-input block during the
@@ -1168,12 +1129,11 @@ void FC_process()
             //      right now". Capture engages on click in the window
             //      during active gameplay; see engine/input/mouse_capture.h.
             //
-            // Tunables (top of file): MOUSE_YAW_SCALE, MOUSE_HEIGHT_SCALE,
-            // MOUSE_ORBIT_LAG. See those for what each knob does.
+            // Tunables: scales in camera/look_sensitivity.h (sensitivity +
+            // invert are config-backed); MOUSE_ORBIT_LAG at the top of this file.
             //
             // TODO (post-1.0):
-            //   - Sensitivity option in the menu.
-            //   - Y-axis inversion option.
+            //   - Sensitivity / invert-Y menu UI (config values already exist).
             //   - Mouse-driven aim mode.
             //   - Per-axis dead zone if micro-tremor turns out to matter.
             // input_gameplay_enabled() gate: while F1 debug modifier is
@@ -1216,7 +1176,7 @@ void FC_process()
                     // direction for positive mdx): new_rx = rx*c - rz*s,
                     // new_rz = rx*s + rz*c. 64-bit math to avoid overflow
                     // at large camera offsets.
-                    SLONG angle = mdx * MOUSE_YAW_SCALE_Q8 / 256;
+                    SLONG angle = mdx * mouse_yaw_scale_q8() / 256;
                     SLONG s_full = SIN(angle & 2047);
                     SLONG c_full = COS(angle & 2047);
                     int64_t rx, rz;
@@ -1263,10 +1223,9 @@ void FC_process()
                     // it farther in XZ. 3D distance to focus is held
                     // constant by the helper.
                     //
-                    // Same MOUSE_INVERT_Y semantics as before: =1 means
-                    // mouse-up lowers the camera (FPS-style inverted),
-                    // =0 means mouse-up raises it. mdy is positive when
-                    // mouse moves down (SDL convention).
+                    // Vertical invert from config (mouse camera_orbit_invert_y,
+                    // via CAM_mouse_invert_y()): false = normal, true = inverted.
+                    // mdy is positive when mouse moves down (SDL convention).
                     //
                     // Full snap on both want AND fc — no rotation
                     // rubber-band. fc->pitch is NOT explicitly updated
@@ -1281,7 +1240,7 @@ void FC_process()
                     // double clamp (which historically produced a -2Δ
                     // jerk when want_y was at the clamp AND focus_y
                     // moved at the same time).
-                    SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
+                    SLONG height_delta = (CAM_mouse_invert_y() ? -mdy : mdy) * mouse_height_scale();
 
                     // Apply pitch helper ONLY to want, then mirror the
                     // resulting world-space delta onto fc.
@@ -1327,10 +1286,11 @@ void FC_process()
                     // True rotation with constant-residual lag -- see
                     // the comment in the mouse block for the full
                     // rationale. Scale: original Euler effective theta
-                    // at full deflection ~ 0.187 rad = ~61 game units;
-                    // we preserve that magnitude. TICK_RATIO scaling
-                    // kept so per-tick angle is framerate-independent.
-                    SLONG angle = (stick_x * 61) / 32767;
+                    // Full-deflection yaw rate = STICK_YAW_SCALE game-angle
+                    // units/tick (sensitivity-scaled; shipping ref ~61).
+                    // TICK_RATIO scaling keeps the per-tick angle framerate-
+                    // independent.
+                    SLONG angle = (stick_x * stick_yaw_scale()) / 32767;
                     angle = angle * TICK_RATIO >> TICK_SHIFT;
 
                     // MANUAL mode: sync fc by FULL angle (no residual
@@ -1373,9 +1333,11 @@ void FC_process()
 
                 // Height: directly move want_y (bypasses the slow Y smoothing).
                 // Stick up (negative Y) = raise camera, stick down = lower camera.
+                // Vertical invert from config (gamepad camera_orbit_invert_y,
+                // via CAM_gamepad_invert_y()): false = normal, true = inverted.
                 if (abs(stick_y) > 8000) {
                     manual_y_input_this_tick = true;
-                    SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
+                    SLONG height_delta = ((CAM_gamepad_invert_y() ? -stick_y : stick_y) * stick_height_scale()) / 32767 * TICK_RATIO >> TICK_SHIFT;
                     const SLONG want_y_pre = fc->want_y;
                     fc->want_y += height_delta;
 

@@ -25,6 +25,7 @@
 #include "missions/eway_globals.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+#include "camera/look_sensitivity.h" // zoom look scales (track sensitivity, ZOOM_LOOK_RATIO of orbit)
 #include "world_objects/dirt.h"
 
 #include "map/supermap.h"
@@ -4654,22 +4655,25 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             look_pitch &= 2047;
         }
 
-        // Zoom-mode look is driven by the RIGHT stick (gamepad), the mouse and
-        // the arrow keys (keyboard). The LEFT stick / WASD does NOT look here:
-        // touching it leaves zoom for the slow-walk mode (process_zoomwalk),
-        // so zoom is always a rooted pose with a neutral movement stick. (The
+        // Zoom-mode look is driven by the RIGHT stick (gamepad) and the mouse
+        // (KBM) only. The LEFT stick / WASD does NOT look here: touching it
+        // leaves zoom for the slow-walk mode (process_zoomwalk), so zoom is
+        // always a rooted pose with a neutral movement stick. (The
         // INPUT_MASK_MOVE clear further down keeps the pose rooted for the tick
         // the transition is detected.)
         //
         // Vertical inverted to match the non-aim camera convention: in non-
         // aim mode right-stick UP raises the orbital camera (so the view
-        // ends up looking DOWN at the character). Here right-stick UP /
-        // arrow-Up likewise pitch the view DOWN. Same intuition across both
-        // modes — toggling aim on/off doesn't flip the up/down feel.
+        // ends up looking DOWN at the character). Here right-stick UP likewise
+        // pitches the view DOWN. Same intuition across both modes — toggling
+        // aim on/off doesn't flip the up/down feel.
         {
             constexpr SLONG STICK_DEAD = 8000;
-            constexpr SLONG STICK_PITCH_MAX = 13; // per-frame pitch step at full deflection
-            constexpr SLONG STICK_YAW_MAX = 32; // per-frame angle delta at full deflection
+            // Zoom-look stick rates (per-frame at full deflection): track the
+            // gamepad sensitivity and run at ZOOM_LOOK_RATIO of the normal
+            // orbit speed. Defined in camera/look_sensitivity.h.
+            const SLONG STICK_PITCH_MAX = zoom_stick_pitch();
+            const SLONG STICK_YAW_MAX = zoom_stick_yaw();
 
             // Gamepad sticks — only the RIGHT stick drives yaw + pitch in the
             // zoom/look pose. The LEFT stick is reserved for movement: touching
@@ -4688,32 +4692,14 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)
                     // sy < 0 (stick up)   → look DOWN (look_pitch -= step)
-                    look_pitch += (sy * STICK_PITCH_MAX) / 32767;
+                    // Vertical invert from config (gamepad camera_orbit_invert_y).
+                    look_pitch += ((CAM_gamepad_invert_y() ? -sy : sy) * STICK_PITCH_MAX) / 32767;
                 }
                 if (!CONTROLS_inventory_mode && abs(sx) > STICK_DEAD) {
                     // sx > 0 (stick right) → turn character right (angle -=)
                     // sx < 0 (stick left)  → turn character left  (angle +=)
                     SLONG ang_step = (sx * STICK_YAW_MAX) / 32767;
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - ang_step) & 2047;
-                }
-            }
-
-            // Arrow keys — keyboard. Pitch inverted to match the gamepad
-            // convention above (Up arrow → look DOWN). Yaw direction
-            // unchanged: Left arrow turns the character left, Right turns
-            // right (same as pre-rework).
-            if (input_key_held(ACT_FOOT_AIM_LOOK_UP_KKEY)) {
-                look_pitch -= STICK_PITCH_MAX;
-            }
-            if (input_key_held(ACT_FOOT_AIM_LOOK_DOWN_KKEY)) {
-                look_pitch += STICK_PITCH_MAX;
-            }
-            if (!CONTROLS_inventory_mode) {
-                if (input_key_held(ACT_FOOT_AIM_LOOK_LEFT_KKEY)) {
-                    p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
-                }
-                if (input_key_held(ACT_FOOT_AIM_LOOK_RIGHT_KKEY)) {
-                    p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
 
@@ -4730,17 +4716,18 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                 && input_gameplay_enabled() && mouse_capture_is_active()) {
                 SLONG mdx = 0, mdy = 0;
                 input_mouse_consume_rel(&mdx, &mdy);
-                // Starting sensitivities (Q8 game-units per pixel) — tune by
-                // feel; ~matches the non-aim mouse-orbit yaw scale (~0.8 u/px).
-                constexpr SLONG MOUSE_AIM_YAW_Q8   = 205;
-                constexpr SLONG MOUSE_AIM_PITCH_Q8 = 96;
+                // Zoom-look mouse rates (Q8 game-units per pixel): track the
+                // mouse sensitivity and run at ZOOM_LOOK_RATIO of the normal
+                // orbit speed. Defined in camera/look_sensitivity.h.
+                const SLONG MOUSE_AIM_YAW_Q8   = zoom_mouse_yaw_q8();
+                const SLONG MOUSE_AIM_PITCH_Q8 = zoom_mouse_pitch_q8();
                 // Yaw: mouse right → turn right (Angle decreases) — same sign
                 // as the right stick above.
                 p_person->Draw.Tweened->Angle =
                     (p_person->Draw.Tweened->Angle - (mdx * MOUSE_AIM_YAW_Q8 / 256)) & 2047;
-                // Pitch: mouse up → look up (non-inverted). look_pitch
-                // increases = look up (matches the stick).
-                look_pitch += (mdy * MOUSE_AIM_PITCH_Q8 / 256);
+                // Pitch: vertical invert from config (mouse camera_orbit_invert_y),
+                // matching the non-aim mouse-orbit convention.
+                look_pitch += ((CAM_mouse_invert_y() ? -mdy : mdy) * MOUSE_AIM_PITCH_Q8 / 256);
             }
         }
 

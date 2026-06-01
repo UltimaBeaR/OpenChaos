@@ -3694,14 +3694,11 @@ static void compute_fbo_size(int phys_w, int phys_h,
 {
     // Hard floor on render scale: below this the scene becomes
     // unreadable and GL driver texture-size math gets wobbly on some
-    // platforms. Internal limit, not user-tuneable.
+    // platforms. 1.0 is the ceiling (no supersampling). Clamped on read.
     static constexpr float RENDER_SCALE_MIN = 0.25f;
+    static constexpr float RENDER_SCALE_MAX = 1.0f;
 
-    float scale = OC_CONFIG_get_float("video", "render_scale", 1.0f);
-    if (scale < RENDER_SCALE_MIN)
-        scale = RENDER_SCALE_MIN;
-    if (scale > 1.0f)
-        scale = 1.0f;
+    float scale = OC_CONFIG_get_float("video", "render_scale", 1.0f, RENDER_SCALE_MIN, RENDER_SCALE_MAX);
 
     int scaled_w = (int)((float)phys_w * scale + 0.5f);
     int scaled_h = (int)((float)phys_h * scale + 0.5f);

@@ -196,16 +196,6 @@ constexpr int ACT_FOOT_AIM_KKEY = KKEY_E;
 // stick-id arg in input_actions.cpp's aim block.
 constexpr int ACT_FOOT_AIM_LOOK_GAXIS = GAXIS_RIGHT;
 
-// ---- First-person look (arrow keys while aiming) ---------------------------
-// While in first-person aim, the arrow keys steer pitch / yaw of the look
-// view independently of character movement. Same scancodes as ACT_FOOT_MOVE_*
-// but different semantic — distinct ACT constants per rules.md.
-
-constexpr int ACT_FOOT_AIM_LOOK_UP_KKEY    = KKEY_UP;
-constexpr int ACT_FOOT_AIM_LOOK_DOWN_KKEY  = KKEY_DOWN;
-constexpr int ACT_FOOT_AIM_LOOK_LEFT_KKEY  = KKEY_LEFT;
-constexpr int ACT_FOOT_AIM_LOOK_RIGHT_KKEY = KKEY_RIGHT;
-
 // ---- Start button (INPUT_MASK_START in gameplay) ---------------------------
 // Used as a generic "menu / pause" gameplay-side flag in get_hardware_input.
 // The actual pause-menu open lives in act_menu.h (ACT_MENU_TOGGLE_PAUSE_GBTN);
