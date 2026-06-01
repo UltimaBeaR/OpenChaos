@@ -61,4 +61,4 @@
 - #23 (DualSense LED siren strobe) ✅ resolved
 - [TASK] Переработка управления ✅ implemented (этот модуль)
 
-Открытые input-related в [`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md) секция "Управление" — отдельные UX/калибровочные баги, не относятся к архитектуре input pipeline (deadzone в меню для Xbox drift, sensitivity вождения, R3 inventory snapshot, и т.п.).
+Открытые input-related в [`new_game_planning/known_issues_and_bugs_1_0.md`](../../new_game_planning/known_issues_and_bugs_1_0.md) секция "Управление" — отдельные UX/калибровочные баги, не относятся к архитектуре input pipeline (deadzone в меню для Xbox drift, sensitivity вождения, R3 inventory snapshot, и т.п.).

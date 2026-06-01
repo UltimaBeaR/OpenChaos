@@ -6,8 +6,7 @@ A read-only, in-game reference for the game's **mechanics** and how to use them
 (what to press, when, and any conditions). Examples of mechanics to cover:
 back-walk (hold E / L1 + stick back), rolls (L2 tap + stick), arrest, ladders,
 cable/zipwire jumps, etc. Some discoverable/decorative interactions are
-deliberately left out as surprises (e.g. dancing next to a dancer, sitting on a
-sofa by backing into it).
+deliberately left out as surprises (e.g. dancing next to a dancer).
 
 This is **not** a key-rebinding screen — 1.0 ships fixed bindings.
 
@@ -52,12 +51,12 @@ needed):
 
 Drawing (also DONE):
 
-- `input_glyph_draw(key, x, y, line_height)` draws the prompt for a logical key
-  (`InputGlyphKey`, starter set: JUMP, USE), picking the atlas from
-  `active_input_device` and the Kenney sprite per device. The glyph is
-  left-aligned at x, centred vertically in `line_height`, and the call returns
-  the **advance width** (glyph width + a small inter-glyph gap) so prompts lay
-  out inline (`x += input_glyph_draw(...)`) without oversized square gaps.
+- `input_glyph_draw_cell(dev, col, row, x, y, line_height, fade)` draws one atlas
+  cell (device + cell come from the glyph map below) at x, centred vertically in
+  `line_height`, returning the **advance width** (glyph width + a small
+  inter-glyph gap) so glyphs lay out inline without oversized square gaps. (The
+  original logical-key API — `input_glyph_draw(key)` for an `InputGlyphKey` such
+  as JUMP/USE — was removed in the per-device restructure.)
 - **Pixel-perfect:** glyphs are minified far below their 64px source, so the
   atlas uses **mipmaps** (the draw path applies trilinear from `has_mipmaps`),
   and the draw picks a **clean on-screen size** — a power-of-two fraction of 64
@@ -102,7 +101,7 @@ Inline rich-text (also DONE):
 
 Help screen UI (DONE, in `ui/menus/gamemenu.cpp` + `help_content.{h,cpp}`):
 
-- Pause menu has a **"How to Play"** item (2nd, after Resume). It reuses the
+- Pause menu has a **"Mechanics"** item (2nd, after Resume). It reuses the
   `X_CONTROLS` id for nav/confirm but draws a literal label (no fitting localized
   string; 1.0 is English).
 - Two new GAMEMENU types: `HELP_LIST` (topic list) and `HELP_DETAIL` (text
@@ -185,17 +184,21 @@ Glyph map + dev catalog (DONE, in `input_glyphs/input_prompt_map.{h,cpp}`):
 
 ## Follow-ups (TODO)
 
-1. **Real content** — replace the placeholder per-device bodies with accurate
-   mechanic descriptions (and decide the full topic list). Current bodies are
-   short placeholders demonstrating the per-device `{id}` tokens.
-2. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
-3. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
+1. **Steam Deck device detection** (if feasible) to select the `deck` atlas.
+2. **Font sharpness (optional, cosmetic):** FONT2D is a small bitmap font scaled
    up, so text is softer than the crisp glyphs sitting next to it. Matching them
    would mean improving the font rendering (higher-res font / sharper sampling) —
    a separate effort, deferred. Glyph alpha is already tuned to match brightness.
+3. **Stat pickups (OTHER topic):** the line is intentionally vague ("raise
+   Darci's abilities") — the exact effect and how they're collected are
+   unverified. Confirm against the game/KB and refine if wanted.
+
+Real content is written: all six topic bodies — CONTROLS, MOVEMENT, COMBAT,
+WEAPONS, DRIVING, OTHER — are in place (the full per-topic plan + captured
+mechanics live in `content_plan.md`); the help-list is titled "Mechanics".
 
 Done since the first version: full-window (undistorted) detail layout, line
 scrolling with fast auto-repeat + ▲/▼ arrows, small-glyph resize fallback, the
-full-window 2D-clip fix, the per-device glyph map (id tokens) + dev catalog, and
-the switch to per-device topic bodies (3 files + common). Paging was superseded
-by scrolling.
+full-window 2D-clip fix, the per-device glyph map (id tokens) + dev catalog, the
+switch to per-device topic bodies (3 files + common), and all six real topic
+bodies. Paging was superseded by scrolling.

@@ -50,9 +50,8 @@ const char* const HELP_MOVEMENT_PS =
     "CLIMBING\n"
     "Jump at a ledge to grab on if you reach it; tap {ps_cross} again to climb "
     "up, or edge left and right while hanging.\n"
-    "Walk into a ladder to grab on; to get on heading down, back up to it (hold "
-    "{ps_l1} and push back) and press {ps_square}. Once on, push forward or back "
-    "to climb up or down.\n"
+    "To climb up, just walk into a ladder. To climb down, walk up to it and "
+    "press {ps_square}. Once on, push forward or back to go up or down.\n"
     "Jump onto a wire, often strung between buildings, and Darci catches it and "
     "slides down.\n"
     "\n"
@@ -183,6 +182,6 @@ const char* const HELP_OTHER_PS =
     "else is driving, it carries you along as it goes.\n"
     "\n"
     "PICKUPS\n"
-    "Some items scattered around the city raise Darci's abilities when you "
-    "collect them. You can also pick up an empty can with {ps_square} and throw "
-    "it with {ps_r2}, like a grenade.";
+    "Some items scattered around the city raise Darci's abilities - just walk "
+    "over one to grab it. You can also pick up an empty can with {ps_square} and "
+    "throw it with {ps_r2}, like a grenade.";

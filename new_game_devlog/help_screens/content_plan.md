@@ -76,11 +76,10 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
    - Ledge: jump toward a ledge; if Darci reaches it she grabs on automatically.
      Press jump again to pull up. While hanging you can edge left/right
      (DANGLING state).
-   - Ladders: to go UP, walk into the ladder (face it) and Darci grabs on. To
-     get on heading DOWN, approach REAR-FIRST (back up to it via back-step) and
-     press Action — facing it head-on won't start a descent. Once on the ladder
-     (no matter how you got on), push forward / back to climb up / down
-     (manual — Darci does NOT auto-climb).
+   - Ladders: to climb UP, just walk into the ladder. To climb DOWN, walk up to
+     it and press Action. (CORRECTION: an earlier note said you must back up
+     rear-first to descend — that was WRONG; facing it works too.) Once on, push
+     forward / back to go up / down.
    - Zip-line: jump onto a wire (can be anywhere, usually strung between
      buildings) — Darci grabs it and slides down. (In an early movement
      tutorial mission.)
@@ -219,10 +218,10 @@ Topics live in `help_content_{kbm,xbox,ps}.cpp` (one body per device), wired in
      down on her own (not an Action press).
    - Riding on cars: jump onto a car and ride on its roof; if someone else is
      driving it carries you along. (In OTHER, not DRIVING — you're not driving.)
-   - Stat pickups: items around the map that boost Darci's stats when collected
-     (Stamina / Constitution / Strength / Skill exist; exact effect + how they're
-     collected are UNVERIFIED — body keeps it vague: "raise Darci's abilities").
-     ⚠️ CONFIRM with the user later.
+   - Stat pickups: items around the map that boost Darci's stats — collected by
+     walking over them (auto). Body says "raise Darci's abilities - just walk
+     over one to grab it". (Exact stat/effect still vague on purpose; Stamina /
+     Constitution / Strength / Skill exist in code.)
    - Radar / objectives still OUT of scope (user: skip for now).
 
 ## Out of scope
