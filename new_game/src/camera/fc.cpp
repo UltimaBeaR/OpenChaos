@@ -1895,12 +1895,20 @@ void FC_process()
             // before the climb-out anim shows her through the car body — but
             // not as snappy as a flat >>1.
             if (s_unzoom_ticks[cam] > 0) {
-                // Leaving the aim pose — ease XZ back out gently (UNZOOM_RATE_Q8)
-                // so the un-zoom is smooth and the same whether the character is
-                // standing or walking. Y keeps its default rate (the pull-back
-                // that felt abrupt is horizontal).
-                fc->x += (SLONG)(((int64_t)dx * UNZOOM_RATE_Q8) >> 8);
-                fc->z += (SLONG)(((int64_t)dz * UNZOOM_RATE_Q8) >> 8);
+                // Leaving the aim pose — ease XZ back out. The rate RAMPS from
+                // UNZOOM_RATE_Q8 (gentle, at window start) up to the normal
+                // follow rate (DEFAULT_FOLLOW_Q8 = the >>2 path below) as the
+                // window counts down to 0. This removes the rate discontinuity
+                // at window end (constant gentle rate → sudden >>2 caused a jerk),
+                // and keeps camera rotation done DURING the un-zoom from lagging
+                // then snapping. Same on mouse and stick (position smoothing is
+                // device-independent). Y keeps its default rate (the abrupt
+                // pull-back was horizontal).
+                constexpr SLONG DEFAULT_FOLLOW_Q8 = 64; // 0.25/tick = the >>2 path
+                const SLONG ramp_q8 = DEFAULT_FOLLOW_Q8
+                    + (UNZOOM_RATE_Q8 - DEFAULT_FOLLOW_Q8) * s_unzoom_ticks[cam] / UNZOOM_WINDOW_TICKS;
+                fc->x += (SLONG)(((int64_t)dx * ramp_q8) >> 8);
+                fc->z += (SLONG)(((int64_t)dz * ramp_q8) >> 8);
             } else if (exiting_vehicle_scene) {
                 fc->x += (dx >> 2) + (dx >> 3);
                 fc->z += (dz >> 2) + (dz >> 3);
