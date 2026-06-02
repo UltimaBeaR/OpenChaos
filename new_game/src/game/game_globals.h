@@ -78,6 +78,22 @@ extern SLONG g_physics_hz;
 // cap" in the API.
 static constexpr SLONG RENDER_FPS_DEFAULT_CAP = 300;
 
+// Minimum effective fps cap. A configured positive cap below this is raised
+// to it (a 0/negative cap still means "unlimited"). Below ~30 fps two things
+// go wrong: (1) the windowed/fullscreen OpenGL→compositor present path on
+// Windows develops a periodic ~1/sec hitch (a driver/OS-level scheduling
+// stall — confirmed via full per-phase profiling that our physics/render CPU
+// work stays ~2 ms while the frame still loses ~60 ms to nothing we run),
+// and (2) render below the 20 Hz physics rate looks choppy regardless. So we
+// don't expose the broken-and-poor sub-30 range.
+//
+// This clamp is a workaround, NOT a real fix. The sub-30 hitch is an unsolved
+// post-1.0 issue: see new_game_planning/known_issues_and_bugs_post_1_0.md →
+// "Настройки и конфигурация" → "FPS-лимит ниже 30 даёт периодический рывок".
+// The goal there is to root-cause the OpenGL→compositor present stall and then
+// lower or remove this clamp. Don't treat 30 as a designed minimum.
+static constexpr SLONG RENDER_FPS_MIN_CAP = 30;
+
 // Runtime-adjustable render frame cap in fps. Default = RENDER_FPS_DEFAULT_CAP;
 // 0 = unlimited (no cap) is still supported by lock_frame_rate() but not
 // the production default. Diagnostic hotkey 2 toggles default<->25 to test

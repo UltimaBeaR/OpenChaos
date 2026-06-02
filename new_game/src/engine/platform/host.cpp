@@ -207,11 +207,18 @@ BOOL SetupHost(ULONG flags)
     input_frame_init();
 
     // Render FPS cap from config (video.fps_cap). A value <= 0 means
-    // "unlimited" — lock_frame_rate() treats <= 0 as no cap. Stored
-    // canonically as 0 for unlimited.
+    // "unlimited" — lock_frame_rate() treats <= 0 as no cap (stored
+    // canonically as 0). A positive cap below RENDER_FPS_MIN_CAP is raised to
+    // it: the sub-30 range has a periodic present-path hitch on Windows and is
+    // choppy below the physics rate anyway (see RENDER_FPS_MIN_CAP).
     {
         int cap = OC_CONFIG_get_int("video", "fps_cap", RENDER_FPS_DEFAULT_CAP);
-        g_render_fps_cap = (cap <= 0) ? 0 : cap;
+        if (cap <= 0)
+            g_render_fps_cap = 0; // unlimited
+        else if (cap < RENDER_FPS_MIN_CAP)
+            g_render_fps_cap = RENDER_FPS_MIN_CAP;
+        else
+            g_render_fps_cap = cap;
     }
 
     // Create the SDL3 window (hidden until GL context is ready).
