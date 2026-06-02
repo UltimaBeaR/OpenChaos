@@ -1,4 +1,4 @@
-// OpenChaos config system — reads/writes openchaos/config.json.
+// OpenChaos config system — reads/writes OpenChaos.config.json (next to the exe).
 // See engine/io/oc_config.h for the public API and devlog for design notes.
 
 #include "engine/io/oc_config.h"
@@ -125,8 +125,9 @@ static void build_defaults_and_migrate(const char* ini_path)
 
 void OC_CONFIG_load(const char* ini_path)
 {
-    fs::path dir = fs::path("open_chaos");
-    fs::path path = dir / "config.json";
+    // Config lives next to the exe (working dir). The open_chaos/ folder is
+    // reserved for future custom resources, but the config no longer goes there.
+    fs::path path = fs::path("OpenChaos.config.json");
     g_config_path = path.string();
 
     if (fs::exists(path)) {
@@ -183,13 +184,6 @@ void OC_CONFIG_load(const char* ini_path)
 
     // First run or corrupt file: build from defaults + migrate from config.ini.
     build_defaults_and_migrate(ini_path);
-
-    std::error_code ec;
-    fs::create_directories(dir, ec);
-    if (ec)
-        fprintf(stderr, "oc_config: could not create openchaos/ directory: %s\n",
-            ec.message().c_str());
-
     config_save();
 }
 

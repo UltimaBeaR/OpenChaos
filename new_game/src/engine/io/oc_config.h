@@ -5,15 +5,15 @@
 #include <climits> // INT_MIN / INT_MAX
 
 // OpenChaos config system.
-// Reads/writes openchaos/config.json (relative to working directory).
-// On first run: creates config.json with ALL known options populated from
+// Reads/writes OpenChaos.config.json (next to the exe / working directory).
+// On first run: creates the file with ALL known options populated from
 // hardcoded defaults. On subsequent runs: loads whatever is in the file;
 // missing keys silently use hardcoded defaults and are NOT re-added on save.
 // All ENV_get_value_number / ENV_set_value_number calls delegate here.
 //
 // CLAMPING: the read functions take optional [lo, hi] bounds and clamp the
 // returned value into that range. This guards against a user hand-editing
-// config.json with an out-of-range (but right-type) value — it is trimmed
+// the config with an out-of-range (but right-type) value — it is trimmed
 // to the nearest valid bound instead of breaking the game. For a 0..1
 // fraction pass (0.0f, 1.0f); for an unbounded value omit the bounds.
 

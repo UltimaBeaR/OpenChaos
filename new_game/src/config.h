@@ -1,7 +1,7 @@
 #pragma once
 
 // Compile-time constants not exposed to the user config.
-// Runtime settings (resolution, vsync, detail levels, etc.) live in openchaos/config.json.
+// Runtime settings (resolution, vsync, detail levels, etc.) live in OpenChaos.config.json.
 
 // FOV pre-scale applied to the camera lens before auto-zoom.
 // 1.0 = original game FOV. Adjust only with care — affects sky, poly correction, etc.
