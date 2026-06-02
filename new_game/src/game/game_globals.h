@@ -70,12 +70,12 @@ extern UWORD env_frame_rate;
 // hotkeys stay as a dev-only diagnostic aid.
 extern SLONG g_physics_hz;
 
-// Default production render fps cap. We don't ship "unlimited" because
-// unbounded redraws in the main menu/attract burn the GPU for nothing on
-// some setups. 300 is well above any reasonable display refresh, so
-// gameplay still feels uncapped while the GPU stays well-behaved when the
-// scene is trivial. lock_frame_rate(0) still means "no cap" in the API —
-// a debug overlay or future config could opt back into 0 if desired.
+// Default render fps cap, used when config has no value. The cap is
+// configurable via config.json (video.fps_cap); a value <= 0 there means
+// "unlimited" (no cap). 300 is well above any reasonable display refresh,
+// so gameplay feels uncapped while the GPU stays well-behaved when the
+// scene is trivial (main menu / attract). lock_frame_rate(0) means "no
+// cap" in the API.
 static constexpr SLONG RENDER_FPS_DEFAULT_CAP = 300;
 
 // Runtime-adjustable render frame cap in fps. Default = RENDER_FPS_DEFAULT_CAP;

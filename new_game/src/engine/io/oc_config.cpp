@@ -42,7 +42,8 @@ static void build_defaults_and_migrate(const char* ini_path)
     g_config = {
         // Audio volumes as a 0..1 fraction (1.0 = full).
         { "audio", { { "ambient_volume", 1.0 }, { "music_volume", 1.0 }, { "fx_volume", 1.0 } } },
-        { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true } } },
+        // fps_cap: max render FPS. <= 0 means unlimited (no cap).
+        { "video", { { "detail_shadows", true }, { "detail_puddles", true }, { "detail_dirt", true }, { "detail_mist", true }, { "detail_rain", true }, { "detail_skyline", true }, { "detail_crinkles", true }, { "detail_stars", true }, { "detail_moon_reflection", true }, { "detail_people_reflection", true }, { "detail_filter", true }, { "detail_perspective", true }, { "fullscreen", true }, { "windowed_maximized", false }, { "windowed_width", 640 }, { "windowed_height", 480 }, { "vsync", true }, { "render_scale", 1.0 }, { "antialiasing", true }, { "crt_effect", true }, { "fps_cap", 300 } } },
         // scanner_follows: true = radar rotates with Darci's facing, false =
         // rotates with the camera (position is always relative to Darci). Default
         // false — the radar tracks where the camera looks.

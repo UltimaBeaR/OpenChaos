@@ -16,6 +16,7 @@
 #endif
 
 #include "game/game_types.h"
+#include "game/game_globals.h" // g_render_fps_cap, RENDER_FPS_DEFAULT_CAP
 #include "engine/audio/mfx.h"
 #include "engine/platform/uc_common.h"
 
@@ -204,6 +205,14 @@ BOOL SetupHost(ULONG flags)
     // Per-frame input aggregator: zeros snapshots and sticky press flags.
     // Call site for input_frame_update is at the bottom of LibShellActive.
     input_frame_init();
+
+    // Render FPS cap from config (video.fps_cap). A value <= 0 means
+    // "unlimited" — lock_frame_rate() treats <= 0 as no cap. Stored
+    // canonically as 0 for unlimited.
+    {
+        int cap = OC_CONFIG_get_int("video", "fps_cap", RENDER_FPS_DEFAULT_CAP);
+        g_render_fps_cap = (cap <= 0) ? 0 : cap;
+    }
 
     // Create the SDL3 window (hidden until GL context is ready).
     bool fullscreen = OC_CONFIG_get_int("video", "fullscreen", 0) != 0;
