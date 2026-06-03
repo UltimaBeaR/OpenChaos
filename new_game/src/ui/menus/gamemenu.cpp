@@ -196,16 +196,37 @@ SLONG GAMEMENU_process()
     // contribute 0 — next frame catches up. Upper clamp 200 ms guards alt-tab.
     SATURATE(millisecs, 0, 200);
 
-    // Automatically count up a delay before showing won/lost menu.
+    // Automatically count up a delay before showing the won/lost overlay.
+    // GAMEMENU_wait is accumulated in real-time milliseconds. The original
+    // was a frame-paced counter (+= 64/frame, threshold 64*20*2=2560 → 40
+    // frames); at the 20 Hz real-time physics rate that was 40/20 = 2.0 s.
+    // Frame-paced, the delay scaled with FPS — on the unlocked frame rate the
+    // same 40 frames elapsed in ~0.2 s, so the overlay popped almost instantly
+    // after the win. Driving it by wall-clock millisecs makes it FPS-independent.
+    //   GAMEMENU_WON_LOST_DELAY_MS = uc_orig 40 frames / 20 fps = 2000 ms.
+    const SLONG GAMEMENU_WON_LOST_DELAY_MS = 2000;
+
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
-        if (MFX_QUICK_still_playing() && !MUSIC_is_playing()) {
-            // Speech is still playing — hold.
+        if (MFX_QUICK_still_playing()) {
+            // The end-of-mission voice line (e.g. the cop's radio sign-off) is
+            // still playing — reset the countdown so the overlay always appears
+            // a fixed delay AFTER the voice finishes, never cutting it off.
+            //
+            // Original gated this on `... && !MUSIC_is_playing()`, intended as
+            // "QUICK busy but not with music → it's speech" (speech and music
+            // shared channel 0 in the pre-release engine). But MUSIC_is_playing()
+            // is a no-op alias for MFX_QUICK_still_playing() (see its comment in
+            // music.cpp) — so the guard was `q && !q`, always false: the hold
+            // never engaged and the voice was cut in the pre-release/PieroZ too.
+            // In our port music plays on its own channel (MUSIC_REF), so channel
+            // 0 is speech-only and we just test the speech channel directly.
+            GAMEMENU_wait = 0;
         } else {
-            GAMEMENU_wait += 64 * TICK_RATIO >> TICK_SHIFT;
+            GAMEMENU_wait += millisecs;
         }
     }
 
-    if (GAMEMENU_wait > (64 * 20 * 2) && GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_SURE) {
+    if (GAMEMENU_wait > GAMEMENU_WON_LOST_DELAY_MS && GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_SURE) {
         if (GAME_STATE & GS_LEVEL_LOST) {
             if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_LOST) {
                 GAMEMENU_initialise(GAMEMENU_MENU_TYPE_LOST);

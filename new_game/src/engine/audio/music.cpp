@@ -167,6 +167,24 @@ void MUSIC_gain(UBYTE gain)
 }
 
 // uc_orig: MUSIC_is_playing (fallen/Source/music.cpp)
+//
+// ⚠️ Misnomer: this does NOT report whether background music is playing. It
+// returns whether the QUICK/talk channel (channel 0 — used by PlayTalk for
+// speech) is busy. This is faithful to the original, whose body was:
+//     SLONG id = last_MFX_QUICK_play_id;
+//     if (id == last_MFX_QUICK_play_id && MFX_QUICK_still_playing()) return TRUE;
+// The `id == last_MFX_QUICK_play_id` test is a self-comparison (the local was
+// just assigned from that same global on the line above) — always true. So the
+// id check was dead code and the function has always been a plain alias for
+// MFX_QUICK_still_playing(). We keep that behaviour, minus the dead tautology.
+//
+// Consequence: code that tries to mean "music, not speech" via
+// `MFX_QUICK_still_playing() && !MUSIC_is_playing()` evaluates to `q && !q` ==
+// false. In the pre-release engine speech and music shared channel 0, so the
+// name made sense in intent, but the implementation never worked. In our port
+// music plays on a SEPARATE channel (MUSIC_REF, via MFX_play_stereo), so
+// channel 0 is speech-only — to test for speech, call MFX_QUICK_still_playing()
+// directly; do not rely on this function to detect music.
 SLONG MUSIC_is_playing(void)
 {
     return MFX_QUICK_still_playing() ? UC_TRUE : UC_FALSE;
