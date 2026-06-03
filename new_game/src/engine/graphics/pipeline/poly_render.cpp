@@ -123,9 +123,17 @@ void POLY_init_render_states()
         DefRenderState = RenderState(GETextureFilter::Linear, GETextureFilter::Linear);
     }
 
-    // Set each page to the default render state.
+    // Set each page to the default render state, and clear any stale
+    // multi-pass overlay state. The overlay fields below are only ever
+    // *set* (for 2PASS bases) in the loop further down — they must be
+    // cleared here on every re-init, or a page that was an overlay base
+    // in a previously-loaded texture world keeps compositing a now-bogus
+    // overlay (pointing at an unrelated/unloaded page) in the new world,
+    // rendering the tile black. Symmetric with the RS reset.
     for (int ii = 0; ii < POLY_NUM_PAGES; ii++) {
         POLY_Page[ii].RS = DefRenderState;
+        POLY_Page[ii].m_OverlayMode = 0;
+        POLY_Page[ii].m_OverlayPage = -1;
     }
 
     // Override per-page render states based on page type.
