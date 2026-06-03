@@ -12,10 +12,11 @@
 // ---------------------------------------------------------------------------
 
 // Create an SDL3 window with OpenGL support.
-// When fullscreen is true, width/height are ignored and the window is
-// created with SDL_WINDOW_FULLSCREEN (SDL3 borderless-desktop by default —
-// the mode documented in stage12.md that avoids the WDDM throttle path on
-// NVIDIA Windows drivers).
+// When fullscreen is true, width/height are ignored and the window is created
+// as a borderless window sized to the desktop + 1px in width (see
+// sdl3_window_create for why: dodging the NVIDIA GL driver's exclusive-
+// fullscreen grab on Win11 so the window stays DWM-composited and OS
+// screenshots work). It is NOT SDL_WINDOW_FULLSCREEN / fullscreen-desktop.
 bool sdl3_window_create(const char* title, int width, int height, bool fullscreen);
 
 // Destroy the SDL3 window.

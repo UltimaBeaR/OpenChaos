@@ -34,6 +34,13 @@ static SDL3_Callbacks s_callbacks = {};
 // the strategy matrix.
 static bool s_use_dwm_flush = false;
 
+// Physical-pixel width pad added to the fullscreen window so its size doesn't
+// exactly match the display resolution (dodges the NVIDIA GL driver's
+// exclusive-fullscreen grab — see sdl3_window_create). sdl3_window_get_drawable_size
+// subtracts it so the rest of the engine sees the true display size and the
+// off-screen extra column is never rendered into. 0 in windowed mode.
+static int s_fullscreen_extra_w = 0;
+
 // SDL event watcher — fires synchronously when SDL_PushEvent is called,
 // including from inside the OS modal resize loop (Windows edge-drag),
 // where our main loop is blocked. We use it to repaint the window with
@@ -101,6 +108,9 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         return false;
     }
 
+    // Reset the fullscreen width pad — set below only on the fullscreen path.
+    s_fullscreen_extra_w = 0;
+
     // No MSAA on the default framebuffer — antialiasing is done in the
     // composition pass via FXAA (see postprocess/composition.cpp). Scene
     // rendering targets a single-sample scene FBO; the default framebuffer
@@ -125,22 +135,53 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     const int requested_phys_w = width;
     const int requested_phys_h = height;
 
+    // True only if we actually applied the +1px width pad below (i.e. the
+    // desktop mode query succeeded). Gates the pad recorded after creation so
+    // we never subtract a pad that wasn't added (would clip 1px on the right).
+    bool fullscreen_padded = false;
+
     if (fullscreen) {
-        // Explicitly use the primary display's desktop resolution as the
-        // window size — otherwise SDL3 takes the passed (width, height) as
-        // the requested exclusive fullscreen mode and the drawable stays
-        // stuck at that size, leaving a rendered region in the bottom-left
-        // of the physical panel on monitors with a different native mode.
+        // Borderless window sized to the desktop, NOT SDL_WINDOW_FULLSCREEN.
+        //
+        // Why borderless instead of SDL fullscreen-desktop: on Windows 11 an
+        // OpenGL borderless window whose size EXACTLY matches the display
+        // resolution gets silently promoted to exclusive fullscreen by the
+        // NVIDIA GL driver on the first SwapWindow (SDL bug #12791). Exclusive
+        // fullscreen bypasses DWM → the OS screenshot path (PrintScreen /
+        // Snipping Tool) captures a stale / off-by-one frame. The only app-side
+        // lever that stops the promotion is making the window NOT match the
+        // display resolution exactly, so we add +1 to the WIDTH: the extra
+        // column hangs off the right edge (invisible, taskbar still covered)
+        // and the window stays a real DWM-composited borderless window.
+        //
+        // +1 on width rather than height because the off-screen strip then
+        // runs along the shorter dimension (1×height px) instead of the longer
+        // one (1×width px) — minimal wasted area. It's also cleaner for the
+        // compensation: nothing overhangs top/bottom, so the visible region is
+        // a plain (0,0,w,h) with no OpenGL bottom-left-origin juggling.
+        //
+        // The extra column is fully hidden from the rest of the engine:
+        // sdl3_window_get_drawable_size subtracts the pad (s_fullscreen_extra_w),
+        // so FBO sizing/aspect (OpenDisplay), the composition dst-rect + clear,
+        // and mouse→FBO mapping all see the true display size (w, h). The
+        // composition viewport therefore fills exactly the visible (w, h) and
+        // never draws into the off-screen column → output is pixel-identical to
+        // true fullscreen, no stretch, no lost content. The padded size lives
+        // only in the physical SDL window (what the driver inspects). See the
+        // FBO-as-virtual-screen model in
+        // new_game_devlog/fullscreen_transition/concepts.md.
+        //
         // SDL_GetDesktopDisplayMode returns logical-point dimensions, which
         // is what SDL_CreateWindow expects; HIGH_PIXEL_DENSITY then makes
         // the actual drawable match the physical panel.
         SDL_DisplayID display = SDL_GetPrimaryDisplay();
         const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
         if (mode) {
-            width = mode->w;
+            width = mode->w + 1; // +1px: dodge the driver's exclusive-fullscreen grab
             height = mode->h;
+            fullscreen_padded = true;
         }
-        flags |= SDL_WINDOW_FULLSCREEN;
+        flags |= SDL_WINDOW_BORDERLESS;
     }
 
     s_window = SDL_CreateWindow(title, width, height, flags);
@@ -187,10 +228,28 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
                 SDL_WINDOWPOS_CENTERED);
         }
     } else {
-        // Belt-and-suspenders: force borderless-desktop fullscreen (passing
-        // NULL as the mode). Prevents SDL from staying in an exclusive mode
-        // if it auto-picked one that matched the desktop size by coincidence.
-        SDL_SetWindowFullscreenMode(s_window, nullptr);
+        // Borderless fullscreen: pin the window to the top-left so it covers
+        // the whole screen, with the +1px from above hanging off the right
+        // edge (off-screen, taskbar stays covered). Deliberately NO
+        // SDL_SetWindowFullscreenMode here — this is a plain borderless window,
+        // not SDL fullscreen-desktop (which would snap the size back to the
+        // exact display resolution and re-trigger the driver's exclusive grab).
+        SDL_SetWindowPosition(s_window, 0, 0);
+
+        // Record the extra width in PHYSICAL pixels so sdl3_window_get_drawable_size
+        // can hide it — the engine then sees the true display size (w, h) for
+        // FBO sizing, aspect, composition and mouse mapping, and the off-screen
+        // extra column is simply never drawn into. We added 1 logical point;
+        // in physical pixels that's ~density px (exactly 1 on a standard
+        // density-1.0 desktop — the only config this Win11 driver bug applies
+        // to; on fractional-HiDPI a possible ±1px error is invisible).
+        // Only when the +1px was actually applied (desktop mode query OK).
+        if (fullscreen_padded) {
+            const float density = SDL_GetWindowPixelDensity(s_window);
+            s_fullscreen_extra_w = (int)(density + 0.5f);
+            if (s_fullscreen_extra_w < 1)
+                s_fullscreen_extra_w = 1;
+        }
 
         // Hide the OS cursor — in fullscreen there's no reason for it to be
         // visible over the game. Menus that need a pointer draw their own.
@@ -206,6 +265,7 @@ void sdl3_window_destroy()
         SDL_DestroyWindow(s_window);
         s_window = nullptr;
     }
+    s_fullscreen_extra_w = 0;
 }
 
 void sdl3_window_show()
@@ -253,6 +313,11 @@ void sdl3_window_get_drawable_size(int* w, int* h)
 {
     if (s_window) {
         SDL_GetWindowSizeInPixels(s_window, w, h);
+        // Hide the fullscreen anti-exclusive-grab width pad (see
+        // sdl3_window_create): report the true display width so the engine
+        // never sees the off-screen extra column. 0 (no-op) in windowed mode.
+        if (w && s_fullscreen_extra_w > 0)
+            *w -= s_fullscreen_extra_w;
     } else {
         if (w)
             *w = 0;
@@ -409,9 +474,9 @@ void sdl3_gl_swap()
 {
 #ifdef _WIN32
     // Only when the active strategy needs it — see sdl3_gl_configure_vsync().
-    // In that mode driver VSync is off and DwmFlush is our pacing mechanism;
-    // in all other modes (VSync off, fullscreen VSync, non-Windows) the
-    // driver-side path handles pacing and we skip this.
+    // With VSync enabled on Windows (both windowed and fullscreen) driver VSync
+    // is off and DwmFlush is our pacing mechanism; with VSync disabled the flag
+    // is false and we skip this (the driver-side path handles pacing).
     if (s_use_dwm_flush)
         DwmFlush();
 #endif
@@ -425,15 +490,19 @@ void sdl3_gl_configure_vsync(bool vsync_enabled)
 
     // Three paths:
     //   1. vsync_enabled=false → driver VSync off, no DwmFlush. Max FPS, tearing.
-    //   2. vsync_enabled=true, windowed on Windows → driver VSync off +
-    //      DwmFlush on swap. Avoids the WDDM-throttle hang that hard driver
-    //      VSync triggers on affected NVIDIA hardware when DWM is composing
-    //      our window.
-    //   3. vsync_enabled=true, fullscreen OR non-Windows → regular driver
-    //      VSync (SetSwapInterval(1)). In fullscreen NVIDIA goes straight
-    //      to scan-out and skips the WDDM path that throttles. On macOS
-    //      and Linux the WDDM bug doesn't exist, and DwmFlush is Windows-
-    //      only anyway.
+    //   2. vsync_enabled=true, Windows (windowed AND fullscreen) → driver VSync
+    //      off + DwmFlush on swap. The driver-level VSync block
+    //      (SetSwapInterval(1)) is itself the WDDM-throttle-hang trigger on
+    //      affected NVIDIA hardware (startup_hang_investigation/fix_progress.md,
+    //      Stage 5), so we pace through the DWM compositor instead. Routing
+    //      fullscreen through DWM (instead of direct scan-out) also fixes the OS
+    //      screenshot path (PrintScreen / Snipping Tool) capturing a stale /
+    //      off-by-one frame: direct scan-out bypasses DWM, so the window copy
+    //      that the legacy capture reads never updates and goes stale. Cost:
+    //      ~1 frame of extra display latency on Windows (FPS unchanged).
+    //   3. vsync_enabled=true, non-Windows → regular driver VSync
+    //      (SetSwapInterval(1)). The WDDM bug is Windows/NVIDIA-only and DwmFlush
+    //      is Windows-only anyway.
     if (!vsync_enabled) {
         SDL_GL_SetSwapInterval(0);
         s_use_dwm_flush = false;
@@ -441,13 +510,24 @@ void sdl3_gl_configure_vsync(bool vsync_enabled)
     }
 
 #ifdef _WIN32
-    if (fullscreen) {
-        SDL_GL_SetSwapInterval(1);
-        s_use_dwm_flush = false;
-    } else {
-        SDL_GL_SetSwapInterval(0);
-        s_use_dwm_flush = true;
-    }
+    // Windowed and fullscreen both use the DWM-paced path now. Verified safe
+    // against the startup-hang: SetSwapInterval(0) is the proven anti-hang
+    // factor (Stage 5 — no hang in any scenario with it), and this is exactly
+    // the windowed path that already ships hang-free. We deliberately switched
+    // fullscreen here (it previously used hard driver VSync + direct scan-out)
+    // to fix the broken OS screenshot path in fullscreen — see the comment above.
+    //
+    // ⚠️ Do NOT instead force DWM composition while keeping SetSwapInterval(1):
+    // that recreates the exact windowed hang condition (blocking driver Present
+    // + DWM composing) and double-blocks (halved FPS).
+    //
+    // Old fullscreen-specific path (direct scan-out + hard VSync), kept for
+    // reference in case the ~1-frame latency cost proves unacceptable:
+    //     if (fullscreen) { SDL_GL_SetSwapInterval(1); s_use_dwm_flush = false; }
+    //     else            { SDL_GL_SetSwapInterval(0); s_use_dwm_flush = true;  }
+    (void)fullscreen; // present strategy is now the same in both modes
+    SDL_GL_SetSwapInterval(0);
+    s_use_dwm_flush = true;
 #else
     (void)fullscreen; // not consulted on this platform
     SDL_GL_SetSwapInterval(1);

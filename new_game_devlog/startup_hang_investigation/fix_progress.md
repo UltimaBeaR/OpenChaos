@@ -116,15 +116,66 @@ driver VSync (`SetSwapInterval(1)`) + `DwmFlush` отключён + `lock_frame_
 напрямую в scan-out минуя DWM compositor, WDDM scheduler отрабатывает
 корректно, hard VSync безопасен.
 
-**Следствия для production:**
-- **Windowed:** `SetSwapInterval(0)` + `DwmFlush()` (наш текущий путь).
-- **Fullscreen:** `SetSwapInterval(1)` + без `DwmFlush` (тот был бы
-  no-op в любом случае).
+**Следствия для production (на момент smoke-test'а, 2026-04-22):**
+- **Windowed:** `SetSwapInterval(0)` + `DwmFlush()`.
+- **Fullscreen:** `SetSwapInterval(1)` + без `DwmFlush`.
 
-Когда [stage12.md](../../new_game_planning/stage12.md) добавит
-переключаемый fullscreen — в `sdl3_gl_create_context()` проверять
-`SDL_GetWindowFlags(s_window) & SDL_WINDOW_FULLSCREEN` и выбирать
-стратегию. Сейчас игра всегда windowed, production setup — текущий.
+### ⚠️ ОБНОВЛЕНО: fullscreen чинит системный PrintScreen (DWM-путь + borderless +1px)
+
+Решение выше **изменено**. Фикс системного PrintScreen в фуллскрине
+состоит из **двух** частей — одного DWM-пути НЕ хватило:
+
+**Часть 1 — present-путь.** Fullscreen теперь использует **тот же
+DWM-path, что и windowed** (`SetSwapInterval(0)` + `DwmFlush()`), а не
+direct-scan-out + hard VSync.
+
+**Часть 2 — геометрия окна (ГЛАВНОЕ для PrintScreen).** Корнем оказался
+не Independent Flip, а то, что NVIDIA-драйвер OpenGL на Win11 **сам
+протаскивает borderless-окно в ЭКСКЛЮЗИВНЫЙ фуллскрин** при первом
+`SwapWindow`, если размер окна **точно равен** разрешению дисплея (SDL
+bug #12791). Эксклюзив реально минует DWM → системный захват видит
+протухший / «на один кадр назад» кадр. Лечится тем, что окно делается
+borderless-окном размером **`(w+1, h)`** (на 1px шире экрана, лишний
+столбец свисает за правый край) — несовпадение размера снимает захват в
+эксклюзив, окно остаётся настоящим DWM-composited. **Проверено
+пользователем на NVIDIA Win11 — PrintScreen чинится.**
+
+Только смена present-пути (часть 1) PrintScreen НЕ починила (проверено):
+`DwmFlush` не управляет промоутом в эксклюзив, это решает только геометрия.
+Но часть 1 всё равно нужна: composited-фуллскрин с hard VSync вернул бы
+hang (см. ниже).
+
+**Компенсация +1px:** лишний столбец полностью скрыт от движка —
+`sdl3_window_get_drawable_size` вычитает pad (`s_fullscreen_extra_w`), так
+что FBO/аспект (`OpenDisplay`), композиция (dst-rect + clear) и маппинг
+мыши видят честные `(w, h)`. Картинка пиксель-в-пиксель как честный
+фуллскрин, ничего не растянуто и не обрезано. `+1px` живёт только в
+физическом SDL-окне (то, что инспектирует драйвер). Аудит прочих читателей
+размера окна (`sdl3_window_get_size`): host.cpp — windowed-only;
+mouse_capture — short-circuit в фуллскрине; OpenDisplay logical_w/h — только
+лог; `sdl3_window_get_center` — мёртвая. Утечки нет.
+
+**Реализация:** [sdl3_bridge.cpp](../../new_game/src/engine/platform/sdl3_bridge.cpp)
+`sdl3_window_create` (borderless `(w+1,h)` + запись pad),
+`sdl3_window_get_drawable_size` (вычитание pad), `sdl3_gl_configure_vsync`
+(DWM-путь и в фуллскрине).
+
+**Цена:** ~1 кадр лишней display-латентности на Windows (FPS не меняется).
+Steam Deck / не-Windows не затронуты (там отдельная ветка). Деталь
+«+1 кадр от ~2» обсуждалась с пользователем и признана приемлемой для
+синглплеера.
+
+**Безопасность по hang'у:** проверено по этому же дев-логу. `SetSwapInterval(0)`
+— доказанный анти-hang фактор (Stage 5: «hang не воспроизводится ни в одном
+сценарии» при нём), а новый фуллскрин-путь идентичен оконному, который
+шипается без hang'ов. **Нельзя** вместо этого форсить DWM-композицию с
+`SetSwapInterval(1)` — это воссоздаёт ту самую windowed hang-комбинацию
+(блокирующий driver Present + DWM композитит) и даёт двойную блокировку.
+
+Старый fullscreen-путь (direct scan-out + hard VSync + SDL_WINDOW_FULLSCREEN)
+оставлен **закомментированным** в `sdl3_gl_configure_vsync()`
+([sdl3_bridge.cpp](../../new_game/src/engine/platform/sdl3_bridge.cpp)) — на
+случай если ~1 кадр латентности окажется неприемлемым и решим вернуть.
 
 ### ⚠️ Методологическая поправка к исходному investigation
 
