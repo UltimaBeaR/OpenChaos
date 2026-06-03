@@ -121,6 +121,21 @@ static SLONG DIRT_get_new_type(SLONG x, SLONG z)
     }
 }
 
+// Brass-casing (DIRT_TYPE_BRASS) FIFO cap. Casings never expire on their own —
+// a settled casing keeps its DIRT_dirt slot forever (it sets DIRT_FLAG_STILL,
+// never DIRT_FLAG_DELETE_OK), so under sustained auto-fire — worst with the
+// AK47, which ejects 3 casings per shot — they pile up to fill the shared dirt
+// pool, starving other dirt (leaves stop spawning) and stacking draw cost. This
+// is original behaviour (the original never expired brass either), made worse
+// by our unlocked frame rate (more shots/sec). Bound the number of live casings:
+// keep a FIFO ring of their pool slots and, once BRASS_MAX are live, reuse the
+// oldest casing's slot for each new one (round-robin eviction). Reset on level
+// load (DIRT_init) so the ring never references a stale previous-level slot.
+#define BRASS_MAX 200
+static SLONG s_brass_slots[BRASS_MAX]; // DIRT_dirt indices of live casings
+static SLONG s_brass_count = 0;        // ramps 0 -> BRASS_MAX
+static SLONG s_brass_next = 0;         // FIFO eviction pointer (oldest)
+
 // uc_orig: DIRT_init (fallen/Source/dirt.cpp)
 void DIRT_init(
     SLONG prob_leaf,
@@ -147,6 +162,11 @@ void DIRT_init(
         memset((UBYTE*)&DIRT_dirt[i], 0, sizeof(DIRT_Dirt));
         DIRT_dirt[i].type = DIRT_TYPE_UNUSED;
     }
+
+    // Pool was just cleared — drop the brass FIFO bookkeeping so it doesn't
+    // reference slots from the previous level.
+    s_brass_count = 0;
+    s_brass_next = 0;
 
     prob_sum = prob_leaf;
     prob_sum += prob_can;
@@ -1950,10 +1970,29 @@ void DIRT_create_brass(
     }
 
     {
-        dd = DIRT_find_useless();
-
-        if (dd == NULL) {
-            return;
+        // FIFO cap on live casings — see BRASS_MAX above. While ramping up,
+        // allocate a fresh slot; once at the cap, reuse the oldest casing's
+        // slot (round-robin eviction).
+        if (s_brass_count < BRASS_MAX) {
+            dd = DIRT_find_useless();
+            if (dd == NULL) {
+                return;
+            }
+            s_brass_slots[s_brass_count++] = (SLONG)(dd - DIRT_dirt);
+        } else {
+            dd = &DIRT_dirt[s_brass_slots[s_brass_next]];
+            // The slot may have been repurposed by other dirt under pool
+            // pressure (the shared pool can overwrite any slot). If it's no
+            // longer a casing, don't steal it back from whatever took it —
+            // grab a fresh slot and retrack it in the ring instead.
+            if (dd->type != DIRT_TYPE_BRASS) {
+                dd = DIRT_find_useless();
+                if (dd == NULL) {
+                    return;
+                }
+                s_brass_slots[s_brass_next] = (SLONG)(dd - DIRT_dirt);
+            }
+            s_brass_next = (s_brass_next + 1) % BRASS_MAX;
         }
 
         useangle = angle;
