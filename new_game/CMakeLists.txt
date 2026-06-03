@@ -14,6 +14,12 @@ set(X_VCPKG_APPLOCAL_DEPS_INSTALL OFF)
 
 project(OpenChaos LANGUAGES CXX)
 
+# Windows: enable the RC language so the .exe gets an embedded application icon
+# (resources/icon/OpenChaos.rc -> OpenChaos.ico). No-op on other platforms.
+if(WIN32)
+    enable_language(RC)
+endif()
+
 # Emit compile_commands.json for clangd / other tooling. Ninja Multi-Config
 # writes it to ${CMAKE_BINARY_DIR}/compile_commands.json (i.e. new_game/build/).
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -200,6 +206,28 @@ add_custom_command(
         "${GLYPH_DIR}/glyphs_ps.png"
         "${GLYPH_DIR}/glyphs_deck.png"
     COMMENT "Embedding input-prompt PNG atlases into input_glyphs_embedded.h"
+)
+
+# Embed the window-icon PNG (resources/icon/window_icon.png) as a C byte array
+# for SDL_SetWindowIcon at runtime. On Windows the .exe resource already
+# supplies the taskbar icon; on Linux this embedded PNG is the only source.
+# Same file(READ ... HEX) mechanism as the glyph embed above.
+set(WINDOW_ICON_PNG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/window_icon.png")
+set(WINDOW_ICON_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/window_icon_embedded.h")
+set(WINDOW_ICON_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_window_icon.cmake")
+file(WRITE "${WINDOW_ICON_EMBED_SCRIPT}" "
+file(READ \"\${SRC}\" HEX HEX)
+string(REGEX REPLACE \"(..)\" \"0x\\\\1,\" BYTES \"\${HEX}\")
+file(WRITE \"\${OUT}\"
+    \"// Auto-generated from resources/icon/window_icon.png — do not edit.\\n\"
+    \"static const unsigned char WINDOW_ICON_PNG[] = { \${BYTES} };\\n\"
+    \"static const unsigned int  WINDOW_ICON_PNG_LEN = sizeof(WINDOW_ICON_PNG);\\n\")
+")
+add_custom_command(
+    OUTPUT "${WINDOW_ICON_HEADER}"
+    COMMAND ${CMAKE_COMMAND} -DSRC="${WINDOW_ICON_PNG_FILE}" -DOUT="${WINDOW_ICON_HEADER}" -P "${WINDOW_ICON_EMBED_SCRIPT}"
+    DEPENDS "${WINDOW_ICON_PNG_FILE}"
+    COMMENT "Embedding window icon PNG into window_icon_embedded.h"
 )
 
 set(BACKEND_SOURCES
@@ -614,12 +642,23 @@ set(SOURCES_NEW
 # ---------------------------------------------------------------------------
 # Target
 # ---------------------------------------------------------------------------
+# Windows: .rc resource embedding the application icon into the .exe.
+# Empty on other platforms so add_executable below stays portable.
+set(WIN_RESOURCES "")
+if(WIN32)
+    set(WIN_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/OpenChaos.rc)
+endif()
+
 add_executable(OpenChaos
     ${SOURCES_NEW}
     # Generated shader header (triggers rebuild when .glsl files change).
     ${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h
     # Generated glyph-atlas header (triggers rebuild when PNGs change).
     ${CMAKE_CURRENT_BINARY_DIR}/generated/input_glyphs_embedded.h
+    # Generated window-icon header (triggers rebuild when window_icon.png changes).
+    ${WINDOW_ICON_HEADER}
+    # Windows: application icon resource (no-op elsewhere).
+    ${WIN_RESOURCES}
 )
 # WIN32 = SUBSYSTEM:WINDOWS (no console window). Only meaningful on Windows.
 if(WIN32)

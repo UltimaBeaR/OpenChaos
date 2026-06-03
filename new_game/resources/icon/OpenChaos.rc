@@ -1,0 +1,6 @@
+// Windows executable icon resource.
+// Resource ID 1 = the lowest numeric icon ID, which Windows Explorer / the
+// shell use as the application icon for the .exe. The .ico is multi-size
+// (16/24/32/48/64/128/256), all the maple-leaf badge — the OS picks the best
+// size per context. Path is relative to this .rc file.
+1 ICON "OpenChaos.ico"

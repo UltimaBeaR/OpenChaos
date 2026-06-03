@@ -9,6 +9,11 @@ set(CMAKE_SYSTEM_PROCESSOR x86_64)
 set(CMAKE_C_COMPILER   "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 
+# Resource compiler for the .rc that embeds the .exe icon. Standalone clang
+# ships llvm-rc; rc.exe (Windows SDK) is not on PATH without vcvarsall, so
+# point CMake at llvm-rc explicitly.
+set(CMAKE_RC_COMPILER "llvm-rc")
+
 # Target 64-bit x86 with MSVC-compatible ABI.
 # This must be in FLAGS_INIT (evaluated before first try_compile) rather than
 # target_compile_options, because CMake uses try_compile during configuration.
