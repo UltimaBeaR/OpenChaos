@@ -13,7 +13,9 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
-// Shared flag from host.cpp — prevents multiple handlers from overwriting crash_log.txt.
+#include "engine/platform/crash_log_file.h" // OC_CRASH_LOG_FILE
+
+// Shared flag from host.cpp — prevents multiple handlers from overwriting the crash log.
 extern volatile bool g_exit_log_written;
 
 static void write_crash_timestamp(FILE* f, const char* label)
@@ -38,7 +40,7 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
 
     // For stack overflow: use a small static buffer and WriteFile as fallback,
     // since fprintf/localtime may need stack space we don't have.
-    HANDLE hFile = CreateFileA("crash_log.txt", GENERIC_WRITE, 0, nullptr,
+    HANDLE hFile = CreateFileA(OC_CRASH_LOG_FILE, GENERIC_WRITE, 0, nullptr,
         CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (hFile == INVALID_HANDLE_VALUE)
         return EXCEPTION_CONTINUE_SEARCH;
@@ -74,7 +76,7 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
     FlushFileBuffers(hFile);
     CloseHandle(hFile);
 
-    FILE* f = fopen("crash_log.txt", "a"); // append to what we wrote above
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "a"); // append to what we wrote above
     if (!f)
         return EXCEPTION_CONTINUE_SEARCH;
 
@@ -157,7 +159,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
         : ctrl_type == CTRL_SHUTDOWN_EVENT                                                  ? "System shutdown"
                                                                                             : "Unknown console event";
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (f) {
         write_crash_timestamp(f, "Terminated (console event)");
         fprintf(f, "Type: %s (code %lu)\n", desc, (unsigned long)ctrl_type);
@@ -169,7 +171,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
 }
 
 // CRT invalid parameter handler: catches CRT assertion failures (e.g. from libraries).
-// Writes details to crash_log.txt before abort.
+// Writes details to OpenChaos.crash_log.txt before abort.
 static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
     const wchar_t* file, unsigned int line, uintptr_t)
 {
@@ -178,7 +180,7 @@ static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
         return;
     g_exit_log_written = true;
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (f) {
         write_crash_timestamp(f, "Crash (CRT invalid parameter)");
         if (expr)
@@ -195,7 +197,7 @@ static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
 }
 
 // CRT debug report hook: intercepts assert/error messages from CRT (debug builds).
-// Writes the message to crash_log.txt and stderr, then lets abort() proceed.
+// Writes the message to OpenChaos.crash_log.txt and stderr, then lets abort() proceed.
 static int crt_report_hook(int report_type, char* message, int* return_value)
 {
     (void)return_value;
@@ -203,11 +205,11 @@ static int crt_report_hook(int report_type, char* message, int* return_value)
         : report_type == _CRT_ASSERT                                                         ? "CRT_ASSERT"
                                                                                              : "CRT_UNKNOWN";
 
-    // Write to crash_log.txt
+    // Write to OpenChaos.crash_log.txt
     extern volatile bool g_exit_log_written;
     if (!g_exit_log_written) {
         g_exit_log_written = true;
-        FILE* f = fopen("crash_log.txt", "w");
+        FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
         if (f) {
             write_crash_timestamp(f, "Crash (CRT assert)");
             fprintf(f, "Type: %s\n", type_str);
@@ -291,7 +293,7 @@ extern "C" void install_crash_handler(void)
     // Catch CRT invalid parameter errors (triggered by assert-like checks in CRT).
     _set_invalid_parameter_handler(crt_invalid_param_handler);
 
-    // Intercept CRT debug reports (assert dialogs) — write to crash_log.txt instead.
+    // Intercept CRT debug reports (assert dialogs) — write to OpenChaos.crash_log.txt instead.
     _CrtSetReportHook(crt_report_hook);
 }
 

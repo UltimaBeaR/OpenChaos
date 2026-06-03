@@ -2,13 +2,24 @@
 
 This file lists all third-party libraries used by OpenChaos and their licenses.
 
+All third-party libraries are **statically linked** into the single OpenChaos
+executable on every platform (no separate DLL/.so/.dylib files are shipped).
+
+> **Maintainer note:** the version numbers below must match the versions vcpkg
+> actually builds. Re-check them on every release (see the `release` skill).
+> The exact versions live in `new_game/vcpkg_installed/<triplet>/share/<port>/vcpkg.spdx.json`
+> (field `versionInfo`; the trailing `#N` is the vcpkg port revision, not the
+> library version).
+
 ---
 
 ## SDL3
 
 - **Website:** https://www.libsdl.org/
+- **Version:** 3.4.2
 - **License:** zlib
 - **Installed via:** vcpkg
+- **Linking:** static (built into the executable)
 
 ```
 Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
@@ -35,9 +46,11 @@ freely, subject to the following restrictions:
 ## OpenAL Soft
 
 - **Website:** https://openal-soft.org/
-- **Source:** https://github.com/kcat/openal-soft
-- **License:** LGPL-2.0
-- **Installed via:** vcpkg (dynamic linking on Windows, static on macOS)
+- **Version:** 1.25.1
+- **Source (this exact version):** https://github.com/kcat/openal-soft/releases/tag/1.25.1
+- **License:** LGPL-2.0 (GNU Library General Public License, version 2)
+- **Installed via:** vcpkg
+- **Linking:** static (built into the executable, all platforms)
 
 ```
 Copyright (C) 1999-2014 by authors.
@@ -48,17 +61,23 @@ Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
 Full source code:  https://github.com/kcat/openal-soft
 ```
 
-No modifications to the library source are made. LGPL compliance is provided
-through the project's open source code and build instructions.
+OpenAL Soft is statically linked into OpenChaos and is used unmodified. The
+LGPL permits static linking provided the user can relink the application with a
+modified version of the library. OpenChaos satisfies this because the complete
+application source code and build instructions are publicly available, so anyone
+can substitute a modified OpenAL Soft and rebuild. The exact library version
+used in a given build is linked above.
 
 ---
 
 ## fmt
 
 - **Website:** https://fmt.dev/
+- **Version:** 12.1.0
 - **Source:** https://github.com/fmtlib/fmt
 - **License:** MIT (with binary embedding exception)
 - **Installed via:** vcpkg (transitive dependency of OpenAL Soft)
+- **Linking:** static (built into the executable)
 
 ```
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
@@ -95,30 +114,38 @@ without including the above copyright and permission notices.
 ## FFmpeg
 
 - **Website:** https://ffmpeg.org/
-- **Source:** https://github.com/FFmpeg/FFmpeg
-- **License:** LGPL-2.0
-- **Installed via:** vcpkg (dynamic linking on Windows, static on macOS)
+- **Version:** 8.0.1
+- **Source (this exact version):** https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.gz (tag `n8.0.1` at https://github.com/FFmpeg/FFmpeg)
+- **License:** LGPL-2.1 (no GPL or nonfree components are enabled)
+- **Installed via:** vcpkg
+- **Linking:** static (built into the executable, all platforms)
 - **Components used:** libavcodec, libavformat, libavutil, libswresample, libswscale
 
 ```
 Copyright (C) 2000-2025 FFmpeg developers.
 
-FFmpeg is licensed under the GNU Lesser General Public License, Version 2.0.
-Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
+FFmpeg is licensed under the GNU Lesser General Public License, Version 2.1.
+Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 Full source code:  https://github.com/FFmpeg/FFmpeg
 ```
 
-No modifications to the library source are made. LGPL compliance is provided
-through the project's open source code and build instructions.
+FFmpeg is built with only LGPL components (no `--enable-gpl`, no nonfree codecs),
+is statically linked into OpenChaos, and is used unmodified. The LGPL permits
+static linking provided the user can relink the application with a modified
+version of the library. OpenChaos satisfies this because the complete
+application source code and build instructions are publicly available, so anyone
+can substitute a modified FFmpeg and rebuild. The exact library version used in
+a given build is linked above.
 
 ---
 
 ## nlohmann/json
 
 - **Website:** https://json.nlohmann.me/
+- **Version:** 3.12.0
 - **Source:** https://github.com/nlohmann/json
 - **License:** MIT
-- **Installed via:** vcpkg
+- **Installed via:** vcpkg (header-only)
 
 ```
 MIT License
@@ -202,6 +229,23 @@ Note: the platform button SYMBOLS depicted (e.g. PlayStation shapes, Xbox
 A/B/X/Y, the Steam logo) are trademarks of their respective owners. They are
 used here only as functional input prompts to indicate controls, not as a
 claim of affiliation or endorsement.
+```
+
+---
+
+## font8x8 (font8x8_basic)
+
+- **Source:** https://github.com/dhepper/font8x8
+- **License:** Public Domain
+- **Embedded at:** `new_game/src/game/missing_resources.cpp` (8x8 glyph table).
+- **Usage:** the embedded bitmap font for the "game files not found" startup
+  screen, which must draw without any external resources.
+
+```
+8x8 monochrome bitmap fonts for rendering
+Author: Daniel Hepper <daniel@hepper.net>
+License: Public Domain
+Based on the public-domain IBM PC OEM VGA fonts (Marcel Sondaar / IBM).
 ```
 
 ---

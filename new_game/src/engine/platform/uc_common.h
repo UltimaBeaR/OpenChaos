@@ -65,8 +65,8 @@ BOOL SetupHost(ULONG flags);
 void ResetHost(void);
 BOOL LibShellActive(void);
 
-// Assert: logs condition, file, line to crash_log.txt and stderr, then aborts.
-// Writes crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.
+// Assert: logs condition, file, line to OpenChaos.crash_log.txt and stderr, then aborts.
+// Writes OpenChaos.crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.
 #ifndef ASSERT
 void uc_assert_fail(const char* expr, const char* file, int line);
 #define ASSERT(e)                                   \

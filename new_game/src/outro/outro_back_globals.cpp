@@ -11,3 +11,6 @@ OS_Texture* BACK_ot_mib = nullptr;
 
 // uc_orig: BACK_ot_line (fallen/outro/back.cpp)
 OS_Texture* BACK_ot_line = nullptr;
+
+// OpenChaos: backdrop timeline baseline — see outro_back_globals.h.
+SLONG BACK_start_ticks = 0;

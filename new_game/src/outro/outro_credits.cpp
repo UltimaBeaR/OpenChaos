@@ -11,6 +11,7 @@ void CREDITS_init()
     CREDITS_current_y = 1.0F;
     CREDITS_now = 0;
     CREDITS_last = 0;
+    CREDITS_finished = 0;
 }
 
 // uc_orig: CREDITS_draw (fallen/outro/credits.cpp)
@@ -21,7 +22,13 @@ void CREDITS_draw()
     SLONG flag;
     float x;
     float y;
-    float shimmer;
+    // Default 0 = no shimmer (steady, fully visible). The section-title block
+    // below only assigns shimmer while the title is fading in or out; during
+    // the steady middle phase it leaves this default. It used to be
+    // uninitialised, so the steady title read a garbage shimmer and could
+    // abruptly vanish (shimmer ~1 => alpha 0) — the original D3D build happened
+    // to have 0 on the stack there; clang did not.
+    float shimmer = 0.0F;
     float scale;
 
     CREDITS_Section* cs;
@@ -136,12 +143,15 @@ void CREDITS_draw()
     CREDITS_current_end_y = y;
 
     // Advance to the next section when the current one has scrolled off screen.
+    // After the last section, flag the credits as finished (kept on the final
+    // valid section so this function stays in range) — the outro loop then
+    // exits, instead of the original wrap-around that looped forever.
     if (y < 0.10F) {
-        CREDITS_current_section += 1;
-        CREDITS_current_y = 1.0F;
-
-        if (CREDITS_current_section >= CREDITS_NUM_SECTIONS) {
-            CREDITS_current_section = 0;
+        if (CREDITS_current_section + 1 >= CREDITS_NUM_SECTIONS) {
+            CREDITS_finished = UC_TRUE;
+        } else {
+            CREDITS_current_section += 1;
+            CREDITS_current_y = 1.0F;
         }
     }
 

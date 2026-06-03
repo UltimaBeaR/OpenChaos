@@ -225,7 +225,7 @@ KILLING". Писались в процессе отладки — "если сю
 в клубе Gatecrasher при начале стрельбы получает `PCOM_AI_STATE_*` через каскад
 alert-ов. Assert срабатывает → abort() → crash debug build. В release build
 asserts были заглушены (define `ASSERT` → пустой), поэтому баг не всплывал на
-retail — но у нас ASSERT работает как должен, через `uc_assert_fail` → crash_log.txt → abort.
+retail — но у нас ASSERT работает как должен, через `uc_assert_fail` → OpenChaos.crash_log.txt → abort.
 
 Убраны следующие asserts (все на проверку `PersonType == DARCI/COP/CIV`):
 
@@ -245,7 +245,7 @@ enum) оставлены — они защищают от повреждённо
 
 Обнаружено при smoke-тесте сразу после применения основных фиксов. Персонаж
 прыгал в клубе Gatecrasher (помечен `FLAG_PERSON_WAREHOUSE`, `Ware != 0`), при
-приземлении игра молча закрылась. crash_log.txt:
+приземлении игра молча закрылась. OpenChaos.crash_log.txt:
 
 ```
 Assertion failed: WARE_in_floorplan(p_person->Genus.Person->Ware, dest_x, dest_z)

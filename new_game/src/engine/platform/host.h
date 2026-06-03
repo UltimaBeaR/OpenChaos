@@ -6,6 +6,12 @@
 // Application entry point — called from src/main.cpp.
 int HOST_run(int argc, char* argv[]);
 
+// Log a fatal initialization failure (the real reason) to the crash log and
+// stderr, then return — the caller exits afterwards. Use for controlled exits
+// where the game can't continue (e.g. the display/GL context could not be
+// created) so the failure is recorded instead of mislabelled "Clean exit".
+void HOST_fatal_error(const char* reason);
+
 // uc_orig: SetupHost (fallen/DDLibrary/Source/GHost.cpp)
 // Creates the SDL3 window, initialises memory, keyboard, and sound.
 // Returns UC_TRUE on success.

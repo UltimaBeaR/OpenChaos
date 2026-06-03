@@ -4,6 +4,8 @@
 
 #include "game/game.h"
 #include "game/game_globals.h"
+#include "game/missing_resources.h" // startup resource guard
+#include "engine/platform/host.h" // HOST_fatal_error
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
@@ -231,11 +233,22 @@ void game_startup(void)
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;
     } else {
-        fprintf(stderr, "Unable to open display\n");
+        // Can't render anything (no window/GL), so the only way to tell the
+        // user is the crash log — record the real reason instead of the
+        // atexit handler's misleading "Clean exit".
+        HOST_fatal_error("Could not open the display / OpenGL context. "
+                         "Your GPU or graphics driver may not support OpenGL 4.1.");
         exit(1);
     }
 
     ge_init();
+
+    // Guard against a misplaced exe: if the original Urban Chaos data isn't
+    // here, draw a self-contained "files not found" screen (embedded font, no
+    // resources needed) and exit cleanly — before anything tries to read them.
+    if (!MISSING_RESOURCES_present())
+        MISSING_RESOURCES_show_and_exit();
+
     AENG_init();
 
     ATTRACT_loadscreen_init();

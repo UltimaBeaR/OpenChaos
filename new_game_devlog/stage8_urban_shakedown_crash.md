@@ -17,17 +17,17 @@
 
 Crash handler (`SetUnhandledExceptionFilter`) не срабатывал при "тихом" закрытии окна.
 **Причина:** `exit()` и clean return из main не проходят через exception filter.
-**Фикс:** добавлены `atexit`, `signal(SIGABRT)`, `SetConsoleCtrlHandler` — теперь crash_log.txt пишется при ЛЮБОМ завершении.
+**Фикс:** добавлены `atexit`, `signal(SIGABRT)`, `SetConsoleCtrlHandler` — теперь OpenChaos.crash_log.txt пишется при ЛЮБОМ завершении.
 
 ### 2. ASSERT был пустышкой
 
 `ASSERT(e)` в `uc_common.h` и `outro_always.h` раскрывался в `{}` (no-op). ~492 вызова по кодовой базе никогда не проверяли условия.
-**Фикс:** рабочий ASSERT — пишет в crash_log.txt (файл, строка, условие) и abort(). При активации обнаружились ~10 файлов с мёртвыми ассертами (ссылки на переменные из другого scope) — пофикшено (удалены или добавлены includes).
+**Фикс:** рабочий ASSERT — пишет в OpenChaos.crash_log.txt (файл, строка, условие) и abort(). При активации обнаружились ~10 файлов с мёртвыми ассертами (ссылки на переменные из другого scope) — пофикшено (удалены или добавлены includes).
 
 ### 3. CRT assert не ловился
 
 Стандартный CRT assert (`_CrtDbgReport`) показывал диалог и вызывал abort(). Текст ассерта терялся.
-**Фикс:** `_CrtSetReportHook` перехватывает CRT reports → пишет в crash_log.txt + stderr. `_set_abort_behavior(0, _WRITE_ABORT_MSG)` подавляет abort-диалог.
+**Фикс:** `_CrtSetReportHook` перехватывает CRT reports → пишет в OpenChaos.crash_log.txt + stderr. `_set_abort_behavior(0, _WRITE_ABORT_MSG)` подавляет abort-диалог.
 
 ### 4. Crash handler не записывал при stack overflow
 
@@ -95,7 +95,7 @@ ASan останавливается на первой ошибке, поэтом
 2. **calloc** вместо malloc для VB data
 3. **Нет free()** в expand/alloc — leak bounded by pool size
 4. **Max-index upload** — `glBufferData` загружает только `(max_idx+1)*32` байт
-5. **Exit/crash logging** — crash_log.txt при любом завершении
+5. **Exit/crash logging** — OpenChaos.crash_log.txt при любом завершении
 6. **ASSERT** — рабочий макрос вместо no-op
 7. **CRT report hook** — перехват CRT assert текста
 8. **ge_vb_expand capacity check** — skip realloc if buffer already large enough

@@ -443,7 +443,7 @@ make configure-asan                   # Windows x64 + ASan (текущий)
 - TGA запись: `tga.cpp` — заменён на `fopen_ci`
 - Config: `env.cpp` — заменён на `fopen_ci`
 - `stat()` в frontend.cpp — заменён на `fstat(fileno(file))` по уже открытому handle
-- Служебные файлы (`crash_log.txt`, `gamepad_log.txt`) — фиксированные имена, создаются программой, CI не нужен
+- Служебные файлы (`OpenChaos.crash_log.txt`, `gamepad_log.txt`) — фиксированные имена, создаются программой, CI не нужен
 
 **Верификация:** Linux x64 (Steam Deck) — меню, загрузка миссий, геймплей, outro работают.
 

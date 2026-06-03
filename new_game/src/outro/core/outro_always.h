@@ -159,7 +159,7 @@ typedef char CBYTE;
 #define UC_TRUE 1
 #endif
 
-// Outro uses the same project-wide ASSERT (logs to crash_log.txt and aborts).
+// Outro uses the same project-wide ASSERT (logs to OpenChaos.crash_log.txt and aborts).
 // uc_orig: ASSERT (fallen/outro/always.h) — was __assume(x), now a real check.
 void uc_assert_fail(const char* expr, const char* file, int line);
 #define ASSERT(x)                                   \

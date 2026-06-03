@@ -1,4 +1,5 @@
 #include "outro/outro_credits_globals.h"
+#include "version.h" // OPENCHAOS_VERSION
 
 // uc_orig: CREDITS_current_section (fallen/outro/credits.cpp)
 SLONG CREDITS_current_section = 0;
@@ -14,6 +15,9 @@ SLONG CREDITS_last = 0;
 
 // uc_orig: CREDITS_now (fallen/outro/credits.cpp)
 SLONG CREDITS_now = 0;
+
+// OpenChaos: end-of-credits flag — see outro_credits_globals.h.
+SLONG CREDITS_finished = 0;
 
 // uc_orig: CREDITS_muckyfoot (fallen/outro/credits.cpp)
 // Lines terminated by NULL (blank line) or "!" (end of section).
@@ -349,9 +353,43 @@ CBYTE* CREDITS_bands[] = {
     "!"
 };
 
+// OpenChaos modernization block — shown first, before the original game's
+// credits. Project name + version + description + project page, then the
+// bundled third-party libraries and their licenses (full texts live on the
+// project page; they aren't shipped in the game). The version comes from
+// OPENCHAOS_VERSION via string-literal concatenation, so it always matches the
+// build. Lines end with "!" (end of section); see the markup notes on
+// CREDITS_muckyfoot (~B large, ~I italic, \t indent).
+// NOTE: the outro font has no underscore glyph (it renders as '?'), so avoid
+// '_' in these strings — write "THIRD PARTY LICENSES" / project page instead.
+CBYTE* CREDITS_openchaos[] = {
+    "~BOpenChaos  v" OPENCHAOS_VERSION,
+    NULL,
+    "This is an unofficial modernization",
+    "of Urban Chaos (1999) by Mucky Foot,",
+    "made comfortable to play on today's",
+    "systems, while staying true to",
+    "the original.",
+    NULL,
+    "An open-source fan project.",
+    NULL,
+    "~BProject page",
+    "\tgithub.com/UltimaBeaR/OpenChaos",
+    NULL,
+    "~BThird-party libraries",
+    "\tSDL3  (zlib)",
+    "\tFFmpeg  (LGPL v2.1)",
+    "\tOpenAL Soft  (LGPL v2)",
+    "~I\tFull licenses on the project page",
+    "!"
+};
+
 // uc_orig: CREDITS_section (fallen/outro/credits.cpp)
 // All credits sections indexed for sequential display.
 CREDITS_Section CREDITS_section[CREDITS_NUM_SECTIONS] = {
+    { "OPENCHAOS",
+        CREDITS_openchaos },
+
     { "MUCKYFOOT",
         CREDITS_muckyfoot },
 

@@ -1,8 +1,10 @@
 #include "outro/outro_main.h"
 #include "outro/outro_back.h"
+#include "outro/outro_back_globals.h" // BACK_start_ticks
 #include "outro/core/outro_cam.h"
 #include "outro/core/outro_cam_globals.h"
 #include "outro/outro_credits.h"
+#include "outro/outro_credits_globals.h" // CREDITS_current_section
 #include "outro/core/outro_font.h"
 #include "outro/outro_wire.h"
 #include "outro/core/outro_key.h"
@@ -69,6 +71,7 @@ void MAIN_main()
     }
 
     OS_ticks_reset();
+    BACK_start_ticks = 0; // re-arm: backdrop/3D only start at the first original section
     OS_sound_loop_start();
 
     while (1) {
@@ -90,6 +93,11 @@ void MAIN_main()
             return;
         }
 
+        // Credits finished one full pass — leave the outro as if the player
+        // pressed exit (the original looped the credits forever instead).
+        if (CREDITS_finished)
+            return;
+
         CAM_process();
 
         OS_camera_set(
@@ -106,9 +114,18 @@ void MAIN_main()
 
         OS_scene_begin();
 
-        BACK_draw();
-
-        WIRE_draw();
+        // The credits open with an OpenChaos modernization block (section 0),
+        // shown on plain black (OS_scene_begin already cleared the frame). The
+        // original game's backdrop and 3D model are timed/picked for the
+        // original credits, so they only start at the first original section
+        // (MUCKYFOOT, now section 1). Anchor the backdrop timeline to that
+        // moment (BACK_start_ticks) so its fade-in/cycling begin exactly there.
+        if (CREDITS_current_section >= 1) {
+            if (BACK_start_ticks == 0)
+                BACK_start_ticks = OS_ticks();
+            BACK_draw();
+            WIRE_draw();
+        }
         CREDITS_draw();
 
         if (the_end) {

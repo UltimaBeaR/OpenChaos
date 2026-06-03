@@ -34,6 +34,20 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
 endif()
 
 # ---------------------------------------------------------------------------
+# Windows: static CRT (single self-contained exe)
+# ---------------------------------------------------------------------------
+# The Windows vcpkg triplet is x64-windows-static (see cmake/clang-x64-windows
+# .cmake), which builds every dependency with the static CRT (/MT). Our own
+# translation units must match, otherwise the linker rejects the mix of static
+# (libcmt) and dynamic (msvcrt) runtimes. CMake injects the CRT selection from
+# CMAKE_MSVC_RUNTIME_LIBRARY (default = dynamic DLL), so set it to the static
+# runtime here — before add_subdirectory below, so libDualsense inherits it.
+# Requires CMP0091 = NEW (default at our cmake_minimum_required).
+if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+# ---------------------------------------------------------------------------
 # Build output: new_game/build/Debug/ and new_game/build/Release/
 # All generated artifacts stay inside build/ — a single gitignore entry covers everything.
 # ---------------------------------------------------------------------------
@@ -45,6 +59,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release")
 # ---------------------------------------------------------------------------
 find_package(SDL3         CONFIG REQUIRED)
 find_package(OpenAL       CONFIG REQUIRED)
+
+# Static FFmpeg's FindFFMPEG.cmake resolves FFmpeg's private system-lib deps via
+# find_library. Its pass-through list (libs it links by bare name without
+# searching) is missing `ncrypt`, so it calls find_library(ncrypt REQUIRED) —
+# which fails under our standalone clang++ toolchain because CMake has no Windows
+# SDK lib path (we don't run from a VS dev environment). Pre-seed the cache var
+# so find_library is skipped; clang resolves ncrypt from the SDK at link time
+# (same as the other system libs in that pass-through list).
+if(WIN32)
+    set(FFMPEG_DEPENDENCY_ncrypt_RELEASE ncrypt CACHE FILEPATH "" FORCE)
+    set(FFMPEG_DEPENDENCY_ncrypt_DEBUG   ncrypt CACHE FILEPATH "" FORCE)
+endif()
+
 find_package(FFMPEG       REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
@@ -573,6 +600,7 @@ set(SOURCES_NEW
     # === Game ===
     src/game/game.cpp
     src/game/game_globals.cpp
+    src/game/missing_resources.cpp
     src/game/network_state_globals.cpp
     src/game/startup.cpp
     src/game/game_tick.cpp
@@ -717,7 +745,9 @@ target_link_libraries(OpenChaos PRIVATE
 # Windows: copy vcpkg DLLs to output directory.
 # (VCPKG_APPLOCAL_DEPS is OFF because its applocal.ps1 requires powershell.exe on PATH.)
 # On macOS/Linux shared libs are found via rpath — no copying needed.
-if(WIN32)
+# Skipped entirely for the static triplet (x64-windows-static): everything is
+# linked into the exe, so there are no DLLs to copy.
+if(WIN32 AND NOT VCPKG_TARGET_TRIPLET MATCHES "static")
     set(VCPKG_TRIPLET_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
 
     # Release DLLs

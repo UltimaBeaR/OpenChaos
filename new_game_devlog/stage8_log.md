@@ -289,7 +289,7 @@ Object files: 317 → 314.
 
 **Crash handler восстановлен:**
 - `crash_handler_win.cpp` — отдельный TU (windows.h конфликтует с types.h).
-  SetUnhandledExceptionFilter → crash_log.txt с Exception, RVA, регистрами, стек с символами.
+  SetUnhandledExceptionFilter → OpenChaos.crash_log.txt с Exception, RVA, регистрами, стек с символами.
   На не-Windows: signal() fallback в host.cpp.
 
 **Runtime фиксы (heap corruption):**

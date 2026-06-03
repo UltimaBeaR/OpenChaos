@@ -5,7 +5,7 @@ description: >
   stack traces, variables, and game state. Use for crash investigation,
   freeze debugging, and understanding what the game is currently doing.
   Use this skill whenever the game is frozen/hung and crash handler didn't fire,
-  when you need to read a global variable's current value, or when crash_log.txt
+  when you need to read a global variable's current value, or when OpenChaos.crash_log.txt
   isn't enough and you need live process inspection. Also consider this skill
   when the user describes behavior that suggests the game is stuck in a loop
   or waiting on something.
@@ -30,7 +30,7 @@ Always use `qd` (detach) not `q` (kills the process).
 
 - **Freeze/hang**: game stops responding, crash handler does NOT fire — attach and read the stack
 - **Understanding game state**: what screen is this, what variable has what value
-- **Crash investigation**: when crash_log.txt is insufficient and you need more context
+- **Crash investigation**: when OpenChaos.crash_log.txt is insufficient and you need more context
 - **Development**: user is on a level/screen and wants to discuss a feature — attach to see context
 
 **Never attach without the user's explicit permission.** Always ask first and wait for confirmation.

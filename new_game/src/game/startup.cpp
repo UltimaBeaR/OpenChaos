@@ -5,7 +5,9 @@
 #include "engine/platform/host.h" // SetupHost, ResetHost
 #include "engine/graphics/pipeline/aeng.h" // AENG_read_detail_levels
 #include "engine/io/env.h" // ENV_load
+#include "engine/io/oc_config.h" // OC_CONFIG_set_persistence
 #include "game/game.h" // game
+#include "game/missing_resources.h" // MISSING_RESOURCES_present
 
 // uc_orig: main (fallen/Source/Main.cpp)
 // Application startup. Called via MF_main() (the MFStdLib macro renames main to MF_main
@@ -13,6 +15,14 @@
 SLONG main(UWORD argc, char* argv[])
 {
     FileSetBasePath("");
+
+    // If the original game data is missing, the game can't run — it will only
+    // show the "files not found" screen and exit. Detect that here (before any
+    // config is touched) and disable config persistence, so a misplaced exe
+    // leaves no OpenChaos.config.json behind. The screen itself is shown later,
+    // once the renderer is up (see game_startup).
+    if (!MISSING_RESOURCES_present())
+        OC_CONFIG_set_persistence(false);
 
     ENV_load("config.ini");
 

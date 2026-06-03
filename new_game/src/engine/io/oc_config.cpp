@@ -17,6 +17,10 @@ namespace fs = std::filesystem;
 
 static json g_config;
 static std::string g_config_path;
+// When false, config_save() is a no-op: the config is kept in memory only and
+// never written to disk. Used by the "game files not found" startup path so it
+// leaves no OpenChaos.config.json behind (see OC_CONFIG_set_persistence).
+static bool g_persist = true;
 static std::string to_lower(const char* s)
 {
     std::string r = s;
@@ -25,8 +29,15 @@ static std::string to_lower(const char* s)
     return r;
 }
 
+void OC_CONFIG_set_persistence(bool enabled)
+{
+    g_persist = enabled;
+}
+
 static void config_save()
 {
+    if (!g_persist)
+        return;
     std::ofstream f(g_config_path);
     if (f)
         f << g_config.dump(4) << '\n';

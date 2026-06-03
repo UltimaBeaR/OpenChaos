@@ -7,7 +7,7 @@ description: >
   exist during gameplay, render state during specific frames, variable changes
   over time. Trigger when: you need runtime data to diagnose a bug, the user
   reports a visual glitch or wrong behavior that requires seeing internal values,
-  or when crash_log.txt and debugger attach aren't enough because you need to
+  or when OpenChaos.crash_log.txt and debugger attach aren't enough because you need to
   observe values across many frames. Also use when you say to yourself "I wish
   I could see what X equals during gameplay" — that's exactly what this skill is for.
 ---
@@ -65,7 +65,7 @@ thousands of times per frame.
 | Situation | Tool |
 |-----------|------|
 | Need values across many frames/ticks | **debug-log** (this skill) |
-| Game crashed, want to know where | crash_log.txt, then `asan` skill |
+| Game crashed, want to know where | OpenChaos.crash_log.txt, then `asan` skill |
 | Game froze/hung, need current state | `debugger` skill (cdb attach) |
 | Need to see what's on screen | `screenshot` skill |
 | Suspect memory corruption | `asan` skill |

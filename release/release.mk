@@ -16,10 +16,8 @@ else
     RELEASE_ASSETS := $(RELEASE_DIR)/assets/windows-x64
 endif
 
-# DLLs to include on Windows
-WIN_DLLS := SDL3.dll OpenAL32.dll fmt.dll \
-            avcodec-62.dll avformat-62.dll avutil-60.dll \
-            swresample-6.dll swscale-9.dll
+# Windows builds use the x64-windows-static vcpkg triplet, so all libraries are
+# linked into OpenChaos.exe — there are no DLLs to ship alongside it.
 
 # Usage: make release-package VERSION=0.1.0
 # Output: release/dist/OpenChaos-v<VERSION>-<platform>.zip
@@ -38,15 +36,6 @@ endif
 	mkdir -p "$$STAGING"; \
 	echo "Packaging $$ARCHIVE..."; \
 	cp "$(BUILD_DIR)/Release/$(EXE_NAME)" "$$STAGING/"; \
-	if [ "$(PLATFORM)" = "windows-x64" ]; then \
-	  for dll in $(WIN_DLLS); do \
-	    if [ -f "$(BUILD_DIR)/Release/$$dll" ]; then \
-	      cp "$(BUILD_DIR)/Release/$$dll" "$$STAGING/"; \
-	    else \
-	      echo "WARNING: DLL not found: $$dll" >&2; \
-	    fi; \
-	  done; \
-	fi; \
 	sed 's/{{VERSION}}/$(VERSION)/g' "$(RELEASE_ASSETS)/README.txt" > "$$STAGING/OpenChaos-readme.txt"; \
 	for extra in "$(RELEASE_ASSETS)"/*.command "$(RELEASE_ASSETS)"/*.sh; do \
 	  [ -f "$$extra" ] && cp "$$extra" "$$STAGING/"; \

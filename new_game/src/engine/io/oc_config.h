@@ -20,6 +20,13 @@
 // Load config on startup. ini_path is the legacy config.ini path used for one-time migration.
 void OC_CONFIG_load(const char* ini_path);
 
+// Enable/disable writing the config to disk (default: enabled). Set to false
+// before OC_CONFIG_load when the game data is missing, so the "files not found"
+// startup path does not create or rewrite OpenChaos.config.json — the game
+// never really started, so it must leave no trace. Values still resolve from
+// in-memory defaults while disabled.
+void OC_CONFIG_set_persistence(bool enabled);
+
 // Read an integer value, clamped to [lo, hi]. Returns def (clamped) if the key is not present.
 int OC_CONFIG_get_int(const char* section, const char* key, int def,
                       int lo = INT_MIN, int hi = INT_MAX);

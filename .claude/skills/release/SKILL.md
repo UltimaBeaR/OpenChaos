@@ -20,6 +20,18 @@ When the user asks to create or prepare a release, walk them through these steps
 
 ### Steps to communicate to the user:
 
+> ⚠️ **Before tagging — verify third-party license versions (MANDATORY).**
+> Open `THIRD_PARTY_LICENSES.md` and confirm the listed versions (SDL3, OpenAL
+> Soft, FFmpeg, fmt, nlohmann/json) match what vcpkg actually built. Get the
+> real versions from `new_game/vcpkg_installed/<triplet>/share/<port>/vcpkg.spdx.json`
+> (field `versionInfo`; drop the trailing `#N` — that is the vcpkg port
+> revision, not the library version). OpenAL Soft and FFmpeg are **LGPL** and
+> **statically linked**, so the "Source (this exact version)" links in that file
+> MUST point to the exact shipped versions. If anything drifted (e.g. a vcpkg
+> baseline bump changed FFmpeg), update the versions, the source links, and the
+> LGPL version numbers before releasing. This is a legal requirement, not
+> cosmetic.
+
 1. **Commit and tag.** Make sure all changes are committed and the release tag `v<X.Y.Z>` is created.
 
 2. **Build on each platform.** On every supported platform (currently Windows x64, macOS ARM64, Linux x64):

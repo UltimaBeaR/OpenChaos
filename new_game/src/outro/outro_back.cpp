@@ -2,6 +2,11 @@
 #include "outro/outro_back_globals.h"
 #include "outro/core/outro_os.h"
 
+// uc_orig comment preserved below. OpenChaos: the backdrop's time-based fade-in
+// and image cycling are measured from BACK_start_ticks (set when the first
+// original credits section begins) rather than from outro start, so prepending
+// the OpenChaos block doesn't desync the backdrop from the original credits.
+
 // uc_orig: BACK_init (fallen/outro/back.cpp)
 void BACK_init()
 {
@@ -31,7 +36,7 @@ void BACK_draw()
     OS_Texture* ot1;
     OS_Texture* ot2;
 
-    SLONG now = OS_ticks();
+    SLONG now = OS_ticks() - BACK_start_ticks;
 
     if (now < 2048) {
         // Draw nothing for a while at the start.

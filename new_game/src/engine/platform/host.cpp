@@ -1,5 +1,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
+#include "engine/platform/crash_log_file.h" // OC_CRASH_LOG_FILE
+#include "version.h" // OPENCHAOS_VERSION (window title)
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/oc_config.h"
 #include "engine/platform/wind_procs_globals.h" // app_inactive
@@ -223,7 +225,7 @@ BOOL SetupHost(ULONG flags)
 
     // Create the SDL3 window (hidden until GL context is ready).
     bool fullscreen = OC_CONFIG_get_int("video", "fullscreen", 0) != 0;
-    if (!sdl3_window_create("Urban Chaos",
+    if (!sdl3_window_create("OpenChaos v" OPENCHAOS_VERSION,
             OC_CONFIG_get_int("video", "windowed_width", 640),
             OC_CONFIG_get_int("video", "windowed_height", 480),
             fullscreen)) {
@@ -322,7 +324,7 @@ BOOL LibShellActive(void)
 }
 
 // ---------------------------------------------------------------------------
-// Exit / crash logging — writes crash_log.txt on ANY termination.
+// Exit / crash logging — writes OC_CRASH_LOG_FILE on ANY termination.
 //
 // Coverage:
 //   - atexit handler    → normal return from main(), exit() calls
@@ -330,6 +332,9 @@ BOOL LibShellActive(void)
 //   - Exception filter  → access violation, div-by-zero, etc. (Windows, crash_handler_win.cpp)
 //   - Console handler   → Ctrl+C, console window close (Windows, crash_handler_win.cpp)
 //   - Signal handlers   → SIGSEGV, SIGFPE, SIGABRT (non-Windows)
+//   - HOST_fatal_error  → controlled fatal init failures (e.g. display/GL
+//                         could not be created) that exit() cleanly — without
+//                         this they would mislabel as "Clean exit".
 //
 // A flag prevents multiple handlers from overwriting each other.
 // ---------------------------------------------------------------------------
@@ -358,7 +363,7 @@ static void exit_log_handler(void)
     // Restore system-global accessibility settings on normal exit.
     win_restore_accessibility_shortcuts();
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (!f)
         return;
 
@@ -381,7 +386,7 @@ static void abort_signal_handler(int sig)
     // Restore system-global accessibility settings before aborting.
     win_restore_accessibility_shortcuts();
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (f) {
         write_exit_timestamp(f, "Crash (abort)");
         fprintf(f, "Type: abort() called (SIGABRT)\n");
@@ -406,7 +411,7 @@ static void crash_signal_handler(int sig)
     }
     g_exit_log_written = true;
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (!f) {
         signal(sig, SIG_DFL);
         raise(sig);
@@ -434,12 +439,12 @@ static void crash_signal_handler(int sig)
 }
 #endif
 
-// ASSERT() failure handler: writes details to crash_log.txt and stderr, then aborts.
+// ASSERT() failure handler: writes details to OC_CRASH_LOG_FILE and stderr, then aborts.
 void uc_assert_fail(const char* expr, const char* file, int line)
 {
     g_exit_log_written = true;
 
-    FILE* f = fopen("crash_log.txt", "w");
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
     if (f) {
         write_exit_timestamp(f, "Crash (ASSERT)");
         fprintf(f, "Assertion failed: %s\n", expr);
@@ -451,6 +456,27 @@ void uc_assert_fail(const char* expr, const char* file, int line)
 
     fprintf(stderr, "ASSERT failed: %s (%s:%d)\n", expr, file, line);
     abort();
+}
+
+// Controlled fatal-error logger for init failures that exit() cleanly (e.g. the
+// display or GL context could not be created). Writes the real reason to the
+// crash log and sets g_exit_log_written so the atexit handler does NOT overwrite
+// it with a misleading "Clean exit". The caller exits afterwards. This is what
+// gives an end user (GUI app, no console) something actionable when the game
+// can't even open a window — otherwise the failure would be silent.
+void HOST_fatal_error(const char* reason)
+{
+    g_exit_log_written = true;
+
+    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
+    if (f) {
+        write_exit_timestamp(f, "Fatal error (initialization)");
+        fprintf(f, "Reason: %s\n", reason ? reason : "(unspecified)");
+        fflush(f);
+        fclose(f);
+    }
+
+    fprintf(stderr, "FATAL: %s\n", reason ? reason : "(unspecified)");
 }
 
 int HOST_run(int argc_in, char* argv_in[])

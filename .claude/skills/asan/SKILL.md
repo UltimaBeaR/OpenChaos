@@ -3,7 +3,7 @@ name: asan
 description: >
   AddressSanitizer (ASan) — runtime memory error detector for finding heap overflows,
   use-after-free, stack-use-after-scope, global buffer overflows, and other memory bugs.
-  Use this skill whenever crash investigation suggests memory corruption: crash_log.txt
+  Use this skill whenever crash investigation suggests memory corruption: OpenChaos.crash_log.txt
   shows heap corruption, access violations in system DLLs (NVIDIA, ucrtbase), CRT debug
   asserts on heap, inconsistent/variable crash symptoms, or crashes that move around between
   runs. Also use when the user says "memory bug", "heap corruption", "asan", "sanitizer",
@@ -65,7 +65,7 @@ This is NOT a real bug — it's the debug CRT's static destructors freeing memor
 
 ### Where ASan output goes
 
-ASan writes to stderr, which the Makefile redirects to `stderr.log`. On error, ASan calls `abort()` — our crash handler also writes crash_log.txt, but the real diagnostic info is in **stderr.log**.
+ASan writes to stderr, which the Makefile redirects to `stderr.log`. On error, ASan calls `abort()` — our crash handler also writes OpenChaos.crash_log.txt, but the real diagnostic info is in **stderr.log**.
 
 ## Reading ASan output
 

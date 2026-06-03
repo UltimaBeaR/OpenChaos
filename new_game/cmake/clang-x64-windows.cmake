@@ -15,5 +15,11 @@ set(CMAKE_CXX_COMPILER "clang++")
 set(CMAKE_C_FLAGS_INIT   "--target=x86_64-pc-windows-msvc")
 set(CMAKE_CXX_FLAGS_INIT "--target=x86_64-pc-windows-msvc")
 
-# Tell vcpkg to use x64-windows packages.
-set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING "")
+# Tell vcpkg to build all packages as STATIC libraries with a static CRT
+# (x64-windows-static), so the final OpenChaos.exe is a single self-contained
+# file with no DLLs next to it. The exe then always starts (only OS libraries
+# are needed), which lets the "game files not found" screen render even when the
+# user drops the bare exe in the wrong place. Linux/macOS already use static
+# vcpkg triplets by default. Our own translation units are matched to the static
+# CRT in CMakeLists.txt (-fms-runtime-lib).
+set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")

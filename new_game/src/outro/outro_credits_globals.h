@@ -22,6 +22,12 @@ extern SLONG CREDITS_last;
 // Current timestamp (milliseconds).
 extern SLONG CREDITS_now;
 
+// OpenChaos: set when the last section has fully scrolled off. The original
+// credits looped forever (wrapped back to section 0); we instead end the outro
+// after one full pass, as if the player pressed the exit button. The outro main
+// loop checks this and returns. Reset in CREDITS_init.
+extern SLONG CREDITS_finished;
+
 // uc_orig: CREDITS_Section (fallen/outro/credits.cpp)
 // One section of the credits scroll: a title string and a null-terminated list of lines.
 typedef struct
@@ -31,7 +37,8 @@ typedef struct
 } CREDITS_Section;
 
 // uc_orig: CREDITS_NUM_SECTIONS (fallen/outro/credits.cpp)
-#define CREDITS_NUM_SECTIONS 7
+// 7 original sections + 1 OpenChaos modernization block prepended (index 0).
+#define CREDITS_NUM_SECTIONS 8
 
 // uc_orig: CREDITS_section (fallen/outro/credits.cpp)
 extern CREDITS_Section CREDITS_section[CREDITS_NUM_SECTIONS];
