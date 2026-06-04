@@ -123,7 +123,18 @@ void ui_render_post_composition(void)
     // so it skipped the null check; we have to add it.
     Thing* darci = NET_PERSON(0);
     Thing* player = NET_PLAYER(0);
-    if (darci && player) {
+
+    // The in-world HUD must only draw during active gameplay. This callback
+    // runs on every flip (menus, video, loading screens, end-of-mission
+    // transitions), and during those the player Thing is often still alive —
+    // so a bare (darci && player) check let the whole HUD block leak on top of
+    // loading / mission-end / outro / notation screens. GS_PLAY_GAME is cleared
+    // the moment the mission ends (GAME_STATE is reassigned to GS_LEVEL_WON /
+    // GS_LEVEL_LOST), so gating the block on it suppresses every such leak
+    // while leaving normal gameplay (incl. pause, where GS_PLAY_GAME stays set)
+    // untouched. In the original this code lived inside the gameplay loop and
+    // never ran on these screens.
+    if (darci && player && (GAME_STATE & GS_PLAY_GAME)) {
 
         PANEL_start();
 
@@ -204,7 +215,15 @@ void ui_render_post_composition(void)
     // the real percentages (mirrors the GPU-wait line).
     { PERF_SCOPE("render.ui.dbglog"); DBGLOG_draw(); } // no-op unless OC_DEBUG_LOG
     { PERF_OVERHEAD_SCOPE(); PERF_DRAW(); }            // no-op unless OC_DEBUG_PERF
-    debug_help_render();
+    // F1 debug-key legend: same leak class as the HUD block above. Its
+    // auto-hide timer is only ticked inside the gameplay loop (special_keys
+    // -> debug_help_tick), so if a mission ends while the legend is up (e.g.
+    // bangunsnotgames win during Day of Reckoning) the timer stops firing and
+    // the legend stays drawn over the outro and the main-menu letterbox. Gate
+    // the draw on active gameplay — it can only be triggered there anyway.
+    if (GAME_STATE & GS_PLAY_GAME) {
+        debug_help_render();
+    }
     if (!(GAME_FLAGS & GF_PAUSED)) {
         CONSOLE_draw();
     }
