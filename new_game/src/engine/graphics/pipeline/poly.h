@@ -102,6 +102,10 @@ void POLY_camera_set(
     float lens,
     SLONG splitscreen = POLY_SPLITSCREEN_NONE);
 
+// Resets vertical screen-clip to full-screen (clears a persisted cutscene
+// letterbox). Call when leaving gameplay so the frontend isn't clipped.
+void POLY_reset_screen_clip(void);
+
 // Screen dimensions set by POLY_camera_set().
 // uc_orig: POLY_screen_width (fallen/DDEngine/Headers/poly.h)
 extern float POLY_screen_width;

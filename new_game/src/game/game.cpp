@@ -1497,6 +1497,14 @@ round_again:;
             }
         }
 
+        // Clear any cutscene letterbox left in the POLY vertical clip. If a
+        // mission ends while its letterbox is active (e.g. Day of Reckoning's
+        // finale), POLY_screen_clip_top/bottom stay narrowed — and the frontend
+        // never calls POLY_camera_set to recompute them, so the menu/map overlay
+        // would render clipped top/bottom. Reset here, on leaving gameplay.
+        extern void POLY_reset_screen_clip(void);
+        POLY_reset_screen_clip();
+
         BreakEnd("BreakTimes.txt"); // uc-abs-path: was "C:\Windows\Desktop\BreakTimes.txt"
 
         game_fini();

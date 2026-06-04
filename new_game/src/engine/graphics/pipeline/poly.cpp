@@ -160,6 +160,23 @@ SLONG POLY_page_is_masked_self_illuminating(SLONG page)
     }
 }
 
+// Resets the vertical screen-clip bounds to full-screen (no cutscene
+// letterbox). POLY_camera_set — which normally maintains these — only runs
+// during the gameplay scene render (AENG). When a mission ends while its
+// cutscene letterbox is active (e.g. Day of Reckoning's finale), the narrowed
+// POLY_screen_clip_top/bottom persist into the frontend, which never calls
+// POLY_camera_set, and clip the menu/map overlay (START button, stats line,
+// edge mission labels). Call this when leaving gameplay so the frontend draws
+// with the full vertical extent. Not in the original — fixes a latent leak.
+void POLY_reset_screen_clip(void)
+{
+    POLY_screen_height = float(DisplayHeight);
+    POLY_screen_clip_top = 0.0F;
+    POLY_screen_clip_bottom = float(DisplayHeight);
+    POLY_screen_mid_y = POLY_screen_height * 0.5F;
+    POLY_screen_mul_y = POLY_screen_height * 0.5F / POLY_ZCLIP_PLANE;
+}
+
 // uc_orig: POLY_camera_set (fallen/DDEngine/Headers/poly.h)
 // Sets up camera projection and viewport for the current frame.
 // Computes the 3x3 rotation matrix from yaw/pitch/roll, scales it by view_dist and aspect,
