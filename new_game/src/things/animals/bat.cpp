@@ -1053,7 +1053,13 @@ void BAT_balrog_slide_along(
         *z2 |= dz;
     }
 
-    if (collide & BAT_COLLIDE_LS) {
+    // NOTE: diverges from the pre-release original, which had a copy-paste bug
+    // here — it guarded this block with BAT_COLLIDE_LS (the LL corner was never
+    // resolved, and LS was processed twice) and forgot to restore dx. That made
+    // the Balrog's X mirror across the tile every frame near buildings, jerking
+    // him back and forth and teleporting him through walls. Fixed: guard on LL
+    // and restore dx, mirroring the other three corner blocks.
+    if (collide & BAT_COLLIDE_LL) {
         dx = *x2 & 0xffff;
         dz = *z2 & 0xffff;
 
@@ -1067,6 +1073,7 @@ void BAT_balrog_slide_along(
             dz = dz * BAT_BALROG_WIDTH / dist;
         }
 
+        dx = 0x10000 - dx;
         dz = 0x10000 - dz;
 
         *x2 &= ~0xffff;
