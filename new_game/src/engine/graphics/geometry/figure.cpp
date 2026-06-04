@@ -2597,7 +2597,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // Armed non-ROPER characters carry one of three guns in either hand.
     // Drawn as rigid prims at the hand bone's world transform. The gun
     // draw also writes back the muzzle world position for gunfire FX.
-    // Muzzle flash is fired by DT_FLAG_GUNFLASH and consumes the flag.
+    // Muzzle flash is drawn while Person::MuzzleFlashUntilMs is in the future.
     //
     // The hand is determined by (PersonID >> 5) — id==2 = right hand,
     // anything else (1/3/5) = left hand. id==0 = unarmed → no held items.
@@ -2608,9 +2608,11 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                                             : SUB_OBJECT_LEFT_HAND;
 
             // Muzzle flash — one of three prims depending on which gun
-            // ID is in use. Fired by DT_FLAG_GUNFLASH (consumed here).
-            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
-                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
+            // ID is in use. Drawn while the shot's wall-clock deadline
+            // (set in person.cpp on fire) is still in the future, so it
+            // stays visible for a fixed time span regardless of render FPS
+            // instead of flickering for a single frame.
+            if (sdl3_get_ticks() < p_person->Genus.Person->MuzzleFlashUntilMs) {
                 SLONG mf_prim = -1;
                 if      (id == 1) mf_prim = 261;
                 else if (id == 3) mf_prim = 262;

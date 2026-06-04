@@ -124,6 +124,12 @@ static UWORD s_player_anim_linger_timer[2] = { 0 };
 #define BLOCK_HOLD_MAX_TURNS (BLOCK_HOLD_MAX_SECONDS * UC_PHYSICS_DESIGN_HZ)
 static SLONG s_player_block_deadline[2] = { 0 };
 
+// Muzzle flash hold time. One physics design tick (1000/20 = 50 ms) — the
+// duration the flash occupied one frame in the original (frame == game tick
+// before the FPS unlock). Anchored to wall clock so the flash stays equally
+// bright at any render FPS instead of flickering for a single render frame.
+#define MUZZLE_FLASH_DURATION_MS (1000 / UC_PHYSICS_DESIGN_HZ)
+
 // Valid player index (0..1), or -1 for an NPC / out-of-range id.
 // Person.PlayerID is 1-based.
 static inline SLONG player_block_idx(Thing* p_person)
@@ -344,6 +350,7 @@ Thing* alloc_person(UBYTE type, UBYTE random_number)
                 new_person->SpecialList = 0;
                 new_person->SpecialUse = 0;
                 new_person->Stamina = 128;
+                new_person->MuzzleFlashUntilMs = 0; // no flash pending (slot is reused)
                 person_thing->Genus.Person = new_person;
                 person_thing->Draw.Tweened = alloc_draw_tween(DT_ROT_MULTI);
 
@@ -3815,11 +3822,11 @@ void set_person_running_shoot(Thing* p_person)
 
     MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
     actually_fire_gun(p_person);
-    // Muzzle flash: set per shot, consumed by figure.cpp when it draws the
-    // flash polyon. set_person_shoot (standing fire path) sets this too —
+    // Muzzle flash: set per shot, drawn by figure.cpp while the deadline is
+    // in the future. set_person_shoot (standing fire path) sets this too —
     // without it here the running/walking fire path had no visible flash
     // on any weapon. Release bug carried over from the original.
-    p_person->Draw.Tweened->Flags |= DT_FLAG_GUNFLASH;
+    p_person->Genus.Person->MuzzleFlashUntilMs = sdl3_get_ticks() + MUZZLE_FLASH_DURATION_MS;
     // Muzzle smoke: standing fire emits smoke particles across multiple
     // shoot-anim ticks in SUB_STATE_SHOOT_GUN (frame-index-driven alpha
     // fade). The running/walking path doesn't enter that state, so without
@@ -4076,7 +4083,7 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
     set_generic_person_state_function(p_person, STATE_GUN);
     p_person->SubState = SUB_STATE_SHOOT_GUN;
     p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
-    p_person->Draw.Tweened->Flags |= DT_FLAG_GUNFLASH;
+    p_person->Genus.Person->MuzzleFlashUntilMs = sdl3_get_ticks() + MUZZLE_FLASH_DURATION_MS;
 
     {
         if (!shoot_target || p_person->Genus.Person->Target == 0) {

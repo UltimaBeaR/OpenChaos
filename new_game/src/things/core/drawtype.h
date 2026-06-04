@@ -58,6 +58,9 @@
 // uc_orig: DT_FLAG_UNUSED (fallen/Headers/drawtype.h)
 #define DT_FLAG_UNUSED (1 << 7)
 // uc_orig: DT_FLAG_GUNFLASH (fallen/Headers/drawtype.h)
+// No longer used by the draw path: the muzzle flash is now timed off a
+// wall-clock deadline (Person::MuzzleFlashUntilMs) so it stays visible for a
+// fixed span at any render FPS. Kept for original-bit documentation.
 #define DT_FLAG_GUNFLASH (1 << 6)
 // Shadow-cast enable flag stored in DrawTween.Flags.
 // uc_orig: FLAGS_DRAW_SHADOW (fallen/Headers/Structs.h)

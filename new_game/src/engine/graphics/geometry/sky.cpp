@@ -8,6 +8,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/matrix.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (star twinkle cadence)
 
 // Display globals (defined in d3d/display_globals.cpp).
 extern SLONG ScreenWidth;
@@ -241,6 +242,31 @@ inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c, SLONG size = 1)
 }
 } // namespace
 
+// Star twinkle. The original skipped drawing a star for a single frame at a
+// 1-in-128 chance, re-rolled with rand() every render frame. That was fine
+// when render == game tick (~30 Hz): a blink lasted one ~33 ms frame and was
+// clearly visible. After the FPS unlock the blink shrank to one render frame
+// (~10 ms at 100 FPS — imperceptible) and rand() re-rolled every frame, so
+// the off-state averaged away across monitor refreshes — twinkle nearly
+// vanished. Fix: drive the on/off decision off a wall-clock twinkle tick
+// (sdl3_get_ticks() / SKY_TWINKLE_TICK_MS) via a deterministic hash of
+// (tick, star index). The state is then constant across every render frame
+// within a tick, so a blink lasts a full SKY_TWINKLE_TICK_MS span at any FPS.
+// Cadence is 20 Hz (50 ms/blink) rather than 30 Hz — the shorter 33 ms blink
+// was still too brief to read clearly; 50 ms makes the twinkle plainly visible.
+#define SKY_TWINKLE_TICK_HZ UC_PHYSICS_DESIGN_HZ        // 20 Hz
+#define SKY_TWINKLE_TICK_MS (1000 / SKY_TWINKLE_TICK_HZ) // 50 ms per blink tick
+//
+// 1-in-128: low 7 bits of the hash compared for equality against the star's
+// low 7 bits (mirrors the original's `(rand() & 0x7f) == (i & 0x7f)`).
+#define SKY_TWINKLE_MASK 0x7f
+// Bit-mixing multipliers (Knuth multiplicative hash + a second odd prime) and
+// xorshift amount. Arbitrary constants — only need good avalanche of the low
+// bits so the 1-in-128 test is uniform across ticks and star indices.
+#define SKY_TWINKLE_HASH_M1 2654435761u
+#define SKY_TWINKLE_HASH_M2 2246822519u
+#define SKY_TWINKLE_HASH_SHIFT 15
+
 // uc_orig: SKY_draw_stars (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_stars(
     float mid_x,
@@ -299,8 +325,12 @@ void SKY_draw_stars(
             SLONG px = SLONG(pp.X * xmul + xoff);
             SLONG py = SLONG(pp.Y * ymul + yoff);
 
-            if ((rand() & 0x7f) == (i & 0x7f)) {
-                // Make the star twinkle — skip drawing this frame.
+            uint32_t twinkle_tick = uint32_t(sdl3_get_ticks() / SKY_TWINKLE_TICK_MS);
+            uint32_t twinkle_hash = twinkle_tick * SKY_TWINKLE_HASH_M1
+                                  + uint32_t(i) * SKY_TWINKLE_HASH_M2;
+            twinkle_hash ^= twinkle_hash >> SKY_TWINKLE_HASH_SHIFT;
+            if ((twinkle_hash & SKY_TWINKLE_MASK) == uint32_t(i & SKY_TWINKLE_MASK)) {
+                // Star blinks off for this twinkle tick (FPS-independent).
             } else {
                 star_emit_pixel(px, py, ss->colour, star_size);
 

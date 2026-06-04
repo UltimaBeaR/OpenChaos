@@ -359,6 +359,13 @@ typedef struct
     // World position of gun muzzle (PC-only). Updated during aiming. Used for bullet raycasts.
     GameCoord GunMuzzle;
 
+    // Wall-clock deadline (sdl3_get_ticks() ms) until which the muzzle flash
+    // is drawn. Set on each shot to now + MUZZLE_FLASH_DURATION_MS. The render
+    // (figure.cpp) draws the flash while now < this value — FPS-independent.
+    // Without this the flash was a one-render-frame trigger and became near-
+    // invisible at high FPS (1 frame = ~10 ms at 100 FPS vs ~50 ms at 20 Hz).
+    uint64_t MuzzleFlashUntilMs;
+
 } Person;
 
 // uc_orig: PersonPtr (fallen/Headers/Person.h)
