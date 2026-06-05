@@ -140,6 +140,33 @@ static SLONG s_player_block_deadline[2] = { 0 };
 #define MUZZLE_DLIGHT_Y_OFFSET  0x60 // height above the shooter origin
 #define MUZZLE_DLIGHT_FWD_SHIFT  9   // SIN/COS >> 9 nudges the light toward the barrel
 
+// True when this person is the Roper dual-wielding pistols — the only case
+// where the muzzle effects (flash + smoke) come from BOTH hands rather than
+// one. PersonID bits 5.. encode the equipped weapon (1 = pistol), set in
+// set_persons_personid; the Roper's two pistols share that single id. figure.cpp
+// fills GunMuzzleAux (second barrel) only in this case.
+static inline bool person_is_roper_dual_pistols(Thing* p_person)
+{
+    return p_person->Genus.Person->PersonType == PERSON_ROPER
+        && (p_person->Draw.Tweened->PersonID >> 5) == 1;
+}
+
+// Emit one muzzle smoke puff at the given barrel world position. colour_argb
+// already has the per-call alpha packed in. Shared by the running- and standing-
+// fire paths so both fire paths — and both barrels of the Roper's dual pistols —
+// produce identical puffs. The trailing literals are the original muzzle-smoke
+// particle params (velocity jitter, page, size/lifetime/fade), preserved verbatim.
+static void person_emit_gun_smoke(const GameCoord* muzzle, ULONG colour_argb)
+{
+    PARTICLE_Add(
+        muzzle->X, muzzle->Y, muzzle->Z,
+        (Random() & 0xff) - 0x7f, 0xff, (Random() & 0xff) - 0x7f,
+        POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2),
+        colour_argb,
+        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
+        150, 28, 1, 8, 1);
+}
+
 // Valid player index (0..1), or -1 for an NPC / out-of-range id.
 // Person.PlayerID is 1-based.
 static inline SLONG player_block_idx(Thing* p_person)
@@ -361,6 +388,7 @@ Thing* alloc_person(UBYTE type, UBYTE random_number)
                 new_person->SpecialUse = 0;
                 new_person->Stamina = 128;
                 new_person->MuzzleFlashUntilMs = 0; // no flash pending (slot is reused)
+                new_person->GunMuzzleAux = {};      // second pistol barrel (Roper only)
                 person_thing->Genus.Person = new_person;
                 person_thing->Draw.Tweened = alloc_draw_tween(DT_ROT_MULTI);
 
@@ -3889,15 +3917,11 @@ void set_person_running_shoot(Thing* p_person)
     // "not that annoying."
     {
         constexpr ULONG SMOKE_ALPHA_FIRST_TICK = 0x6f;
-        PARTICLE_Add(
-            p_person->Genus.Person->GunMuzzle.X,
-            p_person->Genus.Person->GunMuzzle.Y,
-            p_person->Genus.Person->GunMuzzle.Z,
-            (Random() & 0xff) - 0x7f, 0xff, (Random() & 0xff) - 0x7f,
-            POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2),
-            (SMOKE_ALPHA_FIRST_TICK << 24) | 0x00FFFFFF,
-            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
-            150, 28, 1, 8, 1);
+        const ULONG colour = (SMOKE_ALPHA_FIRST_TICK << 24) | 0x00FFFFFF;
+        person_emit_gun_smoke(&p_person->Genus.Person->GunMuzzle, colour);
+        // Roper dual pistols: a second puff from the other barrel.
+        if (person_is_roper_dual_pistols(p_person))
+            person_emit_gun_smoke(&p_person->Genus.Person->GunMuzzleAux, colour);
     }
     // A real shot actually fired — clear reload gate (covers the case where
     // the gate was stuck from a prior standing-state reload the player
@@ -11580,17 +11604,11 @@ void fn_person_gun(Thing* p_person)
             SLONG alpha;
             alpha = (0x6f - (p_person->Draw.Tweened->FrameIndex * 4));
             if (alpha >= 0) {
-                alpha <<= 24;
-
-                PARTICLE_Add(
-                    p_person->Genus.Person->GunMuzzle.X,
-                    p_person->Genus.Person->GunMuzzle.Y,
-                    p_person->Genus.Person->GunMuzzle.Z,
-                    (Random() & 0xff) - 0x7f, 0xff, (Random() & 0xff) - 0x7f,
-                    POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2),
-                    alpha | 0x00FFFFFF,
-                    PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
-                    150, 28, 1, 8, 1);
+                const ULONG colour = (ULONG(alpha) << 24) | 0x00FFFFFF;
+                person_emit_gun_smoke(&p_person->Genus.Person->GunMuzzle, colour);
+                // Roper dual pistols: a second puff from the other barrel.
+                if (person_is_roper_dual_pistols(p_person))
+                    person_emit_gun_smoke(&p_person->Genus.Person->GunMuzzleAux, colour);
             }
         }
 

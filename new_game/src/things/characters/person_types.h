@@ -356,8 +356,13 @@ typedef struct
     // fired per render frame and effect density scaled with FPS.
     UBYTE LastDestructSpawn;
 
-    // World position of gun muzzle (PC-only). Updated during aiming. Used for bullet raycasts.
+    // World position of gun muzzle, computed each render frame in figure.cpp
+    // from the held gun prim's muzzle vertex. Consumed by gunfire FX (smoke,
+    // shotgun sparks). GunMuzzleAux is the SECOND barrel for the Roper's
+    // dual-wielded pistols (one muzzle per hand); unused / stale for everyone
+    // else and only read while the Roper is dual-wielding pistols.
     GameCoord GunMuzzle;
+    GameCoord GunMuzzleAux;
 
     // Wall-clock deadline (sdl3_get_ticks() ms) until which the muzzle flash
     // is drawn. Set on each shot to now + MUZZLE_FLASH_DURATION_MS. The render

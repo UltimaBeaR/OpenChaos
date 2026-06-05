@@ -2358,7 +2358,54 @@ static void figure_draw_muzzle_flash(SLONG prim)
 //     (flat 0xff808080 colour + additive texture page) — see that
 //     function's comment for why MESH_draw_guts can't render these
 //     correctly.
-static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
+// World-space position offset added to a held item's anchor (hand) before the
+// muzzle / flash are placed. Used only for the Roper's two-handed weapons: their
+// flash prim sits at the LEFT hand, which is correct for Darci (his support hand
+// is on the foregrip, at the barrel) but wrong for the Roper, who holds the
+// weapon in a bespoke pose with that hand off the barrel. We nudge the anchor
+// forward along the Roper's aim and up, to seat the flash on the barrel.
+struct HeldItemOffset {
+    float x, y, z; // world units
+};
+
+// Roper two-handed (shotgun / AK) muzzle FX placement and flash orientation,
+// dialed in by eye (the Roper's guns are baked into his body in a bespoke
+// 2-handed pose, so there is no rig point to derive these from). Position is in
+// world units relative to the anchor hand along the Roper's aim frame: REACH =
+// forward (toward barrel tip), HEIGHT = up, SIDE = lateral (right). Flash
+// orientation is in PSX angle units (2048 = 360°): yaw is an offset from aim,
+// then pitch (tilt up/down) and roll (spin around the barrel axis).
+#define ROPER_2H_REACH        27.6f
+#define ROPER_2H_HEIGHT      (-54.4f)
+#define ROPER_2H_SIDE        (-30.4f)
+#define ROPER_2H_HAND         SUB_OBJECT_LEFT_HAND
+#define ROPER_2H_FLASH_YAW    793
+#define ROPER_2H_FLASH_PITCH  1974
+#define ROPER_2H_FLASH_ROLL   1629
+
+// Multiply two row-major 3x3 matrices: out = a * b.
+static void figure_mul3x3(float out[9], const float a[9], const float b[9])
+{
+    for (int r = 0; r < 3; r++)
+        for (int c = 0; c < 3; c++)
+            out[r * 3 + c] = a[r * 3 + 0] * b[0 * 3 + c]
+                           + a[r * 3 + 1] * b[1 * 3 + c]
+                           + a[r * 3 + 2] * b[2 * 3 + c];
+}
+
+// muzzle_out: where to store the gun-prim muzzle world position (prims 256/258/
+//   260). NULL → the person's GunMuzzle (default). The Roper passes &GunMuzzle /
+//   &GunMuzzleAux to gather both pistol barrels.
+// draw_visual: false → only compute the muzzle point, draw nothing. The Roper
+//   uses this because its guns are baked into the body mesh (drawing a held gun
+//   prim would double them) — it still needs the muzzle point and a flash.
+// world_off: optional world-space anchor offset (Roper two-handed grip). NULL = none.
+// orient_override: optional 3x3 orientation for the muzzle-flash draw, replacing
+//   the hand-bone rotation (Roper two-handed — aim-aligned flash). NULL = none.
+static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part,
+                                  GameCoord* muzzle_out = nullptr, bool draw_visual = true,
+                                  const HeldItemOffset* world_off = nullptr,
+                                  float* orient_override = nullptr)
 {
     const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
     if (!pose || hand_part < 0 || hand_part >= POSE_MAX_BONES) return;
@@ -2379,6 +2426,13 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
     fmatrix[7] = float(xf.rot.M[2][1]) * S;
     fmatrix[8] = float(xf.rot.M[2][2]) * S;
 
+    float px = xf.pos_x, py = xf.pos_y, pz = xf.pos_z;
+    if (world_off) {
+        px += world_off->x;
+        py += world_off->y;
+        pz += world_off->z;
+    }
+
     // Muzzle-point side effect for the three known gun prims. The muzzle
     // vertex index inside each gun's prim_objects[] data is hard-coded:
     // prim 256 = pistol (muzzle = vertex 0), prim 258 = shotgun (vertex 15),
@@ -2392,22 +2446,55 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
         float vy = AENG_dx_prim_points[idx].Y;
         float vz = AENG_dx_prim_points[idx].Z;
         MATRIX_MUL(fmatrix, vx, vy, vz);
-        p_person->Genus.Person->GunMuzzle.X = SLONG((vx + xf.pos_x) * 256.0f);
-        p_person->Genus.Person->GunMuzzle.Y = SLONG((vy + xf.pos_y) * 256.0f);
-        p_person->Genus.Person->GunMuzzle.Z = SLONG((vz + xf.pos_z) * 256.0f);
+        GameCoord* tgt = muzzle_out ? muzzle_out : &p_person->Genus.Person->GunMuzzle;
+        tgt->X = SLONG((vx + px) * 256.0f);
+        tgt->Y = SLONG((vy + py) * 256.0f);
+        tgt->Z = SLONG((vz + pz) * 256.0f);
     }
 
     if (prim == 261 || prim == 262 || prim == 263) {
         // Muzzle flash: unlit, flat-grey path. Need POLY_set_local_rotation
-        // ourselves (MESH_draw_poly_at_matrix would do it, but we go
-        // through the manual POLY_buffer pipeline below).
-        POLY_set_local_rotation(xf.pos_x, xf.pos_y, xf.pos_z, fmatrix);
-        figure_draw_muzzle_flash(prim);
-    } else {
-        MESH_draw_poly_at_matrix(prim,
-                                 SLONG(xf.pos_x), SLONG(xf.pos_y), SLONG(xf.pos_z),
-                                 fmatrix, NULL, 0xff);
+        // ourselves (MESH_draw_poly_at_matrix would do it, but we go through the
+        // manual POLY_buffer pipeline below).
+        float ax = px, ay = py, az = pz;
+        float* orient = orient_override ? orient_override : fmatrix;
+        if (orient_override) {
+            // The flash prim's flame is offset far from the prim origin, so
+            // rotating about the origin (anchor) would swing the flame away in a
+            // big arc. Re-anchor so the flame CENTROID stays put while we apply
+            // the aim orientation: barrel = where the hand-bone draw would put
+            // the flame centroid; new anchor = barrel - override*centroid.
+            const PrimObject* po = &prim_objects[prim];
+            float Cx = 0.0f, Cy = 0.0f, Cz = 0.0f;
+            SLONG n = 0;
+            for (SLONG i = po->StartPoint; i < po->EndPoint; i++) {
+                Cx += AENG_dx_prim_points[i].X;
+                Cy += AENG_dx_prim_points[i].Y;
+                Cz += AENG_dx_prim_points[i].Z;
+                n++;
+            }
+            if (n) { Cx /= float(n); Cy /= float(n); Cz /= float(n); }
+            float hx = Cx, hy = Cy, hz = Cz;
+            MATRIX_MUL(fmatrix, hx, hy, hz);       // handBone * centroid
+            const float bx = px + hx, by = py + hy, bz = pz + hz; // barrel
+            float ox = Cx, oy = Cy, oz = Cz;
+            MATRIX_MUL(orient_override, ox, oy, oz); // override * centroid
+            ax = bx - ox; ay = by - oy; az = bz - oz;
+        }
+        if (draw_visual) {
+            POLY_set_local_rotation(ax, ay, az, orient);
+            figure_draw_muzzle_flash(prim);
+        }
+        return;
     }
+
+    // Compute-only mode (gun-prim muzzle): muzzle captured above, nothing to draw.
+    if (!draw_visual)
+        return;
+
+    MESH_draw_poly_at_matrix(prim,
+                             SLONG(px), SLONG(py), SLONG(pz),
+                             fmatrix, NULL, 0xff);
 }
 
 // Forward declaration — defined later in this file (used by
@@ -2625,6 +2712,74 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             // Gun mesh (prim 256/258/260 for id 1/3/5). figure_draw_held_item
             // also writes p_person->Genus.Person->GunMuzzle for these prims.
             figure_draw_held_item(p_person, 255 + id, hand_part);
+        }
+    } else {
+        // Roper: guns are baked into the body mesh (PeopleTypes variant), so we
+        // never draw a held gun prim — that would double it. We only need the
+        // muzzle point(s) (for smoke / sparks) and the muzzle-flash sprite.
+        //
+        // Pistols (id 1) are DUAL-wielded — one in each hand — so both barrels
+        // get a muzzle point and a flash. Shotgun (3) / AK (5) are single,
+        // exactly like a normal character. Knife/bat/unarmed: nothing to do.
+        const SLONG id = p_person->Draw.Tweened->PersonID >> 5;
+        const bool is_gun = (id == 1 || id == 3 || id == 5);
+        if (is_gun) {
+            const bool flash_active =
+                sdl3_get_ticks() < p_person->Genus.Person->MuzzleFlashUntilMs;
+
+            if (id == 1) {
+                // Dual pistols (prim 256 = pistol). Left → GunMuzzle,
+                // right → GunMuzzleAux. Flash sprite (261) at both hands.
+                figure_draw_held_item(p_person, 256, SUB_OBJECT_LEFT_HAND,
+                                      &p_person->Genus.Person->GunMuzzle, false);
+                figure_draw_held_item(p_person, 256, SUB_OBJECT_RIGHT_HAND,
+                                      &p_person->Genus.Person->GunMuzzleAux, false);
+                if (flash_active) {
+                    figure_draw_held_item(p_person, 261, SUB_OBJECT_LEFT_HAND);
+                    figure_draw_held_item(p_person, 261, SUB_OBJECT_RIGHT_HAND);
+                }
+            } else {
+                // Shotgun (262) or AK (263) — single hand. Anchor at the hand +
+                // offset in the aim frame: reach forward, height up, side lateral.
+                const int hand_part = ROPER_2H_HAND;
+                const SLONG ang = p_person->Draw.Tweened->Angle;
+                constexpr float ANG = 1.0f / 65536.0f; // SIN/COS are 16.16 fixed
+                const float s = float(SIN(ang)) * ANG;
+                const float cc = float(COS(ang)) * ANG;
+                // forward = (-s,0,-cc); right = (-cc,0,s)
+                const HeldItemOffset roper_2h_off = {
+                    (-s) * ROPER_2H_REACH + (-cc) * ROPER_2H_SIDE,
+                    ROPER_2H_HEIGHT,
+                    (-cc) * ROPER_2H_REACH + (s) * ROPER_2H_SIDE
+                };
+                figure_draw_held_item(p_person, 255 + id, hand_part,
+                                      &p_person->Genus.Person->GunMuzzle, false,
+                                      &roper_2h_off);
+                if (flash_active) {
+                    const SLONG mf_prim = (id == 3) ? 262 : 263;
+                    // Flash orientation: base forward = aim (+ yaw), up = +Y;
+                    // then local pitch (about right) and roll (about forward).
+                    const SLONG fa = (ang + ROPER_2H_FLASH_YAW) & 2047;
+                    const float fs = float(SIN(fa)) * ANG;
+                    const float fc = float(COS(fa)) * ANG;
+                    float base[9] = {
+                        -fc, 0.0f, -fs,
+                         0.0f, 1.0f, 0.0f,
+                         fs, 0.0f, -fc
+                    };
+                    const float cp = float(COS(ROPER_2H_FLASH_PITCH & 2047)) * ANG;
+                    const float sp = float(SIN(ROPER_2H_FLASH_PITCH & 2047)) * ANG;
+                    const float cr = float(COS(ROPER_2H_FLASH_ROLL & 2047)) * ANG;
+                    const float sr = float(SIN(ROPER_2H_FLASH_ROLL & 2047)) * ANG;
+                    float rx[9] = { 1, 0, 0,  0, cp, -sp,  0, sp, cp }; // pitch (local X)
+                    float rz[9] = { cr, -sr, 0,  sr, cr, 0,  0, 0, 1 }; // roll (local Z)
+                    float tmp[9], flash_orient[9];
+                    figure_mul3x3(tmp, base, rx);
+                    figure_mul3x3(flash_orient, tmp, rz);
+                    figure_draw_held_item(p_person, mf_prim, hand_part,
+                                          nullptr, true, &roper_2h_off, flash_orient);
+                }
+            }
         }
     }
 
