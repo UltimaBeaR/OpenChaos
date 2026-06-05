@@ -22,7 +22,7 @@
 
 #include "gl_shaders_embedded.h"
 
-bool g_crt_enabled = true; // default; overridden from config in crt_effect_init()
+bool g_crt_enabled = false; // default off; overridden from config in crt_effect_init()
 
 namespace {
 
@@ -77,7 +77,7 @@ void resolve_scanline_pitch()
 
 void crt_effect_init()
 {
-    g_crt_enabled = OC_CONFIG_get_int("video", "crt_effect", 1) != 0;
+    g_crt_enabled = OC_CONFIG_get_int("video", "crt_effect", 0) != 0;
 
     // Initial resolve; crt_effect_apply re-resolves whenever the dst size changes.
     resolve_scanline_pitch();

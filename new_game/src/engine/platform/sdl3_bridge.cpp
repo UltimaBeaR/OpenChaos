@@ -18,6 +18,10 @@
 #include <windows.h>
 #endif
 
+#ifdef __APPLE__
+#include <CoreGraphics/CoreGraphics.h>
+#endif
+
 // RGBA channel count forced when decoding the window icon (R,G,B,A).
 static const int WINDOW_ICON_RGBA_CHANNELS = 4;
 
@@ -135,45 +139,39 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     const int requested_phys_w = width;
     const int requested_phys_h = height;
 
+#ifdef _WIN32
     // True only if we actually applied the +1px width pad below (i.e. the
     // desktop mode query succeeded). Gates the pad recorded after creation so
     // we never subtract a pad that wasn't added (would clip 1px on the right).
+    // Windows-only: macOS / Linux use real SDL fullscreen, no pad.
     bool fullscreen_padded = false;
+#endif
 
     if (fullscreen) {
-        // Borderless window sized to the desktop, NOT SDL_WINDOW_FULLSCREEN.
+#ifdef _WIN32
+        // WINDOWS: borderless window sized to the desktop + 1px width, NOT
+        // SDL_WINDOW_FULLSCREEN.
         //
         // Why borderless instead of SDL fullscreen-desktop: on Windows 11 an
         // OpenGL borderless window whose size EXACTLY matches the display
         // resolution gets silently promoted to exclusive fullscreen by the
         // NVIDIA GL driver on the first SwapWindow (SDL bug #12791). Exclusive
         // fullscreen bypasses DWM → the OS screenshot path (PrintScreen /
-        // Snipping Tool) captures a stale / off-by-one frame. The only app-side
-        // lever that stops the promotion is making the window NOT match the
-        // display resolution exactly, so we add +1 to the WIDTH: the extra
-        // column hangs off the right edge (invisible, taskbar still covered)
-        // and the window stays a real DWM-composited borderless window.
+        // Snipping Tool) captures a stale / off-by-one frame. The fix is to make
+        // the window NOT match the display resolution exactly: +1 to the WIDTH.
+        // The extra column hangs off the right edge (invisible, taskbar still
+        // covered) and the window stays a real DWM-composited borderless window.
         //
-        // +1 on width rather than height because the off-screen strip then
-        // runs along the shorter dimension (1×height px) instead of the longer
-        // one (1×width px) — minimal wasted area. It's also cleaner for the
-        // compensation: nothing overhangs top/bottom, so the visible region is
-        // a plain (0,0,w,h) with no OpenGL bottom-left-origin juggling.
-        //
-        // The extra column is fully hidden from the rest of the engine:
+        // The extra column is hidden from the rest of the engine:
         // sdl3_window_get_drawable_size subtracts the pad (s_fullscreen_extra_w),
         // so FBO sizing/aspect (OpenDisplay), the composition dst-rect + clear,
-        // and mouse→FBO mapping all see the true display size (w, h). The
-        // composition viewport therefore fills exactly the visible (w, h) and
-        // never draws into the off-screen column → output is pixel-identical to
-        // true fullscreen, no stretch, no lost content. The padded size lives
-        // only in the physical SDL window (what the driver inspects). See the
+        // and mouse→FBO mapping all see the true display size (w, h). See the
         // FBO-as-virtual-screen model in
         // new_game_devlog/fullscreen_transition/concepts.md.
         //
-        // SDL_GetDesktopDisplayMode returns logical-point dimensions, which
-        // is what SDL_CreateWindow expects; HIGH_PIXEL_DENSITY then makes
-        // the actual drawable match the physical panel.
+        // SDL_GetDesktopDisplayMode returns logical-point dimensions, which is
+        // what SDL_CreateWindow expects; HIGH_PIXEL_DENSITY then makes the
+        // actual drawable match the physical panel.
         SDL_DisplayID display = SDL_GetPrimaryDisplay();
         const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
         if (mode) {
@@ -182,6 +180,25 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
             fullscreen_padded = true;
         }
         flags |= SDL_WINDOW_BORDERLESS;
+#else
+        // macOS / Linux: real SDL fullscreen at the desktop resolution. The
+        // Windows NVIDIA exclusive-grab / PrintScreen bug doesn't exist here, so
+        // we use the straightforward SDL_WINDOW_FULLSCREEN path (finalised with
+        // SDL_SetWindowFullscreenMode(NULL) after creation). This is the
+        // behaviour that worked before the Windows "printscreen fix"; the
+        // borderless + width-pad approach misplaces the window on macOS.
+        //
+        // SDL_GetDesktopDisplayMode returns logical-point dimensions for
+        // SDL_CreateWindow; HIGH_PIXEL_DENSITY makes the drawable match the
+        // physical panel.
+        SDL_DisplayID display = SDL_GetPrimaryDisplay();
+        const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
+        if (mode) {
+            width = mode->w;
+            height = mode->h;
+        }
+        flags |= SDL_WINDOW_FULLSCREEN;
+#endif
     }
 
     s_window = SDL_CreateWindow(title, width, height, flags);
@@ -228,9 +245,10 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
                 SDL_WINDOWPOS_CENTERED);
         }
     } else {
-        // Borderless fullscreen: pin the window to the top-left so it covers
-        // the whole screen, with the +1px from above hanging off the right
-        // edge (off-screen, taskbar stays covered). Deliberately NO
+#ifdef _WIN32
+        // WINDOWS borderless fullscreen: pin the window to the top-left so it
+        // covers the whole screen, with the +1px from above hanging off the
+        // right edge (off-screen, taskbar stays covered). Deliberately NO
         // SDL_SetWindowFullscreenMode here — this is a plain borderless window,
         // not SDL fullscreen-desktop (which would snap the size back to the
         // exact display resolution and re-trigger the driver's exclusive grab).
@@ -250,6 +268,13 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
             if (s_fullscreen_extra_w < 1)
                 s_fullscreen_extra_w = 1;
         }
+#else
+        // macOS / Linux: finalise real borderless-desktop fullscreen by passing
+        // NULL as the mode — keeps SDL from staying in an exclusive video mode
+        // it may have auto-picked. This is the pre-"printscreen fix" path that
+        // works correctly on these platforms.
+        SDL_SetWindowFullscreenMode(s_window, nullptr);
+#endif
 
         // Hide the OS cursor — in fullscreen there's no reason for it to be
         // visible over the game. Menus that need a pointer draw their own.
@@ -378,6 +403,33 @@ bool sdl3_display_get_physical_ppcm(float* ppcm)
     const float ppcm_x = (float)horz_px / ((float)horz_mm / MM_PER_CM);
     const float ppcm_y = (float)vert_px / ((float)vert_mm / MM_PER_CM);
     *ppcm = 0.5f * (ppcm_x + ppcm_y);
+    return (*ppcm > 0.0f);
+#elif defined(__APPLE__)
+    // Millimetres per centimetre — CGDisplayScreenSize reports physical mm.
+    static const double MM_PER_CM = 10.0;
+
+    if (!ppcm)
+        return false;
+
+    // Physical panel size (mm, from EDID) and the current mode's native pixel
+    // width. Main display — the common single-screen / laptop-panel case; a
+    // multi-monitor refinement would map the window's SDL display to its
+    // CGDirectDisplayID, but that's not needed for the typical setup.
+    const CGDirectDisplayID disp = CGMainDisplayID();
+    const CGSize size_mm = CGDisplayScreenSize(disp);
+    CGDisplayModeRef mode = CGDisplayCopyDisplayMode(disp);
+    if (!mode || size_mm.width <= 0.0) {
+        if (mode)
+            CGDisplayModeRelease(mode);
+        return false;
+    }
+    const double native_px = (double)CGDisplayModeGetPixelWidth(mode);
+    CGDisplayModeRelease(mode);
+    if (native_px <= 0.0)
+        return false;
+
+    // px per cm: native pixels across the panel's physical width (mm → cm).
+    *ppcm = (float)(native_px / (size_mm.width / MM_PER_CM));
     return (*ppcm > 0.0f);
 #else
     (void)ppcm;

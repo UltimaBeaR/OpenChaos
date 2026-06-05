@@ -12,11 +12,12 @@
 // ---------------------------------------------------------------------------
 
 // Create an SDL3 window with OpenGL support.
-// When fullscreen is true, width/height are ignored and the window is created
-// as a borderless window sized to the desktop + 1px in width (see
-// sdl3_window_create for why: dodging the NVIDIA GL driver's exclusive-
-// fullscreen grab on Win11 so the window stays DWM-composited and OS
-// screenshots work). It is NOT SDL_WINDOW_FULLSCREEN / fullscreen-desktop.
+// When fullscreen is true, width/height are ignored. On WINDOWS the window is a
+// borderless desktop-sized window with a +1px width pad (see sdl3_window_create
+// for why: dodging the NVIDIA GL driver's exclusive-fullscreen grab on Win11 so
+// the window stays DWM-composited and OS screenshots work). On macOS / Linux it
+// is a normal SDL_WINDOW_FULLSCREEN (borderless-desktop) window — no pad, no
+// compensation; the Windows driver bug doesn't exist there.
 bool sdl3_window_create(const char* title, int width, int height, bool fullscreen);
 
 // Destroy the SDL3 window.

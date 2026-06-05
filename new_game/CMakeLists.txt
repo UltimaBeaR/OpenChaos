@@ -254,7 +254,10 @@ if(WIN32)
     set(BACKEND_LIBS opengl32 dwmapi)
 elseif(APPLE)
     find_package(OpenGL REQUIRED)
-    set(BACKEND_LIBS OpenGL::GL)
+    # CoreGraphics: physical display size (CGDisplayScreenSize) for the CRT
+    # effect's real-DPI scanline pitch (see sdl3_display_get_physical_ppcm).
+    find_library(CORE_GRAPHICS_LIB CoreGraphics REQUIRED)
+    set(BACKEND_LIBS OpenGL::GL ${CORE_GRAPHICS_LIB})
 else()
     set(BACKEND_LIBS GL)
 endif()
