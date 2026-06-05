@@ -1722,47 +1722,6 @@ void FRONTEND_store_video_data()
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
 }
 
-// uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)
-// Inserts a gamma slider item into the config video menu.
-void FRONTEND_do_gamma()
-{
-    SLONG x, y, y2 = 0;
-    MenuData keepsafe;
-    MenuData* md = menu_data + menu_state.items - 1;
-
-    keepsafe = *md;
-
-    md->Label = XLAT_str_ptr(X_GAMMA);
-    MENUFONT_Dimensions(md->Label, x, y, -1, BIG_FONT_SCALE);
-    md->Type = OT_LABEL;
-    md->X = 320 - (x >> 1);
-    y2 = md->Y;
-    md++;
-    y2 += 50;
-
-    md->Label = XLAT_str_ptr(X_LOW);
-    md->LabelID = X_LOW;
-    GammaIndex = md - menu_data;
-    MENUFONT_Dimensions(md->Label, x, y, -1, BIG_FONT_SCALE);
-    md->Type = OT_SLIDER;
-    md->X = 30;
-    md->Y = y2;
-    md++;
-    y2 += 50;
-
-    *md = keepsafe;
-    md->Y = y2;
-
-    md++;
-    y2 += 50;
-
-    menu_state.items += 2;
-
-    int32_t a, b;
-    ge_get_gamma(&a, &b);
-    menu_data[GammaIndex].Data = a;
-}
-
 // ---- Mode switching ---------------------------------------------------------
 
 // uc_orig: FRONTEND_mode (fallen/Source/frontend.cpp)
@@ -1878,8 +1837,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-        if (ge_is_gamma_available())
-            FRONTEND_do_gamma();
         FRONTEND_restore_video_data();
     } break;
     case FE_CONFIG_AUDIO: {

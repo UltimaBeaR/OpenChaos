@@ -130,9 +130,6 @@ extern char* pcSpeechLanguageDir;
 // uc_orig: dwAutoPlayFMVTimeout (fallen/Source/frontend.cpp)
 extern DWORD dwAutoPlayFMVTimeout;
 
-// uc_orig: GammaIndex (fallen/Source/frontend.cpp)
-extern SLONG GammaIndex;
-
 // uc_orig: m_bGoIntoSaveScreen (fallen/Source/frontend.cpp)
 extern bool m_bGoIntoSaveScreen;
 

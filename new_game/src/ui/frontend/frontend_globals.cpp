@@ -230,9 +230,6 @@ char* pcSpeechLanguageDir = "talk2/";
 // uc_orig: dwAutoPlayFMVTimeout (fallen/Source/frontend.cpp)
 DWORD dwAutoPlayFMVTimeout = 0;
 
-// uc_orig: GammaIndex (fallen/Source/frontend.cpp)
-SLONG GammaIndex = 0;
-
 // uc_orig: m_bGoIntoSaveScreen (fallen/Source/frontend.cpp)
 bool m_bGoIntoSaveScreen = UC_FALSE;
 

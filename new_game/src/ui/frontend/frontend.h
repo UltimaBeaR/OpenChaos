@@ -262,8 +262,6 @@ UBYTE LabelToIndex(SLONG label);
 void FRONTEND_restore_video_data();
 // uc_orig: FRONTEND_store_video_data (fallen/Source/frontend.cpp)
 void FRONTEND_store_video_data();
-// uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)
-void FRONTEND_do_gamma();
 // uc_orig: FRONTEND_mode (fallen/Source/frontend.cpp)
 void FRONTEND_mode(SBYTE mode, bool bDoTransition = UC_TRUE);
 
