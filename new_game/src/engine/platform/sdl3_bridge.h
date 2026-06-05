@@ -40,6 +40,17 @@ void sdl3_window_get_drawable_size(int* w, int* h);
 // Get native window handle (HWND on Windows). Returns nullptr if no window.
 void* sdl3_window_get_native_handle();
 
+// Best-effort PHYSICAL pixel density of the display the window currently sits
+// on, in pixels per centimetre. Writes *ppcm and returns true on success.
+//
+// Returns false when the OS can't report a physical panel size (no window,
+// non-Windows platform for now, or the driver returns a degenerate size).
+// Even on success the value can be inaccurate: many Windows drivers report a
+// physical size derived from an assumed 96 DPI rather than the panel's true
+// EDID dimensions. Treat this as a convenience default — the reliable path is
+// the user-configured display_ppcm override.
+bool sdl3_display_get_physical_ppcm(float* ppcm);
+
 // Returns true if the window is currently maximized.
 bool sdl3_window_is_maximized();
 

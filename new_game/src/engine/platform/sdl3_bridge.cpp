@@ -338,6 +338,53 @@ void* sdl3_window_get_native_handle()
 #endif
 }
 
+bool sdl3_display_get_physical_ppcm(float* ppcm)
+{
+#ifdef _WIN32
+    // Millimetres per centimetre — GDI reports physical size in mm.
+    static const float MM_PER_CM = 10.0f;
+
+    if (!s_window || !ppcm)
+        return false;
+
+    SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
+    HWND hwnd = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    if (!hwnd)
+        return false;
+
+    // Resolve the monitor the window is on, then open a DC for that specific
+    // device so multi-monitor setups report the panel actually showing the game.
+    HMONITOR mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFOEXW mi = {};
+    mi.cbSize = sizeof(mi);
+    if (!GetMonitorInfoW(mon, (MONITORINFO*)&mi))
+        return false;
+
+    HDC hdc = CreateDCW(L"DISPLAY", mi.szDevice, nullptr, nullptr);
+    if (!hdc)
+        return false;
+
+    const int horz_mm = GetDeviceCaps(hdc, HORZSIZE); // physical width  (mm)
+    const int vert_mm = GetDeviceCaps(hdc, VERTSIZE); // physical height (mm)
+    const int horz_px = GetDeviceCaps(hdc, HORZRES);  // mode width  (px)
+    const int vert_px = GetDeviceCaps(hdc, VERTRES);  // mode height (px)
+    DeleteDC(hdc);
+
+    if (horz_mm <= 0 || vert_mm <= 0 || horz_px <= 0 || vert_px <= 0)
+        return false;
+
+    // px / cm on each axis. Pixels are square on essentially all panels, so the
+    // two axes agree; average them to smooth off any mm rounding.
+    const float ppcm_x = (float)horz_px / ((float)horz_mm / MM_PER_CM);
+    const float ppcm_y = (float)vert_px / ((float)vert_mm / MM_PER_CM);
+    *ppcm = 0.5f * (ppcm_x + ppcm_y);
+    return (*ppcm > 0.0f);
+#else
+    (void)ppcm;
+    return false;
+#endif
+}
+
 bool sdl3_window_is_maximized()
 {
     if (!s_window)

@@ -7,7 +7,11 @@
 // Modifications vs original:
 //   - Removed barrel curvature and corner rounding (flat screen)
 //   - Adapted coordinate system: u_source = display-res scratch texture,
-//     u_content_size = virtual game resolution (e.g. 640x480)
+//     u_emu_size = emulated CRT grid, derived on the CPU from the PHYSICAL
+//     displayed size (not the scene FBO / render resolution) so the
+//     scanline pitch is a fixed number of physical pixels on every display.
+//     The whole CRT structure (scanlines, halation, vignette) is normalised
+//     to this grid, so the effect looks the same regardless of pixel density.
 //   - Added explicit halation pass (warm phosphor glow for dark 3D content)
 //   - Mask tuned to very subtle (3D polygonal game, not pixel art)
 //
@@ -22,13 +26,13 @@ out vec4 FragColor;
 
 uniform sampler2D u_source;
 uniform vec4  u_game_rect;
-uniform vec2  u_content_size;
+uniform vec2  u_emu_size;       // emulated CRT grid: physical_size / scanline_pitch_px
 
 uniform float u_scanline_weight;    // beam width: 1.0 = sharp, 3.0 = soft/bloomy
 uniform float u_mask_dark;          // phosphor mask dark value  (1.0 = mask off)
 uniform float u_mask_light;         // phosphor mask bright value (1.0 = mask off)
 uniform float u_halation_strength;  // warm glow intensity around bright objects
-uniform float u_halation_radius;    // glow spread in content pixels
+uniform float u_halation_radius;    // glow spread in emulated pixels
 uniform float u_vignette_strength;
 uniform float u_brightness;
 uniform float u_warmth;
@@ -50,18 +54,18 @@ vec3 ToSrgb(vec3 c) {
 
 // ---- sampling -------------------------------------------------------
 
-// Sample scratch texture at an exact content-row centre (Y snapped, X free).
-// The scratch texture is display-resolution; snapping Y to content row centres
+// Sample scratch texture at an exact emulated-row centre (Y snapped, X free).
+// The scratch texture is display-resolution; snapping Y to emulated row centres
 // is the key to making scanlines reconstruct correctly.
 vec3 FetchRow(float x_uv, float row) {
-    vec2 uv = vec2(x_uv, (row + 0.5) / u_content_size.y);
+    vec2 uv = vec2(x_uv, (row + 0.5) / u_emu_size.y);
     return ToLinear(texture(u_source, clamp(uv, vec2(0.0), vec2(1.0))).rgb);
 }
 
-// Sample with a content-pixel offset (used for halation wide kernel).
+// Sample with an emulated-pixel offset (used for halation wide kernel).
 vec3 FetchOffset(vec2 uv, vec2 cp_off) {
     return ToLinear(texture(u_source,
-        clamp(uv + cp_off / u_content_size, vec2(0.0), vec2(1.0))).rgb);
+        clamp(uv + cp_off / u_emu_size, vec2(0.0), vec2(1.0))).rgb);
 }
 
 // ---- crt-geom scanline beam ----------------------------------------
@@ -75,11 +79,11 @@ float ScanlineWeight(float dist, float lum) {
     return (0.4 / wid) * exp(-d * d * d * d);
 }
 
-// Reconstruct output pixel from 4 nearest content scanlines.
+// Reconstruct output pixel from 4 nearest emulated scanlines.
 vec3 CrtScan(vec2 uv) {
-    float cy = uv.y * u_content_size.y;
+    float cy = uv.y * u_emu_size.y;
 
-    // r: index of the content row whose centre is just below the current position.
+    // r: index of the emulated row whose centre is just below the current position.
     // t: fractional distance past r's centre (0 = at r centre, 1 = at r+1 centre).
     float r = floor(cy - 0.5);
     float t = cy - (r + 0.5);
@@ -139,7 +143,7 @@ vec3 Halation(vec2 uv) {
 // ---- vignette ------------------------------------------------------
 
 float Vignette(vec2 uv) {
-    float aspect = u_content_size.x / u_content_size.y;
+    float aspect = u_emu_size.x / u_emu_size.y;
     vec2  d = (uv - 0.5) * vec2(aspect, 1.0);
     float r = dot(d, d);
     return 1.0 - u_vignette_strength * smoothstep(0.0, 0.75, r * 4.0);

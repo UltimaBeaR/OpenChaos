@@ -15,6 +15,7 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/io/oc_config.h"
+#include "engine/platform/sdl3_bridge.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -23,9 +24,63 @@
 
 bool g_crt_enabled = true; // default; overridden from config in crt_effect_init()
 
+namespace {
+
+// CRT scanline density: scanlines per centimetre of physical screen. Fixing
+// this in real centimetres (via the display's physical pixel density) makes the
+// apparent scanline pitch identical regardless of display resolution or pixel
+// density. ~10 → fine modern-CRT look; lower = coarser/arcade.
+constexpr float CRT_PIXELS_PER_CM = 18.0f;
+
+// Physical display density (screen px per cm) assumed when the OS can't report a
+// real panel size (non-Windows, or a driver returning a degenerate size).
+constexpr float DISPLAY_PPCM_FALLBACK = 96.0f / 2.54f; // 96 DPI in px/cm
+
+// Resolved physical px per emulated scanline. ALWAYS a whole number of physical
+// pixels (see resolve_scanline_pitch) so each emulated CRT pixel maps to an
+// exact NxN block of real pixels. Recomputed when the displayed size changes.
+float s_scanline_pitch_px = 1.0f;
+
+// Displayed (dst-rect) size the pitch was last resolved for. A change means a
+// window resize or a move to a different-DPI monitor → re-resolve.
+int32_t s_pitch_resolved_w = 0;
+int32_t s_pitch_resolved_h = 0;
+
+// Resolve the integer scanline pitch from the display's physical density.
+// Rounding to a whole number of physical pixels is the key to crisp scanlines:
+// a fractional pitch (e.g. 2.3) makes scanlines drift relative to the pixel
+// grid and the image smears; snapping to N px aligns each CRT pixel to an exact
+// NxN block of real pixels. Cheap; called only on size change, never per frame.
+void resolve_scanline_pitch()
+{
+    float display_ppcm = 0.0f;
+    const bool detected = sdl3_display_get_physical_ppcm(&display_ppcm) && display_ppcm > 0.0f;
+    if (!detected)
+        display_ppcm = DISPLAY_PPCM_FALLBACK;
+
+    // Snap to nearest whole physical pixel; floor at 1 to stay a valid divisor.
+    int32_t pitch = (int32_t)(display_ppcm / CRT_PIXELS_PER_CM + 0.5f);
+    if (pitch < 1)
+        pitch = 1;
+
+    const float new_pitch = (float)pitch;
+    if (new_pitch != s_scanline_pitch_px) {
+        fprintf(stderr,
+            "CRT effect: %.1f scanlines/cm, display %.1f px/cm (%s) -> %d px/scanline\n",
+            (double)CRT_PIXELS_PER_CM, (double)display_ppcm,
+            detected ? "OS auto-detect" : "fallback (96 DPI)", pitch);
+    }
+    s_scanline_pitch_px = new_pitch;
+}
+
+} // namespace
+
 void crt_effect_init()
 {
     g_crt_enabled = OC_CONFIG_get_int("video", "crt_effect", 1) != 0;
+
+    // Initial resolve; crt_effect_apply re-resolves whenever the dst size changes.
+    resolve_scanline_pitch();
 }
 
 namespace {
@@ -33,7 +88,7 @@ namespace {
 GLuint s_program = 0;
 GLint s_u_source = -1;
 GLint s_u_game_rect = -1;
-GLint s_u_content_size = -1;
+GLint s_u_emu_size = -1;
 GLint s_u_scanline_weight = -1;
 GLint s_u_mask_dark = -1;
 GLint s_u_mask_light = -1;
@@ -82,7 +137,7 @@ bool ensure_program()
     }
     s_u_source = glGetUniformLocation(s_program, "u_source");
     s_u_game_rect = glGetUniformLocation(s_program, "u_game_rect");
-    s_u_content_size = glGetUniformLocation(s_program, "u_content_size");
+    s_u_emu_size = glGetUniformLocation(s_program, "u_emu_size");
     s_u_scanline_weight = glGetUniformLocation(s_program, "u_scanline_weight");
     s_u_mask_dark = glGetUniformLocation(s_program, "u_mask_dark");
     s_u_mask_light = glGetUniformLocation(s_program, "u_mask_light");
@@ -160,6 +215,15 @@ void crt_effect_apply()
     if (game_w <= 0 || game_h <= 0)
         return;
 
+    // Re-resolve the integer scanline pitch when the displayed size changes
+    // (window resize, or a move to a different-DPI monitor). Keeps CRT pixels
+    // snapped to whole real pixels in the new situation.
+    if (game_w != s_pitch_resolved_w || game_h != s_pitch_resolved_h) {
+        resolve_scanline_pitch();
+        s_pitch_resolved_w = game_w;
+        s_pitch_resolved_h = game_h;
+    }
+
     if (!ensure_program())
         return;
     ensure_scratch(game_w, game_h);
@@ -210,9 +274,17 @@ void crt_effect_apply()
     glUniform4f(s_u_game_rect,
         (float)game_x, (float)game_y,
         (float)game_w, (float)game_h);
-    glUniform2f(s_u_content_size,
-        (float)composition_scene_width(),
-        (float)composition_scene_height());
+
+    // Emulated CRT grid: physical displayed size / scanline pitch. The pitch is
+    // derived from the display's physical density (see crt_effect_init), so the
+    // scanline spacing is a fixed number of real centimetres regardless of
+    // resolution or pixel density. Driving the shader by this instead of the
+    // scene FBO / render resolution is what makes the effect density-invariant.
+    // Dividing both axes by the same pitch preserves the physical aspect and
+    // keeps emulated pixels square.
+    glUniform2f(s_u_emu_size,
+        (float)game_w / s_scanline_pitch_px,
+        (float)game_h / s_scanline_pitch_px);
 
     glUniform1f(s_u_scanline_weight, CRT_SCANLINE_WEIGHT);
     glUniform1f(s_u_mask_dark, CRT_MASK_DARK);
