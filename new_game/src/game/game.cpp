@@ -1446,6 +1446,14 @@ round_again:;
             RIBBON_process(g_frame_dt_ms);
             SPARK_show_electric_fences(g_frame_dt_ms);
 
+            // Muzzle-flash wall lighting: re-create the per-shooter dynamic
+            // light every render frame while the flash is active, so the wall
+            // flash lasts a constant wall-clock time at any FPS (was a single
+            // render frame, near-invisible at high FPS). Must run before the
+            // scene draw applies dynamic lighting (draw_screen below).
+            extern void PERSON_emit_muzzle_flash_dlights(void);
+            PERSON_emit_muzzle_flash_dlights();
+
             BreakTime("Done thing processing");
 
             SLONG i_want_to_exit = UC_FALSE;

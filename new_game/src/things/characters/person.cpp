@@ -130,6 +130,16 @@ static SLONG s_player_block_deadline[2] = { 0 };
 // bright at any render FPS instead of flickering for a single render frame.
 #define MUZZLE_FLASH_DURATION_MS (1000 / UC_PHYSICS_DESIGN_HZ)
 
+// Muzzle-flash dynamic light parameters (carried verbatim from the original's
+// per-shot flash light in actually_fire_gun). The light sits slightly in front
+// of and above the shooter and tints nearby walls warm for the flash.
+#define MUZZLE_DLIGHT_RADIUS    100
+#define MUZZLE_DLIGHT_RED       30
+#define MUZZLE_DLIGHT_GREEN     25
+#define MUZZLE_DLIGHT_BLUE      5
+#define MUZZLE_DLIGHT_Y_OFFSET  0x60 // height above the shooter origin
+#define MUZZLE_DLIGHT_FWD_SHIFT  9   // SIN/COS >> 9 nudges the light toward the barrel
+
 // Valid player index (0..1), or -1 for an NPC / out-of-range id.
 // Person.PlayerID is 1-based.
 static inline SLONG player_block_idx(Thing* p_person)
@@ -3508,7 +3518,47 @@ SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim,
     return ammo;
 }
 
-// Fires the gun: muzzle flash dynamic light, brass eject, hit or ricochet effects.
+// Emit the muzzle-flash dynamic light for every person whose flash is currently
+// active (MuzzleFlashUntilMs in the future). Called once per RENDER frame from
+// the main loop, BEFORE the scene's dynamic lighting is applied — so the light
+// is re-created every frame across the whole ~MUZZLE_FLASH_DURATION_MS window
+// and walls stay lit for a constant wall-clock time at any FPS. (Previously the
+// light was created once per shot with FLAG_REMOVE and lived a single render
+// frame — ~10 ms at 100 FPS — so the wall flash was nearly invisible at high
+// FPS.) Self-cleaning: each light is flagged for removal and reaped the same
+// frame by NIGHT_dlight_squares_down, so there are no handles to track or leak.
+// Covers the player and any firing NPC (e.g. Roper) alike.
+void PERSON_emit_muzzle_flash_dlights(void)
+{
+    const uint64_t now = sdl3_get_ticks();
+
+    for (SLONG c0 = 0; c0 < MAX_PEOPLE; c0++) {
+        Person* per = &PEOPLE[c0];
+        if (per->AnimType == PERSON_NONE)
+            continue;
+        if (now >= per->MuzzleFlashUntilMs)
+            continue;
+
+        Thing* p_person = TO_THING(per->Thing);
+        if (!p_person->Draw.Tweened)
+            continue;
+
+        UBYTE dlight = NIGHT_dlight_create(
+            (p_person->WorldPos.X >> 8) - (SIN(p_person->Draw.Tweened->Angle) >> MUZZLE_DLIGHT_FWD_SHIFT),
+            (p_person->WorldPos.Y >> 8) + MUZZLE_DLIGHT_Y_OFFSET,
+            (p_person->WorldPos.Z >> 8) - (COS(p_person->Draw.Tweened->Angle) >> MUZZLE_DLIGHT_FWD_SHIFT),
+            MUZZLE_DLIGHT_RADIUS,
+            MUZZLE_DLIGHT_RED,
+            MUZZLE_DLIGHT_GREEN,
+            MUZZLE_DLIGHT_BLUE);
+
+        if (dlight)
+            NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
+    }
+}
+
+// Fires the gun: brass eject, hit or ricochet effects. (Muzzle-flash light is
+// emitted per render frame in PERSON_emit_muzzle_flash_dlights, not here.)
 // uc_orig: actually_fire_gun (fallen/Source/Person.cpp)
 void actually_fire_gun(Thing* p_person)
 {
@@ -3548,23 +3598,11 @@ void actually_fire_gun(Thing* p_person)
             timer_bored = 0;
     }
 
-    {
-        // Single-frame muzzle flash dynamic light.
-        UBYTE dlight;
-
-        dlight = NIGHT_dlight_create(
-            (p_person->WorldPos.X >> 8) - (SIN(p_person->Draw.Tweened->Angle) >> 9),
-            (p_person->WorldPos.Y >> 8) + 0x60,
-            (p_person->WorldPos.Z >> 8) - (COS(p_person->Draw.Tweened->Angle) >> 9),
-            100,
-            30,
-            25,
-            5);
-
-        if (dlight) {
-            NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
-        }
-    }
+    // Muzzle-flash dynamic light: NOT created here anymore. It is emitted once
+    // per RENDER frame from PERSON_emit_muzzle_flash_dlights() for the whole
+    // MUZZLE_FLASH_DURATION_MS window (same wall-clock timer as the flash
+    // sprite). Created here once-per-shot with FLAG_REMOVE it lived a single
+    // render frame (~10 ms at 100 FPS) and the wall lighting was barely visible.
 
     extern void DIRT_create_brass(SLONG x, SLONG y, SLONG z, SLONG angle);
 
