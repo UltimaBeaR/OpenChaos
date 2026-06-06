@@ -4877,6 +4877,20 @@ void set_person_draw_special(Thing* p_person)
         p_person->WorldPos.Z >> 8);
 }
 
+// Drops any held coke can / head onto the ground at the person's feet (zero
+// throw power → no toss, just falls where they stand). Called whenever a weapon
+// is drawn: you can't hold a can and a weapon at once, so switching to ANY
+// weapon — explicit (menu / R3 / digit select) or implicit (out-of-ammo
+// auto-switch) — drops the can, since every equip funnels through the
+// set_person_draw_gun / set_person_draw_item primitives below. No-op if not
+// currently holding a can.
+static void person_drop_held_can(Thing* p_person)
+{
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
+        DIRT_release_can_or_head(p_person, 0);
+    }
+}
+
 // Draws the pistol: plays draw animation, sets mode to run (exits fight mode), alerts NPCs.
 // Does nothing if the person has no gun or is currently carrying someone.
 // uc_orig: set_person_draw_gun (fallen/Source/Person.cpp)
@@ -4889,6 +4903,8 @@ void set_person_draw_gun(Thing* p_person)
     if (!(p_person->Flags & FLAGS_HAS_GUN)) {
         return;
     }
+
+    person_drop_held_can(p_person);
 
     MSG_add(" start draw gun");
     p_person->Genus.Person->Mode = PERSON_MODE_RUN;
@@ -12564,6 +12580,8 @@ void set_person_draw_item(Thing* p_person, SLONG special_type)
     if (p_special == NULL) {
         return;
     }
+
+    person_drop_held_can(p_person);
 
     // Clear old weapon state.
     p_person->Genus.Person->SpecialUse = 0;

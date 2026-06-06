@@ -1390,9 +1390,17 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
             }
 
         //
-        // Near a coke can and idle
+        // Near a coke can and idle. Only pick up with truly EMPTY hands: the
+        // PersonID weapon-mesh bits cover guns / melee, but a grenade or C4 in
+        // hand sets no mesh bits (see set_persons_personid) — so also require no
+        // special in use, otherwise you could grab a can while holding a grenade.
+        // Also skip if a can is ALREADY held: otherwise the bend-down pickup
+        // animation plays pointlessly (the second can is never actually grabbed —
+        // fn_person_can guards that — so the anim would just be wasted).
         //
-        if ((p_thing->Draw.Tweened->PersonID >> 5) == 0) {
+        if ((p_thing->Draw.Tweened->PersonID >> 5) == 0
+            && p_thing->Genus.Person->SpecialUse == 0
+            && !(p_thing->Genus.Person->Flags & FLAG_PERSON_CANNING)) {
             dist = DIRT_get_nearest_can_or_head_dist(
                 p_thing->WorldPos.X >> 8,
                 p_thing->WorldPos.Y >> 8,
