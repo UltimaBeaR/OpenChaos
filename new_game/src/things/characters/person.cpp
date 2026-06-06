@@ -279,7 +279,7 @@ extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 // Darci just shoves the victim off, no visual glitch. Roll: a value in
 // [0, GRAPPLE_THROW_ROLL_RANGE) below GRAPPLE_THROW_CHANCE_PCT passes.
 #define GRAPPLE_THROW_ROLL_RANGE 100
-#define GRAPPLE_THROW_CHANCE_PCT 60 // 60% throw, 40% clean release
+#define GRAPPLE_THROW_CHANCE_PCT 80 // 80% throw, 20% clean release
 
 // OpenChaos: same "pity" / bad-luck protection as the combo gate. Each
 // FAILED throw roll bumps THIS player's throw chance by
