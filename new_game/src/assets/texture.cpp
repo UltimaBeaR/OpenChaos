@@ -739,6 +739,43 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         }
     }
 
+    // Graceful fallback for missing facet-style piece textures (OpenChaos).
+    // Some wall/fence/door/ladder styles reference a texture page that does not
+    // exist in the resource set — e.g. fence style dstyle 55, pieces MIDDLE1 /
+    // MIDDLE2 -> world page 62 (tex062.tga), which is absent. texture_quad picks
+    // those variation pieces at random for middle columns, so the affected fence
+    // segments drew as blank white quads. Instead, repoint any piece whose page
+    // failed to load to a loaded sibling piece of the same style (MIDDLE first,
+    // then the others), so the facet shows a valid neighbour texture rather than
+    // white. One-time pass over the style table (matches the 200-style range of
+    // TEXTURE_fix_texture_styles) — no per-draw cost.
+    {
+        static const SLONG fallback_order[TEXTURE_PIECE_NUMBER] = {
+            TEXTURE_PIECE_MIDDLE, TEXTURE_PIECE_LEFT, TEXTURE_PIECE_RIGHT,
+            TEXTURE_PIECE_MIDDLE1, TEXTURE_PIECE_MIDDLE2
+        };
+
+        for (SLONG st = 0; st < 200; st++) {
+            for (SLONG pc = 0; pc < TEXTURE_PIECE_NUMBER; pc++) {
+                SLONG pg = dx_textures_xy[st][pc].Page;
+                if (!WITHIN(pg, 0, TEXTURE_MAX_TEXTURES - 1))
+                    continue;
+                if (ge_texture_get_type(pg) != GE_TEXTURE_TYPE_UNUSED)
+                    continue; // this piece's texture loaded fine
+
+                for (SLONG k = 0; k < TEXTURE_PIECE_NUMBER; k++) {
+                    SLONG sib = fallback_order[k];
+                    SLONG spg = dx_textures_xy[st][sib].Page;
+                    if (sib != pc && WITHIN(spg, 0, TEXTURE_MAX_TEXTURES - 1)
+                        && ge_texture_get_type(spg) != GE_TEXTURE_TYPE_UNUSED) {
+                        dx_textures_xy[st][pc] = dx_textures_xy[st][sib];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     CloseTGAClump();
 
     ge_texture_loading_done();

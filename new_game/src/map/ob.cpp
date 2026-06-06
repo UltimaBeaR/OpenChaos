@@ -502,34 +502,17 @@ void envmap_specials(void)
         po->flag |= PRIM_FLAG_ENVMAPPED;
     }
 
-    // Strip envmap from any face that is also transparent across all prims.
-    for (i = 1; i < 256; i++) {
-        PrimObject* po = &prim_objects[i];
-
-        if (po->flag & PRIM_FLAG_ENVMAPPED) {
-            for (j = po->StartFace3; j < po->EndFace3; j++) {
-                PrimFace3* p_f3 = &prim_faces3[j];
-                page = p_f3->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f3->TexturePage;
-                page += FACE_PAGE_OFFSET;
-
-                if (POLY_page_flag[page] & (POLY_PAGE_FLAG_ALPHA | POLY_PAGE_FLAG_TRANSPARENT))
-                    prim_faces3[j].FaceFlags &= ~FACE_FLAG_ENVMAP;
-            }
-
-            for (j = po->StartFace4; j < po->EndFace4; j++) {
-                PrimFace4* p_f4 = &prim_faces4[j];
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-                page += FACE_PAGE_OFFSET;
-
-                if (POLY_page_flag[page] & (POLY_PAGE_FLAG_ALPHA | POLY_PAGE_FLAG_TRANSPARENT))
-                    prim_faces4[j].FaceFlags &= ~FACE_FLAG_ENVMAP;
-            }
-        }
-    }
+    // NOTE (OpenChaos): the pre-release MuckyFoot sources had a second pass here
+    // that stripped FACE_FLAG_ENVMAP from every alpha/transparent face on any
+    // env-mapped prim ("make sure no faces are envmapped AND transparent").
+    // That is a pre-release bug: it kills the reflective glass that the models
+    // themselves author as env-mapped on translucent pages — most visibly the
+    // phone booth's glass dome (prim 116, glass on alpha page), which is present
+    // in the final retail PC build but not in any source build. Our two-pass
+    // renderer draws the translucent base first and the env-map reflection
+    // additively on top (POLY_PAGE_ENVMAP), so env-mapped translucent faces
+    // composite correctly. We therefore keep the model-authored envmap on those
+    // faces (matching retail) and do not strip it.
 }
 
 // Returns non-zero if prim is allowed to contribute walkable faces.
