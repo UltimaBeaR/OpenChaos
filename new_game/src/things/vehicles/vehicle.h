@@ -149,6 +149,17 @@ typedef struct
 
     SBYTE Dir; // +2=fwd, +1=fwd braking, -1/-2=reverse variants, 0=stopped
     UBYTE Skid; // 0=no skid; >=SKID_START=full skid
+    // OpenChaos: leaky running sum of the car's |yaw rate| over a short time
+    // window — i.e. how much it has ACTUALLY rotated recently. The corner skid
+    // triggers off this, not the instantaneous per-tick yaw, so a 1-tick spike
+    // (steering snapping to full lock) doesn't trip it; only a sustained sharp
+    // turn does. See do_car_input / SKID_WINDOW / SKID_YAW_SUM.
+    UWORD SkidYawAcc;
+    // OpenChaos: consecutive-tick counter of "yaw past the squeal gate". The
+    // squeal chirps once when it reaches SKID_SQUEAL_CONFIRM (so a 1-2 tick yaw
+    // spike from the steering snapping doesn't chirp, only a real held turn);
+    // resets when the turn eases. See do_car_input.
+    UBYTE SkidSquealing;
 
     // OpenChaos: "press twice" hold for the split reverse/gas keys. When the
     // reverse key brakes the car from forward motion down to a stop (or gas

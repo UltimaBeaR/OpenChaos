@@ -83,9 +83,38 @@ static void do_car_input(Thing* p_thing);
 
 // uc_orig: SKID_START (fallen/Source/Vehicle.cpp)
 #define SKID_START 3
-// SKID_FORCE / NEAR_SKID_FORCE (uc_orig) removed — they only fed the
-// corner-skid onset, which is gone (see do_car_input). The hard-brake skid
-// uses its own thresholds in pedals().
+// SKID_FORCE / NEAR_SKID_FORCE (uc_orig) removed — the original corner-skid
+// onset compared the turn's desired velocity to the NOISY actual velocity
+// vector, firing random skids. The corner skid is back (see do_car_input) on
+// clean, predictable gates. The hard-brake skid uses its own thresholds in
+// pedals().
+//
+// OpenChaos: corner-skid onset = HIGH speed AND high YAW RATE (|dangle|, the
+// car's actual per-tick rotation). Why these two and not the steering input:
+// the steering INPUT saturates at speed (any turn reads ~90, small or hard, so
+// it can't tell them apart), but the real rotation does separate them — at high
+// speed a gentle turn yaws ~5-11 while a hard turn yaws ~22-27 (measured). The
+// HIGH speed gate is what makes yaw usable: it cuts out low/medium speed, where
+// yaw is unreliable, so only "hard turn while genuinely fast" trips it. Tune by
+// feel: LOWER a gate = easier.
+#define SKID_MIN_SPEED 1700 // skid speed gate (~72% of ~2350 top speed)
+// Window length (ticks) of the leaky |yaw| sum (Vehicle.SkidYawAcc): the sum
+// settles to ~ |yaw| * SKID_WINDOW for a sustained turn, so a steady sharp turn
+// (yaw ~25) reaches ~25*16=400 while a 1-tick spike only bumps it by ~25 and
+// decays. Bigger window = needs the sharp turn held longer.
+#define SKID_WINDOW 24
+#define SKID_YAW_SUM 450 // skid: windowed rotation gate (sustained sharp turn over ~0.3s)
+// Tyre squeal (the "on the limit" warning, uc_orig NEAR_SKID_FORCE). Fires off
+// the INSTANT yaw so a STRONG turn chirps immediately (not too rare), but the
+// gate is set above what small/moderate turns reach (gentle ~4-11, moderate
+// ~15-18, strong ~22-27) so only a genuinely hard turn squeals. Chirps ONCE
+// (latched by Vehicle.SkidSquealing); the OFF gate adds hysteresis so it re-arms
+// only after the turn eases — no every-tick parrot. The skid still needs the
+// turn HELD (windowed), so the squeal leads it.
+#define SKID_SQUEAL_SPEED 1700 // squeal speed gate (same as skid)
+#define SKID_YAW_NEAR 20       // squeal: yaw gate (strong turn; above moderate ~18)
+#define SKID_YAW_NEAR_OFF 14   // squeal re-arm: yaw must drop below this to reset
+#define SKID_SQUEAL_CONFIRM 4  // yaw must stay past the gate this many ticks (filters 1-2 tick spikes)
 // uc_orig: STABLE_COUNT (fallen/Source/Vehicle.cpp)
 #define STABLE_COUNT 16
 // uc_orig: CAR_VEL_SHIFT (fallen/Source/Vehicle.cpp)
@@ -762,6 +791,8 @@ void reinit_vehicle(Thing* p_thing)
     vp->Dir = 0;
     vp->WheelAngle = 0;
     vp->Skid = 0;
+    vp->SkidYawAcc = 0;
+    vp->SkidSquealing = 0;
     vp->Stable = 0;
     vp->Smokin = 0;
     vp->OnRoadFlags = 0;
@@ -2912,14 +2943,45 @@ static void do_car_input(Thing* p_thing)
         dangle = 0;
     }
 
-    // Corner-skid onset REMOVED (OpenChaos) — for everyone, player and AI.
-    // The original lateral-force skid compared the turn's desired velocity to
-    // the actual velocity vector, but that vector picks up noise (precision /
-    // kerbs / collisions): it fired RANDOM skids on near-straight driving yet
-    // often missed genuinely sharp turns. Tried threshold scaling and a
-    // drift-free angular-rate metric — still erratic, unstable junk. Cars no
-    // longer break into a skid from cornering. (The deliberate hard-brake skid
-    // set in pedals() is separate and still applies.)
+    // Corner-skid onset (OpenChaos clean reimplementation) — player and AI.
+    // Leaky running sum of |yaw| over ~SKID_WINDOW ticks = the car's recent
+    // ACTUAL rotation, measured over time (not a single tick). Settles to
+    // ~|yaw|*SKID_WINDOW for a sustained turn; a 1-tick spike barely moves it.
+    {
+        SLONG acc = (SLONG)veh->SkidYawAcc;
+        acc += abs(dangle) - (acc / SKID_WINDOW);
+        if (acc < 0)
+            acc = 0;
+        else if (acc > 0xFFFF)
+            acc = 0xFFFF;
+        veh->SkidYawAcc = (UWORD)acc;
+    }
+
+    if (veh->Skid < SKID_START) {
+        const SLONG spd = abs(SLONG(p_thing->Velocity));
+        const SLONG turn = (SLONG)veh->SkidYawAcc; // windowed rotation (skid)
+        const SLONG iyaw = abs(dangle);            // instant rotation (squeal)
+        if (spd > SKID_MIN_SPEED && turn > SKID_YAW_SUM) {
+            veh->Skid = SKID_START;
+            veh->SkidSquealing = 0;
+        } else {
+            // Tyre squeal: count consecutive ticks the car's yaw stays past the
+            // strong-turn gate; chirp ONCE when that reaches SKID_SQUEAL_CONFIRM.
+            // A 1-2 tick yaw spike (steering snapping on a small/quick turn)
+            // never reaches it -> no chirp. Resets when the turn eases below the
+            // OFF gate (hysteresis), so a fresh held turn chirps again; between
+            // gates the count just holds, so it never parrots every tick.
+            const bool fast = spd > SKID_SQUEAL_SPEED;
+            if (fast && iyaw > SKID_YAW_NEAR) {
+                if (veh->SkidSquealing < 250)
+                    veh->SkidSquealing++;
+                if (veh->SkidSquealing == SKID_SQUEAL_CONFIRM)
+                    MFX_play_thing(THING_NUMBER(p_thing), S_SKID_SLOW_START, MFX_MOVING, p_thing);
+            } else if (!fast || iyaw < SKID_YAW_NEAR_OFF) {
+                veh->SkidSquealing = 0;
+            }
+        }
+    }
 
     if (veh->Skid < SKID_START) {
         veh->VelX = dx;
