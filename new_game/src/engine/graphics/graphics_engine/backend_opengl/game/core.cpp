@@ -2738,27 +2738,19 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glGetIntegerv(GL_SCISSOR_BOX, saved_scissor);
     glDisable(GL_SCISSOR_TEST);
 
-    // Aspect-fit the video into the framed 4:3 region inside the FBO (NOT
-    // the full FBO). Keeps videos stylistically consistent with the framed
-    // UI (menus, loading screens) — a 4:3 video gets pillarbox bars
-    // exactly matching the UI, and a wider video gets letterbox inside
-    // the framed region. ui_coords::g_frame_* is recomputed defensively
-    // in case the mode-change callback hasn't fired yet.
-    ui_coords::recompute(fbo_w, fbo_h);
-    const float frame_w = (ui_coords::g_frame_w_px > 0.0f)
-        ? ui_coords::g_frame_w_px
-        : (float)fbo_w;
-    const float frame_h = (ui_coords::g_frame_h_px > 0.0f)
-        ? ui_coords::g_frame_h_px
-        : (float)fbo_h;
-    const float frame_w_ndc = frame_w / (float)fbo_w; // half-extent of framed region in NDC X
-    const float frame_h_ndc = frame_h / (float)fbo_h;
-    const float va = (float)video_w / (float)video_h;
-    const float fa = frame_w / frame_h;
-    const float aspect_sx = (va > fa) ? 1.0f : va / fa;
-    const float aspect_sy = (va > fa) ? fa / va : 1.0f;
-    const float sx = aspect_sx * frame_w_ndc;
-    const float sy = aspect_sy * frame_h_ndc;
+    // Aspect-fit the video into the FULL scene FBO, exactly like the 3D
+    // world fills it — the video maximizes its on-screen area while keeping
+    // its own original aspect ratio, getting pillar/letterbox bars only as
+    // its aspect demands. Composition then aspect-fits the FBO into the
+    // window (the FBO already matches the window aspect except on extreme
+    // ultra-wide/tall windows where the FOV clamp applies — same as the
+    // game). Previously the video was confined to the framed 4:3 UI region
+    // (ui_coords::g_frame_*) so it matched menus/loading screens; that made
+    // it occupy only a small central plate instead of the whole screen.
+    const float va = (float)video_w / (float)video_h; // video aspect
+    const float fa = (float)fbo_w / (float)fbo_h; // FBO (≈ screen) aspect
+    const float sx = (va > fa) ? 1.0f : va / fa;
+    const float sy = (va > fa) ? fa / va : 1.0f;
 
     float verts[] = {
         -sx,
