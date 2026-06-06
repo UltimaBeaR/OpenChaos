@@ -83,6 +83,17 @@ static void do_car_input(Thing* p_thing);
 
 // uc_orig: SKID_START (fallen/Source/Vehicle.cpp)
 #define SKID_START 3
+
+// A skid segment connects the wheel's previous anchor to its current position.
+// The anchor is refreshed every spawn (~every 2-3 physics ticks during a
+// continuous skid). If more than this many physics ticks passed since the
+// anchor was set, the skid had ended and resumed elsewhere — the anchor is
+// stale, so we re-anchor without drawing the connecting line (avoids a streak
+// across the ground after the skid finished). ~4 ticks @ 20 Hz ≈ 0.2 s.
+// OpenChaos addition — replaces the original per-frame anchor reset that the
+// FPS unlock broke (see draw_car skid block).
+#define SKID_ANCHOR_STALE_TICKS 4
+
 // SKID_FORCE / NEAR_SKID_FORCE (uc_orig) removed — the original corner-skid
 // onset compared the turn's desired velocity to the NOISY actual velocity
 // vector, firing random skids. The corner skid is back (see do_car_input) on
@@ -1102,21 +1113,48 @@ void draw_car(Thing* p_car)
                     MFX_play_thing(THING_NUMBER(p_car), S_SKID_END, MFX_MOVING, p_car);
             }
 
-            if ((speed > 200) && (VISUAL_TURN & 1)) {
-                SLONG dx, dz;
-                if (vp->oldX[c0] && vp->oldZ[c0]) {
-                    dx = (vp->oldX[c0] - wx) >> 8;
-                    dz = (vp->oldZ[c0] - wz) >> 8;
+            // Lay a skid segment from the wheel's previous anchor to its
+            // current position. The anchor (oldX/oldZ) deliberately persists
+            // across frames so the segment spans real travel; a per-wheel "last
+            // set" physics-tick stamp lets us tell a continuous skid from one
+            // that ended and resumed elsewhere (see SKID_ANCHOR_STALE_TICKS).
+            //
+            // Throttle wheelspin (burnout on launch — accelerating below the
+            // wheelspin-smoke speed) lays no marks: the original drew them, but
+            // they read as a glitch ("lines on the ground after the skid" when
+            // flooring away). Real skids and hard braking still mark — a genuine
+            // skid keeps Skid >= SKID_START even while on the throttle.
+            bool throttle_wheelspin = (vp->DControl & VEH_ACCEL) && (vp->Skid < SKID_START);
+
+            if ((speed > 200) && (VISUAL_TURN & 1) && !throttle_wheelspin) {
+                // Transient (not saved): physics-tick stamp when each wheel's
+                // anchor was last set, per vehicle. Reset on level reload is
+                // fine — the anchor itself (oldX/oldZ) guards the first use.
+                static UWORD s_anchor_turn[RMAX_VEHICLES][4];
+                SLONG vnum = VEHICLE_NUMBER(vp);
+
+                if (vp->oldX[c0] && vp->oldZ[c0]
+                    && WITHIN(vnum, 0, RMAX_VEHICLES - 1)
+                    && (UWORD)((UWORD)GAME_TURN - s_anchor_turn[vnum][c0]) <= SKID_ANCHOR_STALE_TICKS) {
+                    SLONG dx = (vp->oldX[c0] - wx) >> 8;
+                    SLONG dz = (vp->oldZ[c0] - wz) >> 8;
                     TRACKS_Add(wx, (PAP_calc_map_height_at(wx >> 8, wz >> 8) + 5) << 8, wz, dx, 0, dz, TRACK_TYPE_TYRE_SKID, 0);
                 }
+
                 vp->oldX[c0] = wx;
                 vp->oldZ[c0] = wz;
+                if (WITHIN(vnum, 0, RMAX_VEHICLES - 1))
+                    s_anchor_turn[vnum][c0] = (UWORD)GAME_TURN;
             }
         }
-    } else {
-        vp->oldX[0] = vp->oldX[1] = vp->oldX[2] = vp->oldX[3] = 0;
-        vp->oldZ[0] = vp->oldZ[1] = vp->oldZ[2] = vp->oldZ[3] = 0;
     }
+    // NOTE (OpenChaos): the original reset oldX/oldZ to 0 in an `else` here (when
+    // not smoking). After the FPS unlock, draw_car runs many times per physics
+    // tick but Smokin is true only on the first of those frames, so that else
+    // wiped the anchors on every subsequent frame — and the skid spawn, which
+    // needs a valid previous anchor, never fired (skid marks disappeared). The
+    // anchors now persist; the stale-tick check above ends the trail cleanly
+    // when a skid stops instead of streaking a line to the next skid.
 }
 
 // Unused gravity constant for wheel fall simulation — present in original but not referenced.
