@@ -85,6 +85,18 @@ typedef struct
 #define VEH_THROTTLE_DECEL_FRICTION_DROP 3
 #define VEH_THROTTLE_DECEL_CONST 15
 
+// OpenChaos: the reverse key braking FORWARD motion uses a gentler high-speed
+// bleed than the shared throttle decel above — tapping reverse while driving
+// forward scrubs a bit less speed. The gas-vs-backward-roll mirror still uses
+// the full VEH_THROTTLE_DECEL_FRICTION_DROP.
+#define VEH_REVERSE_DECEL_FRICTION_DROP 2 // gentler than throttle drop (3)
+// Firmer flat low-speed decel for the reverse-vs-forward brake than the shared
+// throttle CONST. The lighter friction drop above bleeds high speed nicely, but
+// left the low-speed tail too soft (the car crept on for ages near a stop) —
+// this kills that tail without touching the high-speed feel. Tune to taste. The
+// gas-vs-backward-roll mirror keeps the shared VEH_THROTTLE_DECEL_CONST.
+#define VEH_REVERSE_DECEL_CONST 30 // firmer than throttle const (15)
+
 // OpenChaos: when the reverse key brakes the car from forward motion to a full
 // stop and the player keeps holding it, the car pauses this many physics ticks
 // at zero before it starts driving backwards on its own. Releasing the key

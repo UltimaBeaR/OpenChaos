@@ -103,6 +103,11 @@ static void do_car_input(Thing* p_thing);
 // (yaw ~25) reaches ~25*16=400 while a 1-tick spike only bumps it by ~25 and
 // decays. Bigger window = needs the sharp turn held longer.
 #define SKID_WINDOW 24
+// Shorter (faster-draining) window used while OFF the gas: the sum still builds
+// the same way, but bleeds off quicker so a hard turn taken coasting/braking
+// doesn't leave a stale sum that trips a skid the instant you straighten up and
+// hit the gas. Never zeroed outright — it just decays faster.
+#define SKID_WINDOW_NO_GAS 6
 #define SKID_YAW_SUM 450 // skid: windowed rotation gate (sustained sharp turn over ~0.3s)
 // Tyre squeal (the "on the limit" warning, uc_orig NEAR_SKID_FORCE). Fires off
 // the INSTANT yaw so a STRONG turn chirps immediately (not too rare), but the
@@ -2631,10 +2636,12 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
         // REVERSE — overrides gas. While moving forwards, GENTLY decelerate (no
         // skid); once stopped and still held, pause ~0.5 s, then drive backwards
         // on its own. Release resets the pause (re-press reverses at once).
+        // Uses the reverse-specific (lighter) friction drop so it scrubs a bit
+        // less forward speed than the gas-vs-backward-roll mirror below.
         if ((veh->Dir > 0) || (velocity > VEH_BRAKE_SPEED)) {
             veh->Dir = +1;
-            friction -= VEH_THROTTLE_DECEL_FRICTION_DROP;
-            accel = -VEH_THROTTLE_DECEL_CONST;
+            friction -= VEH_REVERSE_DECEL_FRICTION_DROP;
+            accel = -VEH_REVERSE_DECEL_CONST;
             if (is_player) {
                 veh->RevLatch = 1;
                 veh->RevTimer = 0;
@@ -2949,7 +2956,13 @@ static void do_car_input(Thing* p_thing)
     // ~|yaw|*SKID_WINDOW for a sustained turn; a 1-tick spike barely moves it.
     {
         SLONG acc = (SLONG)veh->SkidYawAcc;
-        acc += abs(dangle) - (acc / SKID_WINDOW);
+        // Accumulate |yaw| the same way regardless of gas, but bleed the sum
+        // FASTER when off the gas (shorter window). A hard turn taken
+        // off-throttle, then straightened into a gas-on straight, would
+        // otherwise leave a stale sum that trips a skid; the quicker off-gas
+        // decay drains it before the gas goes back on. Not zeroed outright.
+        const SLONG window = (veh->DControl & VEH_ACCEL) ? SKID_WINDOW : SKID_WINDOW_NO_GAS;
+        acc += abs(dangle) - (acc / window);
         if (acc < 0)
             acc = 0;
         else if (acc > 0xFFFF)
@@ -2961,7 +2974,12 @@ static void do_car_input(Thing* p_thing)
         const SLONG spd = abs(SLONG(p_thing->Velocity));
         const SLONG turn = (SLONG)veh->SkidYawAcc; // windowed rotation (skid)
         const SLONG iyaw = abs(dangle);            // instant rotation (squeal)
-        if (spd > SKID_MIN_SPEED && turn > SKID_YAW_SUM) {
+        // Gas must be held for the corner-skid to break loose: lifting the
+        // throttle (coasting / braking through a turn) keeps grip and never
+        // auto-spins. Only the physical skid is gated here — the tyre squeal
+        // below is left free to chirp, and the brake skid in pedals() is
+        // unaffected.
+        if (spd > SKID_MIN_SPEED && turn > SKID_YAW_SUM && (veh->DControl & VEH_ACCEL)) {
             veh->Skid = SKID_START;
             veh->SkidSquealing = 0;
         } else {

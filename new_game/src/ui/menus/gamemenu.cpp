@@ -668,9 +668,9 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 #define GAMEMENU_HELP_ALPHA_SELECTED   255
 #define GAMEMENU_HELP_ALPHA_UNSELECTED 128
 
-// Literal label for the pause "Mechanics" item / help-list heading (no fitting
+// Literal label for the pause "Help" item / help-list heading (no fitting
 // localized string; 1.0 ships English).
-#define GAMEMENU_HELP_MENU_LABEL "Mechanics"
+#define GAMEMENU_HELP_MENU_LABEL "Help"
 
 // Detail-screen layout. The screen draws in a UNIFORM full-window UI scope (no
 // 4:3 frame, no distortion), so its coordinates live in a virtual space whose
@@ -1062,7 +1062,7 @@ void GAMEMENU_draw()
             for (i = 1; i < 8; i++) {
                 const SLONG word = GAMEMENU_menu[GAMEMENU_menu_type].word[i];
                 if (word) {
-                    // The "Mechanics" item reuses X_CONTROLS for its id (nav /
+                    // The "Help" item reuses X_CONTROLS for its id (nav /
                     // confirm), but shows a literal label — there is no fitting
                     // localized string and 1.0 ships English.
                     CBYTE* label = (word == X_CONTROLS) ? (CBYTE*)GAMEMENU_HELP_MENU_LABEL
