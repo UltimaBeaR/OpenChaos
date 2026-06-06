@@ -1,9 +1,9 @@
 #include "engine/graphics/geometry/bind_palette.h"
 
-#include "engine/animation/anim_types.h"                      // GameKeyFrameChunk, GameKeyFrameElement
-#include "engine/core/fmatrix.h"                              // Matrix33/31, matrix_mult33, matrix_transformZMY, rotate_obj
-#include "engine/core/macros.h"                               // SWAP
-#include "engine/graphics/geometry/pose_composer.h"           // POSE_PERSON_BONE_COUNT, POSE_MAX_BONES, body_part_parent
+#include "engine/animation/anim_types.h" // GameKeyFrameChunk, GameKeyFrameElement
+#include "engine/core/fmatrix.h" // Matrix33/31, matrix_mult33, matrix_transformZMY, rotate_obj
+#include "engine/core/macros.h" // SWAP
+#include "engine/graphics/geometry/pose_composer.h" // POSE_PERSON_BONE_COUNT, POSE_MAX_BONES, body_part_parent
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // GEMatrix
 
 // ----------------------------------------------------------------------------
@@ -25,7 +25,7 @@ static constexpr SWORD A_POSE_SHOULDER_ANGLE = 171;
 // upper-arm bones: LEFT_HUMORUS (5) gets -ANGLE about Z, RIGHT_HUMORUS (8)
 // gets +ANGLE about Z. Opposite signs because the two arms are mirrored —
 // same sign would send both arms to the same side through the body.
-static constexpr int A_POSE_LEFT_HUMORUS  = 5;
+static constexpr int A_POSE_LEFT_HUMORUS = 5;
 static constexpr int A_POSE_RIGHT_HUMORUS = 8;
 
 // ----------------------------------------------------------------------------
@@ -43,15 +43,24 @@ static constexpr int A_POSE_RIGHT_HUMORUS = 8;
 static void uncompress_cmatrix(const CMatrix33& cm, Matrix33& m)
 {
     SLONG v;
-    v = ((cm.M[0] & CMAT0_MASK) <<  2) >> 22; m.M[0][0] = v << 6;
-    v = ((cm.M[0] & CMAT1_MASK) << 12) >> 22; m.M[0][1] = v << 6;
-    v = ((cm.M[0] & CMAT2_MASK) << 22) >> 22; m.M[0][2] = v << 6;
-    v = ((cm.M[1] & CMAT0_MASK) <<  2) >> 22; m.M[1][0] = v << 6;
-    v = ((cm.M[1] & CMAT1_MASK) << 12) >> 22; m.M[1][1] = v << 6;
-    v = ((cm.M[1] & CMAT2_MASK) << 22) >> 22; m.M[1][2] = v << 6;
-    v = ((cm.M[2] & CMAT0_MASK) <<  2) >> 22; m.M[2][0] = v << 6;
-    v = ((cm.M[2] & CMAT1_MASK) << 12) >> 22; m.M[2][1] = v << 6;
-    v = ((cm.M[2] & CMAT2_MASK) << 22) >> 22; m.M[2][2] = v << 6;
+    v = ((cm.M[0] & CMAT0_MASK) << 2) >> 22;
+    m.M[0][0] = v << 6;
+    v = ((cm.M[0] & CMAT1_MASK) << 12) >> 22;
+    m.M[0][1] = v << 6;
+    v = ((cm.M[0] & CMAT2_MASK) << 22) >> 22;
+    m.M[0][2] = v << 6;
+    v = ((cm.M[1] & CMAT0_MASK) << 2) >> 22;
+    m.M[1][0] = v << 6;
+    v = ((cm.M[1] & CMAT1_MASK) << 12) >> 22;
+    m.M[1][1] = v << 6;
+    v = ((cm.M[1] & CMAT2_MASK) << 22) >> 22;
+    m.M[1][2] = v << 6;
+    v = ((cm.M[2] & CMAT0_MASK) << 2) >> 22;
+    m.M[2][0] = v << 6;
+    v = ((cm.M[2] & CMAT1_MASK) << 12) >> 22;
+    m.M[2][1] = v << 6;
+    v = ((cm.M[2] & CMAT2_MASK) << 22) >> 22;
+    m.M[2][2] = v << 6;
 }
 
 // Write a rigid-body (rotation R + translation t) transform into a GEMatrix.
@@ -80,10 +89,22 @@ static void uncompress_cmatrix(const CMatrix33& cm, Matrix33& m)
 static void rigid_to_ge(const Matrix33& R, float tx, float ty, float tz, GEMatrix& out)
 {
     constexpr float S = 1.0f / 32768.0f;
-    out._11 = R.M[0][0] * S; out._12 = R.M[0][1] * S; out._13 = R.M[0][2] * S; out._14 = tx;
-    out._21 = R.M[1][0] * S; out._22 = R.M[1][1] * S; out._23 = R.M[1][2] * S; out._24 = ty;
-    out._31 = R.M[2][0] * S; out._32 = R.M[2][1] * S; out._33 = R.M[2][2] * S; out._34 = tz;
-    out._41 = 0.0f;          out._42 = 0.0f;          out._43 = 0.0f;          out._44 = 1.0f;
+    out._11 = R.M[0][0] * S;
+    out._12 = R.M[0][1] * S;
+    out._13 = R.M[0][2] * S;
+    out._14 = tx;
+    out._21 = R.M[1][0] * S;
+    out._22 = R.M[1][1] * S;
+    out._23 = R.M[1][2] * S;
+    out._24 = ty;
+    out._31 = R.M[2][0] * S;
+    out._32 = R.M[2][1] * S;
+    out._33 = R.M[2][2] * S;
+    out._34 = tz;
+    out._41 = 0.0f;
+    out._42 = 0.0f;
+    out._43 = 0.0f;
+    out._44 = 1.0f;
 }
 
 // Inverse of a rigid-body transform, in the same "M * v" convention.
@@ -109,10 +130,22 @@ static void rigid_inv_to_ge(const Matrix33& R, float tx, float ty, float tz, GEM
     const float ity = -(rT10 * tx + rT11 * ty + rT12 * tz);
     const float itz = -(rT20 * tx + rT21 * ty + rT22 * tz);
 
-    out._11 = rT00; out._12 = rT01; out._13 = rT02; out._14 = itx;
-    out._21 = rT10; out._22 = rT11; out._23 = rT12; out._24 = ity;
-    out._31 = rT20; out._32 = rT21; out._33 = rT22; out._34 = itz;
-    out._41 = 0.0f; out._42 = 0.0f; out._43 = 0.0f; out._44 = 1.0f;
+    out._11 = rT00;
+    out._12 = rT01;
+    out._13 = rT02;
+    out._14 = itx;
+    out._21 = rT10;
+    out._22 = rT11;
+    out._23 = rT12;
+    out._24 = ity;
+    out._31 = rT20;
+    out._32 = rT21;
+    out._33 = rT22;
+    out._34 = itz;
+    out._41 = 0.0f;
+    out._42 = 0.0f;
+    out._43 = 0.0f;
+    out._44 = 1.0f;
 }
 
 // ----------------------------------------------------------------------------
@@ -123,17 +156,17 @@ static void rigid_inv_to_ge(const Matrix33& R, float tx, float ty, float tz, GEM
 // of the slots are populated; the rest are uninitialised garbage and must
 // not be indexed.
 struct PaletteCache {
-    const GameKeyFrameChunk* chunk;    // ptr-key; NULL = empty slot
-    int                      bone_count;
-    GEMatrix                 world   [POSE_MAX_BONES];
-    GEMatrix                 inv_bind[POSE_MAX_BONES];
+    const GameKeyFrameChunk* chunk; // ptr-key; NULL = empty slot
+    int bone_count;
+    GEMatrix world[POSE_MAX_BONES];
+    GEMatrix inv_bind[POSE_MAX_BONES];
 };
 
 // Linear-scan table. The game has ~5 anim chunks total (4 person types +
 // each non-person creature has its own chunk), so a small fixed array is
 // fine — way cheaper than a hash map for this size.
 static constexpr int MAX_PALETTE_CACHE = 16;
-static PaletteCache  s_cache[MAX_PALETTE_CACHE] = {};
+static PaletteCache s_cache[MAX_PALETTE_CACHE] = {};
 
 // Per-group soft rig parameters — see bind_palette.h. Only the HEAD
 // parent slot is non-zero (band=20, w_max=1.0) — slightly softens the
@@ -165,7 +198,8 @@ bool g_skin_debug_draw_skeleton = false;
 // Returns NULL when no keyframe in the chunk has element data.
 static GameKeyFrameElement* first_valid_keyframe_elements(const GameKeyFrameChunk& chunk)
 {
-    if (!chunk.AnimKeyFrames) return NULL;
+    if (!chunk.AnimKeyFrames)
+        return NULL;
     for (SLONG kf = 0; kf < chunk.MaxKeyFrames; ++kf) {
         if (chunk.AnimKeyFrames[kf].FirstElement)
             return chunk.AnimKeyFrames[kf].FirstElement;
@@ -178,8 +212,8 @@ static GameKeyFrameElement* first_valid_keyframe_elements(const GameKeyFrameChun
 // then forward-kinematic the chain — same parent-local derivation that
 // capture_pose_hierarchical (render_interp.cpp) uses.
 static void build_palette_person(const GameKeyFrameChunk& chunk,
-                                 GameKeyFrameElement* ae0,
-                                 PaletteCache& cache)
+    GameKeyFrameElement* ae0,
+    PaletteCache& cache)
 {
     // ----- 1. Read keyframe-0 rotations and offsets ------------------------
     //
@@ -239,12 +273,12 @@ static void build_palette_person(const GameKeyFrameChunk& chunk,
 
     Matrix33 rot_left_shoulder, rot_right_shoulder;
     rotate_obj(0, 0, -A_POSE_SHOULDER_ANGLE, &rot_left_shoulder);
-    rotate_obj(0, 0,  A_POSE_SHOULDER_ANGLE, &rot_right_shoulder);
+    rotate_obj(0, 0, A_POSE_SHOULDER_ANGLE, &rot_right_shoulder);
 
     Matrix33 bind_rot[PERSON_BONES];
-    float    bind_pos[PERSON_BONES][3];
+    float bind_pos[PERSON_BONES][3];
 
-    bind_rot[0]    = ident;
+    bind_rot[0] = ident;
     bind_pos[0][0] = 0.0f;
     bind_pos[0][1] = 0.0f;
     bind_pos[0][2] = 0.0f;
@@ -258,9 +292,12 @@ static void build_palette_person(const GameKeyFrameChunk& chunk,
         // matrix_mult33 takes non-const pointers; the operands aren't
         // modified, just an API quirk inherited from the original engine.
         Matrix33* local_rot;
-        if      (i == A_POSE_LEFT_HUMORUS)  local_rot = &rot_left_shoulder;
-        else if (i == A_POSE_RIGHT_HUMORUS) local_rot = &rot_right_shoulder;
-        else                                local_rot = &ident;
+        if (i == A_POSE_LEFT_HUMORUS)
+            local_rot = &rot_left_shoulder;
+        else if (i == A_POSE_RIGHT_HUMORUS)
+            local_rot = &rot_right_shoulder;
+        else
+            local_rot = &ident;
         matrix_mult33(&bind_rot[i], &bind_rot[p], local_rot);
 
         // world_pos[i] = world_pos[parent] + world_rot[parent] * parent_local_offset[i] / 256.
@@ -277,7 +314,7 @@ static void build_palette_person(const GameKeyFrameChunk& chunk,
     // Rigid body (rotation + translation, no scale) — inverse is the
     // transpose-and-back-translate form (see rigid_inv_to_ge comment).
     for (int i = 0; i < PERSON_BONES; ++i) {
-        rigid_to_ge    (bind_rot[i], bind_pos[i][0], bind_pos[i][1], bind_pos[i][2], cache.world   [i]);
+        rigid_to_ge(bind_rot[i], bind_pos[i][0], bind_pos[i][1], bind_pos[i][2], cache.world[i]);
         rigid_inv_to_ge(bind_rot[i], bind_pos[i][0], bind_pos[i][1], bind_pos[i][2], cache.inv_bind[i]);
     }
     cache.bone_count = PERSON_BONES;
@@ -297,8 +334,8 @@ static void build_palette_person(const GameKeyFrameChunk& chunk,
 // per-bone POLY_set_local_rotation path, just expressed inside the
 // shared soft-skinning shader.
 static void build_palette_flat(const GameKeyFrameChunk& chunk,
-                               GameKeyFrameElement* ae0,
-                               PaletteCache& cache)
+    GameKeyFrameElement* ae0,
+    PaletteCache& cache)
 {
     Matrix33 ident = {};
     ident.M[0][0] = 32768;
@@ -313,7 +350,7 @@ static void build_palette_flat(const GameKeyFrameChunk& chunk,
         const float tx = float(ae0[i].OffsetX);
         const float ty = float(ae0[i].OffsetY);
         const float tz = float(ae0[i].OffsetZ);
-        rigid_to_ge    (ident, tx, ty, tz, cache.world   [i]);
+        rigid_to_ge(ident, tx, ty, tz, cache.world[i]);
         rigid_inv_to_ge(ident, tx, ty, tz, cache.inv_bind[i]);
     }
     cache.bone_count = n;
@@ -327,12 +364,13 @@ static bool build_palette(const GameKeyFrameChunk& chunk, PaletteCache& cache)
         return false;
 
     GameKeyFrameElement* ae0 = first_valid_keyframe_elements(chunk);
-    if (!ae0) return false;
+    if (!ae0)
+        return false;
 
     if (chunk.ElementCount == PERSON_BONES)
         build_palette_person(chunk, ae0, cache);
     else
-        build_palette_flat  (chunk, ae0, cache);
+        build_palette_flat(chunk, ae0, cache);
     return true;
 }
 
@@ -341,19 +379,23 @@ static bool build_palette(const GameKeyFrameChunk& chunk, PaletteCache& cache)
 // ----------------------------------------------------------------------------
 
 bool bind_palette_get(const GameKeyFrameChunk* chunk,
-                      const GEMatrix** out_world,
-                      const GEMatrix** out_inv_bind,
-                      int*             out_bone_count)
+    const GEMatrix** out_world,
+    const GEMatrix** out_inv_bind,
+    int* out_bone_count)
 {
-    if (!chunk) return false;
+    if (!chunk)
+        return false;
 
     // 1) Existing slot for this chunk?
     int free_slot = -1;
     for (int i = 0; i < MAX_PALETTE_CACHE; ++i) {
         if (s_cache[i].chunk == chunk) {
-            if (out_world)      *out_world      = s_cache[i].world;
-            if (out_inv_bind)   *out_inv_bind   = s_cache[i].inv_bind;
-            if (out_bone_count) *out_bone_count = s_cache[i].bone_count;
+            if (out_world)
+                *out_world = s_cache[i].world;
+            if (out_inv_bind)
+                *out_inv_bind = s_cache[i].inv_bind;
+            if (out_bone_count)
+                *out_bone_count = s_cache[i].bone_count;
             return true;
         }
         if (free_slot < 0 && s_cache[i].chunk == NULL)
@@ -363,22 +405,27 @@ bool bind_palette_get(const GameKeyFrameChunk* chunk,
     // 2) No slot? Cache is full — caller bug or hard misconfiguration. The
     // game has ~5 anim chunks; running out of slots means MAX_PALETTE_CACHE
     // is too small for the current data. Fail loudly in release as `false`.
-    if (free_slot < 0) return false;
+    if (free_slot < 0)
+        return false;
 
     // 3) Build into the free slot.
     PaletteCache& slot = s_cache[free_slot];
-    if (!build_palette(*chunk, slot)) return false;
+    if (!build_palette(*chunk, slot))
+        return false;
     slot.chunk = chunk;
-    if (out_world)      *out_world      = slot.world;
-    if (out_inv_bind)   *out_inv_bind   = slot.inv_bind;
-    if (out_bone_count) *out_bone_count = slot.bone_count;
+    if (out_world)
+        *out_world = slot.world;
+    if (out_inv_bind)
+        *out_inv_bind = slot.inv_bind;
+    if (out_bone_count)
+        *out_bone_count = slot.bone_count;
     return true;
 }
 
 void bind_palette_invalidate_all(void)
 {
     for (int i = 0; i < MAX_PALETTE_CACHE; ++i) {
-        s_cache[i].chunk      = NULL;
+        s_cache[i].chunk = NULL;
         s_cache[i].bone_count = 0;
     }
 }

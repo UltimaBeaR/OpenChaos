@@ -137,8 +137,8 @@ constexpr int ACT_BANG_MENU_THEME_4_KKEY = KKEY_4;
 constexpr int ACT_BANG_PANEL_CLOSE_KKEY = KKEY_ESCAPE;
 
 // 1 / 2 / 3 — switch to keyboard / gamepad / DualSense page.
-constexpr int ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY  = KKEY_1;
-constexpr int ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY   = KKEY_2;
+constexpr int ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY = KKEY_1;
+constexpr int ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY = KKEY_2;
 constexpr int ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY = KKEY_3;
 
 // TAB: cycle the current page through its sub-views (controller viz → tests
@@ -163,8 +163,8 @@ constexpr int ACT_BANG_WARE_DEBUG_KKEY = KKEY_T;
 // numpad anyway. Shift modifier multiplies scroll step by 20 (read
 // separately via ShiftFlag).
 
-constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY    = KKEY_PAGE_UP;
-constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY  = KKEY_PAGE_DOWN;
+constexpr int ACT_BANG_MSG_SCROLL_UP_KKEY = KKEY_PAGE_UP;
+constexpr int ACT_BANG_MSG_SCROLL_DOWN_KKEY = KKEY_PAGE_DOWN;
 constexpr int ACT_BANG_MSG_SCROLL_RESET_KKEY = KKEY_HOME;
 
 // ---- Misc gameplay-side dev hotkeys (gated by allow_debug_keys) ------------
@@ -183,9 +183,9 @@ constexpr int ACT_BANG_TOGGLE_CAMERA_FOCUS_KKEY = KKEY_P;
 
 // Combat-testing harness — `-` fewer enemies, `=` more, `\` cycle armament
 // tier. update() keeps the wave topped up. game_tick.cpp.
-constexpr int ACT_BANG_COMBAT_TEST_INC_KKEY              = KKEY_EQUALS;
-constexpr int ACT_BANG_COMBAT_TEST_DEC_KKEY              = KKEY_MINUS;
-constexpr int ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY   = KKEY_BACKSLASH;
+constexpr int ACT_BANG_COMBAT_TEST_INC_KKEY = KKEY_EQUALS;
+constexpr int ACT_BANG_COMBAT_TEST_DEC_KKEY = KKEY_MINUS;
+constexpr int ACT_BANG_COMBAT_TEST_CYCLE_ARMAMENT_KKEY = KKEY_BACKSLASH;
 
 // F3: save whole-game snapshot. Gated behind bangunsnotgames so regular
 // players don't trigger debug-save by accident. game_tick.cpp.

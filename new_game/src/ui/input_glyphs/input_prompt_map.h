@@ -16,17 +16,17 @@
 // id prefixes: kb_ (keyboard), ms_ (mouse), xb_ (Xbox), ps_ (PlayStation).
 
 enum GlyphDevice {
-    GLYPH_DEV_KBM,  // keyboard & mouse atlas
+    GLYPH_DEV_KBM, // keyboard & mouse atlas
     GLYPH_DEV_XBOX, // generic (Xbox-style) atlas
-    GLYPH_DEV_PS,   // PlayStation atlas
+    GLYPH_DEV_PS, // PlayStation atlas
 };
 
 struct InputGlyph {
-    const char* id;    // inline-token id used in help text (unique)
+    const char* id; // inline-token id used in help text (unique)
     const char* label; // human label shown in the dev catalog
-    GlyphDevice dev;    // which atlas this glyph lives in
-    int col;            // atlas cell column (0-based)
-    int row;            // atlas cell row (0-based, counted from the bottom)
+    GlyphDevice dev; // which atlas this glyph lives in
+    int col; // atlas cell column (0-based)
+    int row; // atlas cell row (0-based, counted from the bottom)
 };
 
 extern const InputGlyph INPUT_GLYPHS[];

@@ -34,7 +34,7 @@ void input_glyphs_init(void);
 // `fade` (0 = opaque .. 255 = invisible) fades the whole block in/out (text and
 // glyphs together) — drive it from a menu fade timer for a consistent reveal.
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
-                            SLONG text_scale, unsigned long colour, SWORD fade = 0);
+    SLONG text_scale, unsigned long colour, SWORD fade = 0);
 
 // Draw rich text as a vertically-scrolled window. The WHOLE string is laid out
 // into wrapped lines first; because the wrap depends only on the string, width,
@@ -49,10 +49,10 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
 // Returns the total wrapped line count. Use first_line/out_fit/total to decide
 // whether to show "more above / more below" scroll arrows.
 SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
-                                     float wrap_width, SLONG text_scale,
-                                     unsigned long colour, SWORD fade,
-                                     SLONG* first_line, float view_height,
-                                     SLONG* out_fit);
+    float wrap_width, SLONG text_scale,
+    unsigned long colour, SWORD fade,
+    SLONG* first_line, float view_height,
+    SLONG* out_fit);
 
 // Draw a glyph by raw atlas CELL (col, row) from the GIVEN device's atlas (all
 // atlases are uniform 64px grids; cell is 0-based, row counted from the bottom).
@@ -65,8 +65,8 @@ float input_glyph_draw_cell(GlyphDevice dev, int col, int row, float x, float y,
 // scroll contract as input_glyph_text_draw_scrolled: *first_line is clamped and
 // written back, *out_fit gets the visible-row count, returns the total row count.
 SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
-                                         unsigned long colour, SWORD fade,
-                                         SLONG* first_line, float view_height,
-                                         SLONG* out_fit);
+    unsigned long colour, SWORD fade,
+    SLONG* first_line, float view_height,
+    SLONG* out_fit);
 
 #endif // UI_INPUT_GLYPHS_H

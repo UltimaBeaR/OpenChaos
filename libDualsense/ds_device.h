@@ -11,37 +11,37 @@
 namespace oc::dualsense {
 
 enum class Connection : std::uint8_t {
-    Usb       = 0,
-    Bluetooth = 1,
+  Usb = 0,
+  Bluetooth = 1,
 };
 
 // Opened DualSense device. POD with an SDL_hid_device* stored as
 // void* to keep SDL3 headers out of ds_device.h.
 struct Device {
-    void*       handle        = nullptr;  // SDL_hid_device*
-    std::string path;
-    Connection  connection    = Connection::Usb;
-    bool        connected     = false;
+  void *handle = nullptr; // SDL_hid_device*
+  std::string path;
+  Connection connection = Connection::Usb;
+  bool connected = false;
 
-    // USB reports are 64 bytes, Bluetooth 78 bytes. Size of the
-    // Report ID / BT framing that must be stripped before feeding
-    // the buffer into parse_input_report().
-    //
-    //   USB: input reports start with 0x01, strip 1 byte → parser sees offset 0
-    //   BT:  input reports start with 0x31 + 1 framing byte, strip 2 bytes
-    std::uint8_t input_report_strip  = 1;
+  // USB reports are 64 bytes, Bluetooth 78 bytes. Size of the
+  // Report ID / BT framing that must be stripped before feeding
+  // the buffer into parse_input_report().
+  //
+  //   USB: input reports start with 0x01, strip 1 byte → parser sees offset 0
+  //   BT:  input reports start with 0x31 + 1 framing byte, strip 2 bytes
+  std::uint8_t input_report_strip = 1;
 
-    // Output report total size (including Report ID / BT framing).
-    // USB = 48 bytes, BT = 78 bytes.
-    std::size_t  output_report_size  = 48;  // DualSense USB default
+  // Output report total size (including Report ID / BT framing).
+  // USB = 48 bytes, BT = 78 bytes.
+  std::size_t output_report_size = 48; // DualSense USB default
 
-    // Wall-clock timestamp (SDL_GetTicks) of the most recent successful
-    // input report parse. Used by `device_read_input` to detect
-    // Bluetooth silence (hid_read returns 0 forever once the controller
-    // drops off BT — there's no cable-yanked signal like on USB). Reset
-    // to 0 after a disconnect; set to current ticks on every non-empty
-    // report.
-    std::uint64_t last_input_ms = 0;
+  // Wall-clock timestamp (SDL_GetTicks) of the most recent successful
+  // input report parse. Used by `device_read_input` to detect
+  // Bluetooth silence (hid_read returns 0 forever once the controller
+  // drops off BT — there's no cable-yanked signal like on USB). Reset
+  // to 0 after a disconnect; set to current ticks on every non-empty
+  // report.
+  std::uint64_t last_input_ms = 0;
 };
 
 // Bluetooth silence threshold: how long `device_read_input` waits
@@ -62,13 +62,13 @@ void hid_shutdown();
 // Find the first connected DualSense (VID=0x054C, PID=0x0CE6 or
 // 0x0DF2 for Edge) and open it. On success `out` is populated.
 // Returns true iff a device was successfully opened.
-bool device_open_first(Device* out);
+bool device_open_first(Device *out);
 
 // Close and invalidate the device. Low-level: does NOT reset
 // controller-side state — whatever rumble / LEDs / lightbar / audio
 // test tone were active will persist until the controller is power-
 // cycled / re-paired. Prefer `device_shutdown` for graceful shutdown.
-void device_close(Device* dev);
+void device_close(Device *dev);
 
 // Graceful shutdown: best-effort reset of all persistent controller
 // state that would otherwise outlive the HID handle close, then close
@@ -92,18 +92,19 @@ void device_close(Device* dev);
 // disable in particular is known to sometimes not stick before process
 // exit. Callers don't need to know the protocol-level details of what
 // is being cleaned up; the library knows.
-void device_shutdown(Device* dev);
+void device_shutdown(Device *dev);
 
 // Read the latest input report into `buf`. Drains the queue of stale
 // reports (SDL hid_read returns FIFO order on macOS, so without
 // draining we'd always read ~1 second behind). Returns number of
 // bytes of the most recent report, or 0 if nothing was read, or -1
 // on error / disconnect (in which case `dev` is closed).
-int device_read_latest(Device* dev, std::uint8_t* buf, std::size_t buf_capacity);
+int device_read_latest(Device *dev, std::uint8_t *buf,
+                       std::size_t buf_capacity);
 
 // Write an output report. Returns number of bytes written, or -1 on
 // error / disconnect (in which case `dev` is closed).
-int device_write(Device* dev, const std::uint8_t* buf, std::size_t len);
+int device_write(Device *dev, const std::uint8_t *buf, std::size_t len);
 
 // ---- Feature reports -------------------------------------------------
 //
@@ -125,16 +126,13 @@ int device_write(Device* dev, const std::uint8_t* buf, std::size_t len);
 // `buf_capacity` must be large enough for the report (feature reports
 // can be up to ~64 bytes for standard reports, up to ~548 for some
 // test commands). Callers typically pass a 256-byte stack buffer.
-int device_get_feature_report(Device* dev,
-                              std::uint8_t report_id,
-                              std::uint8_t* buf,
-                              std::size_t buf_capacity);
+int device_get_feature_report(Device *dev, std::uint8_t report_id,
+                              std::uint8_t *buf, std::size_t buf_capacity);
 
 // Send a feature report. `buf[0]` must equal the reportId. `len` is
 // the total size including the reportId byte. Returns bytes written,
 // or -1 on error. Caller is responsible for any CRC (see ds_crc.h).
-int device_send_feature_report(Device* dev,
-                               const std::uint8_t* buf,
+int device_send_feature_report(Device *dev, const std::uint8_t *buf,
                                std::size_t len);
 
 // ---- Bluetooth init handshake --------------------------------------
@@ -151,6 +149,6 @@ int device_send_feature_report(Device* dev,
 //
 // Typical usage: call once right after `device_open_first` returns
 // true. Returns false on disconnect / write failure.
-bool device_send_init_packet(Device* dev);
+bool device_send_init_packet(Device *dev);
 
 } // namespace oc::dualsense

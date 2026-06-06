@@ -335,7 +335,6 @@ private:
         *FrameListEnd,
         *FrameListStart;
     UBYTE TweakSpeed;
-
 };
 
 // A named character rig: holds a fixed array of Anim slots.
@@ -345,7 +344,6 @@ private:
     CBYTE CharName[32];
     UWORD MultiObject;
     Anim AnimList[50];
-
 };
 
 #endif // ENGINE_ANIMATION_ANIM_TYPES_H

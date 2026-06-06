@@ -286,7 +286,7 @@ void CQuaternion::BuildBlendTween(
     CQuaternion q_old, q_new, q_final;
     QuatSlerp(&q_old1, &q_old2, float(old_tween) / 256.f, &q_old);
     QuatSlerp(&q_new1, &q_new2, float(new_tween) / 256.f, &q_new);
-    QuatSlerp(&q_old,  &q_new,  blend_t,                    &q_final);
+    QuatSlerp(&q_old, &q_new, blend_t, &q_final);
 
     QuatToMatrix(&q_final, &f_final);
     fmat_to_mat(&f_final, dest);

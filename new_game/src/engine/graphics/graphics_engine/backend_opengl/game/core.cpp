@@ -499,7 +499,7 @@ static GLint s_tl_u_tex_has_alpha = -1;
 static GLint s_tl_u_farfacet_mode = -1;
 // Phase A overlay scaffolding.
 static GLint s_tl_u_overlay_mode = -1;
-static GLint s_tl_u_overlay_tex  = -1;
+static GLint s_tl_u_overlay_tex = -1;
 
 // Shadow-silhouette program — P2-H. Renders the consolidated bind-space
 // character mesh (the same one the body draw uses) into the shadow
@@ -507,7 +507,7 @@ static GLint s_tl_u_overlay_tex  = -1;
 // has the SAME layout as the body's world-skin shader's u_skin so the
 // SMAP pass can reuse the per-frame palette the body draw will use.
 static GLuint s_program_shadow_sil = 0;
-static GLint s_ss_u_skin        = -1; // 3 vec4 per bone (current × inv_bind, M*v)
+static GLint s_ss_u_skin = -1; // 3 vec4 per bone (current × inv_bind, M*v)
 static GLint s_ss_u_shadow_proj = -1; // world -> shadow-clip (per person)
 
 // World-skin program — skeletal_skinning_phase2_plan.md P2-C.
@@ -515,11 +515,11 @@ static GLint s_ss_u_shadow_proj = -1; // world -> shadow-clip (per person)
 // projected by a per-character camera*projection*viewport bake.
 // Shares the same fragment shader as TL/skin (common_frag.glsl).
 static GLuint s_program_skin_world = 0;
-static GLint s_sw_u_skin = -1;            // 15 * 3 vec4 = world skin (M*v form)
-static GLint s_sw_u_screen_xform = -1;    // 1 GEMatrix (camera*proj*viewport bake)
-static GLint s_sw_u_lightdir_world = -1;  // vec3 (MM_vLightDir, world space)
-static GLint s_sw_u_fade_start = -1;      // ramp endpoint at idx 0 (vec3, 0..255)
-static GLint s_sw_u_fade_step = -1;       // per-index delta (vec3, 0..255)
+static GLint s_sw_u_skin = -1; // 15 * 3 vec4 = world skin (M*v form)
+static GLint s_sw_u_screen_xform = -1; // 1 GEMatrix (camera*proj*viewport bake)
+static GLint s_sw_u_lightdir_world = -1; // vec3 (MM_vLightDir, world space)
+static GLint s_sw_u_fade_start = -1; // ramp endpoint at idx 0 (vec3, 0..255)
+static GLint s_sw_u_fade_step = -1; // per-index delta (vec3, 0..255)
 static GLint s_sw_u_skin_unlit = -1;
 static GLint s_sw_u_viewport = -1;
 static GLint s_sw_u_zclip = -1;
@@ -551,34 +551,34 @@ static GLint s_sw_u_view_z_tl_scale = -1;
 // fade per vertex. Fragment shader shared with TL / world-skin
 // (common_frag.glsl).
 static GLuint s_program_skin_reflect = 0;
-static GLint s_sr_u_skin             = -1; // shared multi-bone palette (M*v form)
-static GLint s_sr_u_reflect_color    = -1; // per-character flat colour (BGRA)
+static GLint s_sr_u_skin = -1; // shared multi-bone palette (M*v form)
+static GLint s_sr_u_reflect_color = -1; // per-character flat colour (BGRA)
 static GLint s_sr_u_reflect_specular = -1; // per-character flat specular (BGRA)
-static GLint s_sr_u_reflect_height   = -1; // World Y of the water plane
+static GLint s_sr_u_reflect_height = -1; // World Y of the water plane
 static GLint s_sr_u_reflect_dy_scale = -1; // 255 / FIGURE_MAX_DY
-static GLint s_sr_u_screen_xform     = -1; // 1 GEMatrix (camera*proj*viewport bake)
-static GLint s_sr_u_viewport         = -1;
-static GLint s_sr_u_zclip            = -1;
-static GLint s_sr_u_fog_view_z       = -1;
-static GLint s_sr_u_fog_fade_start   = -1;
-static GLint s_sr_u_fog_fade_scale   = -1;
+static GLint s_sr_u_screen_xform = -1; // 1 GEMatrix (camera*proj*viewport bake)
+static GLint s_sr_u_viewport = -1;
+static GLint s_sr_u_zclip = -1;
+static GLint s_sr_u_fog_view_z = -1;
+static GLint s_sr_u_fog_fade_start = -1;
+static GLint s_sr_u_fog_fade_scale = -1;
 // Fragment-shader uniform locations (texture, alpha, fog, ...). Same
 // fragment shader as the other skin programs.
-static GLint s_sr_u_has_texture        = -1;
-static GLint s_sr_u_texture            = -1;
-static GLint s_sr_u_texture_blend      = -1;
+static GLint s_sr_u_has_texture = -1;
+static GLint s_sr_u_texture = -1;
+static GLint s_sr_u_texture_blend = -1;
 static GLint s_sr_u_alpha_test_enabled = -1;
-static GLint s_sr_u_alpha_ref          = -1;
-static GLint s_sr_u_alpha_func         = -1;
-static GLint s_sr_u_fog_enabled        = -1;
-static GLint s_sr_u_fog_color          = -1;
-static GLint s_sr_u_fog_near           = -1;
-static GLint s_sr_u_fog_far            = -1;
-static GLint s_sr_u_specular_enabled   = -1;
-static GLint s_sr_u_color_key_enabled  = -1;
-static GLint s_sr_u_tex_has_alpha      = -1;
-static GLint s_sr_u_farfacet_mode      = -1;
-static GLint s_sr_u_view_z_tl_scale    = -1;
+static GLint s_sr_u_alpha_ref = -1;
+static GLint s_sr_u_alpha_func = -1;
+static GLint s_sr_u_fog_enabled = -1;
+static GLint s_sr_u_fog_color = -1;
+static GLint s_sr_u_fog_near = -1;
+static GLint s_sr_u_fog_far = -1;
+static GLint s_sr_u_specular_enabled = -1;
+static GLint s_sr_u_color_key_enabled = -1;
+static GLint s_sr_u_tex_has_alpha = -1;
+static GLint s_sr_u_farfacet_mode = -1;
+static GLint s_sr_u_view_z_tl_scale = -1;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl = 0;
@@ -733,7 +733,7 @@ static bool init_shaders()
     // and reflect characters don't have overlays). The sampler location
     // is set by cache_frag_uniforms above.
     s_tl_u_overlay_mode = glGetUniformLocation(s_program_tl, "u_overlay_mode");
-    s_tl_u_overlay_tex  = glGetUniformLocation(s_program_tl, "u_overlay_tex");
+    s_tl_u_overlay_tex = glGetUniformLocation(s_program_tl, "u_overlay_tex");
     s_tl_u_view_z_tl_scale = glGetUniformLocation(s_program_tl, "u_view_z_tl_scale");
     // 1.0 / POLY_ZCLIP_PLANE — constant for the lifetime of the program, set once.
     // Used in the fragment shader to bring lit-path v_view_z (raw world z) into
@@ -746,34 +746,32 @@ static bool init_shaders()
     // bind-space VBO + multi-bone skin palette (same layout as the body
     // world-skin shader's u_skin) so the SMAP pass renders the SAME
     // consolidated mesh the body will draw later this frame.
-    s_program_shadow_sil =
-        gl_shader_create_program(SHADER_SKIN_SHADOW_VERT, SHADER_SHADOW_SIL_FRAG);
+    s_program_shadow_sil = gl_shader_create_program(SHADER_SKIN_SHADOW_VERT, SHADER_SHADOW_SIL_FRAG);
     if (!s_program_shadow_sil) {
         fprintf(stderr, "Failed to create shadow-silhouette shader program\n");
         return false;
     }
-    s_ss_u_skin        = glGetUniformLocation(s_program_shadow_sil, "u_skin");
+    s_ss_u_skin = glGetUniformLocation(s_program_shadow_sil, "u_skin");
     s_ss_u_shadow_proj = glGetUniformLocation(s_program_shadow_sil, "u_shadow_proj");
 
     // World-skin program — skeletal_skinning_phase2_plan.md P2-C. Same
     // fragment shader as TL / baked-skin; the only thing the new vertex
     // shader changes is how positions/normals/colors reach the fragment
     // stage.
-    s_program_skin_world =
-        gl_shader_create_program(SHADER_SKIN_WORLD_VERT, SHADER_FRAG);
+    s_program_skin_world = gl_shader_create_program(SHADER_SKIN_WORLD_VERT, SHADER_FRAG);
     if (!s_program_skin_world) {
         fprintf(stderr, "Failed to create world-skin shader program\n");
         return false;
     }
-    s_sw_u_skin           = glGetUniformLocation(s_program_skin_world, "u_skin");
-    s_sw_u_screen_xform   = glGetUniformLocation(s_program_skin_world, "u_screen_xform");
+    s_sw_u_skin = glGetUniformLocation(s_program_skin_world, "u_skin");
+    s_sw_u_screen_xform = glGetUniformLocation(s_program_skin_world, "u_screen_xform");
     s_sw_u_lightdir_world = glGetUniformLocation(s_program_skin_world, "u_lightdir_world");
-    s_sw_u_fade_start     = glGetUniformLocation(s_program_skin_world, "u_fade_start");
-    s_sw_u_fade_step      = glGetUniformLocation(s_program_skin_world, "u_fade_step");
-    s_sw_u_skin_unlit     = glGetUniformLocation(s_program_skin_world, "u_skin_unlit");
-    s_sw_u_viewport       = glGetUniformLocation(s_program_skin_world, "u_viewport");
-    s_sw_u_zclip          = glGetUniformLocation(s_program_skin_world, "u_zclip");
-    s_sw_u_fog_view_z     = glGetUniformLocation(s_program_skin_world, "u_fog_view_z");
+    s_sw_u_fade_start = glGetUniformLocation(s_program_skin_world, "u_fade_start");
+    s_sw_u_fade_step = glGetUniformLocation(s_program_skin_world, "u_fade_step");
+    s_sw_u_skin_unlit = glGetUniformLocation(s_program_skin_world, "u_skin_unlit");
+    s_sw_u_viewport = glGetUniformLocation(s_program_skin_world, "u_viewport");
+    s_sw_u_zclip = glGetUniformLocation(s_program_skin_world, "u_zclip");
+    s_sw_u_fog_view_z = glGetUniformLocation(s_program_skin_world, "u_fog_view_z");
     s_sw_u_fog_fade_start = glGetUniformLocation(s_program_skin_world, "u_fog_fade_start");
     s_sw_u_fog_fade_scale = glGetUniformLocation(s_program_skin_world, "u_fog_fade_scale");
     cache_frag_uniforms(s_program_skin_world,
@@ -782,8 +780,7 @@ static bool init_shaders()
         &s_sw_u_fog_enabled, &s_sw_u_fog_color, &s_sw_u_fog_near, &s_sw_u_fog_far,
         &s_sw_u_specular_enabled, &s_sw_u_color_key_enabled, &s_sw_u_tex_has_alpha,
         &s_sw_u_farfacet_mode);
-    s_sw_u_view_z_tl_scale =
-        glGetUniformLocation(s_program_skin_world, "u_view_z_tl_scale");
+    s_sw_u_view_z_tl_scale = glGetUniformLocation(s_program_skin_world, "u_view_z_tl_scale");
     glUseProgram(s_program_skin_world);
     glUniform1f(s_sw_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
     glUniform1f(s_sw_u_zclip, POLY_ZCLIP_PLANE);
@@ -795,31 +792,29 @@ static bool init_shaders()
     // Reflection-skin program — P2-I. Shares the fragment shader and frag
     // uniform set with body / TL. The vertex shader mirrors Y about the
     // water plane and adds the height-above-water fade to v_specular.a.
-    s_program_skin_reflect =
-        gl_shader_create_program(SHADER_SKIN_REFLECT_VERT, SHADER_FRAG);
+    s_program_skin_reflect = gl_shader_create_program(SHADER_SKIN_REFLECT_VERT, SHADER_FRAG);
     if (!s_program_skin_reflect) {
         fprintf(stderr, "Failed to create reflect-skin shader program\n");
         return false;
     }
-    s_sr_u_skin             = glGetUniformLocation(s_program_skin_reflect, "u_skin");
-    s_sr_u_reflect_color    = glGetUniformLocation(s_program_skin_reflect, "u_reflect_color");
+    s_sr_u_skin = glGetUniformLocation(s_program_skin_reflect, "u_skin");
+    s_sr_u_reflect_color = glGetUniformLocation(s_program_skin_reflect, "u_reflect_color");
     s_sr_u_reflect_specular = glGetUniformLocation(s_program_skin_reflect, "u_reflect_specular");
-    s_sr_u_reflect_height   = glGetUniformLocation(s_program_skin_reflect, "u_reflect_height");
+    s_sr_u_reflect_height = glGetUniformLocation(s_program_skin_reflect, "u_reflect_height");
     s_sr_u_reflect_dy_scale = glGetUniformLocation(s_program_skin_reflect, "u_reflect_dy_scale");
-    s_sr_u_screen_xform     = glGetUniformLocation(s_program_skin_reflect, "u_screen_xform");
-    s_sr_u_viewport         = glGetUniformLocation(s_program_skin_reflect, "u_viewport");
-    s_sr_u_zclip            = glGetUniformLocation(s_program_skin_reflect, "u_zclip");
-    s_sr_u_fog_view_z       = glGetUniformLocation(s_program_skin_reflect, "u_fog_view_z");
-    s_sr_u_fog_fade_start   = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_start");
-    s_sr_u_fog_fade_scale   = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_scale");
+    s_sr_u_screen_xform = glGetUniformLocation(s_program_skin_reflect, "u_screen_xform");
+    s_sr_u_viewport = glGetUniformLocation(s_program_skin_reflect, "u_viewport");
+    s_sr_u_zclip = glGetUniformLocation(s_program_skin_reflect, "u_zclip");
+    s_sr_u_fog_view_z = glGetUniformLocation(s_program_skin_reflect, "u_fog_view_z");
+    s_sr_u_fog_fade_start = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_start");
+    s_sr_u_fog_fade_scale = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_scale");
     cache_frag_uniforms(s_program_skin_reflect,
         &s_sr_u_has_texture, &s_sr_u_texture, &s_sr_u_texture_blend,
         &s_sr_u_alpha_test_enabled, &s_sr_u_alpha_ref, &s_sr_u_alpha_func,
         &s_sr_u_fog_enabled, &s_sr_u_fog_color, &s_sr_u_fog_near, &s_sr_u_fog_far,
         &s_sr_u_specular_enabled, &s_sr_u_color_key_enabled, &s_sr_u_tex_has_alpha,
         &s_sr_u_farfacet_mode);
-    s_sr_u_view_z_tl_scale =
-        glGetUniformLocation(s_program_skin_reflect, "u_view_z_tl_scale");
+    s_sr_u_view_z_tl_scale = glGetUniformLocation(s_program_skin_reflect, "u_view_z_tl_scale");
     glUseProgram(s_program_skin_reflect);
     glUniform1f(s_sr_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
     glUniform1f(s_sr_u_zclip, POLY_ZCLIP_PLANE);
@@ -951,19 +946,23 @@ static void set_frag_uniforms(
         // are in the same space as diffuse so the same sampling rules
         // apply.
         GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest)
-            ? GL_NEAREST : GL_LINEAR;
+            ? GL_NEAREST
+            : GL_LINEAR;
         GLint gl_min;
         if (s_textures[s_overlay_page].has_mipmaps) {
             gl_min = (s_tex_filter_min == GETextureFilter::Nearest)
-                ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+                ? GL_NEAREST_MIPMAP_NEAREST
+                : GL_LINEAR_MIPMAP_LINEAR;
         } else {
             gl_min = (s_tex_filter_min == GETextureFilter::Nearest)
-                ? GL_NEAREST : GL_LINEAR;
+                ? GL_NEAREST
+                : GL_LINEAR;
         }
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
         GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp)
-            ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+            ? GL_CLAMP_TO_EDGE
+            : GL_REPEAT;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
         glActiveTexture(GL_TEXTURE0);
@@ -1158,8 +1157,10 @@ void ge_flip()
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    { PERF_SCOPE("render.post");
-      composition_blit(win_w, win_h); }
+    {
+        PERF_SCOPE("render.post");
+        composition_blit(win_w, win_h);
+    }
 
     // Default FB is bound and contains the composed scene. UI pass draws
     // on top at native resolution, untouched by the composition shader.
@@ -1182,8 +1183,10 @@ void ge_flip()
     // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
     // is booked into the single "GPU wait (glFinish)" line, leaving this
     // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
-    { PERF_SCOPE("render.present");
-      present_and_swap(win_w, win_h); }
+    {
+        PERF_SCOPE("render.present");
+        present_and_swap(win_w, win_h);
+    }
 
     // Re-bind the scene FBO for the next frame — see OpenDisplay for why
     // the scene FBO is kept bound between frames (some clears fire before
@@ -1363,8 +1366,7 @@ void ge_set_depth_bias(int32_t bias)
         // character's body. Derive the multiplier from POLY_ZCLIP_PLANE
         // (poly.h explicitly flags this constant as one that must track it):
         // reproduces 512 exactly at P = 1/64 and scales to 64 at P = 1/512.
-        const float UNITS_PER_BIAS_STEP =
-            512.0f * (POLY_ZCLIP_PLANE / (1.0f / 64.0f));
+        const float UNITS_PER_BIAS_STEP = 512.0f * (POLY_ZCLIP_PLANE / (1.0f / 64.0f));
         glPolygonOffset(-1.0f, -(float)bias * UNITS_PER_BIAS_STEP);
     } else {
         glDisable(GL_POLYGON_OFFSET_FILL);
@@ -1462,8 +1464,8 @@ void ge_set_bound_texture_has_alpha(bool has_alpha)
 // frame. Plain counter — no cost worth gating.
 static uint32_t s_draw_calls = 0;
 
-uint32_t ge_draw_call_count()       { return s_draw_calls; }
-void     ge_draw_call_count_reset() { s_draw_calls = 0; }
+uint32_t ge_draw_call_count() { return s_draw_calls; }
+void ge_draw_call_count_reset() { s_draw_calls = 0; }
 
 // Block CPU until the GPU drains (perf_diag "glFinish GPU" mode only).
 void ge_gpu_finish() { glFinish(); }
@@ -1518,7 +1520,6 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
     s_draw_calls++;
 }
-
 
 // --- Persistent skinned mesh (Milestone 1D) ---------------------------
 // Model-space geometry is static, so it lives in its own GPU buffers for
@@ -1616,7 +1617,7 @@ static void skin_world_bind_and_set_uniforms(
     bool do_ramp = unlit && fade_start && fade_step;
     if (do_ramp) {
         glUniform3fv(s_sw_u_fade_start, 1, fade_start);
-        glUniform3fv(s_sw_u_fade_step,  1, fade_step);
+        glUniform3fv(s_sw_u_fade_step, 1, fade_step);
     }
     glUniform1i(s_sw_u_skin_unlit, do_ramp ? 1 : 0);
     glUniform1f(s_sw_u_fog_view_z, fog_view_z);
@@ -1724,13 +1725,13 @@ static void skin_reflect_bind_and_set_uniforms(
     // a_color via `.zyxw` to land in RGBA. We do the same swap in the
     // vertex shader from u_reflect_color, so just hand the 4 bytes through
     // in BGRA order matching the legacy `a_color` convention.
-    float rc_b = ((reflect_color_bgra >>  0) & 0xFF) / 255.0f;
-    float rc_g = ((reflect_color_bgra >>  8) & 0xFF) / 255.0f;
+    float rc_b = ((reflect_color_bgra >> 0) & 0xFF) / 255.0f;
+    float rc_g = ((reflect_color_bgra >> 8) & 0xFF) / 255.0f;
     float rc_r = ((reflect_color_bgra >> 16) & 0xFF) / 255.0f;
     float rc_a = ((reflect_color_bgra >> 24) & 0xFF) / 255.0f;
     glUniform4f(s_sr_u_reflect_color, rc_b, rc_g, rc_r, rc_a);
-    float rs_b = ((reflect_specular_bgra >>  0) & 0xFF) / 255.0f;
-    float rs_g = ((reflect_specular_bgra >>  8) & 0xFF) / 255.0f;
+    float rs_b = ((reflect_specular_bgra >> 0) & 0xFF) / 255.0f;
+    float rs_g = ((reflect_specular_bgra >> 8) & 0xFF) / 255.0f;
     float rs_r = ((reflect_specular_bgra >> 16) & 0xFF) / 255.0f;
     float rs_a = ((reflect_specular_bgra >> 24) & 0xFF) / 255.0f;
     glUniform4f(s_sr_u_reflect_specular, rs_b, rs_g, rs_r, rs_a);
@@ -1768,11 +1769,11 @@ static void skin_reflect_bind_and_set_uniforms(
     glUniform1i(s_sr_u_fog_enabled, s_fog_enabled ? 1 : 0);
     if (s_fog_enabled) {
         float fr = ((s_fog_color >> 16) & 0xFF) / 255.0f;
-        float fg = ((s_fog_color >>  8) & 0xFF) / 255.0f;
-        float fb = ((s_fog_color >>  0) & 0xFF) / 255.0f;
+        float fg = ((s_fog_color >> 8) & 0xFF) / 255.0f;
+        float fb = ((s_fog_color >> 0) & 0xFF) / 255.0f;
         glUniform3f(s_sr_u_fog_color, fr, fg, fb);
         glUniform1f(s_sr_u_fog_near, s_fog_near);
-        glUniform1f(s_sr_u_fog_far,  s_fog_far);
+        glUniform1f(s_sr_u_fog_far, s_fog_far);
     }
     glUniform1i(s_sr_u_specular_enabled, s_specular_enabled ? 1 : 0);
     glUniform1i(s_sr_u_color_key_enabled, s_color_key_enabled ? 1 : 0);
@@ -1834,15 +1835,15 @@ void ge_skin_reflect_draw_range(GESkinMesh* mesh,
 // MULTISAMPLED, SUPERSAMPLED off-screen target, then resolved + box-
 // downscaled into the page sub-rect — giving fractional-coverage soft
 // edges (≈ the original look) and killing the temporal shimmer.
-#define SHADOW_SS 2            // supersample factor (sub-rect res × this)
-#define SHADOW_MS_SAMPLES 4    // MSAA samples of the off-screen target
+#define SHADOW_SS 2 // supersample factor (sub-rect res × this)
+#define SHADOW_MS_SAMPLES 4 // MSAA samples of the off-screen target
 
-static GLuint s_shadow_fbo = 0;       // single-sample, target = page texture
-static GLuint s_shadow_ms_fbo = 0;    // multisampled render target
-static GLuint s_shadow_ms_rbo = 0;    // its colour renderbuffer
-static GLuint s_shadow_rs_fbo = 0;    // single-sample MSAA-resolve target
-static GLuint s_shadow_rs_tex = 0;    // its colour texture
-static int s_shadow_ss_w = 0;         // current off-screen size (w*SS)
+static GLuint s_shadow_fbo = 0; // single-sample, target = page texture
+static GLuint s_shadow_ms_fbo = 0; // multisampled render target
+static GLuint s_shadow_ms_rbo = 0; // its colour renderbuffer
+static GLuint s_shadow_rs_fbo = 0; // single-sample MSAA-resolve target
+static GLuint s_shadow_rs_tex = 0; // its colour texture
+static int s_shadow_ss_w = 0; // current off-screen size (w*SS)
 static int s_shadow_ss_h = 0;
 // NOTE: the shadow page texture is destroyed+recreated on every level
 // load and GL may REUSE the freed texture name, so the page FBO's colour
@@ -1858,7 +1859,7 @@ struct ShadowSavedState {
     GLboolean cull_on;
     GLboolean blend_on;
     GLfloat clear_col[4];
-    GLuint page_tex;              // destination page texture
+    GLuint page_tex; // destination page texture
     int dst_x, dst_y, dst_w, dst_h; // destination sub-rect
 };
 static ShadowSavedState s_shadow_saved;
@@ -1872,10 +1873,18 @@ static bool shadow_ss_targets_ensure(int ssw, int ssh)
 {
     if (s_shadow_ms_fbo && s_shadow_ss_w == ssw && s_shadow_ss_h == ssh)
         return true;
-    if (s_shadow_ms_rbo) { glDeleteRenderbuffers(1, &s_shadow_ms_rbo); s_shadow_ms_rbo = 0; }
-    if (s_shadow_rs_tex) { glDeleteTextures(1, &s_shadow_rs_tex); s_shadow_rs_tex = 0; }
-    if (!s_shadow_ms_fbo) glGenFramebuffers(1, &s_shadow_ms_fbo);
-    if (!s_shadow_rs_fbo) glGenFramebuffers(1, &s_shadow_rs_fbo);
+    if (s_shadow_ms_rbo) {
+        glDeleteRenderbuffers(1, &s_shadow_ms_rbo);
+        s_shadow_ms_rbo = 0;
+    }
+    if (s_shadow_rs_tex) {
+        glDeleteTextures(1, &s_shadow_rs_tex);
+        s_shadow_rs_tex = 0;
+    }
+    if (!s_shadow_ms_fbo)
+        glGenFramebuffers(1, &s_shadow_ms_fbo);
+    if (!s_shadow_rs_fbo)
+        glGenFramebuffers(1, &s_shadow_rs_fbo);
 
     glGenRenderbuffers(1, &s_shadow_ms_rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, s_shadow_ms_rbo);
@@ -1902,8 +1911,12 @@ static bool shadow_ss_targets_ensure(int ssw, int ssh)
     ok = ok && (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    if (ok) { s_shadow_ss_w = ssw; s_shadow_ss_h = ssh; }
-    else { s_shadow_ss_w = s_shadow_ss_h = 0; }
+    if (ok) {
+        s_shadow_ss_w = ssw;
+        s_shadow_ss_h = ssh;
+    } else {
+        s_shadow_ss_w = s_shadow_ss_h = 0;
+    }
     return ok;
 }
 
@@ -1955,7 +1968,7 @@ void ge_shadow_silhouette_begin(int32_t tex_page,
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(s_program_shadow_sil);
-    s_cached_program = 0;            // force rebind on next normal draw
+    s_cached_program = 0; // force rebind on next normal draw
     s_uniforms_ever_uploaded = false;
     s_shadow_pass_active = true;
 }
@@ -2024,14 +2037,22 @@ void ge_shadow_silhouette_end(void)
         s_shadow_saved.viewport[2], s_shadow_saved.viewport[3]);
     glScissor(s_shadow_saved.scissor_box[0], s_shadow_saved.scissor_box[1],
         s_shadow_saved.scissor_box[2], s_shadow_saved.scissor_box[3]);
-    if (s_shadow_saved.scissor_on) glEnable(GL_SCISSOR_TEST);
-    else glDisable(GL_SCISSOR_TEST);
-    if (s_shadow_saved.depth_on) glEnable(GL_DEPTH_TEST);
-    else glDisable(GL_DEPTH_TEST);
-    if (s_shadow_saved.cull_on) glEnable(GL_CULL_FACE);
-    else glDisable(GL_CULL_FACE);
-    if (s_shadow_saved.blend_on) glEnable(GL_BLEND);
-    else glDisable(GL_BLEND);
+    if (s_shadow_saved.scissor_on)
+        glEnable(GL_SCISSOR_TEST);
+    else
+        glDisable(GL_SCISSOR_TEST);
+    if (s_shadow_saved.depth_on)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+    if (s_shadow_saved.cull_on)
+        glEnable(GL_CULL_FACE);
+    else
+        glDisable(GL_CULL_FACE);
+    if (s_shadow_saved.blend_on)
+        glEnable(GL_BLEND);
+    else
+        glDisable(GL_BLEND);
     glClearColor(s_shadow_saved.clear_col[0], s_shadow_saved.clear_col[1],
         s_shadow_saved.clear_col[2], s_shadow_saved.clear_col[3]);
     // Program/uniform cache already invalidated in begin(); next normal
@@ -2415,8 +2436,10 @@ void ge_blit_back_buffer()
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    { PERF_SCOPE("render.post");
-      composition_blit(win_w, win_h); }
+    {
+        PERF_SCOPE("render.post");
+        composition_blit(win_w, win_h);
+    }
 
     // Default FB is bound and contains the composed scene. UI pass draws
     // on top at native resolution, untouched by the composition shader.
@@ -2439,8 +2462,10 @@ void ge_blit_back_buffer()
     // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
     // is booked into the single "GPU wait (glFinish)" line, leaving this
     // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
-    { PERF_SCOPE("render.present");
-      present_and_swap(win_w, win_h); }
+    {
+        PERF_SCOPE("render.present");
+        present_and_swap(win_w, win_h);
+    }
 
     // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.
     composition_bind_scene();
@@ -2794,9 +2819,11 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    { PERF_SCOPE("render.post");
-      composition_blit(win_w, win_h);
-      crt_effect_apply(); }
+    {
+        PERF_SCOPE("render.post");
+        composition_blit(win_w, win_h);
+        crt_effect_apply();
+    }
 
     // Only the lightweight diagnostic overlay — never the full post-
     // composition UI pass, since that draws HUD/menus that don't belong
@@ -2808,8 +2835,10 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
     // is booked into the single "GPU wait (glFinish)" line, leaving this
     // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
-    { PERF_SCOPE("render.present");
-      present_and_swap(win_w, win_h); }
+    {
+        PERF_SCOPE("render.present");
+        present_and_swap(win_w, win_h);
+    }
 
     // Restore scissor state captured before the video draw.
     glScissor(saved_scissor[0], saved_scissor[1], saved_scissor[2], saved_scissor[3]);

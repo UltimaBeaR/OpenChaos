@@ -43,7 +43,6 @@ static struct
     { 62, 137, 17, 178, 40, 45 },
 };
 
-
 // Splash-blob decay runs at a fixed wall-clock cadence
 // (UC_VISUAL_CADENCE_TICK_MS = 33.33 ms = 30 Hz, matching the original
 // game's visual calibration rate). PUDDLE_process accumulates dt and
@@ -75,7 +74,6 @@ void PUDDLE_init()
         }
 }
 
-
 // uc_orig: PUDDLE_create_do (fallen/Source/puddle.cpp)
 static void PUDDLE_create_do(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, UBYTE type, UBYTE rotate_uvs)
 {
@@ -97,30 +95,30 @@ static void PUDDLE_create_do(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, UB
 
     pp = &PUDDLE_puddle[PUDDLE_puddle_upto];
 
-    pp->x1         = (UWORD)x1;
-    pp->z1         = (UWORD)z1;
-    pp->x2         = (UWORD)x2;
-    pp->z2         = (UWORD)z2;
-    pp->y          = (SWORD)y;
-    pp->map_x      = (UBYTE)map_x;
+    pp->x1 = (UWORD)x1;
+    pp->z1 = (UWORD)z1;
+    pp->x2 = (UWORD)x2;
+    pp->z2 = (UWORD)z2;
+    pp->y = (SWORD)y;
+    pp->map_x = (UBYTE)map_x;
     pp->rotate_uvs = rotate_uvs;
-    pp->type       = type;
+    pp->type = type;
 
     prev = &PUDDLE_mapwho[map_z];
-    next =  PUDDLE_mapwho[map_z];
+    next = PUDDLE_mapwho[map_z];
 
     while (1) {
         ASSERT(WITHIN(next, 0, PUDDLE_puddle_upto - 1));
 
         if (next == 0 || PUDDLE_puddle[next].map_x >= map_x) {
-            *prev                = PUDDLE_puddle_upto;
-            pp->next             = next;
-            PUDDLE_puddle_upto  += 1;
+            *prev = PUDDLE_puddle_upto;
+            pp->next = next;
+            PUDDLE_puddle_upto += 1;
             break;
         }
 
         prev = &PUDDLE_puddle[next].next;
-        next =  PUDDLE_puddle[next].next;
+        next = PUDDLE_puddle[next].next;
     }
 
     {
@@ -131,8 +129,8 @@ static void PUDDLE_create_do(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, UB
         SLONG mx2 = ((x1 > x2 ? x1 : x2) + PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
         SLONG mz2 = ((z1 > z2 ? z1 : z2) + PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
 
-        SATURATE(mx1, 0, MAP_WIDTH  - 1);
-        SATURATE(mx2, 0, MAP_WIDTH  - 1);
+        SATURATE(mx1, 0, MAP_WIDTH - 1);
+        SATURATE(mx2, 0, MAP_WIDTH - 1);
         SATURATE(mz1, 0, MAP_HEIGHT - 1);
         SATURATE(mz2, 0, MAP_HEIGHT - 1);
 
@@ -406,13 +404,18 @@ bool PUDDLE_get_rect_at(SLONG x, SLONG z,
 
             SLONG px1 = pp->x1, pz1 = pp->z1;
             SLONG px2 = pp->x2, pz2 = pp->z2;
-            if (px1 > px2) SWAP(px1, px2);
-            if (pz1 > pz2) SWAP(pz1, pz2);
+            if (px1 > px2)
+                SWAP(px1, px2);
+            if (pz1 > pz2)
+                SWAP(pz1, pz2);
 
             if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
-                *out_x1 = px1; *out_z1 = pz1;
-                *out_x2 = px2; *out_z2 = pz2;
-                if (out_water_y) *out_water_y = SLONG(pp->y);
+                *out_x1 = px1;
+                *out_z1 = pz1;
+                *out_x2 = px2;
+                *out_z2 = pz2;
+                if (out_water_y)
+                    *out_water_y = SLONG(pp->y);
                 return true;
             }
         }
@@ -501,8 +504,10 @@ void PUDDLE_process(float dt_ms)
             s2 = pp->s2;
             s1 -= ticks;
             s2 -= ticks;
-            if (s1 < 0) s1 = 0;
-            if (s2 < 0) s2 = 0;
+            if (s1 < 0)
+                s1 = 0;
+            if (s2 < 0)
+                s2 = 0;
             pp->s1 = s1;
             pp->s2 = s2;
         }

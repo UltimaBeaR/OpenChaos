@@ -57,10 +57,10 @@ static inline SLONG cam_arctan_psx_fp8(SLONG X, SLONG Y)
 
     // Map (-π, +π] → 11.8 PSX [0, 2048*256):
     //   PSX_fp8 = 1024*256 - r * (1024*256 / π).
-    static constexpr long YAW_FP8_RANGE  = 2048L * 256L;
+    static constexpr long YAW_FP8_RANGE = 2048L * 256L;
     static constexpr double FP8_PER_HALF_TURN = 1024.0 * 256.0;
     long psx_fp8 = (long)(1024L * 256L)
-                 - (long)std::lround(r * (FP8_PER_HALF_TURN / CAM_PI));
+        - (long)std::lround(r * (FP8_PER_HALF_TURN / CAM_PI));
 
     // Wrap to [0, YAW_FP8_RANGE). C `%` can produce a negative result
     // for negative dividends, hence the `+ range) % range` idiom.

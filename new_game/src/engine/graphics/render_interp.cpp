@@ -17,7 +17,7 @@
 #include "things/core/player.h" // PlayerPerson (T-pose override Darci-only gate)
 
 #include <stdint.h> // uint64_t
-#include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
+#include <stdio.h> // fprintf — used by RENDER_INTERP_LOG diagnostic gates
 #include <stdlib.h> // abs — Manhattan distance for diagnostic delta detector
 
 // Set to 1 to write slot-reuse / teleport-class events to stderr (which
@@ -55,9 +55,8 @@
 #define RENDER_INTERP_DIAG_LOG 0
 
 float g_render_alpha = 0.0f;
-bool  g_render_interp_enabled = true;
+bool g_render_interp_enabled = true;
 uint32_t g_render_interp_frame_counter = 0;
-
 
 namespace {
 
@@ -88,11 +87,11 @@ struct ThingSnap {
     // in, slot reused) — applying lerp values from a stale capture against
     // an unrelated live Vehicle struct, or worse against an invalid pointer
     // that survived the rebind, would crash.
-    bool  has_vehicle_angles;
+    bool has_vehicle_angles;
     Vehicle* veh_ptr_curr;
     SLONG veh_angle_prev, veh_angle_curr;
-    SLONG veh_tilt_prev,  veh_tilt_curr;
-    SLONG veh_roll_prev,  veh_roll_curr;
+    SLONG veh_tilt_prev, veh_tilt_curr;
+    SLONG veh_roll_prev, veh_roll_curr;
     SLONG veh_velr_curr;
 
     // DT_MESH props (barrels, cones, traffic items): orientation lives in
@@ -104,12 +103,12 @@ struct ThingSnap {
     //
     // mesh_ptr_curr cached at capture so dtor restores the same DrawMesh
     // even if Draw.Mesh got rebound between ctor/dtor (mirror of veh_ptr).
-    bool      has_mesh_angles;
+    bool has_mesh_angles;
     DrawMesh* mesh_ptr_curr;
-    UWORD     mesh_angle_prev, mesh_angle_curr;
-    UWORD     mesh_tilt_prev,  mesh_tilt_curr;
-    UWORD     mesh_roll_prev,  mesh_roll_curr;
-    SLONG     mesh_angle_vel_hint, mesh_tilt_vel_hint, mesh_roll_vel_hint;
+    UWORD mesh_angle_prev, mesh_angle_curr;
+    UWORD mesh_tilt_prev, mesh_tilt_curr;
+    UWORD mesh_roll_prev, mesh_roll_curr;
+    SLONG mesh_angle_vel_hint, mesh_tilt_vel_hint, mesh_roll_vel_hint;
 
     // Frame-scope save: live Thing values overwritten by RenderInterpFrame
     // ctor and restored by dtor. applied=false means this entry was not
@@ -118,9 +117,9 @@ struct ThingSnap {
     SLONG saved_veh_angle, saved_veh_tilt, saved_veh_roll;
     UWORD saved_mesh_angle, saved_mesh_tilt, saved_mesh_roll;
     bool applied;
-    bool veh_angles_applied;  // set when ctor wrote interpolated values into
-                              // Genus.Vehicle->Angle/Tilt/Roll; tells dtor to
-                              // restore them.
+    bool veh_angles_applied; // set when ctor wrote interpolated values into
+                             // Genus.Vehicle->Angle/Tilt/Roll; tells dtor to
+                             // restore them.
     bool mesh_angles_applied; // mirror for Draw.Mesh->Angle/Tilt/Roll.
 };
 
@@ -209,12 +208,12 @@ struct DirtSnap {
     SWORD pitch_prev, pitch_curr;
     SWORD roll_prev, roll_curr;
     UBYTE last_type;
-    bool  valid;
+    bool valid;
 
     // Frame-scope save.
     SWORD saved_x, saved_y, saved_z;
     SWORD saved_yaw, saved_pitch, saved_roll;
-    bool  applied;
+    bool applied;
 };
 
 DirtSnap g_dirt_snaps[DIRT_MAX_DIRT] = {};
@@ -236,14 +235,14 @@ struct GrenadeSnap {
     SLONG x_prev, x_curr;
     SLONG y_prev, y_curr;
     SLONG z_prev, z_curr;
-    SWORD yaw_prev,   yaw_curr;
+    SWORD yaw_prev, yaw_curr;
     SWORD pitch_prev, pitch_curr;
-    bool  valid;
+    bool valid;
 
     // Frame-scope save.
     SLONG saved_x, saved_y, saved_z;
     SWORD saved_yaw, saved_pitch;
-    bool  applied;
+    bool applied;
 };
 
 GrenadeSnap g_grenade_snaps[MAX_GRENADES] = {};
@@ -266,17 +265,17 @@ GrenadeSnap g_grenade_snaps[MAX_GRENADES] = {};
 // BuildTween's input format directly. Lossy (each element rounded to nearest
 // multiple of 64) but anim keyframes already use this precision.
 struct BoneSnap {
-    SLONG x, y, z;       // bone[0]: WORLD pos; bones[1..14]: parent-local offset
-    CMatrix33 cmat;      // bone[0]: WORLD rot;  bones[1..14]: parent-local rot
+    SLONG x, y, z; // bone[0]: WORLD pos; bones[1..14]: parent-local offset
+    CMatrix33 cmat; // bone[0]: WORLD rot;  bones[1..14]: parent-local rot
 };
 
 struct PoseSnap {
     BoneSnap bones_prev[POSE_MAX_BONES];
     BoneSnap bones_curr[POSE_MAX_BONES];
-    UBYTE last_mesh_id;     // invalidate when this changes (different skeleton)
-    UBYTE bone_count;       // number of valid bones (15 person; 1..20 flat)
-    bool  flat_skeleton;    // true: bones[i] = world transform; false: bone[0]=world, [1..N]=parent-local
-    bool  valid;            // false until first successful capture
+    UBYTE last_mesh_id; // invalidate when this changes (different skeleton)
+    UBYTE bone_count; // number of valid bones (15 person; 1..20 flat)
+    bool flat_skeleton; // true: bones[i] = world transform; false: bone[0]=world, [1..N]=parent-local
+    bool valid; // false until first successful capture
 };
 
 // 24 bytes per bone × 15 bones × 2 (prev+curr) = 720 bytes per Thing slot.
@@ -298,8 +297,10 @@ PoseSnap g_pose_snaps[MAX_THINGS] = {};
 // -512 fits exactly.
 inline SLONG clamp_10bit_signed(SLONG v)
 {
-    if (v >  511) return  511;
-    if (v < -512) return -512;
+    if (v > 511)
+        return 511;
+    if (v < -512)
+        return -512;
     return v;
 }
 
@@ -341,8 +342,10 @@ inline SWORD lerp_angle_2048(SWORD a, SWORD b, float t)
     int ai = int(a) & 2047;
     int bi = int(b) & 2047;
     int diff = bi - ai;
-    if (diff > 1024) diff -= 2048;
-    else if (diff < -1024) diff += 2048;
+    if (diff > 1024)
+        diff -= 2048;
+    else if (diff < -1024)
+        diff += 2048;
     int result = ai + int(float(diff) * t);
     return SWORD(((result % 2048) + 2048) % 2048);
 }
@@ -354,8 +357,10 @@ inline SLONG lerp_angle_2048_slong(SLONG a, SLONG b, float t)
     int ai = ((int(a) % 2048) + 2048) % 2048;
     int bi = ((int(b) % 2048) + 2048) % 2048;
     int diff = bi - ai;
-    if (diff > 1024) diff -= 2048;
-    else if (diff < -1024) diff += 2048;
+    if (diff > 1024)
+        diff -= 2048;
+    else if (diff < -1024)
+        diff += 2048;
     int result = ai + int(float(diff) * t);
     return SLONG(((result % 2048) + 2048) % 2048);
 }
@@ -393,10 +398,12 @@ inline SLONG lerp_angle_2048_directed(SLONG a, SLONG b, float t, SLONG vel_hint)
         // Raw diff is positive-large. Short-path picks (diff - 2048) which
         // is small-negative. If vel_hint says forward, keep raw long-path;
         // otherwise use short-path.
-        if (vel_hint <= 0) diff -= 2048;
+        if (vel_hint <= 0)
+            diff -= 2048;
     } else if (diff < -1024) {
         // Raw diff is negative-large. Short-path picks (diff + 2048).
-        if (vel_hint >= 0) diff += 2048;
+        if (vel_hint >= 0)
+            diff += 2048;
     }
     // |diff| <= 1024: lerp as-is regardless of vel_hint.
     int result = ai + int(float(diff) * t);
@@ -413,8 +420,10 @@ inline SLONG lerp_angle_cam(SLONG a, SLONG b, float t)
     int ai = ((a % CAM_ANGLE_FULL) + CAM_ANGLE_FULL) % CAM_ANGLE_FULL;
     int bi = ((b % CAM_ANGLE_FULL) + CAM_ANGLE_FULL) % CAM_ANGLE_FULL;
     int diff = bi - ai;
-    if (diff > CAM_ANGLE_HALF) diff -= CAM_ANGLE_FULL;
-    else if (diff < -CAM_ANGLE_HALF) diff += CAM_ANGLE_FULL;
+    if (diff > CAM_ANGLE_HALF)
+        diff -= CAM_ANGLE_FULL;
+    else if (diff < -CAM_ANGLE_HALF)
+        diff += CAM_ANGLE_FULL;
     int result = ai + int(float(diff) * t);
     return SLONG(((result % CAM_ANGLE_FULL) + CAM_ANGLE_FULL) % CAM_ANGLE_FULL);
 }
@@ -441,7 +450,6 @@ inline bool render_interp_addr_looks_valid(const void* p)
     return u != 0 && (u >> 47) == 0;
 }
 
-
 // Tween-based DrawTypes: angles live in Draw.Tweened (SWORD, range 0..2047).
 // ONLY include DrawTypes that actually allocate via alloc_draw_tween() and
 // store a real DrawTween* in Draw.Tweened — otherwise we read DrawMesh
@@ -467,20 +475,22 @@ inline bool render_interp_addr_looks_valid(const void* p)
 inline bool draw_type_uses_tween(UBYTE dt)
 {
     switch (dt) {
-        case DT_TWEEN:
-        case DT_ROT_MULTI:
-        case DT_ANIM_PRIM:
-            return true;
-        default:
-            return false;
+    case DT_TWEEN:
+    case DT_ROT_MULTI:
+    case DT_ANIM_PRIM:
+        return true;
+    default:
+        return false;
     }
 }
 
 CamSnap* cam_find_or_alloc(FC_Cam* fc)
 {
-    if (!fc) return nullptr;
+    if (!fc)
+        return nullptr;
     for (int i = 0; i < FC_MAX_CAMS; ++i) {
-        if (g_cam_snaps[i].cam == fc) return &g_cam_snaps[i];
+        if (g_cam_snaps[i].cam == fc)
+            return &g_cam_snaps[i];
     }
     for (int i = 0; i < FC_MAX_CAMS; ++i) {
         if (g_cam_snaps[i].cam == nullptr) {
@@ -509,7 +519,7 @@ CamSnap* cam_find_or_alloc(FC_Cam* fc)
 // intermediates so R_body / WorldPos cancel out and the data lerps smoothly
 // across body rotations while preserving rigid joint connections).
 static bool capture_pose_hierarchical(PoseSnap& s, DrawTween* dt, Thing* p_thing,
-                                      BoneSnap (&new_bones)[POSE_MAX_BONES])
+    BoneSnap (&new_bones)[POSE_MAX_BONES])
 {
     ComposedSkeletalPose pose;
     if (!compose_full_skeletal_pose(p_thing, &pose) || pose.bone_count != POSE_PERSON_BONE_COUNT) {
@@ -580,13 +590,16 @@ void capture_pose(int idx, Thing* p_thing)
         return;
     }
     DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt) { s.valid = false; return; }
+    if (!dt) {
+        s.valid = false;
+        return;
+    }
 
     // Path selection: 15-bone person hierarchy vs flat skeleton.
     bool is_hierarchical = (p_thing->Class == CLASS_PERSON
-                            && p_thing->DrawType == DT_ROT_MULTI
-                            && dt->TheChunk
-                            && dt->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT);
+        && p_thing->DrawType == DT_ROT_MULTI
+        && dt->TheChunk
+        && dt->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT);
 
     // Skeleton type or MeshID change → previous bone data is meaningless.
     if (s.valid && (s.last_mesh_id != dt->MeshID || s.flat_skeleton == is_hierarchical)) {
@@ -598,7 +611,8 @@ void capture_pose(int idx, Thing* p_thing)
     bool ok = false;
     if (is_hierarchical) {
         ok = capture_pose_hierarchical(s, dt, p_thing, new_bones);
-        if (ok) new_count = POSE_PERSON_BONE_COUNT;
+        if (ok)
+            new_count = POSE_PERSON_BONE_COUNT;
     } else {
         ok = capture_pose_flat(new_bones, &new_count, p_thing);
     }
@@ -627,15 +641,20 @@ void capture_pose(int idx, Thing* p_thing)
     s.flat_skeleton = !is_hierarchical;
 }
 
-}  // namespace
+} // namespace
 
 void render_interp_reset(void)
 {
-    for (int i = 0; i < MAX_THINGS; ++i) g_thing_snaps[i] = {};
-    for (int i = 0; i < FC_MAX_CAMS; ++i) g_cam_snaps[i] = {};
-    for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i] = {};
-    for (int i = 0; i < MAX_GRENADES; ++i) g_grenade_snaps[i] = {};
-    for (int i = 0; i < MAX_THINGS; ++i) g_pose_snaps[i] = {};
+    for (int i = 0; i < MAX_THINGS; ++i)
+        g_thing_snaps[i] = {};
+    for (int i = 0; i < FC_MAX_CAMS; ++i)
+        g_cam_snaps[i] = {};
+    for (int i = 0; i < DIRT_MAX_DIRT; ++i)
+        g_dirt_snaps[i] = {};
+    for (int i = 0; i < MAX_GRENADES; ++i)
+        g_grenade_snaps[i] = {};
+    for (int i = 0; i < MAX_THINGS; ++i)
+        g_pose_snaps[i] = {};
     g_eway_cam_snap = {};
 }
 
@@ -650,9 +669,11 @@ static constexpr SLONG RI_BIG_DELTA_THRESHOLD = 30000;
 
 void render_interp_capture(Thing* p_thing)
 {
-    if (!p_thing) return;
+    if (!p_thing)
+        return;
     UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return;
+    if (idx >= MAX_THINGS)
+        return;
 
     ThingSnap& s = g_thing_snaps[idx];
     DrawTween* dt = draw_type_uses_tween(p_thing->DrawType) ? p_thing->Draw.Tweened : nullptr;
@@ -705,12 +726,12 @@ void render_interp_capture(Thing* p_thing)
         if (vp) {
             s.veh_ptr_curr = vp;
             s.veh_angle_curr = vp->Angle;
-            s.veh_tilt_curr  = vp->Tilt;
-            s.veh_roll_curr  = vp->Roll;
-            s.veh_velr_curr  = vp->VelR;
+            s.veh_tilt_curr = vp->Tilt;
+            s.veh_roll_curr = vp->Roll;
+            s.veh_velr_curr = vp->VelR;
             s.veh_angle_prev = s.veh_angle_curr;
-            s.veh_tilt_prev  = s.veh_tilt_curr;
-            s.veh_roll_prev  = s.veh_roll_curr;
+            s.veh_tilt_prev = s.veh_tilt_curr;
+            s.veh_roll_prev = s.veh_roll_curr;
             s.has_vehicle_angles = true;
         } else {
             s.has_vehicle_angles = false;
@@ -719,14 +740,14 @@ void render_interp_capture(Thing* p_thing)
         if (mp) {
             s.mesh_ptr_curr = mp;
             s.mesh_angle_curr = mp->Angle;
-            s.mesh_tilt_curr  = mp->Tilt;
-            s.mesh_roll_curr  = mp->Roll;
+            s.mesh_tilt_curr = mp->Tilt;
+            s.mesh_roll_curr = mp->Roll;
             s.mesh_angle_prev = s.mesh_angle_curr;
-            s.mesh_tilt_prev  = s.mesh_tilt_curr;
-            s.mesh_roll_prev  = s.mesh_roll_curr;
+            s.mesh_tilt_prev = s.mesh_tilt_curr;
+            s.mesh_roll_prev = s.mesh_roll_curr;
             s.mesh_angle_vel_hint = 0;
-            s.mesh_tilt_vel_hint  = 0;
-            s.mesh_roll_vel_hint  = 0;
+            s.mesh_tilt_vel_hint = 0;
+            s.mesh_roll_vel_hint = 0;
             s.has_mesh_angles = true;
         } else {
             s.has_mesh_angles = false;
@@ -739,8 +760,8 @@ void render_interp_capture(Thing* p_thing)
 
     s.pos_prev = s.pos_curr;
     s.veh_angle_prev = s.veh_angle_curr;
-    s.veh_tilt_prev  = s.veh_tilt_curr;
-    s.veh_roll_prev  = s.veh_roll_curr;
+    s.veh_tilt_prev = s.veh_tilt_curr;
+    s.veh_roll_prev = s.veh_roll_curr;
 
     s.pos_curr = p_thing->WorldPos;
 
@@ -771,17 +792,17 @@ void render_interp_capture(Thing* p_thing)
         bool ptr_changed = (s.veh_ptr_curr != vp);
         s.veh_ptr_curr = vp;
         s.veh_angle_curr = vp->Angle;
-        s.veh_tilt_curr  = vp->Tilt;
-        s.veh_roll_curr  = vp->Roll;
-        s.veh_velr_curr  = vp->VelR;
+        s.veh_tilt_curr = vp->Tilt;
+        s.veh_roll_curr = vp->Roll;
+        s.veh_velr_curr = vp->VelR;
         // First capture as a vehicle (slot was non-vehicle before, or this
         // is the first tick its vehicle pointer is non-null), or pointer
         // identity changed — collapse prev=curr so the next render frame
         // doesn't lerp from stale data.
         if (!s.has_vehicle_angles || ptr_changed) {
             s.veh_angle_prev = s.veh_angle_curr;
-            s.veh_tilt_prev  = s.veh_tilt_curr;
-            s.veh_roll_prev  = s.veh_roll_curr;
+            s.veh_tilt_prev = s.veh_tilt_curr;
+            s.veh_roll_prev = s.veh_roll_curr;
             s.has_vehicle_angles = true;
         }
     } else {
@@ -798,18 +819,18 @@ void render_interp_capture(Thing* p_thing)
         const bool mp_changed = (s.mesh_ptr_curr != mp);
         s.mesh_ptr_curr = mp;
         s.mesh_angle_prev = s.mesh_angle_curr;
-        s.mesh_tilt_prev  = s.mesh_tilt_curr;
-        s.mesh_roll_prev  = s.mesh_roll_curr;
+        s.mesh_tilt_prev = s.mesh_tilt_curr;
+        s.mesh_roll_prev = s.mesh_roll_curr;
         s.mesh_angle_curr = mp->Angle;
-        s.mesh_tilt_curr  = mp->Tilt;
-        s.mesh_roll_curr  = mp->Roll;
+        s.mesh_tilt_curr = mp->Tilt;
+        s.mesh_roll_curr = mp->Roll;
         if (!s.has_mesh_angles || mp_changed) {
             s.mesh_angle_prev = s.mesh_angle_curr;
-            s.mesh_tilt_prev  = s.mesh_tilt_curr;
-            s.mesh_roll_prev  = s.mesh_roll_curr;
+            s.mesh_tilt_prev = s.mesh_tilt_curr;
+            s.mesh_roll_prev = s.mesh_roll_curr;
             s.mesh_angle_vel_hint = 0;
-            s.mesh_tilt_vel_hint  = 0;
-            s.mesh_roll_vel_hint  = 0;
+            s.mesh_tilt_vel_hint = 0;
+            s.mesh_roll_vel_hint = 0;
             s.has_mesh_angles = true;
         } else {
             // Signed unwrapped per-tick delta in [-1024, 1024]. Used by
@@ -817,13 +838,15 @@ void render_interp_capture(Thing* p_thing)
             // close to 1024) where short-path lerp would otherwise rotate
             // backwards through the wrap point.
             auto unwrap = [](SLONG diff) -> SLONG {
-                if (diff >  1024) diff -= 2048;
-                else if (diff < -1024) diff += 2048;
+                if (diff > 1024)
+                    diff -= 2048;
+                else if (diff < -1024)
+                    diff += 2048;
                 return diff;
             };
             s.mesh_angle_vel_hint = unwrap(SLONG(s.mesh_angle_curr) - SLONG(s.mesh_angle_prev));
-            s.mesh_tilt_vel_hint  = unwrap(SLONG(s.mesh_tilt_curr)  - SLONG(s.mesh_tilt_prev));
-            s.mesh_roll_vel_hint  = unwrap(SLONG(s.mesh_roll_curr)  - SLONG(s.mesh_roll_prev));
+            s.mesh_tilt_vel_hint = unwrap(SLONG(s.mesh_tilt_curr) - SLONG(s.mesh_tilt_prev));
+            s.mesh_roll_vel_hint = unwrap(SLONG(s.mesh_roll_curr) - SLONG(s.mesh_roll_prev));
         }
     } else {
         s.has_mesh_angles = false;
@@ -836,9 +859,11 @@ void render_interp_capture(Thing* p_thing)
 
 void render_interp_invalidate(Thing* p_thing)
 {
-    if (!p_thing) return;
+    if (!p_thing)
+        return;
     UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return;
+    if (idx >= MAX_THINGS)
+        return;
 #if RENDER_INTERP_LOG
     if (g_thing_snaps[idx].valid) {
         fprintf(stderr,
@@ -870,25 +895,35 @@ void render_interp_mark_teleport(Thing* p_thing)
 void render_interp_capture_camera(FC_Cam* fc)
 {
     CamSnap* s = cam_find_or_alloc(fc);
-    if (!s) return;
+    if (!s)
+        return;
 
     // Source of truth for camera snapshots is VC_state (computed by
     // VC_process after FC_process), not fc->* directly. fc->* stays as
     // FC_process's accumulator; VC_state is the post-physics layer the
     // player actually sees.
     SLONG idx = (SLONG)(fc - &FC_cam[0]);
-    if (idx < 0 || idx >= FC_MAX_CAMS) return;
+    if (idx < 0 || idx >= FC_MAX_CAMS)
+        return;
     const VC_State& vc = VC_state[idx];
 
     if (!s->valid) {
-        s->x_curr = vc.x;     s->x_prev = s->x_curr;
-        s->y_curr = vc.y;     s->y_prev = s->y_curr;
-        s->z_curr = vc.z;     s->z_prev = s->z_curr;
-        s->yaw_curr = vc.yaw; s->yaw_prev = s->yaw_curr;
-        s->pitch_curr = vc.pitch; s->pitch_prev = s->pitch_curr;
-        s->roll_curr = vc.roll;   s->roll_prev = s->roll_curr;
-        s->focus_x_curr = fc->focus_x; s->focus_x_prev = s->focus_x_curr;
-        s->focus_z_curr = fc->focus_z; s->focus_z_prev = s->focus_z_curr;
+        s->x_curr = vc.x;
+        s->x_prev = s->x_curr;
+        s->y_curr = vc.y;
+        s->y_prev = s->y_curr;
+        s->z_curr = vc.z;
+        s->z_prev = s->z_curr;
+        s->yaw_curr = vc.yaw;
+        s->yaw_prev = s->yaw_curr;
+        s->pitch_curr = vc.pitch;
+        s->pitch_prev = s->pitch_curr;
+        s->roll_curr = vc.roll;
+        s->roll_prev = s->roll_curr;
+        s->focus_x_curr = fc->focus_x;
+        s->focus_x_prev = s->focus_x_curr;
+        s->focus_z_curr = fc->focus_z;
+        s->focus_z_prev = s->focus_z_curr;
         s->valid = true;
         s->skip_once = false;
         return;
@@ -928,7 +963,8 @@ void render_interp_capture_camera(FC_Cam* fc)
 void render_interp_mark_camera_teleport(FC_Cam* fc)
 {
     CamSnap* s = cam_find_or_alloc(fc);
-    if (s) s->skip_once = true;
+    if (s)
+        s->skip_once = true;
 }
 
 void render_interp_capture_eway_camera(void)
@@ -993,11 +1029,12 @@ void render_interp_capture_eway_camera(void)
         // Yaw threshold ~30° on the 524288-unit camera angle range.
         const SLONG YAW_CUT_THRESHOLD = 43690;
         SLONG dyaw_abs = abs(dyaw);
-        if (dyaw_abs > 524288 / 2) dyaw_abs = 524288 - dyaw_abs;
+        if (dyaw_abs > 524288 / 2)
+            dyaw_abs = 524288 - dyaw_abs;
         bool is_cut = (abs(dx) > POS_CUT_THRESHOLD
-                    || abs(dy) > POS_CUT_THRESHOLD
-                    || abs(dz) > POS_CUT_THRESHOLD
-                    || dyaw_abs > YAW_CUT_THRESHOLD);
+            || abs(dy) > POS_CUT_THRESHOLD
+            || abs(dz) > POS_CUT_THRESHOLD
+            || dyaw_abs > YAW_CUT_THRESHOLD);
         if (is_cut) {
             // prev/curr now both hold the post-cut EWAY values. Collapsing
             // them below locks the camera at the post-cut position so
@@ -1034,22 +1071,32 @@ bool render_interp_apply_eway_camera(
     SLONG* cam_yaw, SLONG* cam_pitch, SLONG* cam_roll,
     SLONG* cam_lens)
 {
-    if (!g_render_interp_enabled || !g_eway_cam_snap.valid) return false;
-    if constexpr (!ri_cfg::INTERP_EWAY_CAM) return false;
+    if (!g_render_interp_enabled || !g_eway_cam_snap.valid)
+        return false;
+    if constexpr (!ri_cfg::INTERP_EWAY_CAM)
+        return false;
     const float alpha = g_render_alpha;
-    if (cam_x)     *cam_x = lerp_i32(g_eway_cam_snap.x_prev, g_eway_cam_snap.x_curr, alpha);
-    if (cam_y)     *cam_y = lerp_i32(g_eway_cam_snap.y_prev, g_eway_cam_snap.y_curr, alpha);
-    if (cam_z)     *cam_z = lerp_i32(g_eway_cam_snap.z_prev, g_eway_cam_snap.z_curr, alpha);
-    if (cam_yaw)   *cam_yaw   = lerp_angle_cam(g_eway_cam_snap.yaw_prev,   g_eway_cam_snap.yaw_curr,   alpha);
-    if (cam_pitch) *cam_pitch = lerp_angle_cam(g_eway_cam_snap.pitch_prev, g_eway_cam_snap.pitch_curr, alpha);
-    if (cam_roll)  *cam_roll  = EWAY_GRAB_ROLL; // EWAY_grab_camera writes a constant; preserve.
-    if (cam_lens)  *cam_lens  = lerp_i32(g_eway_cam_snap.lens_prev, g_eway_cam_snap.lens_curr, alpha);
+    if (cam_x)
+        *cam_x = lerp_i32(g_eway_cam_snap.x_prev, g_eway_cam_snap.x_curr, alpha);
+    if (cam_y)
+        *cam_y = lerp_i32(g_eway_cam_snap.y_prev, g_eway_cam_snap.y_curr, alpha);
+    if (cam_z)
+        *cam_z = lerp_i32(g_eway_cam_snap.z_prev, g_eway_cam_snap.z_curr, alpha);
+    if (cam_yaw)
+        *cam_yaw = lerp_angle_cam(g_eway_cam_snap.yaw_prev, g_eway_cam_snap.yaw_curr, alpha);
+    if (cam_pitch)
+        *cam_pitch = lerp_angle_cam(g_eway_cam_snap.pitch_prev, g_eway_cam_snap.pitch_curr, alpha);
+    if (cam_roll)
+        *cam_roll = EWAY_GRAB_ROLL; // EWAY_grab_camera writes a constant; preserve.
+    if (cam_lens)
+        *cam_lens = lerp_i32(g_eway_cam_snap.lens_prev, g_eway_cam_snap.lens_curr, alpha);
     return true;
 }
 
 void render_interp_mark_dirt_teleport(int idx)
 {
-    if (idx < 0 || idx >= DIRT_MAX_DIRT) return;
+    if (idx < 0 || idx >= DIRT_MAX_DIRT)
+        return;
     // Wipe the snapshot. Next render_interp_capture_dirt sees !valid and
     // takes the first-capture path → prev=curr=current. No lerp through
     // the teleport.
@@ -1076,24 +1123,36 @@ void render_interp_capture_dirt(void)
         // started its life. Either way: collapse prev=curr=live so render
         // doesn't slide across the type/identity transition.
         if (!s.valid || s.last_type != d.type) {
-            s.x_curr = d.x;     s.x_prev = s.x_curr;
-            s.y_curr = d.y;     s.y_prev = s.y_curr;
-            s.z_curr = d.z;     s.z_prev = s.z_curr;
-            s.yaw_curr = d.yaw; s.yaw_prev = s.yaw_curr;
-            s.pitch_curr = d.pitch; s.pitch_prev = s.pitch_curr;
-            s.roll_curr = d.roll;   s.roll_prev = s.roll_curr;
+            s.x_curr = d.x;
+            s.x_prev = s.x_curr;
+            s.y_curr = d.y;
+            s.y_prev = s.y_curr;
+            s.z_curr = d.z;
+            s.z_prev = s.z_curr;
+            s.yaw_curr = d.yaw;
+            s.yaw_prev = s.yaw_curr;
+            s.pitch_curr = d.pitch;
+            s.pitch_prev = s.pitch_curr;
+            s.roll_curr = d.roll;
+            s.roll_prev = s.roll_curr;
             s.last_type = d.type;
             s.valid = true;
             continue;
         }
 
         // Standard window-shift.
-        s.x_prev = s.x_curr;     s.x_curr = d.x;
-        s.y_prev = s.y_curr;     s.y_curr = d.y;
-        s.z_prev = s.z_curr;     s.z_curr = d.z;
-        s.yaw_prev = s.yaw_curr;     s.yaw_curr = d.yaw;
-        s.pitch_prev = s.pitch_curr; s.pitch_curr = d.pitch;
-        s.roll_prev = s.roll_curr;   s.roll_curr = d.roll;
+        s.x_prev = s.x_curr;
+        s.x_curr = d.x;
+        s.y_prev = s.y_curr;
+        s.y_curr = d.y;
+        s.z_prev = s.z_curr;
+        s.z_curr = d.z;
+        s.yaw_prev = s.yaw_curr;
+        s.yaw_curr = d.yaw;
+        s.pitch_prev = s.pitch_curr;
+        s.pitch_curr = d.pitch;
+        s.roll_prev = s.roll_curr;
+        s.roll_curr = d.roll;
     }
 }
 
@@ -1111,21 +1170,31 @@ void render_interp_capture_grenades(void)
         if (!s.valid) {
             // First capture after slot became active — collapse prev=curr=live
             // so the first render frame doesn't lerp from stale/zero state.
-            s.x_curr = g.x;     s.x_prev = s.x_curr;
-            s.y_curr = g.y;     s.y_prev = s.y_curr;
-            s.z_curr = g.z;     s.z_prev = s.z_curr;
-            s.yaw_curr = g.yaw;     s.yaw_prev = s.yaw_curr;
-            s.pitch_curr = g.pitch; s.pitch_prev = s.pitch_curr;
+            s.x_curr = g.x;
+            s.x_prev = s.x_curr;
+            s.y_curr = g.y;
+            s.y_prev = s.y_curr;
+            s.z_curr = g.z;
+            s.z_prev = s.z_curr;
+            s.yaw_curr = g.yaw;
+            s.yaw_prev = s.yaw_curr;
+            s.pitch_curr = g.pitch;
+            s.pitch_prev = s.pitch_curr;
             s.valid = true;
             continue;
         }
 
         // Standard window-shift.
-        s.x_prev = s.x_curr;     s.x_curr = g.x;
-        s.y_prev = s.y_curr;     s.y_curr = g.y;
-        s.z_prev = s.z_curr;     s.z_curr = g.z;
-        s.yaw_prev = s.yaw_curr;     s.yaw_curr = g.yaw;
-        s.pitch_prev = s.pitch_curr; s.pitch_curr = g.pitch;
+        s.x_prev = s.x_curr;
+        s.x_curr = g.x;
+        s.y_prev = s.y_curr;
+        s.y_curr = g.y;
+        s.z_prev = s.z_curr;
+        s.z_curr = g.z;
+        s.yaw_prev = s.yaw_curr;
+        s.yaw_curr = g.yaw;
+        s.pitch_prev = s.pitch_curr;
+        s.pitch_curr = g.pitch;
     }
 }
 
@@ -1138,11 +1207,12 @@ Thing* g_pose_cache_thing = nullptr;
 uint32_t g_pose_cache_frame = 0xffffffffu;
 bool g_pose_cache_valid = false;
 BoneInterpTransform g_pose_cache[POSE_MAX_BONES];
-}  // namespace
+} // namespace
 
 const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing)
 {
-    if (!p_thing) return nullptr;
+    if (!p_thing)
+        return nullptr;
     if (g_pose_cache_thing == p_thing && g_pose_cache_frame == g_render_interp_frame_counter) {
         return g_pose_cache_valid ? g_pose_cache : nullptr;
     }
@@ -1154,10 +1224,12 @@ const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing)
 
 bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX_BONES])
 {
-    if (!p_thing || !out) return false;
+    if (!p_thing || !out)
+        return false;
 
     UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return false;
+    if (idx >= MAX_THINGS)
+        return false;
     PoseSnap& s = g_pose_snaps[idx];
     if (!s.valid) {
         // Snapshot not taken yet for this Thing (just spawned / after mesh
@@ -1168,7 +1240,8 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
         // anywhere. Subsequent physics ticks shift the window normally and
         // interpolation resumes.
         capture_pose(idx, p_thing);
-        if (!s.valid) return false; // genuinely not a tween-posed Thing
+        if (!s.valid)
+            return false; // genuinely not a tween-posed Thing
     }
 
     // The debug interpolation toggle disables only the smoothing between
@@ -1177,8 +1250,10 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
     // snapshot directly (alpha = 1 → lerp/slerp return curr).
     const float alpha = g_render_interp_enabled ? g_render_alpha : 1.0f;
     SLONG slerp_t = SLONG(alpha * 256.0f);
-    if (slerp_t <   0) slerp_t =   0;
-    if (slerp_t > 256) slerp_t = 256;
+    if (slerp_t < 0)
+        slerp_t = 0;
+    if (slerp_t > 256)
+        slerp_t = 256;
 
     if (s.flat_skeleton) {
         // Flat skeleton (DT_ANIM_PRIM bats / Bane / Balrog / Gargoyle, or
@@ -1241,7 +1316,8 @@ RenderInterpFrame::RenderInterpFrame()
     // Master toggle — when off, no apply happens and the dtor has nothing
     // to restore (every entry stays applied=false from previous cleanup
     // or initial zero state).
-    if (!g_render_interp_enabled) return;
+    if (!g_render_interp_enabled)
+        return;
 
     const float alpha = g_render_alpha;
 
@@ -1249,12 +1325,18 @@ RenderInterpFrame::RenderInterpFrame()
     // live Thing fields. Only entries with valid snapshots are touched.
     for (int i = 0; i < MAX_THINGS; ++i) {
         ThingSnap& s = g_thing_snaps[i];
-        if (!s.valid) { s.applied = false; continue; }
+        if (!s.valid) {
+            s.applied = false;
+            continue;
+        }
 
         Thing* p = TO_THING(THING_INDEX(i));
         // Defensive: only apply if Thing slot is still in use. CLASS_NONE is
         // the unused-slot marker.
-        if (p->Class == CLASS_NONE) { s.applied = false; continue; }
+        if (p->Class == CLASS_NONE) {
+            s.applied = false;
+            continue;
+        }
 
         s.saved_pos = p->WorldPos;
         if constexpr (ri_cfg::INTERP_THING_POS) {
@@ -1283,18 +1365,18 @@ RenderInterpFrame::RenderInterpFrame()
             && p->Genus.Vehicle == s.veh_ptr_curr) {
             Vehicle* v = p->Genus.Vehicle;
             s.saved_veh_angle = v->Angle;
-            s.saved_veh_tilt  = v->Tilt;
-            s.saved_veh_roll  = v->Roll;
+            s.saved_veh_tilt = v->Tilt;
+            s.saved_veh_roll = v->Roll;
             if constexpr (ri_cfg::INTERP_VEHICLE_ANGLE) {
                 // Yaw uses VelR as direction hint so very fast spins (post-impact
                 // cars, debris) don't reverse-rotate from short-path lerp.
                 v->Angle = lerp_angle_2048_directed(s.veh_angle_prev, s.veh_angle_curr,
-                                                    alpha, s.veh_velr_curr);
+                    alpha, s.veh_velr_curr);
                 // Tilt/Roll have no per-axis angular-velocity counterpart in
                 // Vehicle struct; use plain short-path. Values are typically
                 // small (vehicle leaning) so wraparound is irrelevant in practice.
-                v->Tilt  = lerp_angle_2048_slong(s.veh_tilt_prev, s.veh_tilt_curr, alpha);
-                v->Roll  = lerp_angle_2048_slong(s.veh_roll_prev, s.veh_roll_curr, alpha);
+                v->Tilt = lerp_angle_2048_slong(s.veh_tilt_prev, s.veh_tilt_curr, alpha);
+                v->Roll = lerp_angle_2048_slong(s.veh_roll_prev, s.veh_roll_curr, alpha);
             }
             s.veh_angles_applied = true;
         } else {
@@ -1311,15 +1393,15 @@ RenderInterpFrame::RenderInterpFrame()
             && p->Draw.Mesh == s.mesh_ptr_curr) {
             DrawMesh* m = p->Draw.Mesh;
             s.saved_mesh_angle = m->Angle;
-            s.saved_mesh_tilt  = m->Tilt;
-            s.saved_mesh_roll  = m->Roll;
+            s.saved_mesh_tilt = m->Tilt;
+            s.saved_mesh_roll = m->Roll;
             if constexpr (ri_cfg::INTERP_MESH_ANGLE) {
                 m->Angle = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_angle_prev), SLONG(s.mesh_angle_curr),
-                                                          alpha, s.mesh_angle_vel_hint));
-                m->Tilt  = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_tilt_prev),  SLONG(s.mesh_tilt_curr),
-                                                          alpha, s.mesh_tilt_vel_hint));
-                m->Roll  = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_roll_prev),  SLONG(s.mesh_roll_curr),
-                                                          alpha, s.mesh_roll_vel_hint));
+                    alpha, s.mesh_angle_vel_hint));
+                m->Tilt = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_tilt_prev), SLONG(s.mesh_tilt_curr),
+                    alpha, s.mesh_tilt_vel_hint));
+                m->Roll = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_roll_prev), SLONG(s.mesh_roll_curr),
+                    alpha, s.mesh_roll_vel_hint));
             }
             s.mesh_angles_applied = true;
         } else {
@@ -1332,7 +1414,10 @@ RenderInterpFrame::RenderInterpFrame()
     // Camera(s).
     for (int i = 0; i < FC_MAX_CAMS; ++i) {
         CamSnap& s = g_cam_snaps[i];
-        if (!s.valid || !s.cam) { s.applied = false; continue; }
+        if (!s.valid || !s.cam) {
+            s.applied = false;
+            continue;
+        }
 
         FC_Cam* fc = s.cam;
         s.saved_x = fc->x;
@@ -1345,10 +1430,10 @@ RenderInterpFrame::RenderInterpFrame()
         if constexpr (ri_cfg::INTERP_FC_CAM) {
             // Y, yaw, pitch, roll: linear lerp (yaw uses wraparound-
             // safe variant). Linear is correct for these.
-            fc->y     = lerp_i32(s.y_prev, s.y_curr, alpha);
-            fc->yaw   = lerp_angle_cam(s.yaw_prev,   s.yaw_curr,   alpha);
+            fc->y = lerp_i32(s.y_prev, s.y_curr, alpha);
+            fc->yaw = lerp_angle_cam(s.yaw_prev, s.yaw_curr, alpha);
             fc->pitch = lerp_angle_cam(s.pitch_prev, s.pitch_curr, alpha);
-            fc->roll  = lerp_angle_cam(s.roll_prev,  s.roll_curr,  alpha);
+            fc->roll = lerp_angle_cam(s.roll_prev, s.roll_curr, alpha);
 
             // XZ: arc-interpolate around the focus instead of linear
             // lerp. The camera orbits the focus in the XZ plane, so a
@@ -1377,8 +1462,10 @@ RenderInterpFrame::RenderInterpFrame()
                 double a_p = atan2(rz_p, rx_p);
                 double a_c = atan2(rz_c, rx_c);
                 double da = a_c - a_p;
-                if      (da >  3.14159265358979) da -= 2.0 * 3.14159265358979;
-                else if (da < -3.14159265358979) da += 2.0 * 3.14159265358979;
+                if (da > 3.14159265358979)
+                    da -= 2.0 * 3.14159265358979;
+                else if (da < -3.14159265358979)
+                    da += 2.0 * 3.14159265358979;
                 double a = a_p + da * double(alpha);
                 double r = r_p + (r_c - r_p) * double(alpha);
                 double fx = fx_p + (fx_c - fx_p) * double(alpha);
@@ -1397,12 +1484,18 @@ RenderInterpFrame::RenderInterpFrame()
     if constexpr (ri_cfg::INTERP_DIRT) {
         for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
             DirtSnap& s = g_dirt_snaps[i];
-            if (!s.valid) { s.applied = false; continue; }
+            if (!s.valid) {
+                s.applied = false;
+                continue;
+            }
 
             DIRT_Dirt& d = DIRT_dirt[i];
             // Defensive: if the slot got freed since capture (DIRT_process this
             // frame already ran, but we are between physics ticks here), skip.
-            if (d.type == DIRT_TYPE_UNUSED) { s.applied = false; continue; }
+            if (d.type == DIRT_TYPE_UNUSED) {
+                s.applied = false;
+                continue;
+            }
 
             s.saved_x = d.x;
             s.saved_y = d.y;
@@ -1414,42 +1507,50 @@ RenderInterpFrame::RenderInterpFrame()
             d.x = lerp_i16(s.x_prev, s.x_curr, alpha);
             d.y = lerp_i16(s.y_prev, s.y_curr, alpha);
             d.z = lerp_i16(s.z_prev, s.z_curr, alpha);
-            d.yaw   = lerp_angle_2048(s.yaw_prev,   s.yaw_curr,   alpha);
+            d.yaw = lerp_angle_2048(s.yaw_prev, s.yaw_curr, alpha);
             d.pitch = lerp_angle_2048(s.pitch_prev, s.pitch_curr, alpha);
-            d.roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+            d.roll = lerp_angle_2048(s.roll_prev, s.roll_curr, alpha);
 
             s.applied = true;
         }
     } else {
         // Mark all snaps as not-applied so dtor doesn't try to restore.
-        for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i].applied = false;
+        for (int i = 0; i < DIRT_MAX_DIRT; ++i)
+            g_dirt_snaps[i].applied = false;
     }
 
     // Grenade pool (thrown grenades, MAX_GRENADES=6 slots).
     if constexpr (ri_cfg::INTERP_GRENADE) {
         for (int i = 0; i < MAX_GRENADES; ++i) {
             GrenadeSnap& s = g_grenade_snaps[i];
-            if (!s.valid) { s.applied = false; continue; }
+            if (!s.valid) {
+                s.applied = false;
+                continue;
+            }
 
             Grenade& g = GrenadeArray[i];
-            if (!g.owner) { s.applied = false; continue; }
+            if (!g.owner) {
+                s.applied = false;
+                continue;
+            }
 
             s.saved_x = g.x;
             s.saved_y = g.y;
             s.saved_z = g.z;
-            s.saved_yaw   = g.yaw;
+            s.saved_yaw = g.yaw;
             s.saved_pitch = g.pitch;
 
             g.x = lerp_i32(s.x_prev, s.x_curr, alpha);
             g.y = lerp_i32(s.y_prev, s.y_curr, alpha);
             g.z = lerp_i32(s.z_prev, s.z_curr, alpha);
-            g.yaw   = lerp_i16(s.yaw_prev,   s.yaw_curr,   alpha);
+            g.yaw = lerp_i16(s.yaw_prev, s.yaw_curr, alpha);
             g.pitch = lerp_i16(s.pitch_prev, s.pitch_curr, alpha);
 
             s.applied = true;
         }
     } else {
-        for (int i = 0; i < MAX_GRENADES; ++i) g_grenade_snaps[i].applied = false;
+        for (int i = 0; i < MAX_GRENADES; ++i)
+            g_grenade_snaps[i].applied = false;
     }
 }
 
@@ -1459,19 +1560,21 @@ RenderInterpFrame::~RenderInterpFrame()
     // ctor — ordering doesn't actually matter since the saves are independent.
     for (int i = 0; i < MAX_GRENADES; ++i) {
         GrenadeSnap& s = g_grenade_snaps[i];
-        if (!s.applied) continue;
+        if (!s.applied)
+            continue;
         Grenade& g = GrenadeArray[i];
         g.x = s.saved_x;
         g.y = s.saved_y;
         g.z = s.saved_z;
-        g.yaw   = s.saved_yaw;
+        g.yaw = s.saved_yaw;
         g.pitch = s.saved_pitch;
         s.applied = false;
     }
 
     for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
         DirtSnap& s = g_dirt_snaps[i];
-        if (!s.applied) continue;
+        if (!s.applied)
+            continue;
         DIRT_Dirt& d = DIRT_dirt[i];
         d.x = s.saved_x;
         d.y = s.saved_y;
@@ -1484,7 +1587,8 @@ RenderInterpFrame::~RenderInterpFrame()
 
     for (int i = 0; i < FC_MAX_CAMS; ++i) {
         CamSnap& s = g_cam_snaps[i];
-        if (!s.applied) continue;
+        if (!s.applied)
+            continue;
         FC_Cam* fc = s.cam;
         fc->x = s.saved_x;
         fc->y = s.saved_y;
@@ -1497,7 +1601,8 @@ RenderInterpFrame::~RenderInterpFrame()
 
     for (int i = 0; i < MAX_THINGS; ++i) {
         ThingSnap& s = g_thing_snaps[i];
-        if (!s.applied) continue;
+        if (!s.applied)
+            continue;
         Thing* p = TO_THING(THING_INDEX(i));
         p->WorldPos = s.saved_pos;
         // Restore through the same pointer ctor wrote to (cached at capture
@@ -1508,15 +1613,15 @@ RenderInterpFrame::~RenderInterpFrame()
         if (s.veh_angles_applied && s.veh_ptr_curr) {
             Vehicle* v = s.veh_ptr_curr;
             v->Angle = s.saved_veh_angle;
-            v->Tilt  = s.saved_veh_tilt;
-            v->Roll  = s.saved_veh_roll;
+            v->Tilt = s.saved_veh_tilt;
+            v->Roll = s.saved_veh_roll;
             s.veh_angles_applied = false;
         }
         if (s.mesh_angles_applied && s.mesh_ptr_curr) {
             DrawMesh* m = s.mesh_ptr_curr;
             m->Angle = s.saved_mesh_angle;
-            m->Tilt  = s.saved_mesh_tilt;
-            m->Roll  = s.saved_mesh_roll;
+            m->Tilt = s.saved_mesh_tilt;
+            m->Roll = s.saved_mesh_roll;
             s.mesh_angles_applied = false;
         }
         s.applied = false;

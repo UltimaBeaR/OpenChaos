@@ -11,10 +11,10 @@
 #define COOLDOWN_BLOCK_SECONDS 2
 
 static const SLONG s_cd_turns[COOLDOWN_COUNT] = {
-    COOLDOWN_SLIDE_SECONDS * UC_PHYSICS_DESIGN_HZ,   // COOLDOWN_SLIDE
-    COOLDOWN_ARREST_SECONDS * UC_PHYSICS_DESIGN_HZ,  // COOLDOWN_ARREST
-    COOLDOWN_GRAPPLE_SECONDS * UC_PHYSICS_DESIGN_HZ, // COOLDOWN_GRAPPLE
-    COOLDOWN_BLOCK_SECONDS * UC_PHYSICS_DESIGN_HZ,   // COOLDOWN_BLOCK
+    COOLDOWN_SLIDE_SECONDS * UC_PHYSICS_DESIGN_HZ, // COOLDOWN_SLIDE
+    COOLDOWN_ARREST_SECONDS* UC_PHYSICS_DESIGN_HZ, // COOLDOWN_ARREST
+    COOLDOWN_GRAPPLE_SECONDS* UC_PHYSICS_DESIGN_HZ, // COOLDOWN_GRAPPLE
+    COOLDOWN_BLOCK_SECONDS* UC_PHYSICS_DESIGN_HZ, // COOLDOWN_BLOCK
 };
 
 // Earliest GAME_TURN at which each (player, action) may fire again.
@@ -83,5 +83,5 @@ void combat_cooldown_note(SLONG player_id, SLONG action, const char* name, bool 
     DBGLOG_commit();
 }
 #else
-void combat_cooldown_note(SLONG, SLONG, const char*, bool) {}
+void combat_cooldown_note(SLONG, SLONG, const char*, bool) { }
 #endif

@@ -12,7 +12,6 @@ UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // uc_orig: TEXTURE_set (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_set = 0;
 
-
 // uc_orig: TEXTURE_shared_dir (fallen/DDEngine/Source/texture.cpp)
 CBYTE TEXTURE_shared_dir[_MAX_PATH] = "";
 // uc_orig: TEXTURE_world_dir (fallen/DDEngine/Source/texture.cpp)

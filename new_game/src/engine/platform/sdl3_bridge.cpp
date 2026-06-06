@@ -391,8 +391,8 @@ bool sdl3_display_get_physical_ppcm(float* ppcm)
 
     const int horz_mm = GetDeviceCaps(hdc, HORZSIZE); // physical width  (mm)
     const int vert_mm = GetDeviceCaps(hdc, VERTSIZE); // physical height (mm)
-    const int horz_px = GetDeviceCaps(hdc, HORZRES);  // mode width  (px)
-    const int vert_px = GetDeviceCaps(hdc, VERTRES);  // mode height (px)
+    const int horz_px = GetDeviceCaps(hdc, HORZRES); // mode width  (px)
+    const int vert_px = GetDeviceCaps(hdc, VERTRES); // mode height (px)
     DeleteDC(hdc);
 
     if (horz_mm <= 0 || vert_mm <= 0 || horz_px <= 0 || vert_px <= 0)

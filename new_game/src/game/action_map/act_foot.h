@@ -42,10 +42,10 @@
 // them back as an opt-in setting for fans of the original UC PC control
 // scheme. Not on the roadmap; just keeping the reference handy.
 
-constexpr int ACT_FOOT_MOVE_FORWARD_KKEY  = KKEY_W;
+constexpr int ACT_FOOT_MOVE_FORWARD_KKEY = KKEY_W;
 constexpr int ACT_FOOT_MOVE_BACKWARD_KKEY = KKEY_S;
-constexpr int ACT_FOOT_MOVE_LEFT_KKEY     = KKEY_A;
-constexpr int ACT_FOOT_MOVE_RIGHT_KKEY    = KKEY_D;
+constexpr int ACT_FOOT_MOVE_LEFT_KKEY = KKEY_A;
+constexpr int ACT_FOOT_MOVE_RIGHT_KKEY = KKEY_D;
 
 // Gamepad left stick = analog on-foot movement (direction + magnitude).
 // Passed as the stick-id arg to input_stick_x_axis_raw / input_stick_y_axis_raw
@@ -82,16 +82,16 @@ constexpr int ACT_FOOT_MOVE_Y_VAXIS = VAXIS_Y;
 // SPRINT keeps Circle's widget-CANCEL role (back out of in-game forms).
 // JUMP: keyboard SPACE + Cross/A.
 
-constexpr int ACT_FOOT_SPRINT_KKEY  = KKEY_LEFT_SHIFT;
+constexpr int ACT_FOOT_SPRINT_KKEY = KKEY_LEFT_SHIFT;
 constexpr int ACT_FOOT_STEALTH_KKEY = KKEY_C;
-constexpr int ACT_FOOT_USE_KKEY     = KKEY_F;
-constexpr int ACT_FOOT_JUMP_KKEY    = KKEY_SPACE;
+constexpr int ACT_FOOT_USE_KKEY = KKEY_F;
+constexpr int ACT_FOOT_JUMP_KKEY = KKEY_SPACE;
 
-constexpr int ACT_FOOT_JUMP_GBTN    = GBTN_SOUTH; // DS: Cross, Xbox: A
-constexpr int ACT_FOOT_SPRINT_GBTN  = GBTN_EAST;  // DS: Circle, Xbox: B
+constexpr int ACT_FOOT_JUMP_GBTN = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_FOOT_SPRINT_GBTN = GBTN_EAST; // DS: Circle, Xbox: B
 constexpr int ACT_FOOT_STEALTH_GBTN = GBTN_NORTH; // DS: Triangle, Xbox: Y
-constexpr int ACT_FOOT_USE_GBTN     = GBTN_WEST;  // DS: Square, Xbox: X
-constexpr int ACT_FOOT_KICK_GBTN    = GBTN_R1;    // DS: R1, Xbox: RB
+constexpr int ACT_FOOT_USE_GBTN = GBTN_WEST; // DS: Square, Xbox: X
+constexpr int ACT_FOOT_KICK_GBTN = GBTN_R1; // DS: R1, Xbox: RB
 
 // Analog R2 trigger drives the punch / shoot path (weapon_feel). Read as
 // input_trigger_raw(GTRIG_R2) inside get_hardware_input.
@@ -103,7 +103,7 @@ constexpr int ACT_FOOT_PUNCH_GTRIG = GTRIG_R2;
 // capture is engaged (gating in host.cpp::on_mouse_button) — so clicks
 // in menus or while alt-tabbed do not register as gameplay actions.
 constexpr int ACT_FOOT_PUNCH_MBTN = MBTN_LEFT;
-constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
+constexpr int ACT_FOOT_KICK_MBTN = MBTN_RIGHT;
 
 // ---- L2 tactical mode (slow-walk + rolls) ----------------------------------
 // L2 analog trigger engages tactical mode (slow walk + ✕ does rolls / backflips
@@ -118,7 +118,7 @@ constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
 // в конце").
 
 constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
-constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
+constexpr int ACT_FOOT_TACTICAL_MODE_KKEY = KKEY_LEFT_CONTROL;
 
 // ---- Weapon: select-next + inventory scroll (R3 / MMB / wheel) --------------
 // R3 (gamepad) and middle mouse (KBM) switch to the next weapon in the dedicated
@@ -129,9 +129,9 @@ constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
 // get_hardware_input for the car-siren / cutscene-skip / map-quit paths.
 // All read in game_tick.cpp::process_controls.
 
-constexpr int ACT_FOOT_INVENTORY_KKEY      = KKEY_TAB;      // legacy SELECT mask (car/map/skip)
-constexpr int ACT_FOOT_INVENTORY_GBTN      = GBTN_R3;       // DS: R3, Xbox: RSB
-constexpr int ACT_FOOT_WEAPON_SELECT_MBTN  = MBTN_MIDDLE;   // switch to next weapon (KBM)
+constexpr int ACT_FOOT_INVENTORY_KKEY = KKEY_TAB; // legacy SELECT mask (car/map/skip)
+constexpr int ACT_FOOT_INVENTORY_GBTN = GBTN_R3; // DS: R3, Xbox: RSB
+constexpr int ACT_FOOT_WEAPON_SELECT_MBTN = MBTN_MIDDLE; // switch to next weapon (KBM)
 
 // ---- Weapon select: keyboard digit hotkeys + backtick melee ----------------
 // Direct weapon switch (1..4) + ` (backtick, the key left of "1") = melee toggle
@@ -140,11 +140,11 @@ constexpr int ACT_FOOT_WEAPON_SELECT_MBTN  = MBTN_MIDDLE;   // switch to next we
 // it by feel. Read in game_tick.cpp::process_controls. Rarely-used items
 // (explosives etc.) have no hotkey — reach them via the wheel/R3 scroll.
 
-constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY  = KKEY_1;
-constexpr int ACT_FOOT_WEAPON_AK47_KKEY    = KKEY_2;
+constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY = KKEY_1;
+constexpr int ACT_FOOT_WEAPON_AK47_KKEY = KKEY_2;
 constexpr int ACT_FOOT_WEAPON_SHOTGUN_KKEY = KKEY_3;
 constexpr int ACT_FOOT_WEAPON_GRENADE_KKEY = KKEY_4;
-constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_GRAVE;
+constexpr int ACT_FOOT_WEAPON_MELEE_KKEY = KKEY_GRAVE;
 
 // ---- Weapon select: D-pad on gamepad ---------------------------------------
 // Direct weapon select via D-pad (only when R3 is NOT held — R3+↑/↓ is the
@@ -153,10 +153,10 @@ constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_GRAVE;
 // doesn't double-fire weapon switch.
 //   ↑ pistol, ← AK47, → shotgun, ↓ melee toggle, ↑+→ (diagonal) grenade.
 
-constexpr int ACT_FOOT_WEAPON_PISTOL_GBTN       = GBTN_DPAD_UP;
-constexpr int ACT_FOOT_WEAPON_AK47_GBTN         = GBTN_DPAD_LEFT;
-constexpr int ACT_FOOT_WEAPON_SHOTGUN_GBTN      = GBTN_DPAD_RIGHT;
-constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN  = GBTN_DPAD_DOWN;
+constexpr int ACT_FOOT_WEAPON_PISTOL_GBTN = GBTN_DPAD_UP;
+constexpr int ACT_FOOT_WEAPON_AK47_GBTN = GBTN_DPAD_LEFT;
+constexpr int ACT_FOOT_WEAPON_SHOTGUN_GBTN = GBTN_DPAD_RIGHT;
+constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN = GBTN_DPAD_DOWN;
 // Grenade = ↑ + → pressed together (no dedicated button — combines the two).
 
 // ---- Camera toggle (gamepad-only) ------------------------------------------
@@ -180,7 +180,7 @@ constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 // ACT_*_MAXIS constant is defined (one would never reach an API — a dead
 // constant). The MAXIS_X / MAXIS_Y source codes stay in input_codes.h.
 
-constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS  = GAXIS_RIGHT;
+constexpr int ACT_FOOT_CAMERA_LOOK_GAXIS = GAXIS_RIGHT;
 
 // ---- Zoom / back-walk modifier (L1 / E held) -------------------------------
 // Holding L1 on gamepad or E on keyboard enters the zoom/back-walk modifier
@@ -223,13 +223,13 @@ constexpr int ACT_FOOT_OPEN_DEV_CONSOLE_KKEY = KKEY_F9;
 // combo is checked first).
 
 constexpr int ACT_FOOT_CHEAT_MOD_SELECT_GBTN = GBTN_SELECT;
-constexpr int ACT_FOOT_CHEAT_MOD_L1_GBTN     = GBTN_L1;
+constexpr int ACT_FOOT_CHEAT_MOD_L1_GBTN = GBTN_L1;
 constexpr int ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN = GBTN_L2_DIGITAL;
 
 // Cheats (held with modifier gate above):
-constexpr int ACT_FOOT_CHEAT_IMMORTAL_GBTN       = GBTN_DPAD_UP;
-constexpr int ACT_FOOT_CHEAT_FULL_HEALTH_GBTN    = GBTN_DPAD_DOWN;
-constexpr int ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN  = GBTN_DPAD_LEFT;
-constexpr int ACT_FOOT_CHEAT_MAX_AMMO_GBTN       = GBTN_DPAD_RIGHT;
+constexpr int ACT_FOOT_CHEAT_IMMORTAL_GBTN = GBTN_DPAD_UP;
+constexpr int ACT_FOOT_CHEAT_FULL_HEALTH_GBTN = GBTN_DPAD_DOWN;
+constexpr int ACT_FOOT_CHEAT_SPAWN_WEAPONS_GBTN = GBTN_DPAD_LEFT;
+constexpr int ACT_FOOT_CHEAT_MAX_AMMO_GBTN = GBTN_DPAD_RIGHT;
 
 #endif // GAME_ACTION_MAP_ACT_FOOT_H

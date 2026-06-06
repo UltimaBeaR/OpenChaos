@@ -185,12 +185,12 @@ void ge_flip();
 // real GPU time (no idle counted). DELIBERATELY serialises CPU/GPU →
 // distorts FPS while the mode is on; that's the point (compare realistic
 // vs synchronised). Only called from OC_DEBUG_PERF-gated perf code.
-void     ge_gpu_finish();
+void ge_gpu_finish();
 
 // Per-frame GPU draw-call counter (number of draw submissions since the
 // last reset). perf_diag samples then resets it once per frame.
 uint32_t ge_draw_call_count();
-void     ge_draw_call_count_reset();
+void ge_draw_call_count_reset();
 
 // ---------------------------------------------------------------------------
 // Render state
@@ -526,15 +526,15 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
 // (character) path derives color in-shader from normal + bone light dir
 // + fade table. `specular` is the CPU-computed fog (BGRA, D3D 0xAARRGGBB).
 struct GESkinVertex {
-    float    x, y, z;    // bind-space position
-    float    nx, ny, nz; // bind-space normal
-    uint32_t bone;       // legacy single-bone index — unused by current shaders
-                         // (skin_world_vert / skin_shadow_vert read bones[]/weights[]
-                         // instead). Kept in the layout for now; can be dropped
-                         // when GESkinVertex is next reshaped.
-    uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
-    uint32_t specular;   // BGRA (CPU fog)
-    float    u, v;
+    float x, y, z; // bind-space position
+    float nx, ny, nz; // bind-space normal
+    uint32_t bone; // legacy single-bone index — unused by current shaders
+                   // (skin_world_vert / skin_shadow_vert read bones[]/weights[]
+                   // instead). Kept in the layout for now; can be dropped
+                   // when GESkinVertex is next reshaped.
+    uint32_t color; // BGRA (lit path only; unlit derives in-shader)
+    uint32_t specular; // BGRA (CPU fog)
+    float u, v;
     // Multi-bone palette for the world-skin path. Up to 4 bones per
     // vertex with normalised uint8 weights (0..255 → 0..1). Consumed by
     // skin_world_vert.glsl only — the shadow-silhouette path reads .bone
@@ -542,8 +542,8 @@ struct GESkinVertex {
     // single-bone behaviour; the auto-rig (people only, in
     // figure_build_consolidated_skin_world) populates real soft weights
     // at leaf joints without further shader changes.
-    uint8_t  bones[4];
-    uint8_t  weights[4];
+    uint8_t bones[4];
+    uint8_t weights[4];
 };
 
 // Max bones in a single skinned palette. The world-skin shader fits up

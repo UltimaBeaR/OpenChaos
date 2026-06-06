@@ -37,9 +37,9 @@ void BLOOM_flare_draw(SLONG x, SLONG y, SLONG z, SLONG str)
         // the same render-time camera position the renderer is using
         // (otherwise LOS judders at physics rate inside cutscenes).
         extern bool render_interp_apply_eway_camera(SLONG*, SLONG*, SLONG*,
-                                                    SLONG*, SLONG*, SLONG*, SLONG*);
+            SLONG*, SLONG*, SLONG*, SLONG*);
         render_interp_apply_eway_camera(&fc_x, &fc_y, &fc_z,
-                                        nullptr, nullptr, nullptr, nullptr);
+            nullptr, nullptr, nullptr, nullptr);
     }
 
     if (!there_is_a_los(x, y, z,
@@ -167,9 +167,9 @@ void BLOOM_draw(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, SLONG c
         fc_z = FC_cam[AENG_cur_fc_cam].z;
     } else {
         extern bool render_interp_apply_eway_camera(SLONG*, SLONG*, SLONG*,
-                                                    SLONG*, SLONG*, SLONG*, SLONG*);
+            SLONG*, SLONG*, SLONG*, SLONG*);
         render_interp_apply_eway_camera(&fc_x, &fc_y, &fc_z,
-                                        nullptr, nullptr, nullptr, nullptr);
+            nullptr, nullptr, nullptr, nullptr);
     }
 
     // Check line-of-sight against walls; optionally raise the test point by 16 units.

@@ -116,7 +116,10 @@ reinit_because_of_language_change:
         {
             SLONG res;
 
-            { PERF_SCOPE("render.frontend"); res = FRONTEND_loop(); }
+            {
+                PERF_SCOPE("render.frontend");
+                res = FRONTEND_loop();
+            }
 
             if (res) {
                 switch (res) {
@@ -165,7 +168,10 @@ reinit_because_of_language_change:
 
         extern void lock_frame_rate(SLONG fps);
         extern SLONG g_render_fps_cap;
-        { PERF_SCOPE("idle"); lock_frame_rate(g_render_fps_cap); }
+        {
+            PERF_SCOPE("idle");
+            lock_frame_rate(g_render_fps_cap);
+        }
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
             // AENG_flip() → ge_flip(): split inside into

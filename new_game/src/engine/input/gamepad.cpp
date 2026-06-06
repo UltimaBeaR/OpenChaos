@@ -48,7 +48,7 @@ static constexpr uint8_t TRIGGER_REST_THRESHOLD_BYTE = 16;
 // the gameplay NOISE_TOLERANCE in get_hardware_input (input_actions.cpp)
 // so the gate releases at the same slop level gameplay already ignores.
 static constexpr int STICK_REST_TOLERANCE_RAW = 8192;
-static constexpr int STICK_RAW_CENTER         = 32768;
+static constexpr int STICK_RAW_CENTER = 32768;
 
 // PS1-style motor state (maximum tracking + per-tick decay).
 // uc_orig: psx_motor[2] (fallen/psxlib/Source/GDisplay.cpp)

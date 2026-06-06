@@ -431,7 +431,7 @@ void SPARK_process()
 //
 // Hash constants are the standard splitmix64 / xxhash mixers — any
 // reasonable integer hash works, point is full avalanche on each input.
-constexpr SLONG SPARK_NOISE_BUCKET_MS = 67;  // ~15 Hz wiggle — visual cadence, tunable
+constexpr SLONG SPARK_NOISE_BUCKET_MS = 67; // ~15 Hz wiggle — visual cadence, tunable
 
 static SLONG spark_noise(SLONG s1, SLONG s2, SLONG s3, SLONG salt)
 {

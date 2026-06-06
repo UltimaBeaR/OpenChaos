@@ -4073,8 +4073,8 @@ SLONG collide_box_with_line(
 #define COL_CLIP_ZL (1 << 3)
 
     SLONG useangle = (-yaw) & 2047;
-    SLONG sin_yaw  = SIN(useangle);
-    SLONG cos_yaw  = COS(useangle);
+    SLONG sin_yaw = SIN(useangle);
+    SLONG cos_yaw = COS(useangle);
 
     SLONG matrix[4] = { cos_yaw, sin_yaw, -sin_yaw, cos_yaw };
 
@@ -4091,18 +4091,34 @@ SLONG collide_box_with_line(
     UBYTE clip1 = 0;
     UBYTE clip2 = 0;
 
-    if (rx1 < minx) { clip1 |= COL_CLIP_XS; }
-    if (rx1 > maxx) { clip1 |= COL_CLIP_XL; }
-    if (rz1 < minz) { clip1 |= COL_CLIP_ZS; }
-    if (rz1 > maxz) { clip1 |= COL_CLIP_ZL; }
+    if (rx1 < minx) {
+        clip1 |= COL_CLIP_XS;
+    }
+    if (rx1 > maxx) {
+        clip1 |= COL_CLIP_XL;
+    }
+    if (rz1 < minz) {
+        clip1 |= COL_CLIP_ZS;
+    }
+    if (rz1 > maxz) {
+        clip1 |= COL_CLIP_ZL;
+    }
 
     if (clip1 == 0)
         return UC_TRUE;
 
-    if (rx2 < minx) { clip2 |= COL_CLIP_XS; }
-    if (rx2 > maxx) { clip2 |= COL_CLIP_XL; }
-    if (rz2 < minz) { clip2 |= COL_CLIP_ZS; }
-    if (rz2 > maxz) { clip2 |= COL_CLIP_ZL; }
+    if (rx2 < minx) {
+        clip2 |= COL_CLIP_XS;
+    }
+    if (rx2 > maxx) {
+        clip2 |= COL_CLIP_XL;
+    }
+    if (rz2 < minz) {
+        clip2 |= COL_CLIP_ZS;
+    }
+    if (rz2 > maxz) {
+        clip2 |= COL_CLIP_ZL;
+    }
 
     if (clip2 == 0)
         return UC_TRUE;
@@ -4114,19 +4130,23 @@ SLONG collide_box_with_line(
 
     if (clip_xor & COL_CLIP_XS) {
         SLONG iz = rz1 + (rz2 - rz1) * (minx - rx1) / (rx2 - rx1);
-        if (WITHIN(iz, minz, maxz)) return UC_TRUE;
+        if (WITHIN(iz, minz, maxz))
+            return UC_TRUE;
     }
     if (clip_xor & COL_CLIP_XL) {
         SLONG iz = rz1 + (rz2 - rz1) * (maxx - rx1) / (rx2 - rx1);
-        if (WITHIN(iz, minz, maxz)) return UC_TRUE;
+        if (WITHIN(iz, minz, maxz))
+            return UC_TRUE;
     }
     if (clip_xor & COL_CLIP_ZS) {
         SLONG ix = rx1 + (rx2 - rx1) * (minz - rz1) / (rz2 - rz1);
-        if (WITHIN(ix, minx, maxx)) return UC_TRUE;
+        if (WITHIN(ix, minx, maxx))
+            return UC_TRUE;
     }
     if (clip_xor & COL_CLIP_ZL) {
         SLONG ix = rx1 + (rx2 - rx1) * (maxz - rz1) / (rz2 - rz1);
-        if (WITHIN(ix, minx, maxx)) return UC_TRUE;
+        if (WITHIN(ix, minx, maxx))
+            return UC_TRUE;
     }
 
     return UC_FALSE;
@@ -4154,9 +4174,9 @@ void create_shockwave(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG maxdamage, 
     for (SLONG i = 0; i < num; i++) {
         Thing* p_found = TO_THING(found[i]);
 
-        SLONG dx   = abs((p_found->WorldPos.X >> 8) - x);
-        SLONG dy   = abs((p_found->WorldPos.Y >> 8) - y);
-        SLONG dz   = abs((p_found->WorldPos.Z >> 8) - z);
+        SLONG dx = abs((p_found->WorldPos.X >> 8) - x);
+        SLONG dy = abs((p_found->WorldPos.Y >> 8) - y);
+        SLONG dz = abs((p_found->WorldPos.Z >> 8) - z);
         SLONG dist = QDIST3(dx, dy, dz);
 
         SLONG hitpoints;
@@ -4164,17 +4184,14 @@ void create_shockwave(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG maxdamage, 
         if (p_found->Class == CLASS_PERSON && !is_person_ko(p_found)) {
             hitpoints = maxdamage * (radius - dist) / radius;
 
-            if (p_found->State == STATE_JUMPING ||
-                (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING))
-            {
+            if (p_found->State == STATE_JUMPING || (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING)) {
                 hitpoints -= hitpoints >> 1;
                 hitpoints += 1;
             }
 
             if (hitpoints > 30) {
                 knock_person_down(p_found, hitpoints, x, z, p_aggressor);
-            } else if (!(p_found->State == STATE_JUMPING ||
-                         (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING))) {
+            } else if (!(p_found->State == STATE_JUMPING || (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING))) {
                 set_face_pos(p_found, x, z);
                 set_person_recoil(p_found, ANIM_HIT_FRONT_MID, 0);
             }
@@ -4211,9 +4228,9 @@ void create_shockwave(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG maxdamage, 
             for (SLONG mz = (SLONG)(UBYTE)mz1; mz <= (SLONG)(UBYTE)mz2; mz++) {
                 for (OB_Info* oi = OB_find((UBYTE)mx, (UBYTE)mz); oi->prim; oi++) {
                     if (prim_objects[oi->prim].damage & PRIM_DAMAGE_DAMAGABLE) {
-                        SLONG odx  = oi->x - x;
-                        SLONG ody  = oi->y - y;
-                        SLONG odz  = oi->z - z;
+                        SLONG odx = oi->x - x;
+                        SLONG ody = oi->y - y;
+                        SLONG odz = oi->z - z;
                         SLONG dist = abs(odx) + abs(ody) + abs(odz);
                         if (dist < radius) {
                             SLONG hitpoints = maxdamage * (radius - dist) / radius;
@@ -4236,8 +4253,8 @@ void COLLIDE_calc_fastnav_bits(void)
     for (SLONG i = 1; i < next_dfacet; i++) {
         DFacet* df = &dfacets[i];
 
-        SLONG dx  = df->x[1] - df->x[0];
-        SLONG dz  = df->z[1] - df->z[0];
+        SLONG dx = df->x[1] - df->x[0];
+        SLONG dz = df->z[1] - df->z[0];
         SLONG len = MAX(abs(dx), abs(dz));
 
         if (!(dx == 0 || dz == 0))
@@ -4251,7 +4268,7 @@ void COLLIDE_calc_fastnav_bits(void)
 
         for (SLONG j = 0; j < len; j++) {
             for (SLONG k = 0; k < 4; k++) {
-                SLONG mx = x - (k &  1);
+                SLONG mx = x - (k & 1);
                 SLONG mz = z - (k >> 1);
                 if (WITHIN(mx, 0, PAP_SIZE_HI - 1) && WITHIN(mz, 0, PAP_SIZE_HI - 1))
                     COLLIDE_fastnav[mx][mz >> 3] &= ~(1 << (mz & 0x7));
@@ -4267,10 +4284,7 @@ void COLLIDE_find_seethrough_fences(void)
 {
     for (SLONG i = 1; i < next_dfacet; i++) {
         DFacet* df = &dfacets[i];
-        if (df->FacetType == STOREY_TYPE_FENCE ||
-            df->FacetType == STOREY_TYPE_FENCE_FLAT ||
-            df->FacetType == STOREY_TYPE_OUTSIDE_DOOR)
-        {
+        if (df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_OUTSIDE_DOOR) {
             df->FacetFlags |= FACET_FLAG_SEETHROUGH;
         }
     }
@@ -4297,9 +4311,9 @@ void COLLIDE_debug_fastnav(SLONG world_x, SLONG world_z)
                 SLONG cy = PAP_calc_map_height_at(cx, cz);
 
                 AENG_world_line(cx - 0x10, cy, cz - 0x10, 16, 0xff00ff,
-                                cx + 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
+                    cx + 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
                 AENG_world_line(cx + 0x10, cy, cz - 0x10, 16, 0xff00ff,
-                                cx - 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
+                    cx - 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
             }
         }
     }

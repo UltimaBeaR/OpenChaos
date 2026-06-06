@@ -239,7 +239,7 @@ void AENG_create_dx_prim_points()
 // inside AENG_draw flushes any lines added during the scene, so there's
 // no buffer-corruption hazard for the normal case — the gate was an
 // over-zealous guard. Removed; AENG_world_line now always emits directly.
-void AENG_set_render_pass(bool /*active*/) {}
+void AENG_set_render_pass(bool /*active*/) { }
 
 void AENG_world_line(
     SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,
@@ -253,9 +253,9 @@ void AENG_world_line(
     POLY_transform(float(x2), float(y2), float(z2), &p2);
 
     if (POLY_valid_line(&p1, &p2)) {
-        p1.colour   = colour1;
+        p1.colour = colour1;
         p1.specular = 0xff000000;
-        p2.colour   = colour2;
+        p2.colour = colour2;
         p2.specular = 0xff000000;
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
     }
@@ -728,7 +728,7 @@ void AENG_add_projected_shadow_poly(SMAP_Link* sl)
 // edge the original had. It only "breathes" if the silhouette is loose
 // and sits broadly in the gradient — fixed by the vertex-tight projection
 // box (smap.cpp), which keeps the shadow near the feet like the original.
-#define SHADOW_FADE_FULL_DIST 64.0F  // |dx|+|dz|: full opacity within this
+#define SHADOW_FADE_FULL_DIST 64.0F // |dx|+|dz|: full opacity within this
 #define SHADOW_FADE_ZERO_DIST 256.0F // fully transparent beyond this
 void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 {
@@ -766,8 +766,7 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
                 if (dist > SHADOW_FADE_ZERO_DIST) {
                     alpha = 0;
                 } else {
-                    alpha = 0xff - SLONG((dist - SHADOW_FADE_FULL_DIST)
-                        * (255.0F / (SHADOW_FADE_ZERO_DIST - SHADOW_FADE_FULL_DIST)));
+                    alpha = 0xff - SLONG((dist - SHADOW_FADE_FULL_DIST) * (255.0F / (SHADOW_FADE_ZERO_DIST - SHADOW_FADE_FULL_DIST)));
                 }
             }
 
@@ -837,15 +836,15 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 // bucket regeneration and frozen until the next bucket.
 typedef struct
 {
-    float u;        // [-1..1] camera-space x
-    float v;        // [-0.5..0.5] camera-space y
-    float w;        // [0.1..1.1] camera-space z
+    float u; // [-1..1] camera-space x
+    float v; // [-0.5..0.5] camera-space y
+    float w; // [0.1..1.1] camera-space z
     ULONG colour;
 } AENG_RainDrop;
 
 static AENG_RainDrop AENG_rain_drops[AENG_NUM_RAINDROPS];
-static SLONG         AENG_rain_drops_count = 0;
-static uint64_t      AENG_rain_last_bucket = ~uint64_t(0);
+static SLONG AENG_rain_drops_count = 0;
+static uint64_t AENG_rain_last_bucket = ~uint64_t(0);
 
 // uc_orig: AENG_draw_rain (fallen/DDEngine/Source/aeng.cpp)
 // Draws rain as 3-D camera-relative droplets, locked to the original
@@ -856,9 +855,9 @@ static uint64_t      AENG_rain_last_bucket = ~uint64_t(0);
 void AENG_draw_rain()
 {
     extern uint64_t sdl3_get_ticks();
-    const uint64_t now_ms     = sdl3_get_ticks();
+    const uint64_t now_ms = sdl3_get_ticks();
     const uint64_t cur_bucket = now_ms / AENG_RAIN_BUCKET_MS;
-    const bool     regenerate = (cur_bucket != AENG_rain_last_bucket);
+    const bool regenerate = (cur_bucket != AENG_rain_last_bucket);
 
     // 1. Build the camera matrix. Used for both regeneration (NIGHT
     //    lookup at the spawn world position) and drawing.
@@ -920,11 +919,14 @@ void AENG_draw_rain()
             const SLONG dx = (SLONG(wx) >> 8) & 3;
             const SLONG dz = (SLONG(wz) >> 8) & 3;
 
-            if ((px < 0) || (px >= PAP_SIZE_LO)) continue;
-            if ((pz < 0) || (pz >= PAP_SIZE_LO)) continue;
+            if ((px < 0) || (px >= PAP_SIZE_LO))
+                continue;
+            if ((pz < 0) || (pz >= PAP_SIZE_LO))
+                continue;
 
             const SLONG square = NIGHT_cache[px][pz];
-            if (!square) continue;
+            if (!square)
+                continue;
 
             ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
             ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
@@ -934,9 +936,9 @@ void AENG_draw_rain()
             NIGHT_get_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
 
             AENG_RainDrop* drop = &AENG_rain_drops[AENG_rain_drops_count++];
-            drop->u      = u;
-            drop->v      = v;
-            drop->w      = w;
+            drop->u = u;
+            drop->v = v;
+            drop->w = w;
             drop->colour = col;
         }
 
@@ -2046,13 +2048,13 @@ SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
     // far away. Higher pri = more important. score = (1 - pri) * max_dist
     // (lowest score wins; norm shown = pri). smoothstep = no snapping.
     // Tunables (tuned by feel; see skeletal_skinning_plan.md):
-    const float SHADOW_PEAK_R = 1.40f;     // depth of the 1.0 peak (1=Darci)
+    const float SHADOW_PEAK_R = 1.40f; // depth of the 1.0 peak (1=Darci)
     const float SHADOW_DARCI_LEVEL = 0.92f; // pri exactly at Darci's depth
-    const float SHADOW_PLATEAU_R = 0.60f;  // r-width of the gentle top after peak
+    const float SHADOW_PLATEAU_R = 0.60f; // r-width of the gentle top after peak
     const float SHADOW_SHOULDER_DROP = 0.10f; // how far 1.0 eases over plateau
-    const float SHADOW_FALL_TAU = 1.50f;   // exp tail length after the shoulder
-                                           // (bigger = longer/gentler tail)
-    const float SHADOW_CAM_FLOOR = 0.05f;  // pri right at the camera plane
+    const float SHADOW_FALL_TAU = 1.50f; // exp tail length after the shoulder
+                                         // (bigger = longer/gentler tail)
+    const float SHADOW_CAM_FLOOR = 0.05f; // pri right at the camera plane
 
     // Lateral (screen-X) formula. lat = |perp offset from the camera axis|
     // / depth  -> perspective-correct screen horizontal position (same
@@ -2066,16 +2068,16 @@ SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
     //   lat >  SIDE_KNEE      : KNEE_LEVEL * exp(-(lat-KNEE)/SIDE_TAU)
     //                           (long gentle tail to ~0 out past the
     //                           screen edges — no hard zero)
-    const float SHADOW_SIDE_KNEE = 0.50f;       // lat where the tail starts
+    const float SHADOW_SIDE_KNEE = 0.50f; // lat where the tail starts
     const float SHADOW_SIDE_KNEE_LEVEL = 0.30f; // value at the knee (~0.3)
-    const float SHADOW_SIDE_TAU = 0.60f;        // tail length (bigger=gentler)
+    const float SHADOW_SIDE_TAU = 0.60f; // tail length (bigger=gentler)
     // Mix: 0 = depth only, 1 = side only, 2 = depth * side (combined).
     const int SHADOW_MIX = 2;
 
     // Tie-break: scores within one bucket count as equal; the closer to
     // Darci wins. DSHIFT keeps the dist term < one bucket (pure sub-order).
     const SLONG SHADOW_TIE_BUCKET = 0xC000; // ~max_dist/16 = "almost equal"
-    const SLONG SHADOW_TIE_DSHIFT = 6;      // dDarci>>this < one bucket
+    const SLONG SHADOW_TIE_DSHIFT = 6; // dDarci>>this < one bucket
 
     // Score discount for a person that already had a detailed shadow last
     // frame (anti-flicker / temporal stability). In score units (~camera
@@ -2124,11 +2126,13 @@ SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
                             if (r <= 1.0f) {
                                 // Camera plane -> Darci.
                                 float t = r;
-                                if (t < 0.0f) t = 0.0f;
+                                if (t < 0.0f)
+                                    t = 0.0f;
                                 t = t * t * (3.0f - 2.0f * t); // smoothstep
                                 depthPri = SHADOW_CAM_FLOOR
                                     + (SHADOW_DARCI_LEVEL
-                                          - SHADOW_CAM_FLOOR) * t;
+                                          - SHADOW_CAM_FLOOR)
+                                        * t;
                             } else if (r <= SHADOW_PEAK_R) {
                                 // Darci -> peak.
                                 float t = (r - 1.0f)
@@ -2152,8 +2156,10 @@ SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
                                         * expf(-q);
                                 }
                             }
-                            if (depthPri < 0.0f) depthPri = 0.0f;
-                            if (depthPri > 1.0f) depthPri = 1.0f;
+                            if (depthPri < 0.0f)
+                                depthPri = 0.0f;
+                            if (depthPri > 1.0f)
+                                depthPri = 1.0f;
 
                             // ---- Lateral hump: sidePri ----
                             // True screen X via the engine projection (FOV/
@@ -2192,10 +2198,12 @@ SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
                             }
                             // ---- Mix ----
                             float pri = (SHADOW_MIX == 0) ? depthPri
-                                : (SHADOW_MIX == 1)        ? sidePri
-                                : depthPri * sidePri;
-                            if (pri < 0.0f) pri = 0.0f;
-                            if (pri > 1.0f) pri = 1.0f;
+                                : (SHADOW_MIX == 1)       ? sidePri
+                                                          : depthPri * sidePri;
+                            if (pri < 0.0f)
+                                pri = 0.0f;
+                            if (pri > 1.0f)
+                                pri = 1.0f;
                             // Higher pri = more important; lowest score
                             // wins. base = primary score before the
                             // tie-break / stickiness adjustments.
@@ -2644,8 +2652,7 @@ void AENG_draw_city()
             //
 
             // Persons packed as AENG_AA_BUF_SIZE tiles in a square grid.
-            const SLONG SHADOW_COLS =
-                TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
+            const SLONG SHADOW_COLS = TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
             ASSERT(TEXTURE_SHADOW_SIZE % AENG_AA_BUF_SIZE == 0);
             ASSERT(AENG_NUM_SHADOWS <= SHADOW_COLS * SHADOW_COLS);
 
@@ -3401,10 +3408,14 @@ void AENG_draw_city()
                                 // declaration comment for why per-puddle
                                 // calls would compound the warp.
                                 WibbleAccum& w = wacc[i];
-                                if (ix1 < w.x1) w.x1 = ix1;
-                                if (iy1 < w.y1) w.y1 = iy1;
-                                if (ix2 > w.x2) w.x2 = ix2;
-                                if (iy2 > w.y2) w.y2 = iy2;
+                                if (ix1 < w.x1)
+                                    w.x1 = ix1;
+                                if (iy1 < w.y1)
+                                    w.y1 = iy1;
+                                if (ix2 > w.x2)
+                                    w.x2 = ix2;
+                                if (iy2 > w.y2)
+                                    w.y2 = iy2;
                                 if (!w.active) {
                                     // First overlapping puddle defines
                                     // wibble params for this reflection.
@@ -3414,7 +3425,7 @@ void AENG_draw_city()
                                     w.g2_param = pi->puddle_g2;
                                     w.s1_param = pi->puddle_s1;
                                     w.s2_param = pi->puddle_s2;
-                                    w.active   = true;
+                                    w.active = true;
                                 }
                             }
                         }
@@ -3439,20 +3450,27 @@ void AENG_draw_city()
         // reflection — visually jarring.
         for (i = 0; i < bbox_upto; i++) {
             WibbleAccum& w = wacc[i];
-            if (bbox[i].water_box) continue;
+            if (bbox[i].water_box)
+                continue;
             if (!w.active) {
                 // No puddle overlapped — fall back to the reflection
                 // bbox itself with default ripple preset. Param values
                 // tuned by eye (least visible glitching on rotation
                 // frames where puddle has slipped out of overlap).
-                w.x1 = bbox[i].x1; w.y1 = bbox[i].y1;
-                w.x2 = bbox[i].x2; w.y2 = bbox[i].y2;
-                w.y1_param = 62;  w.y2_param = 137;
-                w.g1_param = 17;  w.g2_param = 178;
-                w.s1_param = 40;  w.s2_param = 45;
+                w.x1 = bbox[i].x1;
+                w.y1 = bbox[i].y1;
+                w.x2 = bbox[i].x2;
+                w.y2 = bbox[i].y2;
+                w.y1_param = 62;
+                w.y2_param = 137;
+                w.g1_param = 17;
+                w.g2_param = 178;
+                w.s1_param = 40;
+                w.s2_param = 45;
                 w.active = true;
             }
-            if (w.x1 >= w.x2 || w.y1 >= w.y2) continue;
+            if (w.x1 >= w.x2 || w.y1 >= w.y2)
+                continue;
 
             WIBBLE_simple(
                 w.x1, w.y1, w.x2, w.y2,
@@ -4192,9 +4210,12 @@ void AENG_draw_city()
                         OB_Extended* ext = &g_ob_extended[ref->ext_idx - 1];
                         ref_idx = ref->next_in_cell;
 
-                        if (!ext->responsible_valid) continue;
-                        if ((SLONG)ext->responsible_lo_x != x) continue;
-                        if ((SLONG)ext->responsible_lo_z != z) continue;
+                        if (!ext->responsible_valid)
+                            continue;
+                        if ((SLONG)ext->responsible_lo_x != x)
+                            continue;
+                        if ((SLONG)ext->responsible_lo_z != z)
+                            continue;
 
                         // Bounding-sphere vs frustum cull.
                         //
@@ -4237,26 +4258,33 @@ void AENG_draw_city()
                         // → keeps borderline cases). Without this, r is in
                         // world units while vx/vy/vz are in view units (off
                         // by ~3000×) and every plane check is broken.
-                        float row0_sq = POLY_cam_matrix[0]*POLY_cam_matrix[0]
-                                      + POLY_cam_matrix[1]*POLY_cam_matrix[1]
-                                      + POLY_cam_matrix[2]*POLY_cam_matrix[2];
-                        float row1_sq = POLY_cam_matrix[3]*POLY_cam_matrix[3]
-                                      + POLY_cam_matrix[4]*POLY_cam_matrix[4]
-                                      + POLY_cam_matrix[5]*POLY_cam_matrix[5];
-                        float row2_sq = POLY_cam_matrix[6]*POLY_cam_matrix[6]
-                                      + POLY_cam_matrix[7]*POLY_cam_matrix[7]
-                                      + POLY_cam_matrix[8]*POLY_cam_matrix[8];
+                        float row0_sq = POLY_cam_matrix[0] * POLY_cam_matrix[0]
+                            + POLY_cam_matrix[1] * POLY_cam_matrix[1]
+                            + POLY_cam_matrix[2] * POLY_cam_matrix[2];
+                        float row1_sq = POLY_cam_matrix[3] * POLY_cam_matrix[3]
+                            + POLY_cam_matrix[4] * POLY_cam_matrix[4]
+                            + POLY_cam_matrix[5] * POLY_cam_matrix[5];
+                        float row2_sq = POLY_cam_matrix[6] * POLY_cam_matrix[6]
+                            + POLY_cam_matrix[7] * POLY_cam_matrix[7]
+                            + POLY_cam_matrix[8] * POLY_cam_matrix[8];
                         float max_row_sq = (row0_sq > row1_sq) ? row0_sq : row1_sq;
-                        if (row2_sq > max_row_sq) max_row_sq = row2_sq;
+                        if (row2_sq > max_row_sq)
+                            max_row_sq = row2_sq;
                         float r = r_world * sqrtf(max_row_sq);
 
                         const float SQRT2 = 1.41421356F;
-                        if (vz + r < POLY_ZCLIP_PLANE) continue; // behind near
-                        if (vz - r > 1.0F)             continue; // past far
-                        if (vx + vz < -r * SQRT2)      continue; // off left
-                        if (vx - vz > +r * SQRT2)      continue; // off right
-                        if (vy - vz > +r * SQRT2)      continue; // off top
-                        if (vy + vz < -r * SQRT2)      continue; // off bottom
+                        if (vz + r < POLY_ZCLIP_PLANE)
+                            continue; // behind near
+                        if (vz - r > 1.0F)
+                            continue; // past far
+                        if (vx + vz < -r * SQRT2)
+                            continue; // off left
+                        if (vx - vz > +r * SQRT2)
+                            continue; // off right
+                        if (vy - vz > +r * SQRT2)
+                            continue; // off top
+                        if (vy + vz < -r * SQRT2)
+                            continue; // off bottom
 
                         // Compute proper per-vertex lighting on the fly.
                         // We can't reuse the NIGHT cache here: the anchor
@@ -4294,7 +4322,6 @@ void AENG_draw_city()
         //		POLY_frame_draw(UC_FALSE,UC_FALSE);
         //		POLY_frame_init(UC_TRUE,UC_TRUE);
         //		BreakTime("Flushed prims");
-
 
         POLY_set_local_rotation_none();
 
@@ -4500,7 +4527,6 @@ void AENG_draw_city()
                                     UC_TRUE,
                                     PCOM_person_state_debug(p_thing));
                             }
-
                         }
 
                             if (p_thing->State == STATE_DEAD) {
@@ -5279,8 +5305,7 @@ void AENG_draw_warehouse()
             darci = shadow_person[i].p_person;
 
             // Persons packed as AENG_AA_BUF_SIZE tiles in a square grid.
-            const SLONG SHADOW_COLS =
-                TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
+            const SLONG SHADOW_COLS = TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
             ASSERT(TEXTURE_SHADOW_SIZE % AENG_AA_BUF_SIZE == 0);
             ASSERT(AENG_NUM_SHADOWS <= SHADOW_COLS * SHADOW_COLS);
 
@@ -6350,10 +6375,10 @@ void AENG_draw(SLONG draw_3d)
             // state at physics rate and the cutscene camera judders even
             // though FC_cam interpolation is otherwise active.
             extern bool render_interp_apply_eway_camera(SLONG*, SLONG*, SLONG*,
-                                                        SLONG*, SLONG*, SLONG*, SLONG*);
+                SLONG*, SLONG*, SLONG*, SLONG*);
             render_interp_apply_eway_camera(&fc->x, &fc->y, &fc->z,
-                                            &fc->yaw, &fc->pitch, &fc->roll,
-                                            &fc->lens);
+                &fc->yaw, &fc->pitch, &fc->roll,
+                &fc->lens);
             warehouse = EWAY_camera_warehouse();
         } else {
             warehouse = (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware);

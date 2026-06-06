@@ -353,4 +353,3 @@ SLONG person_slide_inside(
 
     return ret_val;
 }
-

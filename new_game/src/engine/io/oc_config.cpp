@@ -222,8 +222,10 @@ int OC_CONFIG_get_int(const char* section, const char* key, int def, int lo, int
         }
     }
     // Clamp into the caller's valid range (trims out-of-range user edits).
-    if (v < lo) v = lo;
-    if (v > hi) v = hi;
+    if (v < lo)
+        v = lo;
+    if (v > hi)
+        v = hi;
     return v;
 }
 
@@ -247,8 +249,10 @@ float OC_CONFIG_get_float(const char* section, const char* key, float def, float
         }
     }
     // Clamp into the caller's valid range (trims out-of-range user edits).
-    if (v < lo) v = lo;
-    if (v > hi) v = hi;
+    if (v < lo)
+        v = lo;
+    if (v > hi)
+        v = hi;
     return v;
 }
 

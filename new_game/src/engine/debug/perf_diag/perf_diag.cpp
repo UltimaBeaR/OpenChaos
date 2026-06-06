@@ -3,8 +3,8 @@
 
 #if OC_PERF_ACTIVE
 
-#include "engine/platform/uc_common.h"            // SLONG / ULONG / UBYTE / CBYTE
-#include "engine/platform/sdl3_bridge.h"          // perf counter / get_ticks
+#include "engine/platform/uc_common.h" // SLONG / ULONG / UBYTE / CBYTE
+#include "engine/platform/sdl3_bridge.h" // perf counter / get_ticks
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_gpu_finish / ge_draw_call_*
 #include <string.h>
 #include <stdio.h>
@@ -12,11 +12,11 @@
 #include <stdint.h>
 
 #if OC_DEBUG_PERF
-#include "engine/graphics/text/font.h"            // FONT_buffer_add_scaled
-#include "engine/graphics/text/font_atlas.h"      // FONT_atlas_fill_* (literal-px rects)
-#include "engine/debug/debug_panel_text_scale.h"  // DBG_PANEL_TEXT_SCALE
-#include "engine/input/input_frame.h"             // input_key_just_pressed
-#include "engine/input/keyboard.h"                // KKEY_4 / KKEY_5
+#include "engine/graphics/text/font.h" // FONT_buffer_add_scaled
+#include "engine/graphics/text/font_atlas.h" // FONT_atlas_fill_* (literal-px rects)
+#include "engine/debug/debug_panel_text_scale.h" // DBG_PANEL_TEXT_SCALE
+#include "engine/input/input_frame.h" // input_key_just_pressed
+#include "engine/input/keyboard.h" // KKEY_4 / KKEY_5
 #endif
 
 namespace perf {
@@ -39,59 +39,58 @@ static constexpr int LONG_W = 240;
 // Short averaging window options (frames) cycled by KKEY_5. Short = reacts
 // fast / jitters; long = smooth / inert.
 static const int SHORT_W_OPTS[] = { 10, 30, 60, 120 };
-static constexpr int SHORT_W_OPT_COUNT =
-    (int)(sizeof(SHORT_W_OPTS) / sizeof(SHORT_W_OPTS[0]));
+static constexpr int SHORT_W_OPT_COUNT = (int)(sizeof(SHORT_W_OPTS) / sizeof(SHORT_W_OPTS[0]));
 
 // ---- Slot ---------------------------------------------------------------
 
 struct Slot {
-    char     name[64];
+    char name[64];
     SlotKind kind;
     // CPU / value channel.
-    double   accum;             // current-frame accumulator
-    double   ring[RING];
-    int      head;              // next write
-    int      count;             // valid entries (≤ RING)
-    double   short_avg;
-    double   long_avg;
+    double accum; // current-frame accumulator
+    double ring[RING];
+    int head; // next write
+    int count; // valid entries (≤ RING)
+    double short_avg;
+    double long_avg;
     // GPU channel — real GPU time of this stage (ScopeTimer dtor
     // glFinishes on exit and times the drain).
-    double   gpu_accum;
-    double   gpu_ring[RING];
-    int      gpu_head;
-    int      gpu_count;
-    double   gpu_short_avg;
+    double gpu_accum;
+    double gpu_ring[RING];
+    int gpu_head;
+    int gpu_count;
+    double gpu_short_avg;
     // Graphics-API CPU channel (CPU wall spent inside ge_* draws/
     // composition/swap — driver/submit/state-changes). Own column.
-    double   ge_accum;
-    double   ge_ring[RING];
-    int      ge_head;
-    int      ge_count;
-    double   ge_short_avg;
+    double ge_accum;
+    double ge_ring[RING];
+    int ge_head;
+    int ge_count;
+    double ge_short_avg;
     // Display order + liveness. seq = order this slot was first entered
     // THIS frame (so rows list in real frame call order). seen_frame =
     // last frame the slot was hit (stale → hidden, so menu/gameplay don't
     // leave each other's dead rows hanging).
-    int      seq;
+    int seq;
     uint64_t seen_frame;
 };
 
 static Slot s_slot[MAX_SLOTS];
-static int  s_slot_count = 0;
+static int s_slot_count = 0;
 
 static Slot* s_frame_total = nullptr; // builtin: whole-frame ms (→ FPS)
 
-static uint64_t s_freq        = 0;    // perf counter frequency (Hz)
-static uint64_t s_frame_t0    = 0;    // perf counter at frame_begin
-static uint64_t s_frame_idx   = 0;
-static bool     s_frame_began = false; // a frame_begin has run at least once
-static uint32_t s_seq_counter = 0;    // reset each frame_begin; ++ per first slot hit
+static uint64_t s_freq = 0; // perf counter frequency (Hz)
+static uint64_t s_frame_t0 = 0; // perf counter at frame_begin
+static uint64_t s_frame_idx = 0;
+static bool s_frame_began = false; // a frame_begin has run at least once
+static uint32_t s_seq_counter = 0; // reset each frame_begin; ++ per first slot hit
 
 // Graphics-API CPU accumulator (perf-counter ticks), depth-counted so
 // nested ge_* calls don't double-count. Monotonic; scopes snapshot it.
 static uint64_t s_ge_accum = 0;
-static int      s_ge_depth = 0;
-static uint64_t s_ge_t0    = 0;
+static int s_ge_depth = 0;
+static uint64_t s_ge_t0 = 0;
 
 // glFinish GPU measurement is ALWAYS on while perf is compiled in (no
 // toggle): each scope glFinishes on exit and the CPU clock measures that
@@ -107,7 +106,7 @@ static uint64_t s_ge_t0    = 0;
 // The total is shown as one separate "glfinish" row (ignore it; it's the
 // price of the measurement, not the game).
 static uint64_t s_gfinish_accum = 0;
-static uint64_t s_frame_gf0     = 0; // snapshot at frame_begin
+static uint64_t s_frame_gf0 = 0; // snapshot at frame_begin
 
 // The single "all CPU-side GPU-wait" row (per-stage glFinish drains +
 // pre-swap drain). CPU blocked draining the GPU — the measurement cost.
@@ -126,7 +125,7 @@ static const char* const PERF_GPU_WAIT_NAME = "GPU wait (glFinish)";
 // next to "GPU wait", outside every 100%. The queue site and the flush
 // site both add here → they SUM (no overwrite).
 static uint64_t s_overhead_accum = 0;
-static uint64_t s_frame_ov0      = 0; // snapshot at frame_begin
+static uint64_t s_frame_ov0 = 0; // snapshot at frame_begin
 
 // Companion accumulator: graphics-API CPU (s_ge_accum ticks) spent INSIDE
 // PERF_OVERHEAD_SCOPE. The panel's glyph flush issues real ge_* draws, so
@@ -145,7 +144,7 @@ static uint64_t s_overhead_gpu_accum = 0;
 
 // Frame-start snapshots for the per-frame perfpanel split (mirrors
 // s_frame_ov0 for the wall, added so ge_* / GPU parts are per-frame too).
-static uint64_t s_frame_ovge0  = 0;
+static uint64_t s_frame_ovge0 = 0;
 static uint64_t s_frame_ovgpu0 = 0;
 
 // The single "perf panel draw cost" row. Kept out of s_ord/roots and out
@@ -171,10 +170,10 @@ static void ensure_freq()
 }
 
 #if OC_DEBUG_PERF
-static bool s_panel_visible   = true;
-static int  s_short_w_idx     = 1;    // -> SHORT_W_OPTS[1] = 30
+static bool s_panel_visible = true;
+static int s_short_w_idx = 1; // -> SHORT_W_OPTS[1] = 30
 #else
-static int  s_short_w_idx     = 1;
+static int s_short_w_idx = 1;
 #endif
 
 static int short_w() { return SHORT_W_OPTS[s_short_w_idx]; }
@@ -200,13 +199,19 @@ Slot* get_slot(const char* name, SlotKind kind)
 
 void add_value(Slot* s, double v)
 {
-    if (s) { touch_slot(s); s->accum += v; }
+    if (s) {
+        touch_slot(s);
+        s->accum += v;
+    }
 }
 
 ScopeTimer::ScopeTimer(Slot* s)
-    : slot(s), t0((ensure_freq(), sdl3_get_performance_counter())),
-      ge0(s_ge_accum), gf0(s_gfinish_accum), ov0(s_overhead_accum),
-      ovge0(s_overhead_ge_accum)
+    : slot(s)
+    , t0((ensure_freq(), sdl3_get_performance_counter()))
+    , ge0(s_ge_accum)
+    , gf0(s_gfinish_accum)
+    , ov0(s_overhead_accum)
+    , ovge0(s_overhead_ge_accum)
 {
     touch_slot(s);
 }
@@ -226,14 +231,16 @@ ScopeTimer::~ScopeTimer()
     // every stage / wrapper ".other" stays free of the diagnostics cost
     // (same contract as the glFinish subtraction above).
     wall -= (double)(s_overhead_accum - ov0);
-    if (wall < 0.0) wall = 0.0;
+    if (wall < 0.0)
+        wall = 0.0;
     slot->accum += wall * 1000.0 / (double)s_freq;
     // ge_* spent inside this scope, MINUS the perf-panel's own ge_* that
     // ran within it (same isolation as the wall above) so the "ge_* CPU"
     // column never includes the diagnostics flush.
     double ge_t = (double)(s_ge_accum - ge0)
-                - (double)(s_overhead_ge_accum - ovge0);
-    if (ge_t < 0.0) ge_t = 0.0;
+        - (double)(s_overhead_ge_accum - ovge0);
+    if (ge_t < 0.0)
+        ge_t = 0.0;
     slot->ge_accum += ge_t * 1000.0 / (double)s_freq;
 
     // Drain the GPU now. The previous (sequential) scope already drained
@@ -253,7 +260,7 @@ ScopeTimer::~ScopeTimer()
 GeCallTimer::GeCallTimer()
 {
     ensure_freq();
-    if (s_ge_depth++ == 0)               // outermost of a nested group
+    if (s_ge_depth++ == 0) // outermost of a nested group
         s_ge_t0 = sdl3_get_performance_counter();
 }
 
@@ -266,7 +273,8 @@ GeCallTimer::~GeCallTimer()
 // ---- Perf-panel overhead bracket ----------------------------------------
 
 OverheadTimer::OverheadTimer()
-    : t0((ensure_freq(), sdl3_get_performance_counter())), ge0(s_ge_accum)
+    : t0((ensure_freq(), sdl3_get_performance_counter()))
+    , ge0(s_ge_accum)
 {
 }
 
@@ -296,11 +304,11 @@ OverheadTimer::~OverheadTimer()
 
 // One active phase at a time (not nestable). Snapshots mirror ScopeTimer:
 // the close path is byte-for-byte the same wall / ge_* / GPU contract.
-static Slot*    s_phase_slot  = nullptr;
-static uint64_t s_phase_t0    = 0;
-static uint64_t s_phase_ge0   = 0;
-static uint64_t s_phase_gf0   = 0;
-static uint64_t s_phase_ov0   = 0;
+static Slot* s_phase_slot = nullptr;
+static uint64_t s_phase_t0 = 0;
+static uint64_t s_phase_ge0 = 0;
+static uint64_t s_phase_gf0 = 0;
+static uint64_t s_phase_ov0 = 0;
 static uint64_t s_phase_ovge0 = 0;
 
 // Close the open phase, booking it exactly as ScopeTimer::~ScopeTimer
@@ -315,13 +323,15 @@ static void phase_close()
         return;
     const uint64_t now = sdl3_get_performance_counter();
     double wall = (double)(now - s_phase_t0);
-    wall -= (double)(s_gfinish_accum  - s_phase_gf0);
+    wall -= (double)(s_gfinish_accum - s_phase_gf0);
     wall -= (double)(s_overhead_accum - s_phase_ov0);
-    if (wall < 0.0) wall = 0.0;
+    if (wall < 0.0)
+        wall = 0.0;
     slot->accum += wall * 1000.0 / (double)s_freq;
-    double ge_t = (double)(s_ge_accum         - s_phase_ge0)
-                - (double)(s_overhead_ge_accum - s_phase_ovge0);
-    if (ge_t < 0.0) ge_t = 0.0;
+    double ge_t = (double)(s_ge_accum - s_phase_ge0)
+        - (double)(s_overhead_ge_accum - s_phase_ovge0);
+    if (ge_t < 0.0)
+        ge_t = 0.0;
     slot->ge_accum += ge_t * 1000.0 / (double)s_freq;
     ge_gpu_finish();
     const uint64_t after = sdl3_get_performance_counter();
@@ -332,13 +342,13 @@ static void phase_close()
 
 void phase_begin(Slot* s)
 {
-    phase_close();              // close the previous phase, if any
+    phase_close(); // close the previous phase, if any
     ensure_freq();
-    s_phase_slot  = s;
-    s_phase_t0    = sdl3_get_performance_counter();
-    s_phase_ge0   = s_ge_accum;
-    s_phase_gf0   = s_gfinish_accum;
-    s_phase_ov0   = s_overhead_accum;
+    s_phase_slot = s;
+    s_phase_t0 = sdl3_get_performance_counter();
+    s_phase_ge0 = s_ge_accum;
+    s_phase_gf0 = s_gfinish_accum;
+    s_phase_ov0 = s_overhead_accum;
     s_phase_ovge0 = s_overhead_ge_accum;
     touch_slot(s);
 }
@@ -367,7 +377,8 @@ void pre_swap_gpu_drain()
 static double avg_ring(const double* ring, int head, int count, int n)
 {
     int m = count < n ? count : n;
-    if (m <= 0) return 0.0;
+    if (m <= 0)
+        return 0.0;
     double sum = 0.0;
     for (int i = 0; i < m; i++) {
         int idx = (head - 1 - i + RING) % RING;
@@ -396,8 +407,8 @@ void frame_begin()
     s_phase_slot = nullptr;
     s_seq_counter = 0; // restart per-frame call-order numbering
     s_frame_gf0 = s_gfinish_accum;
-    s_frame_ov0    = s_overhead_accum;
-    s_frame_ovge0  = s_overhead_ge_accum;
+    s_frame_ov0 = s_overhead_accum;
+    s_frame_ovge0 = s_overhead_ge_accum;
     s_frame_ovgpu0 = s_overhead_gpu_accum;
     s_frame_t0 = sdl3_get_performance_counter();
 }
@@ -407,9 +418,10 @@ void frame_end()
     if (!s_frame_began)
         return; // frame_begin never ran (partial frame) — skip
 
-    const uint64_t now   = sdl3_get_performance_counter();
-    const double   total = (double)(now - s_frame_t0) * 1000.0 / (double)s_freq;
-    if (s_frame_total) s_frame_total->accum = total;
+    const uint64_t now = sdl3_get_performance_counter();
+    const double total = (double)(now - s_frame_t0) * 1000.0 / (double)s_freq;
+    if (s_frame_total)
+        s_frame_total->accum = total;
 
     // GPU draw-call count for the frame just finished (a value metric —
     // shows under "render" as a counter; not a time, so not part of the
@@ -453,9 +465,9 @@ void frame_end()
             // wall total (= ge_* submit + non-ge build + GPU drain),
             // plus the ge_* and GPU parts so the row splits honestly.
             // The generic roll below averages all three channels.
-            s_ovh->accum     += (double)(s_overhead_accum    - s_frame_ov0)    * k;
-            s_ovh->ge_accum  += (double)(s_overhead_ge_accum  - s_frame_ovge0) * k;
-            s_ovh->gpu_accum += (double)(s_overhead_gpu_accum - s_frame_ovgpu0)* k;
+            s_ovh->accum += (double)(s_overhead_accum - s_frame_ov0) * k;
+            s_ovh->ge_accum += (double)(s_overhead_ge_accum - s_frame_ovge0) * k;
+            s_ovh->gpu_accum += (double)(s_overhead_gpu_accum - s_frame_ovgpu0) * k;
         }
     }
 
@@ -465,24 +477,26 @@ void frame_end()
 
         s->ring[s->head] = sample;
         s->head = (s->head + 1) % RING;
-        if (s->count < RING) s->count++;
+        if (s->count < RING)
+            s->count++;
 
         s->short_avg = avg_last(s, short_w());
-        s->long_avg  = avg_last(s, LONG_W);
+        s->long_avg = avg_last(s, LONG_W);
         s->accum = 0.0;
 
         // GPU channel (per-scope glFinish drain = real GPU time).
         s->gpu_ring[s->gpu_head] = s->gpu_accum;
         s->gpu_head = (s->gpu_head + 1) % RING;
-        if (s->gpu_count < RING) s->gpu_count++;
-        s->gpu_short_avg =
-            avg_ring(s->gpu_ring, s->gpu_head, s->gpu_count, short_w());
+        if (s->gpu_count < RING)
+            s->gpu_count++;
+        s->gpu_short_avg = avg_ring(s->gpu_ring, s->gpu_head, s->gpu_count, short_w());
         s->gpu_accum = 0.0;
 
         // Graphics-API CPU channel (rolled like the others).
         s->ge_ring[s->ge_head] = s->ge_accum;
         s->ge_head = (s->ge_head + 1) % RING;
-        if (s->ge_count < RING) s->ge_count++;
+        if (s->ge_count < RING)
+            s->ge_count++;
         s->ge_short_avg = avg_ring(s->ge_ring, s->ge_head, s->ge_count, short_w());
         s->ge_accum = 0.0;
     }
@@ -520,11 +534,11 @@ static constexpr UBYTE PERF_TEXT_SCALE = DBG_PANEL_TEXT_SCALE;
 // from the actual text each frame (longest name + a small gap), so the
 // panel always hugs its content with no dead slack. Only padding / line
 // step / glyph height are constants.
-static constexpr SLONG PERF_PAD_PX     = 6;
-static constexpr SLONG PERF_TOP_PX     = 8;
-static constexpr SLONG PERF_LINE_PX    = 13 * PERF_TEXT_SCALE;
-static constexpr SLONG PERF_GLYPH_H_PX = 9  * PERF_TEXT_SCALE;  // FONT_HEIGHT * scale
-static constexpr SLONG PERF_COL_GAP_PX  = 70 * PERF_TEXT_SCALE; // name→CPU% gap (tunable)
+static constexpr SLONG PERF_PAD_PX = 6;
+static constexpr SLONG PERF_TOP_PX = 8;
+static constexpr SLONG PERF_LINE_PX = 13 * PERF_TEXT_SCALE;
+static constexpr SLONG PERF_GLYPH_H_PX = 9 * PERF_TEXT_SCALE; // FONT_HEIGHT * scale
+static constexpr SLONG PERF_COL_GAP_PX = 70 * PERF_TEXT_SCALE; // name→CPU% gap (tunable)
 static constexpr SLONG PERF_COL_GAP2_PX = 24 * PERF_TEXT_SCALE; // CPU%→GPU ms gap (tunable)
 
 // Row-underline colour (AARRGGBB, alpha-blended) — a thin grey rule under
@@ -551,11 +565,14 @@ static const char* group_of(const char* name, char* buf, int bufsz)
 static void pct_color(double pct, UBYTE& r, UBYTE& g, UBYTE& b)
 {
     double t = pct * 0.01;
-    if (t < 0.0) t = 0.0; else if (t > 1.0) t = 1.0;
+    if (t < 0.0)
+        t = 0.0;
+    else if (t > 1.0)
+        t = 1.0;
     t = pow(t, 0.45); // knee: low % already visible, high % compressed
     r = (UBYTE)(210 + t * (255 - 210));
-    g = (UBYTE)(210 + t * (40  - 210));
-    b = (UBYTE)(210 + t * (40  - 210));
+    g = (UBYTE)(210 + t * (40 - 210));
+    b = (UBYTE)(210 + t * (40 - 210));
 }
 
 // ---- Hierarchy helpers --------------------------------------------------
@@ -577,9 +594,13 @@ static void parent_path(const char* name, char* buf, int bufsz)
 {
     int n = (int)strlen(name), cut = -1;
     for (int i = n - 1; i >= 0; i--)
-        if (name[i] == '.') { cut = i; break; }
+        if (name[i] == '.') {
+            cut = i;
+            break;
+        }
     int len = cut < 0 ? 0 : cut;
-    if (len > bufsz - 1) len = bufsz - 1;
+    if (len > bufsz - 1)
+        len = bufsz - 1;
     memcpy(buf, name, (size_t)len);
     buf[len] = '\0';
 }
@@ -628,14 +649,15 @@ static bool is_root(int idx)
     return pp[0] == '\0' || find_time_slot(pp) < 0;
 }
 
-
 static bool has_time_children(int idx)
 {
     char pp[64];
     for (int i = 0; i < s_slot_count; i++) {
-        if (s_slot[i].kind != KIND_TIME || slot_stale(i)) continue;
+        if (s_slot[i].kind != KIND_TIME || slot_stale(i))
+            continue;
         parent_path(s_slot[i].name, pp, sizeof(pp));
-        if (strcmp(pp, s_slot[idx].name) == 0) return true;
+        if (strcmp(pp, s_slot[idx].name) == 0)
+            return true;
     }
     return false;
 }
@@ -646,10 +668,10 @@ struct DrawCtx {
     // CPU / total CPU; ge% = stage ge_* / total ge_*; gpu% = stage GPU /
     // total GPU. frame_ms kept only for the header split.
     double frame_ms, cpu_total, ge_total, gpu_total;
-    SLONG  cpu_col_x, ge_col_x, gpu_col_x, max_y, y;
+    SLONG cpu_col_x, ge_col_x, gpu_col_x, max_y, y;
     SLONG* uy;
-    int*   un;
-    int    ucap;
+    int* un;
+    int ucap;
 };
 
 // Total-row highlight colour (bright amber) — set apart from the
@@ -659,11 +681,15 @@ static const UBYTE PERF_TOTAL_R = 255, PERF_TOTAL_G = 215, PERF_TOTAL_B = 70;
 // One value cell: "PCT% (MSms)". In the total row the colour is the
 // fixed highlight; otherwise it's load-graded by the percentage.
 static void emit_cell(SLONG x, SLONG yy, double pct, double ms,
-                      bool is_total)
+    bool is_total)
 {
     UBYTE r, g, b;
-    if (is_total) { r = PERF_TOTAL_R; g = PERF_TOTAL_G; b = PERF_TOTAL_B; }
-    else          pct_color(pct, r, g, b);
+    if (is_total) {
+        r = PERF_TOTAL_R;
+        g = PERF_TOTAL_G;
+        b = PERF_TOTAL_B;
+    } else
+        pct_color(pct, r, g, b);
     FONT_buffer_add_scaled(x, yy, r, g, b, 1, PERF_TEXT_SCALE,
         (CBYTE*)"%05.2f%% (%05.2fms)", pct, ms);
 }
@@ -672,10 +698,10 @@ static void emit_cell(SLONG x, SLONG yy, double pct, double ms,
 // name + per-column "pct% (msms)". is_total → whole row in the fixed
 // highlight colour (the bottom "total" row, always 100% per column).
 static void emit_row(DrawCtx& c, const char* nm, bool is_counter,
-                     double counter_val,
-                     double cpu_pct, double ge_pct, double gpu_pct,
-                     double cpu_ms, double ge_ms, double gpu_ms,
-                     bool is_total = false)
+    double counter_val,
+    double cpu_pct, double ge_pct, double gpu_pct,
+    double cpu_ms, double ge_ms, double gpu_ms,
+    bool is_total = false)
 {
     if (c.y > c.max_y)
         return;
@@ -690,11 +716,12 @@ static void emit_row(DrawCtx& c, const char* nm, bool is_counter,
         // to 0. Big counts (drawcalls, thousands) stay integer. Threshold
         // 1000 separates "rate-ish small" from "bulk count".
         const char* cfmt = (counter_val < 1000.0 && counter_val > -1000.0)
-            ? "%.2f" : "%.0f";
+            ? "%.2f"
+            : "%.0f";
         FONT_buffer_add_scaled(c.cpu_col_x, c.y, 200, 200, 200, 1,
             PERF_TEXT_SCALE, (CBYTE*)cfmt, counter_val);
     } else {
-        emit_cell(c.ge_col_x,  c.y, ge_pct,  ge_ms,  is_total);
+        emit_cell(c.ge_col_x, c.y, ge_pct, ge_ms, is_total);
         emit_cell(c.cpu_col_x, c.y, cpu_pct, cpu_ms, is_total);
         emit_cell(c.gpu_col_x, c.y, gpu_pct, gpu_ms, is_total);
     }
@@ -711,15 +738,17 @@ static void emit_node(DrawCtx& c, int idx)
     char pp[64];
 
     if (!has_time_children(idx)) {
-        double ge   = s->ge_short_avg;
-        double pure = s->short_avg - ge;        // wall − graphics-API CPU
-        if (pure < 0.0) pure = 0.0;
+        double ge = s->ge_short_avg;
+        double pure = s->short_avg - ge; // wall − graphics-API CPU
+        if (pure < 0.0)
+            pure = 0.0;
         const double cpu_pct = c.cpu_total > 1e-6 ? pure / c.cpu_total * 100.0 : 0.0;
-        const double ge_pct  = c.ge_total  > 1e-6 ? ge   / c.ge_total  * 100.0 : 0.0;
+        const double ge_pct = c.ge_total > 1e-6 ? ge / c.ge_total * 100.0 : 0.0;
         const double gpu_pct = c.gpu_total > 1e-6
-            ? s->gpu_short_avg / c.gpu_total * 100.0 : 0.0;
+            ? s->gpu_short_avg / c.gpu_total * 100.0
+            : 0.0;
         emit_row(c, s->name, false, 0.0, cpu_pct, ge_pct, gpu_pct,
-                 pure, ge, s->gpu_short_avg);
+            pure, ge, s->gpu_short_avg);
         // Counters (KIND_VALUE) go in their own list at the bottom.
         return;
     }
@@ -735,22 +764,31 @@ static void emit_node(DrawCtx& c, int idx)
         if (strcmp(pp, s->name) != 0)
             continue;
         child_cpu += s_slot[i].short_avg;
-        child_ge  += s_slot[i].ge_short_avg;
+        child_ge += s_slot[i].ge_short_avg;
         child_gpu += s_slot[i].gpu_short_avg;
         emit_node(c, i);
     }
     char on[80];
     snprintf(on, sizeof(on), "%s.other", s->name);
-    double o_wall = s->short_avg     - child_cpu; if (o_wall < 0.0) o_wall = 0.0;
-    double o_ge   = s->ge_short_avg  - child_ge;  if (o_ge   < 0.0) o_ge   = 0.0;
-    double o_gpu  = s->gpu_short_avg - child_gpu; if (o_gpu < 0.0) o_gpu = 0.0;
-    double o_pure = o_wall - o_ge; if (o_pure < 0.0) o_pure = 0.0;
+    double o_wall = s->short_avg - child_cpu;
+    if (o_wall < 0.0)
+        o_wall = 0.0;
+    double o_ge = s->ge_short_avg - child_ge;
+    if (o_ge < 0.0)
+        o_ge = 0.0;
+    double o_gpu = s->gpu_short_avg - child_gpu;
+    if (o_gpu < 0.0)
+        o_gpu = 0.0;
+    double o_pure = o_wall - o_ge;
+    if (o_pure < 0.0)
+        o_pure = 0.0;
     const double cpu_pct = c.cpu_total > 1e-6 ? o_pure / c.cpu_total * 100.0 : 0.0;
-    const double ge_pct  = c.ge_total  > 1e-6 ? o_ge   / c.ge_total  * 100.0 : 0.0;
+    const double ge_pct = c.ge_total > 1e-6 ? o_ge / c.ge_total * 100.0 : 0.0;
     const double gpu_pct = c.gpu_total > 1e-6
-        ? o_gpu / c.gpu_total * 100.0 : 0.0;
+        ? o_gpu / c.gpu_total * 100.0
+        : 0.0;
     emit_row(c, on, false, 0.0, cpu_pct, ge_pct, gpu_pct,
-             o_pure, o_ge, o_gpu);
+        o_pure, o_ge, o_gpu);
 }
 
 void draw()
@@ -772,7 +810,7 @@ void draw()
     FONT_buffer_select(FONT_QUEUE_PERF);
 
     const double frame_ms = s_frame_total ? s_frame_total->short_avg : 0.0;
-    const SLONG  max_y = screen_h - PERF_LINE_PX;
+    const SLONG max_y = screen_h - PERF_LINE_PX;
     const double fps = frame_ms > 1e-6 ? 1000.0 / frame_ms : 0.0;
 
     // Slot is stale after the averaging window of inactivity (its average
@@ -792,19 +830,20 @@ void draw()
     // Perf-panel draw cost — same treatment as GPU-wait: captured for
     // its own line + subtracted from cpu_total/(other) so it stays out
     // of every 100%.
-    double perfpanel_ms = 0.0;   // wall total (removed from the 100%)
-    double perfpanel_ge = 0.0;   // ge_* part   (flush draws)
-    double perfpanel_gpu = 0.0;  // GPU part    (its glFinish drain)
+    double perfpanel_ms = 0.0; // wall total (removed from the 100%)
+    double perfpanel_ge = 0.0; // ge_* part   (flush draws)
+    double perfpanel_gpu = 0.0; // GPU part    (its glFinish drain)
     for (int i = 0; i < s_slot_count; i++)
         if (strcmp(s_slot[i].name, PERF_PERFPANEL_NAME) == 0) {
-            perfpanel_ms  = s_slot[i].short_avg;
-            perfpanel_ge  = s_slot[i].ge_short_avg;
+            perfpanel_ms = s_slot[i].short_avg;
+            perfpanel_ge = s_slot[i].ge_short_avg;
             perfpanel_gpu = s_slot[i].gpu_short_avg;
             break;
         }
     // non-ge CPU = wall − ge_* − GPU drain (the CPU glyph build / queue).
     double perfpanel_nonge = perfpanel_ms - perfpanel_ge - perfpanel_gpu;
-    if (perfpanel_nonge < 0.0) perfpanel_nonge = 0.0;
+    if (perfpanel_nonge < 0.0)
+        perfpanel_nonge = 0.0;
 
     s_stale_win = (uint64_t)short_w();
     s_ordn = 0;
@@ -822,7 +861,9 @@ void draw()
     for (int a = 0; a < s_ordn; a++) // small N, simple insertion sort by seq
         for (int b = a + 1; b < s_ordn; b++)
             if (s_slot[s_ord[b]].seq < s_slot[s_ord[a]].seq) {
-                int t = s_ord[a]; s_ord[a] = s_ord[b]; s_ord[b] = t;
+                int t = s_ord[a];
+                s_ord[a] = s_ord[b];
+                s_ord[b] = t;
             }
 
     // GPU "pie" total = Σ of EVERY time stage's GPU, wrappers included.
@@ -862,7 +903,8 @@ void draw()
     // stage's wall, but frame.total is raw (incl. it), so the non-ge
     // denominator must drop it as well or the rows wouldn't sum to 100%.
     double cpu_total = frame_ms - ge_total - gpu_wait_ms - perfpanel_ms;
-    if (cpu_total < 1e-6) cpu_total = 1e-6;
+    if (cpu_total < 1e-6)
+        cpu_total = 1e-6;
 
     // Header is just the FPS line now (the CPU/GPU breakdown moved into
     // the "split" footer row of the table).
@@ -879,17 +921,20 @@ void draw()
     for (int o = 0; o < s_ordn; o++) {
         int i = s_ord[o];
         SLONG w = FONT_string_width(0, (CBYTE*)s_slot[i].name, PERF_TEXT_SCALE);
-        if (w > name_w) name_w = w;
+        if (w > name_w)
+            name_w = w;
         if (s_slot[i].kind == KIND_TIME && has_time_children(i)) {
             char on[80];
             snprintf(on, sizeof(on), "%s.other", s_slot[i].name);
             w = FONT_string_width(0, (CBYTE*)on, PERF_TEXT_SCALE);
-            if (w > name_w) name_w = w;
+            if (w > name_w)
+                name_w = w;
         }
     }
     {
         SLONG w = FONT_string_width(0, (CBYTE*)"(other)", PERF_TEXT_SCALE);
-        if (w > name_w) name_w = w;
+        if (w > name_w)
+            name_w = w;
     }
     // Three value columns: CPU | ge_* | GPU. Width auto-hugs (panel
     // widens to fit the extra column).
@@ -898,28 +943,30 @@ void draw()
     // ("100.00% (0000.00ms)") and the widest column title
     // ("non-ge_* CPU") — otherwise text bleeds into the next column.
     SLONG colw = FONT_string_width(0, (CBYTE*)"100.00% (0000.00ms)",
-                                   PERF_TEXT_SCALE);
+        PERF_TEXT_SCALE);
     {
         static const char* const col_titles[] = {
             "ge_* CPU", "non-ge_* CPU", "GPU"
         };
         for (const char* t : col_titles) {
             SLONG w = FONT_string_width(0, (CBYTE*)t, PERF_TEXT_SCALE);
-            if (w > colw) colw = w;
+            if (w > colw)
+                colw = w;
         }
     }
-    const SLONG ge_col_x  = PERF_PAD_PX + name_w + PERF_COL_GAP_PX;
-    const SLONG cpu_col_x = ge_col_x  + colw + PERF_COL_GAP2_PX;
+    const SLONG ge_col_x = PERF_PAD_PX + name_w + PERF_COL_GAP_PX;
+    const SLONG cpu_col_x = ge_col_x + colw + PERF_COL_GAP2_PX;
     const SLONG gpu_col_x = cpu_col_x + colw + PERF_COL_GAP2_PX;
     SLONG panel_w = gpu_col_x + colw + PERF_PAD_PX;
     {
         const SLONG hw = PERF_PAD_PX
             + FONT_string_width(0, (CBYTE*)hdr_tmpl, PERF_TEXT_SCALE) + PERF_PAD_PX;
-        if (hw > panel_w) panel_w = hw;
+        if (hw > panel_w)
+            panel_w = hw;
     }
 
     SLONG underline_y[MAX_SLOTS * 2];
-    int   underline_n = 0;
+    int underline_n = 0;
     SLONG y = PERF_TOP_PX;
 
     // Header: FPS line only (cyan). The CPU/GPU breakdown lives in the
@@ -952,18 +999,18 @@ void draw()
     y += PERF_LINE_PX; // no blank under titles — header glued to its rows
 
     DrawCtx ctx;
-    ctx.frame_ms  = frame_ms;
+    ctx.frame_ms = frame_ms;
     ctx.cpu_total = cpu_total;
-    ctx.ge_total  = ge_total;
+    ctx.ge_total = ge_total;
     ctx.gpu_total = gpu_total;
     ctx.cpu_col_x = cpu_col_x;
-    ctx.ge_col_x  = ge_col_x;
+    ctx.ge_col_x = ge_col_x;
     ctx.gpu_col_x = gpu_col_x;
-    ctx.max_y     = max_y;
-    ctx.y         = y;
-    ctx.uy        = underline_y;
-    ctx.un        = &underline_n;
-    ctx.ucap      = (int)(sizeof(underline_y) / sizeof(underline_y[0]));
+    ctx.max_y = max_y;
+    ctx.y = y;
+    ctx.uy = underline_y;
+    ctx.un = &underline_n;
+    ctx.ucap = (int)(sizeof(underline_y) / sizeof(underline_y[0]));
 
     // Roots in frame call order — contiguous, NO blank lines between
     // level-1 groups (only ~2 levels; the spacing was clutter and made
@@ -983,20 +1030,21 @@ void draw()
     // so they'd otherwise leak into this remainder). Normalised by
     // cpu_total so the column sums to 100%.
     double other_ms = frame_ms - root_cpu_sum - gpu_wait_ms - perfpanel_ms;
-    if (other_ms < 0.0) other_ms = 0.0;
+    if (other_ms < 0.0)
+        other_ms = 0.0;
     const double other_pct = other_ms / cpu_total * 100.0;
     emit_row(ctx, "(other)", false, 0.0, other_pct, 0.0, 0.0,
-             other_ms, 0.0, 0.0);
+        other_ms, 0.0, 0.0);
 
     // Bottom "total" row: each column is its own 100% by construction —
     // show the absolute ms each column sums to (ge_* CPU real submit,
     // non-ge_* CPU, GPU) — GPU-wait NOT included. Highlighted colour so
     // it reads as a footer, not a stage.
     emit_row(ctx, "total", false, 0.0,
-             cpu_total > 1e-6 ? 100.0 : 0.0,
-             ge_total  > 1e-6 ? 100.0 : 0.0,
-             gpu_total > 1e-6 ? 100.0 : 0.0,
-             cpu_total, ge_total, gpu_total, /*is_total=*/true);
+        cpu_total > 1e-6 ? 100.0 : 0.0,
+        ge_total > 1e-6 ? 100.0 : 0.0,
+        gpu_total > 1e-6 ? 100.0 : 0.0,
+        cpu_total, ge_total, gpu_total, /*is_total=*/true);
 
     // "split" row — AFTER total, name yellow like total. Distributes the
     // measured frame across the 3 columns: each column's total ms as a
@@ -1005,7 +1053,7 @@ void draw()
     if (ctx.y <= max_y) {
         const double split_sum = ge_total + cpu_total + gpu_total;
         const double inv = split_sum > 1e-6 ? 100.0 / split_sum : 0.0;
-        const double ge_sp  = ge_total  * inv;
+        const double ge_sp = ge_total * inv;
         const double cpu_sp = cpu_total * inv;
         const double gpu_sp = gpu_total * inv;
         UBYTE r, g, b;
@@ -1089,7 +1137,7 @@ void draw()
             any_counter = true;
         }
         emit_row(ctx, s->name, true, s->short_avg, 0.0, 0.0, 0.0,
-                 0.0, 0.0, 0.0);
+            0.0, 0.0, 0.0);
     }
 
     // ---- Pass 2: backdrop + uniform thin row underlines --------------
@@ -1105,7 +1153,7 @@ void draw()
 
 #else // !OC_DEBUG_PERF — log-only build: panel is a no-op
 
-void draw() {}
+void draw() { }
 
 #endif // OC_DEBUG_PERF
 

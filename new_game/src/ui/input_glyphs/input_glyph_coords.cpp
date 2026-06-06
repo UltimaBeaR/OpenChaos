@@ -603,4 +603,3 @@ const InputGlyphRect INPUT_GLYPH_DECK[INPUT_GLYPH_DECK_COUNT] = {
     { "steamdeck_trackpad_vertical", 256, 640, 64, 64 },
     { "steamdeck_trackpad_vertical_outline", 320, 640, 64, 64 },
 };
-

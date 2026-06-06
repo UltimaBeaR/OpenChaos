@@ -24,13 +24,13 @@ static constexpr uint64_t FPS_WINDOW_MS = 500;
 // Power-of-two ring buffer of frame timestamps. Sized to hold one full
 // window even at very high FPS — at 240 FPS over 0.5 s = 120 entries,
 // 256 gives plenty of headroom and lets us mask instead of modulo.
-static constexpr SLONG  FPS_RING_SIZE = 256;
-static constexpr SLONG  FPS_RING_MASK = FPS_RING_SIZE - 1;
+static constexpr SLONG FPS_RING_SIZE = 256;
+static constexpr SLONG FPS_RING_MASK = FPS_RING_SIZE - 1;
 
 static uint64_t s_fps_ring[FPS_RING_SIZE] = { 0 };
-static SLONG    s_fps_head  = 0;     // next write slot
-static SLONG    s_fps_count = 0;     // valid entries in ring (≤ FPS_RING_SIZE)
-static float    s_fps_value = 0.0f;  // last computed displayed value
+static SLONG s_fps_head = 0; // next write slot
+static SLONG s_fps_count = 0; // valid entries in ring (≤ FPS_RING_SIZE)
+static float s_fps_value = 0.0f; // last computed displayed value
 
 static void update_fps()
 {
@@ -39,18 +39,20 @@ static void update_fps()
     // Append current timestamp (ring overwrites oldest if full).
     s_fps_ring[s_fps_head] = now;
     s_fps_head = (s_fps_head + 1) & FPS_RING_MASK;
-    if (s_fps_count < FPS_RING_SIZE) s_fps_count += 1;
+    if (s_fps_count < FPS_RING_SIZE)
+        s_fps_count += 1;
 
     // Find the oldest entry still inside the window.
     const uint64_t cutoff = (now > FPS_WINDOW_MS) ? (now - FPS_WINDOW_MS) : 0;
-    SLONG    in_window     = 0;
+    SLONG in_window = 0;
     uint64_t oldest_in_win = now;
     for (SLONG i = 0; i < s_fps_count; i++) {
-        const SLONG    idx = (s_fps_head - 1 - i) & FPS_RING_MASK;
-        const uint64_t ts  = s_fps_ring[idx];
-        if (ts < cutoff) break;
+        const SLONG idx = (s_fps_head - 1 - i) & FPS_RING_MASK;
+        const uint64_t ts = s_fps_ring[idx];
+        if (ts < cutoff)
+            break;
         oldest_in_win = ts;
-        in_window    += 1;
+        in_window += 1;
     }
 
     // FPS = (frames-1) intervals over the elapsed window time.
@@ -73,7 +75,7 @@ void debug_timing_overlay_render_font2d(void)
     // FB where the composed scene already lives.
     ge_set_ui_mode(true);
     extern bool g_render_interp_enabled;
-    extern int  g_last_phys_tick_count;
+    extern int g_last_phys_tick_count;
     const char* ip_str = g_render_interp_enabled ? "on" : "off";
 
     char tbuf[128];
@@ -103,10 +105,11 @@ void debug_timing_overlay_render_font2d(void)
         char tks[64];
         snprintf(tks, sizeof(tks), "ticks/frame: %d", g_last_phys_tick_count);
         constexpr SLONG TICKS_WARN_COLOR = 0xff8000; // orange: >1 but below cap
-        constexpr SLONG TICKS_CAP_COLOR  = 0xff2020; // red: cap fired (4 ticks)
-        constexpr int   MAX_TICKS_SHOWN  = 4;        // mirrors MAX_PHYSICS_TICKS_PER_FRAME
+        constexpr SLONG TICKS_CAP_COLOR = 0xff2020; // red: cap fired (4 ticks)
+        constexpr int MAX_TICKS_SHOWN = 4; // mirrors MAX_PHYSICS_TICKS_PER_FRAME
         const SLONG color = (g_last_phys_tick_count >= MAX_TICKS_SHOWN)
-            ? TICKS_CAP_COLOR : TICKS_WARN_COLOR;
+            ? TICKS_CAP_COLOR
+            : TICKS_WARN_COLOR;
         FONT2D_DrawString((CBYTE*)tks, 4, 28, color, DEBUG_FONT_SCALE);
     }
 

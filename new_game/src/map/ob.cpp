@@ -983,19 +983,28 @@ static void OB_extended_compute_local_bbox(SLONG prim_id,
 
     for (UWORD i = po->StartPoint; i < po->EndPoint; i++) {
         PrimPoint* p = &prim_points[i];
-        if (p->X < mn_x) mn_x = p->X;
-        if (p->X > mx_x) mx_x = p->X;
-        if (p->Y < mn_y) mn_y = p->Y;
-        if (p->Y > mx_y) mx_y = p->Y;
-        if (p->Z < mn_z) mn_z = p->Z;
-        if (p->Z > mx_z) mx_z = p->Z;
+        if (p->X < mn_x)
+            mn_x = p->X;
+        if (p->X > mx_x)
+            mx_x = p->X;
+        if (p->Y < mn_y)
+            mn_y = p->Y;
+        if (p->Y > mx_y)
+            mx_y = p->Y;
+        if (p->Z < mn_z)
+            mn_z = p->Z;
+        if (p->Z > mx_z)
+            mx_z = p->Z;
         any = true;
     }
 
     if (any) {
-        *min_x = mn_x; *max_x = mx_x;
-        *min_y = mn_y; *max_y = mx_y;
-        *min_z = mn_z; *max_z = mx_z;
+        *min_x = mn_x;
+        *max_x = mx_x;
+        *min_y = mn_y;
+        *max_y = mx_y;
+        *min_z = mn_z;
+        *max_z = mx_z;
     }
 }
 
@@ -1038,10 +1047,14 @@ void OB_extended_build(void)
                 // of (X,Z) is bounded by max(|min|,|max|) on each axis. Take the
                 // maximum so the world bbox is correct for any yaw.
                 SLONG half = 0;
-                if (mx_x > half) half = mx_x;
-                if (-mn_x > half) half = -mn_x;
-                if (mx_z > half) half = mx_z;
-                if (-mn_z > half) half = -mn_z;
+                if (mx_x > half)
+                    half = mx_x;
+                if (-mn_x > half)
+                    half = -mn_x;
+                if (mx_z > half)
+                    half = mx_z;
+                if (-mn_z > half)
+                    half = -mn_z;
 
                 // World position from anchor lo-cell + sub-cell offset
                 // (matches the decompression in OB_find at ob.cpp:215).
@@ -1062,10 +1075,14 @@ void OB_extended_build(void)
                 SLONG cell_min_z = bbox_min_wz >> 10;
                 SLONG cell_max_z = bbox_max_wz >> 10;
 
-                if (cell_min_x < 0) cell_min_x = 0;
-                if (cell_max_x >= OB_SIZE) cell_max_x = OB_SIZE - 1;
-                if (cell_min_z < 0) cell_min_z = 0;
-                if (cell_max_z >= OB_SIZE) cell_max_z = OB_SIZE - 1;
+                if (cell_min_x < 0)
+                    cell_min_x = 0;
+                if (cell_max_x >= OB_SIZE)
+                    cell_max_x = OB_SIZE - 1;
+                if (cell_min_z < 0)
+                    cell_min_z = 0;
+                if (cell_max_z >= OB_SIZE)
+                    cell_max_z = OB_SIZE - 1;
 
                 // Every static object is registered (including FITS_IN_CELL).
                 // The pre-pass picks per-frame whether the anchor or a guest
@@ -1175,8 +1192,7 @@ void OB_extended_pre_pass(void)
         SLONG az = ext->anchor_lo_z;
 
         // Anchor in gamut → normal PRIM-loop draws it. Skip.
-        if (az >= NGAMUT_lo_zmin && az <= NGAMUT_lo_zmax &&
-            ax >= NGAMUT_lo_gamut[az].xmin && ax <= NGAMUT_lo_gamut[az].xmax) {
+        if (az >= NGAMUT_lo_zmin && az <= NGAMUT_lo_zmax && ax >= NGAMUT_lo_gamut[az].xmin && ax <= NGAMUT_lo_gamut[az].xmax) {
             continue;
         }
 
@@ -1188,17 +1204,25 @@ void OB_extended_pre_pass(void)
         for (SLONG cz = NGAMUT_lo_zmin; cz <= NGAMUT_lo_zmax; cz++) {
             SLONG row_xmin = NGAMUT_lo_gamut[cz].xmin;
             SLONG row_xmax = NGAMUT_lo_gamut[cz].xmax;
-            if (row_xmin > row_xmax) continue; // empty row sentinel
+            if (row_xmin > row_xmax)
+                continue; // empty row sentinel
 
             // Closest x in [row_xmin, row_xmax] to ax.
             SLONG cx;
-            if (ax < row_xmin)      cx = row_xmin;
-            else if (ax > row_xmax) cx = row_xmax;
-            else                    cx = ax;
+            if (ax < row_xmin)
+                cx = row_xmin;
+            else if (ax > row_xmax)
+                cx = row_xmax;
+            else
+                cx = ax;
 
-            SLONG dx = cx - ax; if (dx < 0) dx = -dx;
-            SLONG dz = cz - az; if (dz < 0) dz = -dz;
-            SLONG d  = (dx > dz) ? dx : dz;
+            SLONG dx = cx - ax;
+            if (dx < 0)
+                dx = -dx;
+            SLONG dz = cz - az;
+            if (dz < 0)
+                dz = -dz;
+            SLONG d = (dx > dz) ? dx : dz;
 
             if (d < best_dist) {
                 best_dist = d;
@@ -1207,7 +1231,8 @@ void OB_extended_pre_pass(void)
             }
         }
 
-        if (best_dist == 0x7fffffff) continue; // gamut empty
+        if (best_dist == 0x7fffffff)
+            continue; // gamut empty
 
         ext->responsible_lo_x = (UBYTE)best_cx;
         ext->responsible_lo_z = (UBYTE)best_cz;

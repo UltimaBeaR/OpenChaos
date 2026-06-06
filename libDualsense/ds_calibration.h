@@ -22,7 +22,7 @@
 
 namespace oc::dualsense {
 
-struct SensorCalibration;  // fwd decl from ds_feature.h
+struct SensorCalibration; // fwd decl from ds_feature.h
 
 // ---- Accelerometer --------------------------------------------------
 
@@ -33,9 +33,9 @@ struct SensorCalibration;  // fwd decl from ds_feature.h
 //   g     = (raw - bias) / range
 //
 // Returns 0.0f when calibration range is zero (uncalibrated device).
-float calibrate_accel_x_g(std::int16_t raw, const SensorCalibration& c);
-float calibrate_accel_y_g(std::int16_t raw, const SensorCalibration& c);
-float calibrate_accel_z_g(std::int16_t raw, const SensorCalibration& c);
+float calibrate_accel_x_g(std::int16_t raw, const SensorCalibration &c);
+float calibrate_accel_y_g(std::int16_t raw, const SensorCalibration &c);
+float calibrate_accel_z_g(std::int16_t raw, const SensorCalibration &c);
 
 // ---- Gyroscope ------------------------------------------------------
 
@@ -53,8 +53,11 @@ float calibrate_accel_z_g(std::int16_t raw, const SensorCalibration& c);
 // arrived at the same math independently. No source code adapted.
 //
 // Returns 0.0f when the axis range is zero (uncalibrated device).
-float calibrate_gyro_pitch_deg_per_sec(std::int16_t raw, const SensorCalibration& c);
-float calibrate_gyro_yaw_deg_per_sec  (std::int16_t raw, const SensorCalibration& c);
-float calibrate_gyro_roll_deg_per_sec (std::int16_t raw, const SensorCalibration& c);
+float calibrate_gyro_pitch_deg_per_sec(std::int16_t raw,
+                                       const SensorCalibration &c);
+float calibrate_gyro_yaw_deg_per_sec(std::int16_t raw,
+                                     const SensorCalibration &c);
+float calibrate_gyro_roll_deg_per_sec(std::int16_t raw,
+                                      const SensorCalibration &c);
 
 } // namespace oc::dualsense

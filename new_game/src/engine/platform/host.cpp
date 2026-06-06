@@ -32,8 +32,8 @@ void init_best_found(void);
 extern "C" void win_disable_accessibility_shortcuts(void);
 extern "C" void win_restore_accessibility_shortcuts(void);
 #else
-static inline void win_disable_accessibility_shortcuts(void) {}
-static inline void win_restore_accessibility_shortcuts(void) {}
+static inline void win_disable_accessibility_shortcuts(void) { }
+static inline void win_restore_accessibility_shortcuts(void) { }
 #endif
 
 // ---------------------------------------------------------------------------

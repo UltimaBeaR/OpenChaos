@@ -16,9 +16,9 @@
 
 enum CombatCooldown {
     COOLDOWN_SLIDE = 0, // leg-sweep (kick while blocking)
-    COOLDOWN_ARREST,    // arresting a downed person
-    COOLDOWN_GRAPPLE,   // initiating a grapple
-    COOLDOWN_BLOCK,     // entering the defensive block/duck
+    COOLDOWN_ARREST, // arresting a downed person
+    COOLDOWN_GRAPPLE, // initiating a grapple
+    COOLDOWN_BLOCK, // entering the defensive block/duck
     COOLDOWN_COUNT,
 };
 

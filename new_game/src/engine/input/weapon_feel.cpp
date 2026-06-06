@@ -1076,80 +1076,80 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
         // L2 kick channel (analog, unchanged) still runs below.
     } else {
 
-    // Rising-edge rearm for the threshold path — R2 dipping at or
-    // below reset_threshold counts as a "release" and rearms the
-    // rising-edge detector so the next press fires.
-    const bool now_released = r2 <= p->reset_threshold;
-    if (now_released) {
-        s_r2_armed = true;
-        // Physical trigger release also clears the AK47 reload gate
-        // (set on HAD_TO_CHANGE_CLIP in person.cpp). Done here rather
-        // than in continue_firing because the act-bit reload-press
-        // path only sets PUNCH on the rising-edge tick, so a PUNCH-low
-        // check clears prematurely while the trigger is still held.
-        extern void input_actions_clear_ak47_reload_gate();
-        input_actions_clear_ak47_reload_gate();
-    }
-    const int prev_r2_snapshot = s_prev_r2;
-    s_prev_r2 = r2;
-
-    // Reload-press mode: auto-fire weapons with a configured reload
-    // click (AK47) behave like a single-shot pistol for the fire-
-    // detection path while the magazine is empty. This synchronises
-    // the game-side "reload fire" event with the hardware Weapon25
-    // click point — both fire at reload_click_end_zone instead of
-    // the Machine effect's start zone. Without this, PUNCH triggers
-    // at the Machine start (r2=112), the game immediately processes
-    // HAD_TO_CHANGE_CLIP and stops the effect, the trigger never
-    // reaches the Weapon25 end (r2=168), and the reload happens
-    // before the click is felt.
-    const bool reload_press_mode = mag_empty && p->auto_fire && p->reload_click_strength != 0;
-
-    const TriggerEffectType eff_effect = reload_press_mode ? TriggerEffectType::Weapon : p->trigger_effect;
-    const uint8_t eff_end_zone = reload_press_mode ? p->reload_click_end_zone : p->trigger_end_zone;
-    const uint8_t eff_strength = reload_press_mode ? p->reload_click_strength : p->trigger_strength;
-    const bool eff_auto = reload_press_mode ? false : p->auto_fire;
-
-    // This whole branch is firearm-only (weapon_drawn == true); melee
-    // was handled by the digital path above. Pick the firearm fire-
-    // detection path. The act-bit path requires all of:
-    //   * DualSense device (act bit is a DualSense-specific signal).
-    //   * Profile declares a Weapon25 click (trigger_strength > 0).
-    //   * Not auto-fire (auto-fire holds instead of edge-triggering).
-    // gamepad.cpp only turns the Weapon25 effect on when a gun is out,
-    // which is guaranteed here. weapon_drawn stays in the predicate as a
-    // defensive guard / intent marker.
-    const bool device_is_ds = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
-    const bool weapon_has_click = (eff_effect == TriggerEffectType::Weapon && eff_strength != 0);
-    const bool use_act_path = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
-
-    if (use_act_path) {
-        // R2-position click detection: press is registered when the
-        // physical trigger crosses the upper edge of the Weapon25
-        // click zone going up. Fired PUNCH is unconditional — if the
-        // game is still in a post-shot cooldown it gets rejected
-        // game-side silently, matching keyboard-during-cooldown.
-        // zone_upper_r2 is derived from the profile so retuning the
-        // Weapon25 zone or adding a new weapon doesn't need
-        // hand-calibrated thresholds.
-        const int zone_upper_r2 = (int)eff_end_zone * R2_UNITS_PER_ZONE;
-        const bool rose_past_upper = (prev_r2_snapshot < zone_upper_r2) && (r2 >= zone_upper_r2);
-        if (rose_past_upper) {
-            s_r2_armed = false;
-            out.shoot = true;
+        // Rising-edge rearm for the threshold path — R2 dipping at or
+        // below reset_threshold counts as a "release" and rearms the
+        // rising-edge detector so the next press fires.
+        const bool now_released = r2 <= p->reset_threshold;
+        if (now_released) {
+            s_r2_armed = true;
+            // Physical trigger release also clears the AK47 reload gate
+            // (set on HAD_TO_CHANGE_CLIP in person.cpp). Done here rather
+            // than in continue_firing because the act-bit reload-press
+            // path only sets PUNCH on the rising-edge tick, so a PUNCH-low
+            // check clears prematurely while the trigger is still held.
+            extern void input_actions_clear_ak47_reload_gate();
+            input_actions_clear_ak47_reload_gate();
         }
-    } else {
-        // Threshold fallback — auto-fire, click-less weapons, or
-        // non-DS. Plain rising-edge: r2 crosses fire_threshold while
-        // armed (or auto-fire ignores the armed gate). Rate limiting
-        // is game's Timer1.
-        if (r2 > p->fire_threshold) {
-            if (eff_auto || s_r2_armed) {
-                out.shoot = true;
+        const int prev_r2_snapshot = s_prev_r2;
+        s_prev_r2 = r2;
+
+        // Reload-press mode: auto-fire weapons with a configured reload
+        // click (AK47) behave like a single-shot pistol for the fire-
+        // detection path while the magazine is empty. This synchronises
+        // the game-side "reload fire" event with the hardware Weapon25
+        // click point — both fire at reload_click_end_zone instead of
+        // the Machine effect's start zone. Without this, PUNCH triggers
+        // at the Machine start (r2=112), the game immediately processes
+        // HAD_TO_CHANGE_CLIP and stops the effect, the trigger never
+        // reaches the Weapon25 end (r2=168), and the reload happens
+        // before the click is felt.
+        const bool reload_press_mode = mag_empty && p->auto_fire && p->reload_click_strength != 0;
+
+        const TriggerEffectType eff_effect = reload_press_mode ? TriggerEffectType::Weapon : p->trigger_effect;
+        const uint8_t eff_end_zone = reload_press_mode ? p->reload_click_end_zone : p->trigger_end_zone;
+        const uint8_t eff_strength = reload_press_mode ? p->reload_click_strength : p->trigger_strength;
+        const bool eff_auto = reload_press_mode ? false : p->auto_fire;
+
+        // This whole branch is firearm-only (weapon_drawn == true); melee
+        // was handled by the digital path above. Pick the firearm fire-
+        // detection path. The act-bit path requires all of:
+        //   * DualSense device (act bit is a DualSense-specific signal).
+        //   * Profile declares a Weapon25 click (trigger_strength > 0).
+        //   * Not auto-fire (auto-fire holds instead of edge-triggering).
+        // gamepad.cpp only turns the Weapon25 effect on when a gun is out,
+        // which is guaranteed here. weapon_drawn stays in the predicate as a
+        // defensive guard / intent marker.
+        const bool device_is_ds = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
+        const bool weapon_has_click = (eff_effect == TriggerEffectType::Weapon && eff_strength != 0);
+        const bool use_act_path = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
+
+        if (use_act_path) {
+            // R2-position click detection: press is registered when the
+            // physical trigger crosses the upper edge of the Weapon25
+            // click zone going up. Fired PUNCH is unconditional — if the
+            // game is still in a post-shot cooldown it gets rejected
+            // game-side silently, matching keyboard-during-cooldown.
+            // zone_upper_r2 is derived from the profile so retuning the
+            // Weapon25 zone or adding a new weapon doesn't need
+            // hand-calibrated thresholds.
+            const int zone_upper_r2 = (int)eff_end_zone * R2_UNITS_PER_ZONE;
+            const bool rose_past_upper = (prev_r2_snapshot < zone_upper_r2) && (r2 >= zone_upper_r2);
+            if (rose_past_upper) {
                 s_r2_armed = false;
+                out.shoot = true;
+            }
+        } else {
+            // Threshold fallback — auto-fire, click-less weapons, or
+            // non-DS. Plain rising-edge: r2 crosses fire_threshold while
+            // armed (or auto-fire ignores the armed gate). Rate limiting
+            // is game's Timer1.
+            if (r2 > p->fire_threshold) {
+                if (eff_auto || s_r2_armed) {
+                    out.shoot = true;
+                    s_r2_armed = false;
+                }
             }
         }
-    }
     } // end firearm R2 path (else of the !weapon_drawn melee branch)
 
     // ---- L2 kick channel — same plain rising-edge, never auto-fires ----

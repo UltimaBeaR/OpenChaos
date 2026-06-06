@@ -354,12 +354,12 @@ extern UBYTE VIOLENCE;
 //    Unifying psystem.cpp on 20 Hz would require multiplying every
 //    PARTICLE_Add velocity argument by 20/15 = 1.33×, large work without
 //    visible win.
-#define UC_PHYSICS_DESIGN_HZ      20
+#define UC_PHYSICS_DESIGN_HZ 20
 
-#define UC_VISUAL_CADENCE_HZ      30
+#define UC_VISUAL_CADENCE_HZ 30
 #define UC_VISUAL_CADENCE_TICK_MS (1000.0f / float(UC_VISUAL_CADENCE_HZ))
 
-#define UC_PARTICLE_SCALING_HZ    15
+#define UC_PARTICLE_SCALING_HZ 15
 // uc_orig: TICK_TOCK (fallen/Headers/Game.h)
 #define TICK_TOCK (the_game.TickTock)
 // uc_orig: TICK_RATIO (fallen/Headers/Game.h)

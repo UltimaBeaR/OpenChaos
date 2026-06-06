@@ -74,9 +74,9 @@ void refresh_nav()
     // Per-frame edge detection — input_frame's just_pressed gives ровно the
     // same "rising edge in this snapshot" semantic as the previous static-
     // prev pattern.
-    s_nav.up    = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY);
-    s_nav.down  = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY);
-    s_nav.left  = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY);
+    s_nav.up = input_key_just_pressed(ACT_MENU_NAV_UP_KKEY);
+    s_nav.down = input_key_just_pressed(ACT_MENU_NAV_DOWN_KKEY);
+    s_nav.left = input_key_just_pressed(ACT_MENU_NAV_LEFT_KKEY);
     s_nav.right = input_key_just_pressed(ACT_MENU_NAV_RIGHT_KKEY);
     s_nav.enter = input_key_just_pressed(ACT_MENU_CONFIRM_1_KKEY);
 }
@@ -204,9 +204,12 @@ void input_debug_tick()
     }
 
     // 1 / 2 / 3 — switch page.
-    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY))  s_page = INPUT_DEBUG_PAGE_KEYBOARD;
-    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY))   s_page = INPUT_DEBUG_PAGE_GAMEPAD;
-    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY)) s_page = INPUT_DEBUG_PAGE_DUALSENSE;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_KEYBOARD_KKEY))
+        s_page = INPUT_DEBUG_PAGE_KEYBOARD;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_GAMEPAD_KKEY))
+        s_page = INPUT_DEBUG_PAGE_GAMEPAD;
+    if (input_key_just_pressed(ACT_BANG_PANEL_PAGE_DUALSENSE_KKEY))
+        s_page = INPUT_DEBUG_PAGE_DUALSENSE;
 
     // TAB cycles the current page through its sub-views (controller
     // viz → tests / triggers → back). Only pages that define sub-views

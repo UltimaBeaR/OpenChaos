@@ -51,14 +51,13 @@ struct GameKeyFrameChunk;
 // bind_palette_invalidate_all(). Out params may individually be NULL if
 // the caller only needs a subset.
 bool bind_palette_get(const GameKeyFrameChunk* chunk,
-                      const GEMatrix** out_world,
-                      const GEMatrix** out_inv_bind,
-                      int*             out_bone_count);
+    const GEMatrix** out_world,
+    const GEMatrix** out_inv_bind,
+    int* out_bone_count);
 
 // Drop the entire cache. Call on level transition if animation chunks
 // get reloaded with different rig data.
 void bind_palette_invalidate_all(void);
-
 
 // Soft rig per-joint blend parameters. Five (parent, leaf) skin pairs
 // (TORSO↔HEAD, L_RADIUS↔L_HAND, R_RADIUS↔R_HAND, L_TIBIA↔L_FOOT,
@@ -89,9 +88,9 @@ struct SkinTuneGroup {
     float child_wmax;
 };
 constexpr int SKIN_TUNE_GROUP_COUNT = 3;
-constexpr int SKIN_TUNE_GROUP_HEAD  = 0;
+constexpr int SKIN_TUNE_GROUP_HEAD = 0;
 constexpr int SKIN_TUNE_GROUP_HANDS = 1;
-constexpr int SKIN_TUNE_GROUP_FEET  = 2;
+constexpr int SKIN_TUNE_GROUP_FEET = 2;
 
 extern SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT];
 

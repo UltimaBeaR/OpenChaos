@@ -29,11 +29,11 @@ void OC_CONFIG_set_persistence(bool enabled);
 
 // Read an integer value, clamped to [lo, hi]. Returns def (clamped) if the key is not present.
 int OC_CONFIG_get_int(const char* section, const char* key, int def,
-                      int lo = INT_MIN, int hi = INT_MAX);
+    int lo = INT_MIN, int hi = INT_MAX);
 
 // Read a float value, clamped to [lo, hi]. Returns def (clamped) if the key is not present.
 float OC_CONFIG_get_float(const char* section, const char* key, float def,
-                          float lo = -FLT_MAX, float hi = FLT_MAX);
+    float lo = -FLT_MAX, float hi = FLT_MAX);
 
 // Write an integer value and immediately flush to disk.
 void OC_CONFIG_set_int(const char* section, const char* key, int value);

@@ -183,12 +183,12 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 struct GESkinMesh;
 struct TomsPrimObject;
 bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
-                                    GESkinMesh**             out_mesh,
-                                    const float**            out_bone_aabb,
-                                    int*                     out_bone_count,
-                                    const GameKeyFrameChunk** out_chunk,
-                                    const GEMatrix**         out_bind_inv,
-                                    TomsPrimObject**         out_prim_obj = nullptr);
+    GESkinMesh** out_mesh,
+    const float** out_bone_aabb,
+    int* out_bone_count,
+    const GameKeyFrameChunk** out_chunk,
+    const GEMatrix** out_bind_inv,
+    TomsPrimObject** out_prim_obj = nullptr);
 
 // Top-level water reflection renderer (P2-I, GPU). One ge_skin_reflect_draw_range
 // call per material — uses the same bind-space VBO + skin palette the body

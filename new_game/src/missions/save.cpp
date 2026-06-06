@@ -472,4 +472,3 @@ static void LOAD_vehicle_full(Thing* p_vehicle)
         add_thing_to_map(p_vehicle);
     }
 }
-

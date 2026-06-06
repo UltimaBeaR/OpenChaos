@@ -240,11 +240,13 @@ void OVERLAY_draw_enemy_health(void)
                 hx = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
                 hz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
                 SLONG y_pelvis = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
-                SLONG y_lfoot  = SLONG(pose[SUB_OBJECT_LEFT_FOOT].pos_y);
-                SLONG y_rfoot  = SLONG(pose[SUB_OBJECT_RIGHT_FOOT].pos_y);
+                SLONG y_lfoot = SLONG(pose[SUB_OBJECT_LEFT_FOOT].pos_y);
+                SLONG y_rfoot = SLONG(pose[SUB_OBJECT_RIGHT_FOOT].pos_y);
                 hy = y_pelvis;
-                if (y_lfoot < hy) hy = y_lfoot;
-                if (y_rfoot < hy) hy = y_rfoot;
+                if (y_lfoot < hy)
+                    hy = y_lfoot;
+                if (y_rfoot < hy)
+                    hy = y_rfoot;
                 PANEL_draw_local_health(hx, hy, hz, percent, 60);
             } break;
             }

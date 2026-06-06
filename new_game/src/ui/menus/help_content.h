@@ -16,9 +16,9 @@
 
 struct HelpTopic {
     const char* title;
-    const char* body_kbm;  // keyboard & mouse body
+    const char* body_kbm; // keyboard & mouse body
     const char* body_xbox; // Xbox body
-    const char* body_ps;   // PlayStation body
+    const char* body_ps; // PlayStation body
     // When true this is the input-prompt CATALOG (dev tool, gated by
     // OC_DEBUG_INPUT_PROMPT_CATALOG), not text — the bodies are ignored. Omitted
     // in normal entries (aggregate-init leaves it false). Must stay LAST in

@@ -56,10 +56,10 @@ CBYTE* cmd_list[] = { "cam", "echo", "tels", "telr", "telw", "break", "wpt", "vt
     // combo. Names are fragments of the on-screen messages each cheat prints
     // (callbacks to Highlander / Matrix / Dirty Harry). See cheat_apply_*
     // helpers in input_actions.cpp.
-    "bloodofkings",   // index 26 — immortal toggle
-    "shieldofsteel",  // index 27 — full health (1000 HP)
-    "weneedguns",     // index 28 — spawn weapons ring
-    "losttrack",      // index 29 — max ammo (240 per type)
+    "bloodofkings", // index 26 — immortal toggle
+    "shieldofsteel", // index 27 — full health (1000 HP)
+    "weneedguns", // index 28 — spawn weapons ring
+    "losttrack", // index 29 — max ammo (240 per type)
     NULL };
 
 // uc_orig: allow_debug_keys (fallen/Source/Controls.cpp)

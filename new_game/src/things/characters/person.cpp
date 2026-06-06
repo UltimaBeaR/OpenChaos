@@ -133,12 +133,12 @@ static SLONG s_player_block_deadline[2] = { 0 };
 // Muzzle-flash dynamic light parameters (carried verbatim from the original's
 // per-shot flash light in actually_fire_gun). The light sits slightly in front
 // of and above the shooter and tints nearby walls warm for the flash.
-#define MUZZLE_DLIGHT_RADIUS    100
-#define MUZZLE_DLIGHT_RED       30
-#define MUZZLE_DLIGHT_GREEN     25
-#define MUZZLE_DLIGHT_BLUE      5
-#define MUZZLE_DLIGHT_Y_OFFSET  0x60 // height above the shooter origin
-#define MUZZLE_DLIGHT_FWD_SHIFT  9   // SIN/COS >> 9 nudges the light toward the barrel
+#define MUZZLE_DLIGHT_RADIUS 100
+#define MUZZLE_DLIGHT_RED 30
+#define MUZZLE_DLIGHT_GREEN 25
+#define MUZZLE_DLIGHT_BLUE 5
+#define MUZZLE_DLIGHT_Y_OFFSET 0x60 // height above the shooter origin
+#define MUZZLE_DLIGHT_FWD_SHIFT 9 // SIN/COS >> 9 nudges the light toward the barrel
 
 // True when this person is the Roper dual-wielding pistols — the only case
 // where the muzzle effects (flash + smoke) come from BOTH hands rather than
@@ -388,7 +388,7 @@ Thing* alloc_person(UBYTE type, UBYTE random_number)
                 new_person->SpecialUse = 0;
                 new_person->Stamina = 128;
                 new_person->MuzzleFlashUntilMs = 0; // no flash pending (slot is reused)
-                new_person->GunMuzzleAux = {};      // second pistol barrel (Roper only)
+                new_person->GunMuzzleAux = {}; // second pistol barrel (Roper only)
                 person_thing->Genus.Person = new_person;
                 person_thing->Draw.Tweened = alloc_draw_tween(DT_ROT_MULTI);
 
@@ -2333,7 +2333,7 @@ void person_pick_best_target(Thing* p_person, SLONG dir)
 {
     UWORD cand_thing[COMBAT_TARGET_MAX_CANDIDATES];
     SLONG cand_bucket[COMBAT_TARGET_MAX_CANDIDATES]; // angular tolerance bucket (primary key)
-    SLONG cand_dist[COMBAT_TARGET_MAX_CANDIDATES];   // distance to Darci (tie-breaker)
+    SLONG cand_dist[COMBAT_TARGET_MAX_CANDIDATES]; // distance to Darci (tie-breaker)
     SLONG cand_count = 0;
 
     SLONG cam_angle = get_camera_angle();
@@ -11334,7 +11334,8 @@ void fn_person_dead(Thing* p_person)
             // on negative SIN values produces the small upward bias that
             // gives the iconic "levitating corpse" feel.
             p_person->WorldPos.Y += (SIN(p_person->Genus.Person->Timer1 >> 2) >> 7)
-                * TICK_RATIO >> TICK_SHIFT;
+                    * TICK_RATIO
+                >> TICK_SHIFT;
         }
     } else if (try_respawn) { // MIB don't respawn
         SLONG vanish_time;
@@ -12286,7 +12287,7 @@ void fn_person_fighting(Thing* p_person)
 
                 if (ok_idx) {
                     if (throw_ok)
-                        s_player_throw_bonus[pidx] = 0;                       // landed -> base
+                        s_player_throw_bonus[pidx] = 0; // landed -> base
                     else
                         s_player_throw_bonus[pidx] += GRAPPLE_THROW_PITY_STEP_PCT; // easier next time
                 }

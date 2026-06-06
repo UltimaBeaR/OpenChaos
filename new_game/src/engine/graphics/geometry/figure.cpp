@@ -22,9 +22,9 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include <vector>  // figure_build_consolidated_skin_world scratch buffers
+#include <vector> // figure_build_consolidated_skin_world scratch buffers
 #include <cstring> // memcpy
-#include <cfloat>  // FLT_MAX (reflection screen-bbox accumulator)
+#include <cfloat> // FLT_MAX (reflection screen-bbox accumulator)
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
 #include "engine/graphics/geometry/bind_palette.h" // bind_palette_get (P2-C world-skin build)
@@ -188,9 +188,9 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     MM_FadeStart[0] = cvCur.r;
     MM_FadeStart[1] = cvCur.g;
     MM_FadeStart[2] = cvCur.b;
-    MM_FadeStep[0]  = cvLight.r;
-    MM_FadeStep[1]  = cvLight.g;
-    MM_FadeStep[2]  = cvLight.b;
+    MM_FadeStep[0] = cvLight.r;
+    MM_FadeStep[1] = cvLight.g;
+    MM_FadeStep[2] = cvLight.b;
 
     // Tint variant: legacy code applied `colour_and` as a per-byte mask
     // to each table entry. For the masks the game actually passes (0,
@@ -200,14 +200,14 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     // Bit order matches the original packing: R in bits 16..23, G in
     // 8..15, B in 0..7.
     const float mR = ((colour_and >> 16) & 0xFFu) ? 1.0f : 0.0f;
-    const float mG = ((colour_and >>  8) & 0xFFu) ? 1.0f : 0.0f;
-    const float mB = ( colour_and        & 0xFFu) ? 1.0f : 0.0f;
-    MM_FadeStartTint[0] = cvCur.r   * mR;
-    MM_FadeStartTint[1] = cvCur.g   * mG;
-    MM_FadeStartTint[2] = cvCur.b   * mB;
-    MM_FadeStepTint[0]  = cvLight.r * mR;
-    MM_FadeStepTint[1]  = cvLight.g * mG;
-    MM_FadeStepTint[2]  = cvLight.b * mB;
+    const float mG = ((colour_and >> 8) & 0xFFu) ? 1.0f : 0.0f;
+    const float mB = (colour_and & 0xFFu) ? 1.0f : 0.0f;
+    MM_FadeStartTint[0] = cvCur.r * mR;
+    MM_FadeStartTint[1] = cvCur.g * mG;
+    MM_FadeStartTint[2] = cvCur.b * mB;
+    MM_FadeStepTint[0] = cvLight.r * mR;
+    MM_FadeStepTint[1] = cvLight.g * mG;
+    MM_FadeStepTint[2] = cvLight.b * mB;
 }
 
 // --- Microsoft Index List Optimizer (optlist.cpp, 1998-1999) ---
@@ -897,15 +897,15 @@ UWORD FIGURE_find_face_D3D_texture_page(int iFaceNum, bool bTri)
 // Output rotation lands at scale 1.0 (we divide current's ×32768 here).
 static void figure_build_skin_world_palette(
     const BoneInterpTransform* current,
-    const GEMatrix*            inv_bind,
-    int                        bone_count,
-    float*                     out_palette)
+    const GEMatrix* inv_bind,
+    int bone_count,
+    float* out_palette)
 {
     constexpr float S = 1.0f / 32768.0f;
     for (int i = 0; i < bone_count; ++i) {
-        const Matrix33& cR  = current[i].rot;
-        const GEMatrix& bi  = inv_bind[i];
-        const float pos[3]  = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
+        const Matrix33& cR = current[i].rot;
+        const GEMatrix& bi = inv_bind[i];
+        const float pos[3] = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
 
         for (int r = 0; r < 3; ++r) {
             float* o = &out_palette[(i * 3 + r) * 4];
@@ -984,7 +984,8 @@ static void figure_build_skin_world_palette(
         constexpr SLONG BONE_LINE_PX = 1;
         for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
             const int p = body_part_parent[i];
-            if (p < 0) continue; // root (PELVIS) — no parent line to draw
+            if (p < 0)
+                continue; // root (PELVIS) — no parent line to draw
             const ULONG colour = BONE_COLOURS[i];
             AENG_world_line(
                 (SLONG)current[p].pos_x, (SLONG)current[p].pos_y, (SLONG)current[p].pos_z,
@@ -998,7 +999,7 @@ static void figure_build_skin_world_palette(
         // debug AENG_world_sphere primitive (3 perpendicular great
         // circles). Radius 7 in MS units — small bead per joint, doesn't
         // fuse into a blob when limbs are bent close together.
-        constexpr SLONG JOINT_BALL_RADIUS  = 4;
+        constexpr SLONG JOINT_BALL_RADIUS = 4;
         constexpr SLONG JOINT_BALL_LINE_PX = 1;
         for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
             AENG_world_sphere(
@@ -1018,8 +1019,8 @@ static void figure_build_skin_world_palette(
         // (M·v form, ×32768 scaled — divide before use). Length 30 in
         // MS units, a bit longer than the joint ball radius (7) so the
         // axes stick out clearly. 1 px width.
-        constexpr SLONG AXIS_LENGTH    = 10;
-        constexpr SLONG AXIS_LINE_PX   = 1;
+        constexpr SLONG AXIS_LENGTH = 10;
+        constexpr SLONG AXIS_LINE_PX = 1;
         constexpr float AXIS_INV_SCALE = 1.0f / 32768.0f;
         for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
             const Matrix33& R = current[i].rot;
@@ -1114,27 +1115,27 @@ static void figure_build_screen_xform_bake(GEMatrix* out)
     matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
     matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
 
-    const DWORD dwWidth  = g_viewData.dwWidth  >> 1;
-    const DWORD dwHeight = g_dw3DStuffHeight   >> 1;
-    const DWORD dwX      = g_viewData.dwX;
-    const DWORD dwY      = g_dw3DStuffY;
+    const DWORD dwWidth = g_viewData.dwWidth >> 1;
+    const DWORD dwHeight = g_dw3DStuffHeight >> 1;
+    const DWORD dwX = g_viewData.dwX;
+    const DWORD dwY = g_dw3DStuffY;
 
     // Viewport bake — column 1 (._{1,1}/._{2,1}/._{3,1}/._{4,1}) is unused
     // by the shader (column-pick reads columns 2/3/4), keep at 0.
     out->_11 = 0.0f;
-    out->_12 = matTemp._11 * (float)dwWidth  + matTemp._14 * (float)(dwX + dwWidth);
+    out->_12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
     out->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
     out->_14 = matTemp._14;
     out->_21 = 0.0f;
-    out->_22 = matTemp._21 * (float)dwWidth  + matTemp._24 * (float)(dwX + dwWidth);
+    out->_22 = matTemp._21 * (float)dwWidth + matTemp._24 * (float)(dwX + dwWidth);
     out->_23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
     out->_24 = matTemp._24;
     out->_31 = 0.0f;
-    out->_32 = matTemp._31 * (float)dwWidth  + matTemp._34 * (float)(dwX + dwWidth);
+    out->_32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
     out->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
     out->_34 = matTemp._34;
     out->_41 = 0.0f;
-    out->_42 = matTemp._41 * (float)dwWidth  + matTemp._44 * (float)(dwX + dwWidth);
+    out->_42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
     out->_43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
     out->_44 = matTemp._44;
 
@@ -1165,7 +1166,7 @@ static void figure_build_screen_xform_bake(GEMatrix* out)
 // failure (alloc, > 65535 verts, missing bind palette) leaves it NULL —
 // caller falls back to the per-material multi-matrix path.
 static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
-                                                 const GameKeyFrameChunk* chunk)
+    const GameKeyFrameChunk* chunk)
 {
     if (pPrimObj->skin_consolidated_world != NULL)
         return true;
@@ -1174,7 +1175,7 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
         return false;
 
     const GEMatrix* bind_world = NULL;
-    int             bone_count = 0;
+    int bone_count = 0;
     if (!bind_palette_get(chunk, &bind_world, NULL, &bone_count) || !bind_world)
         return false;
 
@@ -1183,9 +1184,9 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
     std::vector<GESkinVertex> verts;
-    std::vector<uint16_t>     inds;
+    std::vector<uint16_t> inds;
     const int n_mats = (int)pPrimObj->wNumMaterials;
-    std::vector<uint32_t>     ranges(n_mats * 2, 0u);
+    std::vector<uint32_t> ranges(n_mats * 2, 0u);
 
     uint32_t palette_n = 0; // max bone index referenced + 1
 
@@ -1193,7 +1194,7 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
         const uint16_t base_vertex = (uint16_t)verts.size();
         const uint32_t range_start = (uint32_t)inds.size();
 
-        GEVertex*    pMatVerts    = pVertex;
+        GEVertex* pMatVerts = pVertex;
         GEVertexLit* pMatVertsLit = (GEVertexLit*)pMatVerts;
         for (uint32_t v = 0; v < pMat->wNumVertices; v++) {
             BYTE bMatIndex = ((unsigned char*)(pMatVertsLit + v))[12];
@@ -1218,22 +1219,28 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
             const float lnz = pMatVerts[v].nz;
 
             GESkinVertex sv;
-            sv.x  = M._11 * lx + M._12 * ly + M._13 * lz + M._14;
-            sv.y  = M._21 * lx + M._22 * ly + M._23 * lz + M._24;
-            sv.z  = M._31 * lx + M._32 * ly + M._33 * lz + M._34;
+            sv.x = M._11 * lx + M._12 * ly + M._13 * lz + M._14;
+            sv.y = M._21 * lx + M._22 * ly + M._23 * lz + M._24;
+            sv.z = M._31 * lx + M._32 * ly + M._33 * lz + M._34;
             sv.nx = M._11 * lnx + M._12 * lny + M._13 * lnz;
             sv.ny = M._21 * lnx + M._22 * lny + M._23 * lnz;
             sv.nz = M._31 * lnx + M._32 * lny + M._33 * lnz;
-            sv.bone     = (uint32_t)bMatIndex;
-            sv.color    = 0u;
+            sv.bone = (uint32_t)bMatIndex;
+            sv.color = 0u;
             sv.specular = 0u;
             sv.u = pMatVertsLit[v].u;
             sv.v = pMatVertsLit[v].v;
             // Initial trivial weights (single bone, full weight). The soft
             // auto-rig pass below overwrites these for verts within a leaf
             // joint's blend zone.
-            sv.bones[0]   = bMatIndex; sv.bones[1]   = 0; sv.bones[2]   = 0; sv.bones[3]   = 0;
-            sv.weights[0] = 255;       sv.weights[1] = 0; sv.weights[2] = 0; sv.weights[3] = 0;
+            sv.bones[0] = bMatIndex;
+            sv.bones[1] = 0;
+            sv.bones[2] = 0;
+            sv.bones[3] = 0;
+            sv.weights[0] = 255;
+            sv.weights[1] = 0;
+            sv.weights[2] = 0;
+            sv.weights[3] = 0;
             verts.push_back(sv);
 
             if ((uint32_t)bMatIndex + 1 > palette_n)
@@ -1260,9 +1267,13 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
                     break;
                 uint16_t a, b, c;
                 if (bEven) {
-                    a = wi[0]; b = wi[2]; c = wi[1];
+                    a = wi[0];
+                    b = wi[2];
+                    c = wi[1];
                 } else {
-                    a = wi[0]; b = wi[1]; c = wi[2];
+                    a = wi[0];
+                    b = wi[1];
+                    c = wi[2];
                 }
                 inds.push_back((uint16_t)(base_vertex + a));
                 inds.push_back((uint16_t)(base_vertex + b));
@@ -1322,7 +1333,11 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
     // Cost: per pair we scan `verts` up to twice (one side per direction).
     // Build-time only — once per mesh; result baked into the VBO weights.
     if (bone_count == POSE_PERSON_BONE_COUNT) {
-        struct LeafPair { int8_t parent_part; int8_t leaf_part; int8_t group; };
+        struct LeafPair {
+            int8_t parent_part;
+            int8_t leaf_part;
+            int8_t group;
+        };
         constexpr int LEAF_PAIRS_N = 5;
         // Indices match pose_composer.cpp body_part_parent[] table.
         // PELVIS=0, LEFT_FEMUR=1, LEFT_TIBIA=2, LEFT_FOOT=3,
@@ -1330,18 +1345,18 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
         // RIGHT_HUMORUS=8, RIGHT_RADIUS=9, RIGHT_HAND=10, HEAD=11,
         // RIGHT_FEMUR=12, RIGHT_TIBIA=13, RIGHT_FOOT=14.
         constexpr LeafPair PAIRS[LEAF_PAIRS_N] = {
-            {  4, 11, SKIN_TUNE_GROUP_HEAD  }, // TORSO        ↔ HEAD
-            {  6,  7, SKIN_TUNE_GROUP_HANDS }, // LEFT_RADIUS  ↔ LEFT_HAND
-            {  9, 10, SKIN_TUNE_GROUP_HANDS }, // RIGHT_RADIUS ↔ RIGHT_HAND
-            {  2,  3, SKIN_TUNE_GROUP_FEET  }, // LEFT_TIBIA   ↔ LEFT_FOOT
-            { 13, 14, SKIN_TUNE_GROUP_FEET  }, // RIGHT_TIBIA  ↔ RIGHT_FOOT
+            { 4, 11, SKIN_TUNE_GROUP_HEAD }, // TORSO        ↔ HEAD
+            { 6, 7, SKIN_TUNE_GROUP_HANDS }, // LEFT_RADIUS  ↔ LEFT_HAND
+            { 9, 10, SKIN_TUNE_GROUP_HANDS }, // RIGHT_RADIUS ↔ RIGHT_HAND
+            { 2, 3, SKIN_TUNE_GROUP_FEET }, // LEFT_TIBIA   ↔ LEFT_FOOT
+            { 13, 14, SKIN_TUNE_GROUP_FEET }, // RIGHT_TIBIA  ↔ RIGHT_FOOT
         };
 
         for (int k = 0; k < LEAF_PAIRS_N; ++k) {
             const LeafPair& pair = PAIRS[k];
             const SkinTuneGroup& gp = g_skin_tune_groups[pair.group];
             const int parent_part = pair.parent_part;
-            const int leaf_part   = pair.leaf_part;
+            const int leaf_part = pair.leaf_part;
 
             // Both sides centre on the leaf joint position.
             const float jx = bind_world[leaf_part]._14;
@@ -1351,17 +1366,19 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
             // PARENT side: parent_part verts blend toward leaf.
             if (gp.parent_band > 0.0f && gp.parent_wmax > 0.0f) {
                 for (GESkinVertex& sv : verts) {
-                    if ((int)sv.bones[0] != parent_part) continue;
+                    if ((int)sv.bones[0] != parent_part)
+                        continue;
                     const float dx = sv.x - jx;
                     const float dy = sv.y - jy;
                     const float dz = sv.z - jz;
-                    const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
-                    if (d >= gp.parent_band) continue;
-                    const float t      = d / gp.parent_band;
+                    const float d = sqrtf(dx * dx + dy * dy + dz * dz);
+                    if (d >= gp.parent_band)
+                        continue;
+                    const float t = d / gp.parent_band;
                     const float w_leaf = (1.0f - t) * gp.parent_wmax;
-                    const float w_own  = 1.0f - w_leaf;
-                    sv.bones[1]   = (uint8_t)leaf_part;
-                    sv.weights[0] = (uint8_t)(w_own  * 255.0f + 0.5f);
+                    const float w_own = 1.0f - w_leaf;
+                    sv.bones[1] = (uint8_t)leaf_part;
+                    sv.weights[0] = (uint8_t)(w_own * 255.0f + 0.5f);
                     sv.weights[1] = (uint8_t)(w_leaf * 255.0f + 0.5f);
                 }
             }
@@ -1369,17 +1386,19 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
             // CHILD side: leaf_part verts blend toward parent.
             if (gp.child_band > 0.0f && gp.child_wmax > 0.0f) {
                 for (GESkinVertex& sv : verts) {
-                    if ((int)sv.bones[0] != leaf_part) continue;
+                    if ((int)sv.bones[0] != leaf_part)
+                        continue;
                     const float dx = sv.x - jx;
                     const float dy = sv.y - jy;
                     const float dz = sv.z - jz;
-                    const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
-                    if (d >= gp.child_band) continue;
-                    const float t        = d / gp.child_band;
+                    const float d = sqrtf(dx * dx + dy * dy + dz * dz);
+                    if (d >= gp.child_band)
+                        continue;
+                    const float t = d / gp.child_band;
                     const float w_parent = (1.0f - t) * gp.child_wmax;
-                    const float w_own    = 1.0f - w_parent;
-                    sv.bones[1]   = (uint8_t)parent_part;
-                    sv.weights[0] = (uint8_t)(w_own    * 255.0f + 0.5f);
+                    const float w_own = 1.0f - w_parent;
+                    sv.bones[1] = (uint8_t)parent_part;
+                    sv.weights[0] = (uint8_t)(w_own * 255.0f + 0.5f);
                     sv.weights[1] = (uint8_t)(w_parent * 255.0f + 0.5f);
                 }
             }
@@ -1433,15 +1452,22 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
     }
     for (const GESkinVertex& sv : verts) {
         const int b = (int)sv.bones[0];
-        if (b < 0 || b >= bone_count) continue;
+        if (b < 0 || b >= bone_count)
+            continue;
         float* mn = &bone_aabb[b * 6 + 0];
         float* mx = &bone_aabb[b * 6 + 3];
-        if (sv.x < mn[0]) mn[0] = sv.x;
-        if (sv.y < mn[1]) mn[1] = sv.y;
-        if (sv.z < mn[2]) mn[2] = sv.z;
-        if (sv.x > mx[0]) mx[0] = sv.x;
-        if (sv.y > mx[1]) mx[1] = sv.y;
-        if (sv.z > mx[2]) mx[2] = sv.z;
+        if (sv.x < mn[0])
+            mn[0] = sv.x;
+        if (sv.y < mn[1])
+            mn[1] = sv.y;
+        if (sv.z < mn[2])
+            mn[2] = sv.z;
+        if (sv.x > mx[0])
+            mx[0] = sv.x;
+        if (sv.y > mx[1])
+            mx[1] = sv.y;
+        if (sv.z > mx[2])
+            mx[2] = sv.z;
     }
     // Bones with no vertices stay at min=+inf / max=-inf; the shadow box
     // code must skip those (min > max → unreferenced bone). For
@@ -1450,9 +1476,9 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
     // the rig — but a body variant might not use every body part, e.g.
     // a head-only model. Skipping unreferenced bones is correct.
 
-    pPrimObj->skin_consolidated_world      = mesh;
-    pPrimObj->skin_consolidated_ranges     = ranges_storage;
-    pPrimObj->skin_consolidated_bone_aabb  = bone_aabb;
+    pPrimObj->skin_consolidated_world = mesh;
+    pPrimObj->skin_consolidated_ranges = ranges_storage;
+    pPrimObj->skin_consolidated_bone_aabb = bone_aabb;
     pPrimObj->skin_consolidated_bone_count = bone_count;
     return true;
 }
@@ -1530,7 +1556,7 @@ void FIGURE_clean_all_LRU_slots(void)
     // then return a slot whose wNumMaterials is 0 but whose key looks
     // valid. Resetting here avoids that race.
     for (int i = 0; i < MAX_NUMBER_D3D_ANIMALS; ++i) {
-        D3DAnimObjKeys[i].chunk        = NULL;
+        D3DAnimObjKeys[i].chunk = NULL;
         D3DAnimObjKeys[i].start_object = 0;
     }
     // Bind-palette cache is also chunk-pointer-keyed — same staleness
@@ -1689,9 +1715,9 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
 
     // World-skin consolidated VBO + per-material index ranges (built on
     // demand once per rig).
-    pPrimObj->skin_consolidated_ranges     = NULL;
-    pPrimObj->skin_consolidated_world      = NULL;
-    pPrimObj->skin_consolidated_bone_aabb  = NULL;
+    pPrimObj->skin_consolidated_ranges = NULL;
+    pPrimObj->skin_consolidated_world = NULL;
+    pPrimObj->skin_consolidated_bone_aabb = NULL;
     pPrimObj->skin_consolidated_bone_count = 0;
 
     TPO_pPrimObj = pPrimObj;
@@ -2239,7 +2265,6 @@ void FIGURE_generate_D3D_object(SLONG prim)
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
 
-
 #include "things/items/special.h"
 #include "things/core/interact.h"
 #include "engine/input/keyboard_globals.h"
@@ -2262,8 +2287,8 @@ void FIGURE_generate_D3D_object(SLONG prim)
 static void figure_draw_muzzle_flash(SLONG prim)
 {
     PrimObject* p_obj = &prim_objects[prim];
-    const SLONG sp    = p_obj->StartPoint;
-    const SLONG ep    = p_obj->EndPoint;
+    const SLONG sp = p_obj->StartPoint;
+    const SLONG ep = p_obj->EndPoint;
 
     POLY_buffer_upto = 0;
 
@@ -2278,7 +2303,7 @@ static void figure_draw_muzzle_flash(SLONG prim)
             AENG_dx_prim_points[i].Y,
             AENG_dx_prim_points[i].Z,
             pp);
-        pp->colour   = 0xff808080;
+        pp->colour = 0xff808080;
         pp->specular = 0xff000000;
     }
 
@@ -2299,13 +2324,13 @@ static void figure_draw_muzzle_flash(SLONG prim)
         quad[3] = &POLY_buffer[p3];
         if (POLY_valid_quad(quad)) {
             quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-            quad[0]->v = float(p_f4->UV[0][1])        * (1.0F / 32.0F);
-            quad[1]->u = float(p_f4->UV[1][0])        * (1.0F / 32.0F);
-            quad[1]->v = float(p_f4->UV[1][1])        * (1.0F / 32.0F);
-            quad[2]->u = float(p_f4->UV[2][0])        * (1.0F / 32.0F);
-            quad[2]->v = float(p_f4->UV[2][1])        * (1.0F / 32.0F);
-            quad[3]->u = float(p_f4->UV[3][0])        * (1.0F / 32.0F);
-            quad[3]->v = float(p_f4->UV[3][1])        * (1.0F / 32.0F);
+            quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
+            quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
+            quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
+            quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
+            quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
+            quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
+            quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
             SLONG page = p_f4->UV[0][0] & 0xc0;
             page <<= 2;
             page |= p_f4->TexturePage;
@@ -2328,11 +2353,11 @@ static void figure_draw_muzzle_flash(SLONG prim)
         tri[2] = &POLY_buffer[p2];
         if (POLY_valid_triangle(tri)) {
             tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-            tri[0]->v = float(p_f3->UV[0][1])        * (1.0F / 32.0F);
-            tri[1]->u = float(p_f3->UV[1][0])        * (1.0F / 32.0F);
-            tri[1]->v = float(p_f3->UV[1][1])        * (1.0F / 32.0F);
-            tri[2]->u = float(p_f3->UV[2][0])        * (1.0F / 32.0F);
-            tri[2]->v = float(p_f3->UV[2][1])        * (1.0F / 32.0F);
+            tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
+            tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
+            tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
+            tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
+            tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
             SLONG page = p_f3->UV[0][0] & 0xc0;
             page <<= 2;
             page |= p_f3->TexturePage;
@@ -2375,13 +2400,13 @@ struct HeldItemOffset {
 // forward (toward barrel tip), HEIGHT = up, SIDE = lateral (right). Flash
 // orientation is in PSX angle units (2048 = 360°): yaw is an offset from aim,
 // then pitch (tilt up/down) and roll (spin around the barrel axis).
-#define ROPER_2H_REACH        27.6f
-#define ROPER_2H_HEIGHT      (-54.4f)
-#define ROPER_2H_SIDE        (-30.4f)
-#define ROPER_2H_HAND         SUB_OBJECT_LEFT_HAND
-#define ROPER_2H_FLASH_YAW    793
-#define ROPER_2H_FLASH_PITCH  1974
-#define ROPER_2H_FLASH_ROLL   1629
+#define ROPER_2H_REACH 27.6f
+#define ROPER_2H_HEIGHT (-54.4f)
+#define ROPER_2H_SIDE (-30.4f)
+#define ROPER_2H_HAND SUB_OBJECT_LEFT_HAND
+#define ROPER_2H_FLASH_YAW 793
+#define ROPER_2H_FLASH_PITCH 1974
+#define ROPER_2H_FLASH_ROLL 1629
 
 // Multiply two row-major 3x3 matrices: out = a * b.
 static void figure_mul3x3(float out[9], const float a[9], const float b[9])
@@ -2389,8 +2414,8 @@ static void figure_mul3x3(float out[9], const float a[9], const float b[9])
     for (int r = 0; r < 3; r++)
         for (int c = 0; c < 3; c++)
             out[r * 3 + c] = a[r * 3 + 0] * b[0 * 3 + c]
-                           + a[r * 3 + 1] * b[1 * 3 + c]
-                           + a[r * 3 + 2] * b[2 * 3 + c];
+                + a[r * 3 + 1] * b[1 * 3 + c]
+                + a[r * 3 + 2] * b[2 * 3 + c];
 }
 
 // muzzle_out: where to store the gun-prim muzzle world position (prims 256/258/
@@ -2403,12 +2428,13 @@ static void figure_mul3x3(float out[9], const float a[9], const float b[9])
 // orient_override: optional 3x3 orientation for the muzzle-flash draw, replacing
 //   the hand-bone rotation (Roper two-handed — aim-aligned flash). NULL = none.
 static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part,
-                                  GameCoord* muzzle_out = nullptr, bool draw_visual = true,
-                                  const HeldItemOffset* world_off = nullptr,
-                                  float* orient_override = nullptr)
+    GameCoord* muzzle_out = nullptr, bool draw_visual = true,
+    const HeldItemOffset* world_off = nullptr,
+    float* orient_override = nullptr)
 {
     const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
-    if (!pose || hand_part < 0 || hand_part >= POSE_MAX_BONES) return;
+    if (!pose || hand_part < 0 || hand_part >= POSE_MAX_BONES)
+        return;
 
     const BoneInterpTransform& xf = pose[hand_part];
 
@@ -2438,10 +2464,9 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part,
     // prim 256 = pistol (muzzle = vertex 0), prim 258 = shotgun (vertex 15),
     // prim 260 = AK (vertex 32). Carried over from the legacy per-bone path.
     if (prim == 256 || prim == 258 || prim == 260) {
-        const SLONG sp  = prim_objects[prim].StartPoint;
-        const SLONG idx = sp + ((prim == 256) ? 0
-                              : (prim == 258) ? 15
-                              :                 32);
+        const SLONG sp = prim_objects[prim].StartPoint;
+        const SLONG idx = sp + ((prim == 256) ? 0 : (prim == 258) ? 15
+                                                                  : 32);
         float vx = AENG_dx_prim_points[idx].X;
         float vy = AENG_dx_prim_points[idx].Y;
         float vz = AENG_dx_prim_points[idx].Z;
@@ -2473,13 +2498,19 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part,
                 Cz += AENG_dx_prim_points[i].Z;
                 n++;
             }
-            if (n) { Cx /= float(n); Cy /= float(n); Cz /= float(n); }
+            if (n) {
+                Cx /= float(n);
+                Cy /= float(n);
+                Cz /= float(n);
+            }
             float hx = Cx, hy = Cy, hz = Cz;
-            MATRIX_MUL(fmatrix, hx, hy, hz);       // handBone * centroid
+            MATRIX_MUL(fmatrix, hx, hy, hz); // handBone * centroid
             const float bx = px + hx, by = py + hy, bz = pz + hz; // barrel
             float ox = Cx, oy = Cy, oz = Cz;
             MATRIX_MUL(orient_override, ox, oy, oz); // override * centroid
-            ax = bx - ox; ay = by - oy; az = bz - oz;
+            ax = bx - ox;
+            ay = by - oy;
+            az = bz - oz;
         }
         if (draw_visual) {
             POLY_set_local_rotation(ax, ay, az, orient);
@@ -2493,15 +2524,15 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part,
         return;
 
     MESH_draw_poly_at_matrix(prim,
-                             SLONG(px), SLONG(py), SLONG(pz),
-                             fmatrix, NULL, 0xff);
+        SLONG(px), SLONG(py), SLONG(pz),
+        fmatrix, NULL, 0xff);
 }
 
 // Forward declaration — defined later in this file (used by
 // FIGURE_get_skin_mesh_for_thing's non-person branch).
 static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk* chunk,
-                                                       SLONG start_object,
-                                                       SLONG ele_count);
+    SLONG start_object,
+    SLONG ele_count);
 
 // Compute the D3DPeopleObj[] index used to cache the consolidated mesh
 // for one person Thing. Same indexing as FIGURE_draw_hierarchical_prim_recurse:
@@ -2512,7 +2543,7 @@ static int figure_person_iIndex(Thing* p_person)
 {
     DrawTween* dt = p_person->Draw.Tweened;
     const BYTE person_type = (BYTE)p_person->Genus.Person->PersonType;
-    const BYTE person_id   = (BYTE)dt->PersonID;
+    const BYTE person_id = (BYTE)dt->PersonID;
     ASSERT(person_type < PERSON_NUM_TYPES);
     if (person_type == PERSON_CIV)
         return (int)(person_id & 0x1f) + PERSON_NUM_TYPES;
@@ -2532,7 +2563,7 @@ static int figure_person_iIndex(Thing* p_person)
 static void figure_tpo_build_person(TomsPrimObject* pPrimObj, BodyDef* body_def, SLONG start_object)
 {
     structFIGURE_dhpr_rdata1 saved_root = FIGURE_dhpr_rdata1[0];
-    FIGURE_dhpr_rdata1[0].part_number          = 0;
+    FIGURE_dhpr_rdata1[0].part_number = 0;
     FIGURE_dhpr_rdata1[0].current_child_number = 0;
 
     FIGURE_TPO_init_3d_object(pPrimObj);
@@ -2545,7 +2576,7 @@ static void figure_tpo_build_person(TomsPrimObject* pPrimObj, BodyDef* body_def,
             ASSERT(iPartNumber >= 0);
             ASSERT(iPartNumber <= 14);
             SLONG body_part = body_def->BodyPart[iPartNumber];
-            SLONG prim      = start_object + body_part;
+            SLONG prim = start_object + body_part;
             FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
             iTPOPartNumber++;
         }
@@ -2574,31 +2605,35 @@ static void figure_tpo_build_person(TomsPrimObject* pPrimObj, BodyDef* body_def,
 // at the per-bone bind-space AABB array (bone_count × 6 floats) stored
 // on the consolidated TomsPrimObject.
 bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
-                                    GESkinMesh**             out_mesh,
-                                    const float**            out_bone_aabb,
-                                    int*                     out_bone_count,
-                                    const GameKeyFrameChunk** out_chunk,
-                                    const GEMatrix**         out_bind_inv,
-                                    TomsPrimObject**         out_prim_obj)
+    GESkinMesh** out_mesh,
+    const float** out_bone_aabb,
+    int* out_bone_count,
+    const GameKeyFrameChunk** out_chunk,
+    const GEMatrix** out_bind_inv,
+    TomsPrimObject** out_prim_obj)
 {
-    if (!p_thing) return false;
+    if (!p_thing)
+        return false;
     DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt || !dt->CurrentFrame || !dt->NextFrame) return false;
-    if (!dt->CurrentFrame->FirstElement || !dt->NextFrame->FirstElement) return false;
+    if (!dt || !dt->CurrentFrame || !dt->NextFrame)
+        return false;
+    if (!dt->CurrentFrame->FirstElement || !dt->NextFrame->FirstElement)
+        return false;
     const GameKeyFrameChunk* chunk = dt->TheChunk;
-    if (!chunk) return false;
+    if (!chunk)
+        return false;
 
     // Resolve the per-Thing consolidated TomsPrimObject (built lazily).
     TomsPrimObject* pPrimObj = NULL;
     const bool is_person = (p_thing->Class == CLASS_PERSON
-                            && chunk->ElementCount == POSE_PERSON_BONE_COUNT);
+        && chunk->ElementCount == POSE_PERSON_BONE_COUNT);
     if (is_person) {
         const int iIndex = figure_person_iIndex(p_thing);
         ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
         pPrimObj = &(D3DPeopleObj[iIndex]);
         if (pPrimObj->wNumMaterials == 0) {
             const BYTE person_type = (BYTE)p_thing->Genus.Person->PersonType;
-            const BYTE person_id   = (BYTE)dt->PersonID;
+            const BYTE person_id = (BYTE)dt->PersonID;
             BodyDef* body_def = (person_type == PERSON_ROPER)
                 ? &chunk->PeopleTypes[person_id >> 5]
                 : &chunk->PeopleTypes[person_id & 0x1f];
@@ -2611,26 +2646,35 @@ bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
         const SLONG start_object = prim_multi_objects[chunk->MultiObject[0]].StartObject;
         pPrimObj = figure_anim_obj_get_consolidated(chunk, start_object, chunk->ElementCount);
     }
-    if (!pPrimObj) return false;
+    if (!pPrimObj)
+        return false;
 
     // Resolve bind palette.
-    const GEMatrix* bind_inv   = NULL;
-    int             bone_count = 0;
-    if (!bind_palette_get(chunk, NULL, &bind_inv, &bone_count) || !bind_inv) return false;
+    const GEMatrix* bind_inv = NULL;
+    int bone_count = 0;
+    if (!bind_palette_get(chunk, NULL, &bind_inv, &bone_count) || !bind_inv)
+        return false;
 
     // Lazy-build the bind-space VBO + per-bone AABB if absent.
     if (pPrimObj->skin_consolidated_world == NULL) {
         figure_build_consolidated_skin_world(pPrimObj, chunk);
     }
     GESkinMesh* mesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
-    if (!mesh || !pPrimObj->skin_consolidated_bone_aabb) return false;
+    if (!mesh || !pPrimObj->skin_consolidated_bone_aabb)
+        return false;
 
-    if (out_mesh)       *out_mesh       = mesh;
-    if (out_bone_aabb)  *out_bone_aabb  = pPrimObj->skin_consolidated_bone_aabb;
-    if (out_bone_count) *out_bone_count = bone_count;
-    if (out_chunk)      *out_chunk      = chunk;
-    if (out_bind_inv)   *out_bind_inv   = bind_inv;
-    if (out_prim_obj)   *out_prim_obj   = pPrimObj;
+    if (out_mesh)
+        *out_mesh = mesh;
+    if (out_bone_aabb)
+        *out_bone_aabb = pPrimObj->skin_consolidated_bone_aabb;
+    if (out_bone_count)
+        *out_bone_count = bone_count;
+    if (out_chunk)
+        *out_chunk = chunk;
+    if (out_bind_inv)
+        *out_bind_inv = bind_inv;
+    if (out_prim_obj)
+        *out_prim_obj = pPrimObj;
     return true;
 }
 
@@ -2662,8 +2706,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     TomsPrimObject* pPrimObj = &(D3DPeopleObj[iIndex]);
     if (pPrimObj->wNumMaterials == 0) {
         figure_tpo_build_person(pPrimObj,
-                                FIGURE_dhpr_data.body_def,
-                                FIGURE_dhpr_data.start_object);
+            FIGURE_dhpr_data.body_def,
+            FIGURE_dhpr_data.start_object);
     }
 
     SLONG tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
@@ -2701,9 +2745,12 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             // instead of flickering for a single frame.
             if (sdl3_get_ticks() < p_person->Genus.Person->MuzzleFlashUntilMs) {
                 SLONG mf_prim = -1;
-                if      (id == 1) mf_prim = 261;
-                else if (id == 3) mf_prim = 262;
-                else if (id == 5) mf_prim = 263;
+                if (id == 1)
+                    mf_prim = 261;
+                else if (id == 3)
+                    mf_prim = 262;
+                else if (id == 5)
+                    mf_prim = 263;
                 if (mf_prim > 0) {
                     figure_draw_held_item(p_person, mf_prim, hand_part);
                 }
@@ -2724,16 +2771,15 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         const SLONG id = p_person->Draw.Tweened->PersonID >> 5;
         const bool is_gun = (id == 1 || id == 3 || id == 5);
         if (is_gun) {
-            const bool flash_active =
-                sdl3_get_ticks() < p_person->Genus.Person->MuzzleFlashUntilMs;
+            const bool flash_active = sdl3_get_ticks() < p_person->Genus.Person->MuzzleFlashUntilMs;
 
             if (id == 1) {
                 // Dual pistols (prim 256 = pistol). Left → GunMuzzle,
                 // right → GunMuzzleAux. Flash sprite (261) at both hands.
                 figure_draw_held_item(p_person, 256, SUB_OBJECT_LEFT_HAND,
-                                      &p_person->Genus.Person->GunMuzzle, false);
+                    &p_person->Genus.Person->GunMuzzle, false);
                 figure_draw_held_item(p_person, 256, SUB_OBJECT_RIGHT_HAND,
-                                      &p_person->Genus.Person->GunMuzzleAux, false);
+                    &p_person->Genus.Person->GunMuzzleAux, false);
                 if (flash_active) {
                     figure_draw_held_item(p_person, 261, SUB_OBJECT_LEFT_HAND);
                     figure_draw_held_item(p_person, 261, SUB_OBJECT_RIGHT_HAND);
@@ -2750,11 +2796,11 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 const HeldItemOffset roper_2h_off = {
                     (-s) * ROPER_2H_REACH + (-cc) * ROPER_2H_SIDE,
                     ROPER_2H_HEIGHT,
-                    (-cc) * ROPER_2H_REACH + (s) * ROPER_2H_SIDE
+                    (-cc) * ROPER_2H_REACH + (s)*ROPER_2H_SIDE
                 };
                 figure_draw_held_item(p_person, 255 + id, hand_part,
-                                      &p_person->Genus.Person->GunMuzzle, false,
-                                      &roper_2h_off);
+                    &p_person->Genus.Person->GunMuzzle, false,
+                    &roper_2h_off);
                 if (flash_active) {
                     const SLONG mf_prim = (id == 3) ? 262 : 263;
                     // Flash orientation: base forward = aim (+ yaw), up = +Y;
@@ -2764,20 +2810,20 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                     const float fc = float(COS(fa)) * ANG;
                     float base[9] = {
                         -fc, 0.0f, -fs,
-                         0.0f, 1.0f, 0.0f,
-                         fs, 0.0f, -fc
+                        0.0f, 1.0f, 0.0f,
+                        fs, 0.0f, -fc
                     };
                     const float cp = float(COS(ROPER_2H_FLASH_PITCH & 2047)) * ANG;
                     const float sp = float(SIN(ROPER_2H_FLASH_PITCH & 2047)) * ANG;
                     const float cr = float(COS(ROPER_2H_FLASH_ROLL & 2047)) * ANG;
                     const float sr = float(SIN(ROPER_2H_FLASH_ROLL & 2047)) * ANG;
-                    float rx[9] = { 1, 0, 0,  0, cp, -sp,  0, sp, cp }; // pitch (local X)
-                    float rz[9] = { cr, -sr, 0,  sr, cr, 0,  0, 0, 1 }; // roll (local Z)
+                    float rx[9] = { 1, 0, 0, 0, cp, -sp, 0, sp, cp }; // pitch (local X)
+                    float rz[9] = { cr, -sr, 0, sr, cr, 0, 0, 0, 1 }; // roll (local Z)
                     float tmp[9], flash_orient[9];
                     figure_mul3x3(tmp, base, rx);
                     figure_mul3x3(flash_orient, tmp, rz);
                     figure_draw_held_item(p_person, mf_prim, hand_part,
-                                          nullptr, true, &roper_2h_off, flash_orient);
+                        nullptr, true, &roper_2h_off, flash_orient);
                 }
             }
         }
@@ -2794,16 +2840,16 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // 20 bones × 3 vec4 each = 240 floats. Persons use 15; sized to
     // POSE_MAX_BONES so the same buffer works for any rig (matches the
     // ANIM_obj_draw flat-rig variant for code-shape consistency).
-    float       skin_palette_world[POSE_MAX_BONES * 12];
-    GEMatrix    screen_xform_world = {};
-    float       lightdir_world[3]  = { 0.0f, 0.0f, 0.0f };
+    float skin_palette_world[POSE_MAX_BONES * 12];
+    GEMatrix screen_xform_world = {};
+    float lightdir_world[3] = { 0.0f, 0.0f, 0.0f };
 
     ASSERT(p_person->Genus.Person);
     ASSERT(p_person->Draw.Tweened);
     ASSERT(p_person->Draw.Tweened->TheChunk);
     ASSERT(p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT);
-    const GameKeyFrameChunk* chunk    = p_person->Draw.Tweened->TheChunk;
-    const GEMatrix*          bind_inv = NULL;
+    const GameKeyFrameChunk* chunk = p_person->Draw.Tweened->TheChunk;
+    const GEMatrix* bind_inv = NULL;
     if (!bind_palette_get(chunk, NULL, &bind_inv, NULL) || !bind_inv) {
         ge_set_specular_enabled(true);
         return;
@@ -2811,8 +2857,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     if (pPrimObj->skin_consolidated_world == NULL) {
         figure_build_consolidated_skin_world(pPrimObj, chunk);
     }
-    GESkinMesh* worldMesh  = (GESkinMesh*)pPrimObj->skin_consolidated_world;
-    uint32_t*   skinRanges = pPrimObj->skin_consolidated_ranges;
+    GESkinMesh* worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
     if (!worldMesh || !skinRanges) {
         ge_set_specular_enabled(true);
         return;
@@ -2835,13 +2881,13 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // come out black at random camera angles (regression introduced when
     // P2-G.7 removed the per-bone _just_set_matrix walk).
     {
-        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        float ident_mat[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
         POLY_set_local_rotation(current[0].pos_x, current[0].pos_y, current[0].pos_z, ident_mat);
     }
 
     figure_build_skin_world_palette(current, bind_inv,
-                                    POSE_PERSON_BONE_COUNT,
-                                    skin_palette_world);
+        POSE_PERSON_BONE_COUNT,
+        skin_palette_world);
     figure_build_screen_xform_bake(&screen_xform_world);
     // Half-Lambert ramp divides dot(normal, L) by fNormScale = 251 to
     // land cos in [-1,1]. Pre-scale L by 251 here so the ramp index
@@ -2858,7 +2904,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     int iMatIndex = 0;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--, iMatIndex++) {
-        UWORD wPage     = pMat->wTexturePage;
+        UWORD wPage = pMat->wTexturePage;
         UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
 
         if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
@@ -2874,7 +2920,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
         const bool tinted = (wPage & TEXTURE_PAGE_FLAG_TINT) != 0;
         const float* fadeStart = tinted ? MM_FadeStartTint : MM_FadeStart;
-        const float* fadeStep  = tinted ? MM_FadeStepTint  : MM_FadeStep;
+        const float* fadeStep = tinted ? MM_FadeStepTint : MM_FadeStep;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         pa->RS.SetCullMode(GECullMode::CCW);
@@ -2892,7 +2938,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 &screen_xform_world,
                 lightdir_world,
                 g_mm_fog_view_z,
-                /*unlit=*/ true,
+                /*unlit=*/true,
                 fadeStart, fadeStep);
         }
 
@@ -3078,8 +3124,8 @@ void FIGURE_draw(Thing* p_thing)
 // with ubSubObjectNumber = i so each merged vertex carries its origin
 // part as its bone index — same shape as D3DPeopleObj for persons.
 static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk* chunk,
-                                                       SLONG start_object,
-                                                       SLONG ele_count)
+    SLONG start_object,
+    SLONG ele_count)
 {
     // Scan: prefer an exact-key match (chunk + start_object). Cached
     // slot may be in EVICTED state — `wNumMaterials == 0` after
@@ -3095,8 +3141,10 @@ static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk*
         if (free_slot < 0 && D3DAnimObjKeys[i].chunk == NULL)
             free_slot = i;
     }
-    if (slot < 0) slot = free_slot;
-    if (slot < 0) return NULL;
+    if (slot < 0)
+        slot = free_slot;
+    if (slot < 0)
+        return NULL;
 
     TomsPrimObject* pPrimObj = &D3DAnimObj[slot];
     if (pPrimObj->wNumMaterials == 0) {
@@ -3110,7 +3158,7 @@ static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk*
         }
         FIGURE_TPO_finish_3d_object(pPrimObj, 1);
     }
-    D3DAnimObjKeys[slot].chunk        = chunk;
+    D3DAnimObjKeys[slot].chunk = chunk;
     D3DAnimObjKeys[slot].start_object = start_object;
     return pPrimObj;
 }
@@ -3137,7 +3185,8 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
         return;
     }
     const GameKeyFrameChunk* chunk = dt->TheChunk;
-    if (!chunk) return;
+    if (!chunk)
+        return;
 
     // Lighting — same as the legacy per-part path: night-tinted fade
     // table sampled at a point slightly above the thing's foot world
@@ -3163,8 +3212,8 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
 
     // Bind palette (identity rotation + raw keyframe-0 offsets for flat
     // rigs — see bind_palette.cpp build_palette_flat). Cached per chunk.
-    const GEMatrix* bind_inv   = NULL;
-    int             bone_count = 0;
+    const GEMatrix* bind_inv = NULL;
+    int bone_count = 0;
     if (!bind_palette_get(chunk, NULL, &bind_inv, &bone_count) || !bind_inv) {
         MM_bLightTableAlreadySetUp = UC_FALSE;
         return;
@@ -3176,7 +3225,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     // is (chunk, MultiObject[0].StartObject).
     const SLONG start_object = prim_multi_objects[chunk->MultiObject[0]].StartObject;
     TomsPrimObject* pPrimObj = figure_anim_obj_get_consolidated(chunk, start_object,
-                                                                chunk->ElementCount);
+        chunk->ElementCount);
     if (!pPrimObj) {
         MM_bLightTableAlreadySetUp = UC_FALSE;
         return;
@@ -3188,8 +3237,8 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     if (pPrimObj->skin_consolidated_world == NULL) {
         figure_build_consolidated_skin_world(pPrimObj, chunk);
     }
-    GESkinMesh* worldMesh  = (GESkinMesh*)pPrimObj->skin_consolidated_world;
-    uint32_t*   skinRanges = pPrimObj->skin_consolidated_ranges;
+    GESkinMesh* worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
     if (!worldMesh || !skinRanges) {
         MM_bLightTableAlreadySetUp = UC_FALSE;
         return;
@@ -3202,7 +3251,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     // save/restores around its camera-only override, so the value we
     // set here survives that call and the loop sees it.
     {
-        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        float ident_mat[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
         POLY_set_local_rotation(current[0].pos_x, current[0].pos_y, current[0].pos_z, ident_mat);
     }
 
@@ -3213,9 +3262,9 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     //
     // Buffer is sized to POSE_MAX_BONES so the same per-frame allocation
     // fits every rig we might see.
-    float    skin_palette[POSE_MAX_BONES * 12];
+    float skin_palette[POSE_MAX_BONES * 12];
     GEMatrix screen_xform = {};
-    float    lightdir[3]  = { 0.0f, 0.0f, 0.0f };
+    float lightdir[3] = { 0.0f, 0.0f, 0.0f };
     figure_build_skin_world_palette(current, bind_inv, bone_count, skin_palette);
     figure_build_screen_xform_bake(&screen_xform);
     {
@@ -3234,7 +3283,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
     const int n_mats = (int)pPrimObj->wNumMaterials;
     for (int iMat = 0; iMat < n_mats; iMat++, pMat++) {
-        UWORD wPage     = pMat->wTexturePage;
+        UWORD wPage = pMat->wTexturePage;
         UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
         // Skin/jacket flags are person-only; non-person rigs don't carry
         // them. Drop the FACE_PAGE_OFFSET that the legacy per-part path
@@ -3242,7 +3291,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
         // pipeline through pa = &POLY_Page[wRealPage] below.
         const bool tinted = (wPage & TEXTURE_PAGE_FLAG_TINT) != 0;
         const float* fadeStart = tinted ? MM_FadeStartTint : MM_FadeStart;
-        const float* fadeStep  = tinted ? MM_FadeStepTint  : MM_FadeStep;
+        const float* fadeStep = tinted ? MM_FadeStepTint : MM_FadeStep;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         pa->RS.SetCullMode(GECullMode::CCW);
@@ -3260,7 +3309,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
                 &screen_xform,
                 lightdir,
                 g_mm_fog_view_z,
-                /*unlit=*/ true,
+                /*unlit=*/true,
                 fadeStart, fadeStep);
         }
     }
@@ -3300,12 +3349,12 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // Resolve the consolidated bind-space VBO + bone AABB + chunk + bind
     // inverse + the underlying TomsPrimObject (for materials / ranges).
     // Lazy-built on first use, shared with the body and shadow draws.
-    GESkinMesh*              worldMesh  = NULL;
-    const float*             bone_aabb  = NULL;
-    int                      bone_count = 0;
-    const GameKeyFrameChunk* chunk      = NULL;
-    const GEMatrix*          bind_inv   = NULL;
-    TomsPrimObject*          pPrimObj   = NULL;
+    GESkinMesh* worldMesh = NULL;
+    const float* bone_aabb = NULL;
+    int bone_count = 0;
+    const GameKeyFrameChunk* chunk = NULL;
+    const GEMatrix* bind_inv = NULL;
+    TomsPrimObject* pPrimObj = NULL;
     if (!FIGURE_get_skin_mesh_for_thing(p_thing, &worldMesh, &bone_aabb,
             &bone_count, &chunk, &bind_inv, &pPrimObj)) {
         return;
@@ -3313,12 +3362,16 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // Reflection is only meaningful for 15-bone people (matches the legacy
     // PeopleTypes / PersonID-driven filter). Flat-skeleton creatures never
     // reflected in the original game either.
-    if (bone_count != POSE_PERSON_BONE_COUNT) return;
-    if (!worldMesh || !bone_aabb || !bind_inv || !pPrimObj) return;
-    if (!pPrimObj->skin_consolidated_ranges) return;
+    if (bone_count != POSE_PERSON_BONE_COUNT)
+        return;
+    if (!worldMesh || !bone_aabb || !bind_inv || !pPrimObj)
+        return;
+    if (!pPrimObj->skin_consolidated_ranges)
+        return;
 
     const BoneInterpTransform* current = render_interp_get_cached_pose(p_thing);
-    if (!current) return;
+    if (!current)
+        return;
 
     // --- NIGHT lighting at pelvis (flat per-character colour) -----------
     // Identical to the legacy reflection path: sample the NIGHT light at
@@ -3327,20 +3380,23 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // halve / force-alpha-FF that the legacy per-bone path did is folded
     // in here so the shader receives the final per-character colour.
     NIGHT_Colour col = NIGHT_get_light_at(SLONG(current[0].pos_x),
-                                          SLONG(current[0].pos_y),
-                                          SLONG(current[0].pos_z));
+        SLONG(current[0].pos_y),
+        SLONG(current[0].pos_z));
     if (!ControlFlag) {
-        if (col.red   < 32) col.red   += (32 - col.red)   >> 1;
-        if (col.green < 32) col.green += (32 - col.green) >> 1;
-        if (col.blue  < 32) col.blue  += (32 - col.blue)  >> 1;
+        if (col.red < 32)
+            col.red += (32 - col.red) >> 1;
+        if (col.green < 32)
+            col.green += (32 - col.green) >> 1;
+        if (col.blue < 32)
+            col.blue += (32 - col.blue) >> 1;
     }
-    ULONG colour   = 0;
+    ULONG colour = 0;
     ULONG specular = 0;
     NIGHT_get_colour(col, &colour, &specular);
-    colour   &= ~POLY_colour_restrict;
+    colour &= ~POLY_colour_restrict;
     specular &= ~POLY_colour_restrict;
     // Halve + force opaque alpha (legacy `>>= 1; |= 0xff000000`).
-    colour   = ((colour   >> 1) & 0x7f7f7f7f) | 0xff000000;
+    colour = ((colour >> 1) & 0x7f7f7f7f) | 0xff000000;
     specular = ((specular >> 1) & 0x7f7f7f7f) | 0xff000000;
 
     // --- Per-frame skin palette + screen-xform bake (same as body) ------
@@ -3348,9 +3404,9 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // save/restore preserves a valid per-character view-Z for fog (same
     // gotcha the body draw deals with).
     {
-        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        float ident_mat[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
         POLY_set_local_rotation(current[0].pos_x, current[0].pos_y,
-                                current[0].pos_z, ident_mat);
+            current[0].pos_z, ident_mat);
     }
 
     float skin_palette[POSE_MAX_BONES * 3 * 4];
@@ -3384,26 +3440,32 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
             // figure_build_consolidated_skin_world. Transforming those
             // corners through skin[b] yields infinities, blowing up the
             // bbox. Skip same way SMAP_person_gpu does.
-            if (aabb[0] > aabb[3]) continue;
+            if (aabb[0] > aabb[3])
+                continue;
             const float* sk = &skin_palette[b * 3 * 4];
             for (int c = 0; c < 8; ++c) {
                 const float lx = (c & 1) ? aabb[3] : aabb[0];
                 const float ly = (c & 2) ? aabb[4] : aabb[1];
                 const float lz = (c & 4) ? aabb[5] : aabb[2];
                 // skin: bind-space corner → world.
-                const float wx = sk[0]*lx + sk[1]*ly + sk[2]*lz  + sk[3];
-                float       wy = sk[4]*lx + sk[5]*ly + sk[6]*lz  + sk[7];
-                const float wz = sk[8]*lx + sk[9]*ly + sk[10]*lz + sk[11];
+                const float wx = sk[0] * lx + sk[1] * ly + sk[2] * lz + sk[3];
+                float wy = sk[4] * lx + sk[5] * ly + sk[6] * lz + sk[7];
+                const float wz = sk[8] * lx + sk[9] * ly + sk[10] * lz + sk[11];
                 wy = H2 - wy; // mirror Y about water plane (matches shader)
                 POLY_Point pt;
                 POLY_transform(wx, wy, wz, &pt);
-                if (!pt.MaybeValid()) continue;
+                if (!pt.MaybeValid())
+                    continue;
                 const SLONG px = SLONG(pt.X);
                 const SLONG py = SLONG(pt.Y);
-                if (px < x1) x1 = px;
-                if (px > x2) x2 = px;
-                if (py < y1) y1 = py;
-                if (py > y2) y2 = py;
+                if (px < x1)
+                    x1 = px;
+                if (px > x2)
+                    x2 = px;
+                if (py < y1)
+                    y1 = py;
+                if (py > y2)
+                    y2 = py;
             }
         }
         FIGURE_reflect_x1 = x1;
@@ -3418,14 +3480,12 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // page resolve (jacket / offset / face) is identical to body draw.
     constexpr float REFLECT_DY_SCALE = 255.0f / FIGURE_MAX_DY;
     const uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
-    const SLONG tex_page_offset =
-        p_thing->Genus.Person->pcom_colour & 0x3;
+    const SLONG tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
     int iMatIndex = 0;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0;
-         iMatNum--, iMatIndex++, pMat++)
-    {
-        UWORD wPage     = pMat->wTexturePage;
+        iMatNum--, iMatIndex++, pMat++) {
+        UWORD wPage = pMat->wTexturePage;
         UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
         if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
             wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_thing) >> 2];
@@ -3456,4 +3516,3 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
         }
     }
 }
-

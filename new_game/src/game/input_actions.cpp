@@ -1640,10 +1640,10 @@ static SLONG g_l2_roll_flip_dir = 0;
 //      follow the camera even though the stick stays pure-forward). Used only
 //      when there's been no recent lateral input.
 static SLONG g_l2_last_side_sign = 0;
-static constexpr SLONG L2_LEAN_MIN_RAW = 8192;     // clear lateral lean (raw camera-frame X, ±32768)
+static constexpr SLONG L2_LEAN_MIN_RAW = 8192; // clear lateral lean (raw camera-frame X, ±32768)
 // Net accumulated facing change (2048 = 360°) that registers a turn — accumulating
 // per-tick deltas catches slow, gradual mouse steering that never spikes in one tick.
-static constexpr SLONG L2_TURN_ACCUM_THRESH = 32;  // ≈ 5.6° net turn
+static constexpr SLONG L2_TURN_ACCUM_THRESH = 32; // ≈ 5.6° net turn
 static constexpr SLONG L2_LATERAL_HOLD_TICKS = 15; // suppress the turn source this long after a lateral input
 
 // Back-walk-modifier held flag (gamepad L1 / keyboard E). Set by the zoom/
@@ -1689,7 +1689,7 @@ static int g_zoomwalk_mode = ZOOMWALK_OFF;
 // backward. Camera-frame stick offset: dx_c = right+, dy_c = back+;
 // stick_in_deadzone = stick centred. p_pc = the player character.
 static void process_zoomwalk(bool engaged, SLONG dx_c, SLONG dy_c,
-                             bool stick_in_deadzone, Thing* p_pc)
+    bool stick_in_deadzone, Thing* p_pc)
 {
     static bool prev_engaged = false;
     const bool was_engaged = prev_engaged;
@@ -1703,7 +1703,9 @@ static void process_zoomwalk(bool engaged, SLONG dx_c, SLONG dy_c,
     //  - either sticky mode re-arms when the stick re-centres.
     // Reset to ARMED on the engage edge so a fresh hold always starts disarmed
     // (a previous hold that ended in STICKY_BACK must not carry over).
-    enum { BW_ARMED, BW_STICKY_BACK, BW_STICKY_PASS };
+    enum { BW_ARMED,
+        BW_STICKY_BACK,
+        BW_STICKY_PASS };
     static int bw_state = BW_ARMED;
     if (!was_engaged)
         bw_state = BW_ARMED;
@@ -1785,7 +1787,7 @@ static SLONG l2_angle_abs_diff(SLONG a, SLONG b)
 //
 // Returns false if the stick is centred (no direction).
 static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
-                                SLONG* out_target, SLONG* out_flip)
+    SLONG* out_target, SLONG* out_flip)
 {
     if (sx == 0 && sy == 0)
         return false;
@@ -1795,10 +1797,9 @@ static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
     if (p_person && p_person->Draw.Tweened)
         char_face = p_person->Draw.Tweened->Angle & 2047;
     const bool faces_away = l2_angle_abs_diff(char_face, cam) < 512;
-    const SLONG face_left  = (target - 512 + 2048) & 2047; // LEFT flip facing
+    const SLONG face_left = (target - 512 + 2048) & 2047; // LEFT flip facing
     const SLONG face_right = (target + 512 + 2048) & 2047; // RIGHT flip facing
-    const bool left_is_away =
-        l2_angle_abs_diff(face_left, cam) < l2_angle_abs_diff(face_right, cam);
+    const bool left_is_away = l2_angle_abs_diff(face_left, cam) < l2_angle_abs_diff(face_right, cam);
     *out_target = target;
     // XNOR: keep away when facing away, keep toward when facing toward.
     SLONG flip = (faces_away == left_is_away) ? 0 : 1;
@@ -1808,8 +1809,7 @@ static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
     // the last left/right movement instead. ~20° (2048 = 360°).
     constexpr SLONG ROLL_FLIP_CAM_AXIS_BUFFER = 114; // ≈ 20°
     const SLONG roll_vs_cam = l2_angle_abs_diff(target, cam); // 0 = away, 1024 = toward
-    const bool near_cam_axis =
-        (roll_vs_cam < ROLL_FLIP_CAM_AXIS_BUFFER)
+    const bool near_cam_axis = (roll_vs_cam < ROLL_FLIP_CAM_AXIS_BUFFER)
         || (roll_vs_cam > 1024 - ROLL_FLIP_CAM_AXIS_BUFFER);
     if (near_cam_axis && g_l2_last_side_sign != 0)
         flip = (g_l2_last_side_sign < 0) ? 1 : 0; // inverted inside the buffer (by feel)
@@ -1830,7 +1830,7 @@ static bool compute_l2_roll_dir(Thing* p_person, SLONG sx, SLONG sy,
 // walk, applied in the normal movement path) and the tap window. Back-walk is
 // NOT here — it lives on the separate zoom/back-walk modifier (process_zoomwalk).
 static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
-                                bool stick_in_deadzone, Thing* p_pc)
+    bool stick_in_deadzone, Thing* p_pc)
 {
     static bool prev_engaged = false;
     const bool was_engaged = prev_engaged;
@@ -1927,7 +1927,6 @@ static void process_l2_tactical(bool engaged, SLONG dx_c, SLONG dy_c,
         m_bForceWalk = UC_TRUE;
 }
 
-
 // Post-climb jump suppression counter. Set when pull_up animation ends (in
 // person.cpp), decremented in apply_button_input. While > 0, INPUT_MASK_JUMP
 // is cleared so no jump action fires.
@@ -1991,9 +1990,9 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
         // entry point. STATE_HIT_RECOIL covered for symmetry with that
         // handler's set_person_running default.
         if ((p_thing->State == STATE_IDLE
-             || p_thing->State == STATE_MOVEING
-             || p_thing->State == STATE_GUN
-             || p_thing->State == STATE_HIT_RECOIL)
+                || p_thing->State == STATE_MOVEING
+                || p_thing->State == STATE_GUN
+                || p_thing->State == STATE_HIT_RECOIL)
             && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS
             && p_thing->Genus.Person->Action != ACTION_SIT_BENCH) {
             // Don't yank the character out of the sit-down animation:
@@ -2053,9 +2052,9 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             // Values scaled ×1.5 vs original (128/16/64) so that 20 Hz × cap
             // = 3840/480/1920 units/sec — presumably matching the original feel
             // (original source has 128/16/64; at what Hz it was tuned is unknown).
-            static const SLONG TURN_CAP_RUN    = 192; // 192×20 = 3840 = 128×30
-            static const SLONG TURN_CAP_JUMP   =  24; //  24×20 =  480 =  16×30
-            static const SLONG TURN_CAP_CRAWL  =  96; //  96×20 = 1920 =  64×30
+            static const SLONG TURN_CAP_RUN = 192; // 192×20 = 3840 = 128×30
+            static const SLONG TURN_CAP_JUMP = 24; //  24×20 =  480 =  16×30
+            static const SLONG TURN_CAP_CRAWL = 96; //  96×20 = 1920 =  64×30
 
             SLONG max_angle = TURN_CAP_RUN;
             SLONG dangle;
@@ -3187,8 +3186,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                         target_angle = (target_angle + 2048) & 2047;
                         p_person->Draw.Tweened->Angle = target_angle;
                         set_person_standing_jump_forwards(p_person);
-                    }
-                    else if (!analogue && (input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
+                    } else if (!analogue && (input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
                         set_person_standing_jump_backwards(p_person);
                     else if (!analogue && (input & INPUT_MASK_LEFT))
                         set_person_flip(p_person, 0);
@@ -3452,7 +3450,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
     if ((pl->Pressed & INPUT_MASK_PUNCH) && p_person->Genus.Person->PlayerID
         && !oc_combat_busy(p_person->SubState)) {
         ULONG pin = pl->Input;
-        const SLONG STICK_DEADZONE = 8;                      // ANALOGUE_MIN_VELOCITY
+        const SLONG STICK_DEADZONE = 8; // ANALOGUE_MIN_VELOCITY
         SLONG sy = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back intent (<0 = fwd)
         bool fwd = (pin & INPUT_MASK_FORWARDS) || (sy < -STICK_DEADZONE);
         if (fwd && find_best_grapple(p_person)) {
@@ -3496,7 +3494,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         bool do_roll = false;
         if (g_l2_roll_request) {
             roll_target = g_l2_roll_target_angle;
-            roll_flip   = g_l2_roll_flip_dir;
+            roll_flip = g_l2_roll_flip_dir;
             g_l2_roll_request = 0;
             do_roll = true;
         } else if (pl->Pressed & INPUT_MASK_JUMP) {
@@ -3967,17 +3965,17 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
         // axis read at the top of this function. Gated by input_gameplay_enabled
         // so the F1 debug modifier suppresses driving, same as the stick path.
         const bool gameplay = input_gameplay_enabled();
-        ctl_accel   = gameplay && input_key_held(ACT_CAR_ACCEL_KKEY);   // W
+        ctl_accel = gameplay && input_key_held(ACT_CAR_ACCEL_KKEY); // W
         ctl_reverse = gameplay && input_key_held(ACT_CAR_REVERSE_KKEY); // S
-        ctl_brake   = gameplay && input_key_held(ACT_CAR_BRAKE_KKEY);   // Space
+        ctl_brake = gameplay && input_key_held(ACT_CAR_BRAKE_KKEY); // Space
     } else {
         // Triggers/bumpers read as digital bits here. Analog trigger position
         // (for proportional gas) is read separately in vehicle.cpp.
         // Left stick is STEERING ONLY (X axis); stick Y is intentionally
         // ignored for gas/brake — the previous stick-Y mapping auto-braked
         // mid-corner on slight pull-back / drift ("car brakes by itself").
-        ctl_accel   = input_btn_held(ACT_CAR_ACCEL_GBTN);   // R2
-        ctl_brake   = input_btn_held(ACT_CAR_BRAKE_GBTN);   // L1
+        ctl_accel = input_btn_held(ACT_CAR_ACCEL_GBTN); // R2
+        ctl_brake = input_btn_held(ACT_CAR_BRAKE_GBTN); // L1
         ctl_reverse = input_btn_held(ACT_CAR_REVERSE_GBTN); // L2
     }
 
@@ -4016,7 +4014,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
         // Suppress KB siren read when F1 debug modifier is held (gameplay-
         // input gate). Gamepad siren read stays unconditional — F1 is a
         // keyboard concept.
-        const bool kb_siren  = input_gameplay_enabled() && input_key_press_pending(ACT_CAR_SIREN_KKEY);
+        const bool kb_siren = input_gameplay_enabled() && input_key_press_pending(ACT_CAR_SIREN_KKEY);
         const bool pad_siren = input_btn_press_pending(ACT_CAR_SIREN_GBTN);
         input_key_consume(ACT_CAR_SIREN_KKEY);
         input_btn_consume(ACT_CAR_SIREN_GBTN);
@@ -4181,7 +4179,7 @@ ULONG get_hardware_input(UWORD type)
                     // (> fire / <= reset).
                     static bool l2_engaged = false;
                     const SLONG l2_raw = input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG);
-                    constexpr SLONG L2_ENGAGE_THRESHOLD  = 225; // ~88% — near end of travel
+                    constexpr SLONG L2_ENGAGE_THRESHOLD = 225; // ~88% — near end of travel
                     constexpr SLONG L2_RELEASE_THRESHOLD = 200; // ~78% — short release stroke
                     if (!l2_engaged && l2_raw > L2_ENGAGE_THRESHOLD)
                         l2_engaged = true;
@@ -4191,8 +4189,7 @@ ULONG get_hardware_input(UWORD type)
                     // Camera-frame stick offset for the shared machine.
                     const SLONG dx_c = axis_x - AXIS_CENTRE;
                     const SLONG dy_c = axis_y - AXIS_CENTRE;
-                    const bool stick_in_deadzone =
-                        (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
+                    const bool stick_in_deadzone = (abs(dx_c) <= (SLONG)NOISE_TOLERANCE) && (abs(dy_c) <= (SLONG)NOISE_TOLERANCE);
 
                     process_l2_tactical(l2_engaged, dx_c, dy_c, stick_in_deadzone, NET_PERSON(0));
 
@@ -4454,15 +4451,15 @@ ULONG get_hardware_input(UWORD type)
         // analog bits). Pragmatic: a player using both at once isn't a
         // realistic case to optimize for; the simpler "last writer wins"
         // rule avoids cross-source blending edge cases.
-        const bool kb_fwd   = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
-        const bool kb_back  = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
-        const bool kb_left  = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
+        const bool kb_fwd = input_key_held(ACT_FOOT_MOVE_FORWARD_KKEY);
+        const bool kb_back = input_key_held(ACT_FOOT_MOVE_BACKWARD_KKEY);
+        const bool kb_left = input_key_held(ACT_FOOT_MOVE_LEFT_KKEY);
         const bool kb_right = input_key_held(ACT_FOOT_MOVE_RIGHT_KKEY);
 
         if (kb_fwd || kb_back || kb_left || kb_right) {
             // Signed direction along each axis.
             const SLONG vx_sign = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
-            const SLONG vy_sign = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+            const SLONG vy_sign = (kb_back ? 1 : 0) - (kb_fwd ? 1 : 0);
 
             // Deflection magnitude per axis:
             //   1 axis active  → full deflection  AXIS_CENTRE = 32768
@@ -4477,10 +4474,14 @@ ULONG get_hardware_input(UWORD type)
 
             SLONG axis_x = AXIS_CENTRE + vx_sign * mag;
             SLONG axis_y = AXIS_CENTRE + vy_sign * mag;
-            if (axis_x < 0)     axis_x = 0;
-            if (axis_x > 65535) axis_x = 65535;
-            if (axis_y < 0)     axis_y = 0;
-            if (axis_y > 65535) axis_y = 65535;
+            if (axis_x < 0)
+                axis_x = 0;
+            if (axis_x > 65535)
+                axis_x = 65535;
+            if (axis_y < 0)
+                axis_y = 0;
+            if (axis_y > 65535)
+                axis_y = 65535;
 
             // Clear any previous bits-18-31 packing from the JOY branch
             // before writing WASD's, otherwise OR'ing in WASD on top of a
@@ -4522,7 +4523,7 @@ ULONG get_hardware_input(UWORD type)
             //
             // Clear bits 18-31 first to drop any stale gamepad packing from
             // a previous tick (in case active device was just switched).
-            constexpr SLONG WASD_AXIS_CENTRE_PACKED = 64;  // AXIS_CENTRE >> 9
+            constexpr SLONG WASD_AXIS_CENTRE_PACKED = 64; // AXIS_CENTRE >> 9
             input &= 0x0003FFFF;
             input |= WASD_AXIS_CENTRE_PACKED << 18;
             input |= WASD_AXIS_CENTRE_PACKED << 25;
@@ -4538,7 +4539,7 @@ ULONG get_hardware_input(UWORD type)
         if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
             const bool ctrl_engaged = input_key_held(ACT_FOOT_TACTICAL_MODE_KKEY);
             const SLONG kb_vx = (kb_right ? 1 : 0) - (kb_left ? 1 : 0);
-            const SLONG kb_vy = (kb_back  ? 1 : 0) - (kb_fwd  ? 1 : 0);
+            const SLONG kb_vy = (kb_back ? 1 : 0) - (kb_fwd ? 1 : 0);
             constexpr SLONG KB_DEFLECTION = 32768; // full per-axis (well past deadzone)
             const SLONG dx_c = kb_vx * KB_DEFLECTION;
             const SLONG dy_c = kb_vy * KB_DEFLECTION;
@@ -4736,12 +4737,11 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                 // Zoom-look mouse rates (Q8 game-units per pixel): track the
                 // mouse sensitivity and run at ZOOM_LOOK_RATIO of the normal
                 // orbit speed. Defined in camera/look_sensitivity.h.
-                const SLONG MOUSE_AIM_YAW_Q8   = zoom_mouse_yaw_q8();
+                const SLONG MOUSE_AIM_YAW_Q8 = zoom_mouse_yaw_q8();
                 const SLONG MOUSE_AIM_PITCH_Q8 = zoom_mouse_pitch_q8();
                 // Yaw: mouse right → turn right (Angle decreases) — same sign
                 // as the right stick above.
-                p_person->Draw.Tweened->Angle =
-                    (p_person->Draw.Tweened->Angle - (mdx * MOUSE_AIM_YAW_Q8 / 256)) & 2047;
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - (mdx * MOUSE_AIM_YAW_Q8 / 256)) & 2047;
                 // Pitch: vertical invert from config (mouse camera_orbit_invert_y),
                 // matching the non-aim mouse-orbit convention.
                 look_pitch += ((CAM_mouse_invert_y() ? -mdy : mdy) * MOUSE_AIM_PITCH_Q8 / 256);
@@ -5256,7 +5256,8 @@ SLONG continue_blocking(Thing* p_person)
 void cheat_apply_immortal_toggle()
 {
     Thing* p_darci = NET_PERSON(0);
-    if (!p_darci || !p_darci->Genus.Person) return;
+    if (!p_darci || !p_darci->Genus.Person)
+        return;
     p_darci->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
     if (p_darci->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
         CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
@@ -5267,7 +5268,8 @@ void cheat_apply_immortal_toggle()
 void cheat_apply_full_health()
 {
     Thing* p_darci = NET_PERSON(0);
-    if (!p_darci || !p_darci->Genus.Person) return;
+    if (!p_darci || !p_darci->Genus.Person)
+        return;
     // 1000 HP — same value as the original Dreamcast cheat. Darci's normal
     // max is 100 (gameplay HP scale) so 1000 is effectively "you can't die
     // from anything that hits you in one shot".
@@ -5279,7 +5281,8 @@ void cheat_apply_full_health()
 void cheat_apply_spawn_weapons()
 {
     Thing* p_darci = NET_PERSON(0);
-    if (!p_darci) return;
+    if (!p_darci)
+        return;
     // Spawn ring of weapons around the player: AK47, shotgun, pistol, 3
     // grenades. Each weapon offsets by CHEAT_RING_SIZE world-units from
     // Darci's position so the player doesn't auto-pick them up immediately
@@ -5288,11 +5291,11 @@ void cheat_apply_spawn_weapons()
     const SLONG px = p_darci->WorldPos.X >> 8;
     const SLONG py = p_darci->WorldPos.Y >> 8;
     const SLONG pz = p_darci->WorldPos.Z >> 8;
-    alloc_special(SPECIAL_AK47,    SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
-    alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
-    alloc_special(SPECIAL_GUN,     SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE,      py, pz + CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_AK47, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE, py, pz + CHEAT_RING_SIZE, 0);
+    alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE, py, pz - CHEAT_RING_SIZE, 0);
+    alloc_special(SPECIAL_GUN, SPECIAL_SUBSTATE_NONE, px - CHEAT_RING_SIZE, py, pz + CHEAT_RING_SIZE, 0);
     alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE - 32, py, pz - CHEAT_RING_SIZE - 32, 0);
-    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE,      py, pz - CHEAT_RING_SIZE,      0);
+    alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE, py, pz - CHEAT_RING_SIZE, 0);
     alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE + 32, py, pz - CHEAT_RING_SIZE + 32, 0);
     CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
 }
@@ -5300,12 +5303,13 @@ void cheat_apply_spawn_weapons()
 void cheat_apply_max_ammo()
 {
     Thing* p_darci = NET_PERSON(0);
-    if (!p_darci || !p_darci->Genus.Person) return;
+    if (!p_darci || !p_darci->Genus.Person)
+        return;
     // 240 ammo packs each — original Dreamcast cheat value, well past any
     // realistic mission requirement.
     constexpr SLONG CHEAT_MAX_AMMO = 240;
-    p_darci->Genus.Person->ammo_packs_pistol  = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_pistol = CHEAT_MAX_AMMO;
     p_darci->Genus.Person->ammo_packs_shotgun = CHEAT_MAX_AMMO;
-    p_darci->Genus.Person->ammo_packs_ak47    = CHEAT_MAX_AMMO;
+    p_darci->Genus.Person->ammo_packs_ak47 = CHEAT_MAX_AMMO;
     CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
 }

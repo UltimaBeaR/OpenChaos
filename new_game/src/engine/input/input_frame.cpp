@@ -97,7 +97,7 @@ UBYTE s_mbtns_consume_until_released[INPUT_MBTN_COUNT];
 //   [0] = GAXIS_LEFT, [1] = GAXIS_RIGHT
 //   [0..3] = GDIR_UP/DOWN/LEFT/RIGHT
 constexpr SLONG INPUT_STICK_COUNT = 2;
-constexpr SLONG INPUT_DIR_COUNT   = 4;
+constexpr SLONG INPUT_DIR_COUNT = 4;
 UBYTE s_stick_dir_curr[INPUT_STICK_COUNT][INPUT_DIR_COUNT];
 UBYTE s_stick_dir_prev[INPUT_STICK_COUNT][INPUT_DIR_COUNT];
 
@@ -126,11 +126,11 @@ UBYTE s_stick_dir_repeat_armed[INPUT_STICK_COUNT][INPUT_DIR_COUNT];
 // migrated menu navigation feels identical. Single source of truth: changing
 // these here changes auto-repeat for every consumer.
 constexpr uint64_t INPUT_REPEAT_INITIAL_MS = 400;
-constexpr uint64_t INPUT_REPEAT_PERIOD_MS  = 150;
+constexpr uint64_t INPUT_REPEAT_PERIOD_MS = 150;
 
 // Stick raw center. STICK_RAW_DEADZONE is the deadzone for the CONTINUOUS stick
 // output (apply_stick_deadzone → input_stick_x/y). 8192 = ~25%.
-constexpr int STICK_RAW_CENTER   = 32768;
+constexpr int STICK_RAW_CENTER = 32768;
 constexpr int STICK_RAW_DEADZONE = 8192;
 
 // Configurable stick deadzones, RAW units (distance from center 32768). Loaded
@@ -145,8 +145,8 @@ constexpr int STICK_RAW_DEADZONE = 8192;
 // be 4096 (a 0.125 fraction) — raised so controller drift doesn't auto-scroll
 // menus when the stick is left untouched.
 int s_gameplay_deadzone_raw = 8192;
-int s_menu_dir_press_raw    = 8192;
-int s_menu_dir_release_raw  = 4096;
+int s_menu_dir_press_raw = 8192;
+int s_menu_dir_release_raw = 4096;
 
 // Map raw 0..65535 (center 32768) to float [-1.0, 1.0] with deadzone applied.
 float apply_stick_deadzone(int raw)
@@ -159,7 +159,8 @@ float apply_stick_deadzone(int raw)
     int abs_excursion = (sign > 0 ? delta : -delta) - STICK_RAW_DEADZONE;
     int max_excursion = STICK_RAW_CENTER - STICK_RAW_DEADZONE;
     float val = float(abs_excursion) / float(max_excursion);
-    if (val > 1.0f) val = 1.0f;
+    if (val > 1.0f)
+        val = 1.0f;
     return float(sign) * val;
 }
 
@@ -216,13 +217,15 @@ void input_frame_init()
     // can never be fully dead. Runs after OC_CONFIG_load (config is read by the
     // surrounding host setup before this init).
     auto frac_to_raw = [](float f) -> int {
-        if (f < 0.0f) f = 0.0f;
-        if (f > 0.9f) f = 0.9f;
+        if (f < 0.0f)
+            f = 0.0f;
+        if (f > 0.9f)
+            f = 0.9f;
         return (int)(f * STICK_RAW_CENTER);
     };
     s_gameplay_deadzone_raw = frac_to_raw(OC_CONFIG_get_float("gamepad", "gameplay_stick_deadzone", 0.25f, 0.0f, 1.0f));
-    s_menu_dir_press_raw    = frac_to_raw(OC_CONFIG_get_float("gamepad", "menu_stick_deadzone", 0.25f, 0.0f, 1.0f));
-    s_menu_dir_release_raw  = s_menu_dir_press_raw / 2; // half — hysteresis
+    s_menu_dir_press_raw = frac_to_raw(OC_CONFIG_get_float("gamepad", "menu_stick_deadzone", 0.25f, 0.0f, 1.0f));
+    s_menu_dir_release_raw = s_menu_dir_press_raw / 2; // half — hysteresis
 }
 
 // In-game stick deadzone (RAW units, distance from center 32768), from the
@@ -306,23 +309,29 @@ void input_frame_update()
         int raw_x = (s == GAXIS_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
         int raw_y = (s == GAXIS_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
 
-        bool was_up    = s_stick_dir_curr[s][GDIR_UP];
-        bool was_down  = s_stick_dir_curr[s][GDIR_DOWN];
-        bool was_left  = s_stick_dir_curr[s][GDIR_LEFT];
+        bool was_up = s_stick_dir_curr[s][GDIR_UP];
+        bool was_down = s_stick_dir_curr[s][GDIR_DOWN];
+        bool was_left = s_stick_dir_curr[s][GDIR_LEFT];
         bool was_right = s_stick_dir_curr[s][GDIR_RIGHT];
 
-        bool up    = compute_dir(was_up,    raw_y, /*positive_dir=*/false);
-        bool down  = compute_dir(was_down,  raw_y, /*positive_dir=*/true);
-        bool left  = compute_dir(was_left,  raw_x, /*positive_dir=*/false);
+        bool up = compute_dir(was_up, raw_y, /*positive_dir=*/false);
+        bool down = compute_dir(was_down, raw_y, /*positive_dir=*/true);
+        bool left = compute_dir(was_left, raw_x, /*positive_dir=*/false);
         bool right = compute_dir(was_right, raw_x, /*positive_dir=*/true);
 
         // Mutual exclusion: simultaneous opposite directions cancel.
-        if (up && down)    { up = false; down = false; }
-        if (left && right) { left = false; right = false; }
+        if (up && down) {
+            up = false;
+            down = false;
+        }
+        if (left && right) {
+            left = false;
+            right = false;
+        }
 
-        s_stick_dir_curr[s][GDIR_UP]    = up    ? 1 : 0;
-        s_stick_dir_curr[s][GDIR_DOWN]  = down  ? 1 : 0;
-        s_stick_dir_curr[s][GDIR_LEFT]  = left  ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_UP] = up ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_DOWN] = down ? 1 : 0;
+        s_stick_dir_curr[s][GDIR_LEFT] = left ? 1 : 0;
         s_stick_dir_curr[s][GDIR_RIGHT] = right ? 1 : 0;
     }
 }
@@ -342,7 +351,8 @@ void input_frame_on_key_up(UBYTE scancode)
 
 void input_frame_on_mouse_button_down(SLONG mbtn_idx)
 {
-    if (!mbtn_in_range(mbtn_idx)) return;
+    if (!mbtn_in_range(mbtn_idx))
+        return;
     s_mbtns_event_held[mbtn_idx] = 1;
     s_mbtns_pressed_during_frame[mbtn_idx] = 1;
     s_mbtns_press_pending[mbtn_idx] = 1;
@@ -350,7 +360,8 @@ void input_frame_on_mouse_button_down(SLONG mbtn_idx)
 
 void input_frame_on_mouse_button_up(SLONG mbtn_idx)
 {
-    if (!mbtn_in_range(mbtn_idx)) return;
+    if (!mbtn_in_range(mbtn_idx))
+        return;
     s_mbtns_event_held[mbtn_idx] = 0;
 }
 
@@ -459,25 +470,29 @@ static inline bool gamepad_input_gated()
 
 bool input_btn_held(SLONG btn_idx)
 {
-    if (gamepad_input_gated()) return false;
+    if (gamepad_input_gated())
+        return false;
     return btn_in_range(btn_idx) && s_btns_curr[btn_idx];
 }
 
 bool input_btn_just_pressed(SLONG btn_idx)
 {
-    if (gamepad_input_gated()) return false;
+    if (gamepad_input_gated())
+        return false;
     return btn_in_range(btn_idx) && s_btns_curr[btn_idx] && !s_btns_prev[btn_idx];
 }
 
 bool input_btn_just_released(SLONG btn_idx)
 {
-    if (gamepad_input_gated()) return false;
+    if (gamepad_input_gated())
+        return false;
     return btn_in_range(btn_idx) && !s_btns_curr[btn_idx] && s_btns_prev[btn_idx];
 }
 
 bool input_btn_press_pending(SLONG btn_idx)
 {
-    if (gamepad_input_gated()) return false;
+    if (gamepad_input_gated())
+        return false;
     return btn_in_range(btn_idx) && s_btns_press_pending[btn_idx];
 }
 
@@ -538,7 +553,8 @@ static void input_mouse_btn_consume_all_held_until_released()
 
 bool input_key_just_pressed_or_repeat(SLONG kb_code)
 {
-    if (!key_in_range(kb_code)) return false;
+    if (!key_in_range(kb_code))
+        return false;
     if (!input_key_held(kb_code)) {
         s_keys_repeat_armed[kb_code] = 0; // disarm on release
         return false;
@@ -558,7 +574,8 @@ bool input_key_just_pressed_or_repeat(SLONG kb_code)
 
 bool input_btn_just_pressed_or_repeat(SLONG btn_idx)
 {
-    if (!btn_in_range(btn_idx)) return false;
+    if (!btn_in_range(btn_idx))
+        return false;
     if (!input_btn_held(btn_idx)) {
         s_btns_repeat_armed[btn_idx] = 0;
         return false;
@@ -580,29 +597,37 @@ bool input_btn_just_pressed_or_repeat(SLONG btn_idx)
 
 bool input_stick_held(InputStickId stick, InputStickDir dir)
 {
-    if (gamepad_input_gated()) return false;
-    if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
+    if (gamepad_input_gated())
+        return false;
+    if (!stick_in_range(stick) || !dir_in_range(dir))
+        return false;
     return s_stick_dir_curr[stick][dir];
 }
 
 bool input_stick_just_pressed(InputStickId stick, InputStickDir dir)
 {
-    if (gamepad_input_gated()) return false;
-    if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
+    if (gamepad_input_gated())
+        return false;
+    if (!stick_in_range(stick) || !dir_in_range(dir))
+        return false;
     return s_stick_dir_curr[stick][dir] && !s_stick_dir_prev[stick][dir];
 }
 
 bool input_stick_just_released(InputStickId stick, InputStickDir dir)
 {
-    if (gamepad_input_gated()) return false;
-    if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
+    if (gamepad_input_gated())
+        return false;
+    if (!stick_in_range(stick) || !dir_in_range(dir))
+        return false;
     return !s_stick_dir_curr[stick][dir] && s_stick_dir_prev[stick][dir];
 }
 
 bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir)
 {
-    if (gamepad_input_gated()) return false;
-    if (!stick_in_range(stick) || !dir_in_range(dir)) return false;
+    if (gamepad_input_gated())
+        return false;
+    if (!stick_in_range(stick) || !dir_in_range(dir))
+        return false;
     if (!input_stick_held(stick, dir)) {
         s_stick_dir_repeat_armed[stick][dir] = 0;
         return false;
@@ -624,14 +649,16 @@ bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir)
 
 float input_stick_x(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 0.0f;
+    if (gamepad_input_gated())
+        return 0.0f;
     int raw = (stick == GAXIS_LEFT) ? gamepad_state.lX : gamepad_state.rX;
     return apply_stick_deadzone(raw);
 }
 
 float input_stick_y(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 0.0f;
+    if (gamepad_input_gated())
+        return 0.0f;
     int raw = (stick == GAXIS_LEFT) ? gamepad_state.lY : gamepad_state.rY;
     return apply_stick_deadzone(raw);
 }
@@ -640,9 +667,12 @@ float input_stick_y(InputStickId stick)
 
 float input_trigger(SLONG trigger_idx)
 {
-    if (gamepad_input_gated()) return 0.0f;
-    if (trigger_idx == 15) return float(gamepad_state.trigger_left)  / 255.0f;
-    if (trigger_idx == 16) return float(gamepad_state.trigger_right) / 255.0f;
+    if (gamepad_input_gated())
+        return 0.0f;
+    if (trigger_idx == 15)
+        return float(gamepad_state.trigger_left) / 255.0f;
+    if (trigger_idx == 16)
+        return float(gamepad_state.trigger_right) / 255.0f;
     return 0.0f;
 }
 
@@ -660,7 +690,8 @@ bool input_gamepad_connected()
 
 bool input_dpad_active()
 {
-    if (gamepad_input_gated()) return false;
+    if (gamepad_input_gated())
+        return false;
     return gamepad_state.dpad_active != 0;
 }
 
@@ -671,33 +702,40 @@ bool input_dpad_active()
 // disconnected-gamepad state drives logic).
 int input_stick_x_axis(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 32768;
+    if (gamepad_input_gated())
+        return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lX : gamepad_state.rX;
 }
 
 int input_stick_y_axis(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 32768;
+    if (gamepad_input_gated())
+        return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lY : gamepad_state.rY;
 }
 
 int input_stick_x_axis_raw(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 32768;
+    if (gamepad_input_gated())
+        return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
 }
 
 int input_stick_y_axis_raw(InputStickId stick)
 {
-    if (gamepad_input_gated()) return 32768;
+    if (gamepad_input_gated())
+        return 32768;
     return (stick == GAXIS_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
 }
 
 int input_trigger_raw(SLONG trigger_idx)
 {
-    if (gamepad_input_gated()) return 0;
-    if (trigger_idx == 15) return gamepad_state.trigger_left;
-    if (trigger_idx == 16) return gamepad_state.trigger_right;
+    if (gamepad_input_gated())
+        return 0;
+    if (trigger_idx == 15)
+        return gamepad_state.trigger_left;
+    if (trigger_idx == 16)
+        return gamepad_state.trigger_right;
     return 0;
 }
 
@@ -762,11 +800,11 @@ void input_consume_all_held_until_released()
 bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)
 {
     return tick_combined(any_just_pressed, any_held,
-                         INPUT_REPEAT_INITIAL_MS, INPUT_REPEAT_PERIOD_MS);
+        INPUT_REPEAT_INITIAL_MS, INPUT_REPEAT_PERIOD_MS);
 }
 
 bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held,
-                                    uint64_t initial_ms, uint64_t period_ms)
+    uint64_t initial_ms, uint64_t period_ms)
 {
     if (!any_held) {
         // Combined released — disarm and reset prev state for next press.

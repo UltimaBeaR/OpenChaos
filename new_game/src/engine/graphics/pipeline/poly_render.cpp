@@ -1247,12 +1247,10 @@ void POLY_init_render_states()
                     // base draws as a plain opaque page and the overlay
                     // contributes via the shader. We suppress the WINDOW
                     // block below for 2PASS bases.
-                    const bool is_2pass_base =
-                        (POLY_page_flag[ii] & POLY_PAGE_FLAG_2PASS) != 0
+                    const bool is_2pass_base = (POLY_page_flag[ii] & POLY_PAGE_FLAG_2PASS) != 0
                         && ii + 1 < POLY_NUM_PAGES;
                     if (is_2pass_base) {
-                        pa->m_OverlayMode =
-                            (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) ? 2 : 1;
+                        pa->m_OverlayMode = (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) ? 2 : 1;
                         // Store the overlay's PAGE INDEX (not a GL
                         // handle) — the backend resolves it at draw time
                         // so the binding survives texture reloads and

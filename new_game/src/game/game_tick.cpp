@@ -1063,8 +1063,12 @@ static SLONG dpad_count_drawable_specials(Thing* darci)
 SLONG CONTROLS_build_weapon_list(Thing* darci, CBYTE* out, SLONG max)
 {
     static const SLONG priority[] = {
-        SPECIAL_GUN, SPECIAL_AK47, SPECIAL_SHOTGUN, SPECIAL_GRENADE,
-        SPECIAL_BASEBALLBAT, SPECIAL_KNIFE,
+        SPECIAL_GUN,
+        SPECIAL_AK47,
+        SPECIAL_SHOTGUN,
+        SPECIAL_GRENADE,
+        SPECIAL_BASEBALLBAT,
+        SPECIAL_KNIFE,
     };
     const SLONG prio_len = (SLONG)(sizeof(priority) / sizeof(priority[0]));
     SLONG n = 0;
@@ -1088,7 +1092,10 @@ SLONG CONTROLS_build_weapon_list(Thing* darci, CBYTE* out, SLONG max)
                 const SLONG t = p->Genus.Special->SpecialType;
                 bool listed = false;
                 for (SLONG i = 0; i < prio_len; ++i)
-                    if (priority[i] == t) { listed = true; break; }
+                    if (priority[i] == t) {
+                        listed = true;
+                        break;
+                    }
                 if (!listed && n < max)
                     out[n++] = (CBYTE)t;
             }
@@ -1169,8 +1176,7 @@ static void controls_equip(Thing* darci, Thing* player, SLONG token)
 static void controls_dpad_select_melee(Thing* darci, Thing* player)
 {
     const SLONG cur = CONTROLS_current_weapon_type(darci);
-    const bool holding_melee_or_fist =
-        cur == SPECIAL_NONE || cur == SPECIAL_KNIFE || cur == SPECIAL_BASEBALLBAT;
+    const bool holding_melee_or_fist = cur == SPECIAL_NONE || cur == SPECIAL_KNIFE || cur == SPECIAL_BASEBALLBAT;
 
     if (!holding_melee_or_fist) {
         // Stage 1: holding a ranged weapon → disarm to fists.
@@ -1184,7 +1190,10 @@ static void controls_dpad_select_melee(Thing* darci, Thing* player)
 
     SLONG idx = 0; // current position in the cycle (default fist)
     for (SLONG i = 0; i < cycle_len; ++i)
-        if (cycle[i] == cur) { idx = i; break; }
+        if (cycle[i] == cur) {
+            idx = i;
+            break;
+        }
 
     // First reachable entry after the current one: fist is always reachable,
     // owned melee otherwise. Guaranteed to terminate within cycle_len steps.
@@ -1239,10 +1248,14 @@ static bool r3_ranged_owned_with_ammo(Thing* darci, SLONG type)
     if (!s)
         return false;
     switch (type) {
-    case SPECIAL_AK47:    return s->Genus.Special->ammo || per->ammo_packs_ak47;
-    case SPECIAL_SHOTGUN: return s->Genus.Special->ammo || per->ammo_packs_shotgun;
-    case SPECIAL_GRENADE: return s->Genus.Special->ammo != 0;
-    default:              return true;
+    case SPECIAL_AK47:
+        return s->Genus.Special->ammo || per->ammo_packs_ak47;
+    case SPECIAL_SHOTGUN:
+        return s->Genus.Special->ammo || per->ammo_packs_shotgun;
+    case SPECIAL_GRENADE:
+        return s->Genus.Special->ammo != 0;
+    default:
+        return true;
     }
 }
 
@@ -1279,9 +1292,11 @@ static SLONG controls_build_r3_cycle_list(Thing* darci, CBYTE* out, SLONG max)
                 const SLONG t = p->Genus.Special->SpecialType;
                 bool listed = false;
                 for (SLONG i = 0; i < ranged_len && !listed; ++i)
-                    if (ranged[i] == t) listed = true;
+                    if (ranged[i] == t)
+                        listed = true;
                 for (SLONG i = 0; i < melee_len && !listed; ++i)
-                    if (melee[i] == t) listed = true;
+                    if (melee[i] == t)
+                        listed = true;
                 if (!listed && n < max)
                     out[n++] = (CBYTE)t;
             }
@@ -1312,7 +1327,10 @@ static void weapon_select_algorithm(Thing* darci, Thing* player)
     const SLONG cur = CONTROLS_current_weapon_type(darci);
     SLONG idx = -1;
     for (SLONG i = 0; i < count; ++i)
-        if ((SLONG)list[i] == cur) { idx = i; break; }
+        if ((SLONG)list[i] == cur) {
+            idx = i;
+            break;
+        }
 
     const SLONG next = (idx + 1) % count; // wrap to the start past the last entry
     controls_equip(darci, player, (SLONG)list[next]);
@@ -1526,27 +1544,33 @@ void process_controls(void)
     // The list below mirrors the (MeshID, PersonID) pairs the original
     // game produces at spawn (mesh_type[] + pcom.cpp + alloc_person CIV
     // randomisation). Press N walks within a type, wrap to next type.
-    struct ModelVariant { int8_t mesh_id; int8_t person_id; };
-    struct ModelVariantSet { int n; ModelVariant v[8]; };
-    constexpr ModelVariantSet VARIANTS[PERSON_NUM_TYPES] = {
-        { 1, {{0,0}} },                                   // DARCI
-        { 1, {{0,0}} },                                   // ROPER
-        { 1, {{4,0}} },                                   // COP
-        { 6, {{7,6},{7,7},{7,8},{7,9},{8,0},{9,0}} },     // CIV — 4 BodyDef × MeshID=7 + MeshID 8/9
-        { 3, {{0,0},{1,0},{2,0}} },                       // THUG_RASTA (pcom Random()%3)
-        { 1, {{1,0}} },                                   // THUG_GREY
-        { 1, {{2,0}} },                                   // THUG_RED
-        { 1, {{1,0}} },                                   // SLAG_TART
-        { 1, {{2,0}} },                                   // SLAG_FATUGLY
-        { 1, {{3,0}} },                                   // HOSTAGE
-        { 1, {{3,0}} },                                   // MECHANIC
-        { 1, {{6,0}} },                                   // TRAMP
-        { 1, {{5,0}} },                                   // MIB1
-        { 1, {{5,0}} },                                   // MIB2
-        { 1, {{5,0}} },                                   // MIB3
+    struct ModelVariant {
+        int8_t mesh_id;
+        int8_t person_id;
     };
-    static int s_model_cycle_type     = PERSON_DARCI;
-    static int s_model_cycle_variant  = 0;
+    struct ModelVariantSet {
+        int n;
+        ModelVariant v[8];
+    };
+    constexpr ModelVariantSet VARIANTS[PERSON_NUM_TYPES] = {
+        { 1, { { 0, 0 } } }, // DARCI
+        { 1, { { 0, 0 } } }, // ROPER
+        { 1, { { 4, 0 } } }, // COP
+        { 6, { { 7, 6 }, { 7, 7 }, { 7, 8 }, { 7, 9 }, { 8, 0 }, { 9, 0 } } }, // CIV — 4 BodyDef × MeshID=7 + MeshID 8/9
+        { 3, { { 0, 0 }, { 1, 0 }, { 2, 0 } } }, // THUG_RASTA (pcom Random()%3)
+        { 1, { { 1, 0 } } }, // THUG_GREY
+        { 1, { { 2, 0 } } }, // THUG_RED
+        { 1, { { 1, 0 } } }, // SLAG_TART
+        { 1, { { 2, 0 } } }, // SLAG_FATUGLY
+        { 1, { { 3, 0 } } }, // HOSTAGE
+        { 1, { { 3, 0 } } }, // MECHANIC
+        { 1, { { 6, 0 } } }, // TRAMP
+        { 1, { { 5, 0 } } }, // MIB1
+        { 1, { { 5, 0 } } }, // MIB2
+        { 1, { { 5, 0 } } }, // MIB3
+    };
+    static int s_model_cycle_type = PERSON_DARCI;
+    static int s_model_cycle_variant = 0;
     if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_CYCLE_PLAYER_MODEL_KKEY)) {
         Thing* darci_thing = NET_PERSON(0);
         if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
@@ -1560,10 +1584,10 @@ void process_controls(void)
 
             const UBYTE new_anim_type = anim_type[s_model_cycle_type];
             darci_thing->Genus.Person->PersonType = s_model_cycle_type;
-            darci_thing->Genus.Person->AnimType   = new_anim_type;
-            darci_thing->Draw.Tweened->TheChunk   = &game_chunk[new_anim_type];
-            darci_thing->Draw.Tweened->MeshID     = (UBYTE)mv.mesh_id;
-            darci_thing->Draw.Tweened->PersonID   = (UBYTE)mv.person_id;
+            darci_thing->Genus.Person->AnimType = new_anim_type;
+            darci_thing->Draw.Tweened->TheChunk = &game_chunk[new_anim_type];
+            darci_thing->Draw.Tweened->MeshID = (UBYTE)mv.mesh_id;
+            darci_thing->Draw.Tweened->PersonID = (UBYTE)mv.person_id;
             set_person_idle(darci_thing);
         }
     }
@@ -1580,8 +1604,8 @@ void process_controls(void)
     if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_SKELETON_OVERLAY_KKEY)) {
         g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
         CONSOLE_status(g_skin_debug_draw_skeleton
-            ? (CBYTE*)"Skeleton overlay: ON"
-            : (CBYTE*)"Skeleton overlay: OFF");
+                ? (CBYTE*)"Skeleton overlay: ON"
+                : (CBYTE*)"Skeleton overlay: OFF");
     }
 
     // Persistent status line. "Model: X" only shown in debug mode and
@@ -1598,11 +1622,11 @@ void process_controls(void)
         };
         static bool s_wrote_status = false;
         const bool non_default = (s_model_cycle_type != PERSON_DARCI)
-                              || (s_model_cycle_variant != 0);
+            || (s_model_cycle_variant != 0);
         if (allow_debug_keys && non_default) {
             char buf[64];
             snprintf(buf, sizeof(buf), "Model: %s (var %d)",
-                     k_person_names[s_model_cycle_type], s_model_cycle_variant);
+                k_person_names[s_model_cycle_type], s_model_cycle_variant);
             CONSOLE_status((CBYTE*)buf);
             s_wrote_status = true;
         } else if (s_wrote_status) {
@@ -1675,7 +1699,7 @@ void process_controls(void)
     // cadence as the MIB destruct spawn / SPARK noise wiggle, so all
     // visual subsystems share one timeline). See FPS unlock issue #19.
     {
-        constexpr SLONG SPARK_TICK_INTERVAL_MS = 67;  // ~15 Hz visual cadence
+        constexpr SLONG SPARK_TICK_INTERVAL_MS = 67; // ~15 Hz visual cadence
         static UBYTE last_spark_phase = 0;
         UBYTE cur_spark_phase = UBYTE(sdl3_get_ticks() / SPARK_TICK_INTERVAL_MS);
         if (cur_spark_phase != last_spark_phase) {
@@ -1699,7 +1723,7 @@ void process_controls(void)
     if (is_inputing) {
         static CBYTE input_text[MAX_PATH] = "] ";
 
-        const bool console_esc   = input_key_just_pressed(ACT_CONS_CANCEL_KKEY);
+        const bool console_esc = input_key_just_pressed(ACT_CONS_CANCEL_KKEY);
         const bool console_enter = input_key_just_pressed(ACT_CONS_SUBMIT_KKEY);
         if (console_esc || console_enter) {
             if (console_enter)
@@ -1782,32 +1806,35 @@ void process_controls(void)
                 controls_show_popup(darci, the_player);
             }
 
-            const bool dpad_up    = input_btn_just_pressed(ACT_FOOT_WEAPON_PISTOL_GBTN);
-            const bool dpad_left  = input_btn_just_pressed(ACT_FOOT_WEAPON_AK47_GBTN);
+            const bool dpad_up = input_btn_just_pressed(ACT_FOOT_WEAPON_PISTOL_GBTN);
+            const bool dpad_left = input_btn_just_pressed(ACT_FOOT_WEAPON_AK47_GBTN);
             const bool dpad_right = input_btn_just_pressed(ACT_FOOT_WEAPON_SHOTGUN_GBTN);
-            const bool dpad_down  = input_btn_just_pressed(ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN);
+            const bool dpad_down = input_btn_just_pressed(ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN);
 
             if (r3_held) {
                 // R3 held: D-pad ↑/↓ AND left-stick ↑/↓ scroll the inventory;
                 // other D-pad ignored. Stick uses the virtual-direction edge so
                 // one push = one step (like the D-pad).
-                const bool scroll_up =
-                    dpad_up || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP);
-                const bool scroll_down =
-                    dpad_down || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN);
-                if (scroll_up)   { weapon_scroll(darci, the_player, -1); s_r3_scroll_used = true; }
-                if (scroll_down) { weapon_scroll(darci, the_player, +1); s_r3_scroll_used = true; }
+                const bool scroll_up = dpad_up || input_stick_just_pressed(GAXIS_LEFT, GDIR_UP);
+                const bool scroll_down = dpad_down || input_stick_just_pressed(GAXIS_LEFT, GDIR_DOWN);
+                if (scroll_up) {
+                    weapon_scroll(darci, the_player, -1);
+                    s_r3_scroll_used = true;
+                }
+                if (scroll_down) {
+                    weapon_scroll(darci, the_player, +1);
+                    s_r3_scroll_used = true;
+                }
             } else {
                 // R3 not held: D-pad direct select + grenade on ↑+→ diagonal.
                 // Skipped while the cheat modifier (Select + L1 + L2) is held —
                 // the D-pad is the cheat-direction selector then.
-                const bool cheat_combo_active =
-                    input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
+                const bool cheat_combo_active = input_btn_held(ACT_FOOT_CHEAT_MOD_SELECT_GBTN)
                     && input_btn_held(ACT_FOOT_CHEAT_MOD_L1_GBTN)
                     && input_btn_held(ACT_FOOT_CHEAT_MOD_L2_BTN_GBTN);
 
                 static bool s_diag_grenade_armed = false;
-                const bool up_held    = input_btn_held(ACT_FOOT_WEAPON_PISTOL_GBTN);
+                const bool up_held = input_btn_held(ACT_FOOT_WEAPON_PISTOL_GBTN);
                 const bool right_held = input_btn_held(ACT_FOOT_WEAPON_SHOTGUN_GBTN);
 
                 if (cheat_combo_active) {
@@ -1820,10 +1847,14 @@ void process_controls(void)
                     }
                 } else {
                     s_diag_grenade_armed = false;
-                    if (dpad_up)         controls_equip(darci, the_player, SPECIAL_GUN);
-                    else if (dpad_left)  controls_equip(darci, the_player, SPECIAL_AK47);
-                    else if (dpad_right) controls_equip(darci, the_player, SPECIAL_SHOTGUN);
-                    else if (dpad_down)  controls_dpad_select_melee(darci, the_player);
+                    if (dpad_up)
+                        controls_equip(darci, the_player, SPECIAL_GUN);
+                    else if (dpad_left)
+                        controls_equip(darci, the_player, SPECIAL_AK47);
+                    else if (dpad_right)
+                        controls_equip(darci, the_player, SPECIAL_SHOTGUN);
+                    else if (dpad_down)
+                        controls_dpad_select_melee(darci, the_player);
                 }
             }
 
@@ -1852,7 +1883,7 @@ void process_controls(void)
             // wheel down = next. One step per notch.
             {
                 const SLONG wheel = input_mouse_wheel_consume();
-                const SBYTE d = (wheel > 0) ? (SBYTE)-1 : (SBYTE)+1;
+                const SBYTE d = (wheel > 0) ? (SBYTE)-1 : (SBYTE) + 1;
                 for (SLONG i = 0, n = (wheel < 0 ? -wheel : wheel); i < n; ++i)
                     weapon_scroll(darci, the_player, d);
             }
@@ -1914,7 +1945,8 @@ void process_controls(void)
 
             const SLONG new_fade = (SLONG)the_player->Genus.Player->PopupFade - fade_step_int;
             the_player->Genus.Player->PopupFade = (UBYTE)(new_fade > 0 ? new_fade : 0);
-            if (new_fade <= 0) fade_out_accum = 0.0f; // reset on hitting zero
+            if (new_fade <= 0)
+                fade_out_accum = 0.0f; // reset on hitting zero
 
             if (the_player->Genus.Player->ItemFocus > -1) {
                 //				CONTROLS_set_inventory(darci,the_player);

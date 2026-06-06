@@ -12,7 +12,7 @@
 #include "camera/look_sensitivity.h" // look-sensitivity knobs + derived scales (shared with zoom look)
 #include "camera/fc_globals.h"
 #include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness, camera_is_*
-#include "camera/cam_trig.h"    // cam_arctan_psx_fp8 — high-precision atan for FC_look_at_focus
+#include "camera/cam_trig.h" // cam_arctan_psx_fp8 — high-precision atan for FC_look_at_focus
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
@@ -62,8 +62,8 @@ extern BOOL PLAYCUTS_playing;
 // leaving the entire motion to be smoothed by the position/angle pass.
 // Mouse uses the same default value so AUTO + mouse and AUTO + gamepad
 // feel identical at rubberness 0.5.
-#define MOUSE_ORBIT_LAG     61
-#define STICK_ORBIT_LAG     61
+#define MOUSE_ORBIT_LAG 61
+#define STICK_ORBIT_LAG 61
 
 // Camera Y range, relative to focus_y (the character's vertical position).
 // Same numbers for mouse and gamepad — the camera-elevation range must
@@ -71,8 +71,8 @@ extern BOOL PLAYCUTS_playing;
 // above the character's feet so the camera doesn't dip into ground
 // geometry and trigger the wall-collision system on the floor (whose
 // EXIT fade then produces a visible jerk on liftoff).
-#define FC_CAM_Y_MIN_ABOVE_FOCUS  0x6000   // ~3/4 m above feet
-#define FC_CAM_Y_MAX_ABOVE_FOCUS  0x28000  // ~5 m above feet
+#define FC_CAM_Y_MIN_ABOVE_FOCUS 0x6000 // ~3/4 m above feet
+#define FC_CAM_Y_MAX_ABOVE_FOCUS 0x28000 // ~5 m above feet
 
 // OpenChaos: master switch for the vehicle enter/exit camera "scene override"
 // (programmatic lock-rotation behind the car + manual-input block during the
@@ -599,9 +599,9 @@ void FC_look_at_focus(FC_Cam* fc)
     // rotation (~the micro-jerks visible at high frame rates with
     // smoothing snap modes).
     constexpr SLONG YAW_FP8_RANGE = 2048 * 256;
-    fc->want_yaw   = ((-cam_arctan_psx_fp8(dx, dz)) % YAW_FP8_RANGE + YAW_FP8_RANGE) % YAW_FP8_RANGE;
+    fc->want_yaw = ((-cam_arctan_psx_fp8(dx, dz)) % YAW_FP8_RANGE + YAW_FP8_RANGE) % YAW_FP8_RANGE;
     fc->want_pitch = cam_arctan_psx_fp8(dy, dxz);
-    fc->want_roll  = 1024 << 8;
+    fc->want_roll = 1024 << 8;
 
     if (fc->focus->Class == CLASS_PERSON && (fc->focus->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
         Thing* p_vehicle = TO_THING(fc->focus->Genus.Person->InCar);
@@ -797,21 +797,26 @@ static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLO
     //     than the gamepad floor, which the user perceived as mouse allowing
     //     the camera lower than the gamepad does).
     int64_t max_off_y = (pitch_max_off_y < FC_CAM_Y_MAX_ABOVE_FOCUS)
-                        ? pitch_max_off_y
-                        : (int64_t)FC_CAM_Y_MAX_ABOVE_FOCUS;
+        ? pitch_max_off_y
+        : (int64_t)FC_CAM_Y_MAX_ABOVE_FOCUS;
     int64_t min_off_y = (pitch_min_off_y > FC_CAM_Y_MIN_ABOVE_FOCUS)
-                        ? pitch_min_off_y
-                        : (int64_t)FC_CAM_Y_MIN_ABOVE_FOCUS;
-    if (min_off_y > max_off_y) min_off_y = max_off_y;
+        ? pitch_min_off_y
+        : (int64_t)FC_CAM_Y_MIN_ABOVE_FOCUS;
+    if (min_off_y > max_off_y)
+        min_off_y = max_off_y;
 
     // Early-exit when user input pushes IN THE DIRECTION the position is
     // already past a limit. See block comment at the top of this section.
-    if (y_delta > 0 && old_off_y > max_off_y) return;
-    if (y_delta < 0 && old_off_y < min_off_y) return;
+    if (y_delta > 0 && old_off_y > max_off_y)
+        return;
+    if (y_delta < 0 && old_off_y < min_off_y)
+        return;
 
     int64_t new_off_y = old_off_y + y_delta;
-    if (new_off_y > max_off_y) new_off_y = max_off_y;
-    if (new_off_y < min_off_y) new_off_y = min_off_y;
+    if (new_off_y > max_off_y)
+        new_off_y = max_off_y;
+    if (new_off_y < min_off_y)
+        new_off_y = min_off_y;
 
     const SLONG new_py = (SLONG)(new_off_y + fc->focus_y);
     if (new_py == *py)
@@ -819,7 +824,8 @@ static void apply_pitch_y_delta(FC_Cam* fc, SLONG* px, SLONG* py, SLONG* pz, SLO
 
     // New XZ derived from preserved 3D distance.
     int64_t new_xz_sq = dist3d_sq - new_off_y * new_off_y;
-    if (new_xz_sq < 0) new_xz_sq = 0;
+    if (new_xz_sq < 0)
+        new_xz_sq = 0;
 
     *py = new_py;
 
@@ -959,9 +965,9 @@ void FC_process()
                 // intermediate product within SLONG range (max camera
                 // offset ~120000; 120000>>4 * 65536 = 4.9e8 < 2^31).
                 SLONG rx, rz;
-#define INHERIT_PT(px, pz) \
-    rx = (px) - fc->platform_last_x; \
-    rz = (pz) - fc->platform_last_z; \
+#define INHERIT_PT(px, pz)                                  \
+    rx = (px) - fc->platform_last_x;                        \
+    rz = (pz) - fc->platform_last_z;                        \
     (px) = cur_x + (((rx >> 4) * c + (rz >> 4) * s) >> 12); \
     (pz) = cur_z + (((rz >> 4) * c - (rx >> 4) * s) >> 12)
 
@@ -1180,9 +1186,9 @@ void FC_process()
                     SLONG s_full = SIN(angle & 2047);
                     SLONG c_full = COS(angle & 2047);
                     int64_t rx, rz;
-#define ORBIT_PT(px, pz, s, c) \
-    rx = (int64_t)(px) - fc->focus_x; \
-    rz = (int64_t)(pz) - fc->focus_z; \
+#define ORBIT_PT(px, pz, s, c)                                 \
+    rx = (int64_t)(px) - fc->focus_x;                          \
+    rz = (int64_t)(pz) - fc->focus_z;                          \
     (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
     (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
 
@@ -1196,15 +1202,18 @@ void FC_process()
                         // rubberness-scaled residual to be smoothed.
                         const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)MOUSE_ORBIT_LAG);
                         SLONG sync_angle;
-                        if      (angle >  lag) sync_angle = angle - lag;
-                        else if (angle < -lag) sync_angle = angle + lag;
-                        else                   sync_angle = 0;
+                        if (angle > lag)
+                            sync_angle = angle - lag;
+                        else if (angle < -lag)
+                            sync_angle = angle + lag;
+                        else
+                            sync_angle = 0;
                         if (sync_angle != 0) {
                             SLONG s_sync = SIN(sync_angle & 2047);
                             SLONG c_sync = COS(sync_angle & 2047);
                             ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
                             SLONG yaw_mask = (2048 << 8) - 1;
-                            fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                            fc->yaw = (fc->yaw - (sync_angle << 8)) & yaw_mask;
                             fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
                         }
                     }
@@ -1301,17 +1310,20 @@ void FC_process()
                         sync_angle = angle;
                     } else {
                         const SLONG lag = (SLONG)orbit_lag_for_rubberness((float)STICK_ORBIT_LAG);
-                        if      (angle >  lag) sync_angle = angle - lag;
-                        else if (angle < -lag) sync_angle = angle + lag;
-                        else                   sync_angle = 0;
+                        if (angle > lag)
+                            sync_angle = angle - lag;
+                        else if (angle < -lag)
+                            sync_angle = angle + lag;
+                        else
+                            sync_angle = 0;
                     }
 
                     SLONG s_full = SIN(angle & 2047);
                     SLONG c_full = COS(angle & 2047);
                     int64_t rx, rz;
-#define ORBIT_PT(px, pz, s, c) \
-    rx = (int64_t)(px) - fc->focus_x; \
-    rz = (int64_t)(pz) - fc->focus_z; \
+#define ORBIT_PT(px, pz, s, c)                                 \
+    rx = (int64_t)(px) - fc->focus_x;                          \
+    rz = (int64_t)(pz) - fc->focus_z;                          \
     (px) = fc->focus_x + (SLONG)((rx * (c) - rz * (s)) >> 16); \
     (pz) = fc->focus_z + (SLONG)((rx * (s) + rz * (c)) >> 16)
 
@@ -1322,7 +1334,7 @@ void FC_process()
                         SLONG c_sync = COS(sync_angle & 2047);
                         ORBIT_PT(fc->x, fc->z, s_sync, c_sync);
                         SLONG yaw_mask = (2048 << 8) - 1;
-                        fc->yaw      = (fc->yaw      - (sync_angle << 8)) & yaw_mask;
+                        fc->yaw = (fc->yaw - (sync_angle << 8)) & yaw_mask;
                         fc->want_yaw = (fc->want_yaw - (sync_angle << 8)) & yaw_mask;
                     }
 #undef ORBIT_PT
@@ -1407,7 +1419,8 @@ void FC_process()
         // behind. Manual camera input still interrupts via `nobehind`.
         {
             UWORD cur_t = (fc->focus->Class == CLASS_PERSON)
-                ? fc->focus->Genus.Person->Target : 0;
+                ? fc->focus->Genus.Person->Target
+                : 0;
             bool in_fight = (fc->focus->Class == CLASS_PERSON
                 && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT);
 
@@ -1461,8 +1474,8 @@ void FC_process()
         {
             SLONG focus_dx = fc->focus_x - s_prev_focus_x[cam];
             SLONG focus_dz = fc->focus_z - s_prev_focus_z[cam];
-            const SLONG VC_FOCUS_SPEED_CAP   = 0x3000;   // ~9 cm/tick
-            const SLONG TELEPORT_THRESHOLD   = 0x40000;
+            const SLONG VC_FOCUS_SPEED_CAP = 0x3000; // ~9 cm/tick
+            const SLONG TELEPORT_THRESHOLD = 0x40000;
             // Guard against huge deltas (focus teleport on level load /
             // mission start) so we don't launch want across the map.
             if (abs(focus_dx) < TELEPORT_THRESHOLD
@@ -1510,10 +1523,14 @@ void FC_process()
                     // vehicle speed.
                     SLONG track_dx = 0;
                     SLONG track_dz = 0;
-                    if      (focus_dx >  VC_FOCUS_SPEED_CAP) track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
-                    else if (focus_dx < -VC_FOCUS_SPEED_CAP) track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
-                    if      (focus_dz >  VC_FOCUS_SPEED_CAP) track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
-                    else if (focus_dz < -VC_FOCUS_SPEED_CAP) track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
+                    if (focus_dx > VC_FOCUS_SPEED_CAP)
+                        track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dx < -VC_FOCUS_SPEED_CAP)
+                        track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
+                    if (focus_dz > VC_FOCUS_SPEED_CAP)
+                        track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
+                    else if (focus_dz < -VC_FOCUS_SPEED_CAP)
+                        track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
                     fc->want_x += track_dx;
                     fc->want_z += track_dz;
                 }
@@ -1664,7 +1681,8 @@ void FC_process()
             // same — convergence would still fight it).
             if (!manual_y_input_this_tick && input_gamepad_connected()) {
                 SLONG sy = input_stick_y_axis(ACT_FOOT_CAMERA_LOOK_GAXIS) - 32768;
-                if (abs(sy) > 8000) manual_y_input_this_tick = true;
+                if (abs(sy) > 8000)
+                    manual_y_input_this_tick = true;
             }
 
             if (camera_is_manual() || manual_y_input_this_tick) {
@@ -1843,12 +1861,12 @@ void FC_process()
         // so the camera glides into the pose and then mouse-look is responsive,
         // with no residual jump at the hand-off. AUTO ignores this (always
         // smooth via its own path below).
-        constexpr SLONG AIM_RAMP_STEP    = 22;  // ~12 ticks ease → snap
-        constexpr SLONG AIM_RATE_BASE_Q8 = 64;  // 0.25/tick at entry start
+        constexpr SLONG AIM_RAMP_STEP = 22; // ~12 ticks ease → snap
+        constexpr SLONG AIM_RATE_BASE_Q8 = 64; // 0.25/tick at entry start
         // Zoom-OUT ease: gentler than the default follow (>>2 = 0.25/tick = 64),
         // applied for UNZOOM_WINDOW_TICKS after leaving the aim pose so the
         // camera glides back out instead of snapping. Tune by feel.
-        constexpr SLONG UNZOOM_RATE_Q8     = 32; // 0.125/tick — ~half the default follow
+        constexpr SLONG UNZOOM_RATE_Q8 = 32; // 0.125/tick — ~half the default follow
         constexpr SLONG UNZOOM_WINDOW_TICKS = 20; // ~1 s at 20 Hz — covers the visible pull-back
         const bool aim_now = (fc->toonear && fc->toonear_dist == 0x90000);
         if (!aim_now || !s_prev_aim[cam]) {
@@ -1946,22 +1964,25 @@ void FC_process()
             // Manual aim: ease angle at the aim ramp rate, in lockstep with the
             // position above (gradual on entry → snap once ramped). Wrap-safe
             // signed deltas, then scale by the Q8 rate.
-            SLONG dyaw   = fc->want_yaw   - fc->yaw;
+            SLONG dyaw = fc->want_yaw - fc->yaw;
             SLONG dpitch = fc->want_pitch - fc->pitch;
-            SLONG droll  = fc->want_roll  - fc->roll;
-            dyaw   &= (2048 << 8) - 1;
+            SLONG droll = fc->want_roll - fc->roll;
+            dyaw &= (2048 << 8) - 1;
             dpitch &= (2048 << 8) - 1;
-            droll  &= (2048 << 8) - 1;
-            if (dyaw   > (1024 << 8)) dyaw   -= (2048 << 8);
-            if (dpitch > (1024 << 8)) dpitch -= (2048 << 8);
-            if (droll  > (1024 << 8)) droll  -= (2048 << 8);
-            fc->yaw   += (SLONG)(((int64_t)dyaw   * aim_rate_q8) >> 8);
+            droll &= (2048 << 8) - 1;
+            if (dyaw > (1024 << 8))
+                dyaw -= (2048 << 8);
+            if (dpitch > (1024 << 8))
+                dpitch -= (2048 << 8);
+            if (droll > (1024 << 8))
+                droll -= (2048 << 8);
+            fc->yaw += (SLONG)(((int64_t)dyaw * aim_rate_q8) >> 8);
             fc->pitch += (SLONG)(((int64_t)dpitch * aim_rate_q8) >> 8);
-            fc->roll  += (SLONG)(((int64_t)droll  * aim_rate_q8) >> 8);
+            fc->roll += (SLONG)(((int64_t)droll * aim_rate_q8) >> 8);
         } else if (camera_is_manual() && !entering_vehicle_scene) {
-            fc->yaw   = fc->want_yaw;
+            fc->yaw = fc->want_yaw;
             fc->pitch = fc->want_pitch;
-            fc->roll  = fc->want_roll;
+            fc->roll = fc->want_roll;
         } else {
             SLONG dyaw = fc->want_yaw - fc->yaw;
             SLONG dpitch = fc->want_pitch - fc->pitch;
@@ -2007,16 +2028,18 @@ void FC_process()
                 // doesn't interact with position smoothing) and the
                 // orbit-lag residual for fast mouse flicks.
                 float keep = keep_for_rubberness(0.75f);
-                if (keep > 0.75f) keep = 0.75f;
+                if (keep > 0.75f)
+                    keep = 0.75f;
                 // Vehicle EXIT scene: drop ~37.5%/tick (keep 0.625) to match
                 // the faster exit position smoothing above — angle and position
                 // stay in lockstep so the character doesn't drift off-centre
                 // while the camera rotates quickly behind.
-                if (exiting_vehicle_scene) keep = 0.625f;
+                if (exiting_vehicle_scene)
+                    keep = 0.625f;
                 const float drop = 1.0f - keep;
-                fc->yaw   += (SLONG)((float)dyaw   * drop);
+                fc->yaw += (SLONG)((float)dyaw * drop);
                 fc->pitch += (SLONG)((float)dpitch * drop);
-                fc->roll  += (SLONG)((float)droll  * drop);
+                fc->roll += (SLONG)((float)droll * drop);
             } else {
                 fc->want_yaw = fc->yaw;
                 fc->want_pitch = fc->pitch;

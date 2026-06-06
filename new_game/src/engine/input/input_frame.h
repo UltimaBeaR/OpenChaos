@@ -125,7 +125,7 @@ bool input_btn_just_pressed_or_repeat(SLONG btn_idx);
 // pair; replaced with a typedef because the #defines in input_codes.h now own
 // the names (which keeps the action-map device-code list authoritative).
 
-using InputStickId  = int;
+using InputStickId = int;
 using InputStickDir = int;
 
 bool input_stick_held(InputStickId stick, InputStickDir dir);
@@ -268,8 +268,8 @@ int input_trigger_raw(SLONG trigger_idx);
 //       input_key_held(KKEY_DOWN)
 //    || input_stick_held(GAXIS_LEFT, GDIR_DOWN));
 struct InputAutoRepeat {
-    bool     was_held  = false;
-    bool     armed     = false;
+    bool was_held = false;
+    bool armed = false;
     uint64_t next_fire = 0;
 
     // Returns true on a genuine combined rising edge AND on each auto-repeat
@@ -296,7 +296,7 @@ struct InputAutoRepeat {
     // key to scroll text). initial_ms = delay before the first auto-repeat after
     // the rising edge; period_ms = gap between subsequent repeats.
     bool tick_combined(bool any_just_pressed, bool any_held,
-                       uint64_t initial_ms, uint64_t period_ms);
+        uint64_t initial_ms, uint64_t period_ms);
 };
 
 // Drop every sticky press_pending flag (keyboard + gamepad) at once. Use

@@ -25,23 +25,30 @@ bool mat3_invert_operator(const float* m, float* out)
     const double d = m[3], e = m[4], f = m[5];
     const double g = m[6], h = m[7], i = m[8];
 
-    const double A =  (e * i - f * h);
+    const double A = (e * i - f * h);
     const double B = -(d * i - f * g);
-    const double C =  (d * h - e * g);
+    const double C = (d * h - e * g);
     const double D = -(b * i - c * h);
-    const double E =  (a * i - c * g);
+    const double E = (a * i - c * g);
     const double F = -(a * h - b * g);
-    const double G =  (b * f - c * e);
+    const double G = (b * f - c * e);
     const double H = -(a * f - c * d);
-    const double I =  (a * e - b * d);
+    const double I = (a * e - b * d);
 
     const double det = a * A + b * B + c * C;
-    if (std::fabs(det) < 1e-20) return false;
+    if (std::fabs(det) < 1e-20)
+        return false;
     const double inv_det = 1.0 / det;
 
-    out[0] = float(A * inv_det); out[1] = float(D * inv_det); out[2] = float(G * inv_det);
-    out[3] = float(B * inv_det); out[4] = float(E * inv_det); out[5] = float(H * inv_det);
-    out[6] = float(C * inv_det); out[7] = float(F * inv_det); out[8] = float(I * inv_det);
+    out[0] = float(A * inv_det);
+    out[1] = float(D * inv_det);
+    out[2] = float(G * inv_det);
+    out[3] = float(B * inv_det);
+    out[4] = float(E * inv_det);
+    out[5] = float(H * inv_det);
+    out[6] = float(C * inv_det);
+    out[7] = float(F * inv_det);
+    out[8] = float(I * inv_det);
     return true;
 }
 
@@ -104,7 +111,7 @@ void WIBBLE_simple(
     p.poly_screen_mid[1] = POLY_screen_mid_y * fbo_scale;
     p.poly_screen_mul[0] = POLY_screen_mul_x * fbo_scale;
     p.poly_screen_mul[1] = POLY_screen_mul_y * fbo_scale;
-    p.poly_zclip         = POLY_ZCLIP_PLANE;
+    p.poly_zclip = POLY_ZCLIP_PLANE;
     // Viewport for gl_FragCoord.y bottom-up → POLY top-down flip in shader.
     p.viewport[0] = 0.0f;
     p.viewport[1] = 0.0f;

@@ -98,10 +98,13 @@ GlyphAtlas atlas_for_device(GlyphDevice dev)
 GlyphDevice active_glyph_device()
 {
     switch (active_input_device) {
-    case INPUT_DEVICE_DUALSENSE: return GLYPH_DEV_PS;
-    case INPUT_DEVICE_XBOX:      return GLYPH_DEV_XBOX;
+    case INPUT_DEVICE_DUALSENSE:
+        return GLYPH_DEV_PS;
+    case INPUT_DEVICE_XBOX:
+        return GLYPH_DEV_XBOX;
     case INPUT_DEVICE_KEYBOARD_MOUSE:
-    default:                     return GLYPH_DEV_KBM;
+    default:
+        return GLYPH_DEV_KBM;
     }
 }
 
@@ -165,8 +168,10 @@ GlyphLayout layout_glyph(float x, float y, float line_height)
     float sy = PolyPage::ui_scale_y();
     const float ox = PolyPage::ui_offset_x();
     const float oy = PolyPage::ui_offset_y();
-    if (sx <= 0.0f) sx = 1.0f;
-    if (sy <= 0.0f) sy = 1.0f;
+    if (sx <= 0.0f)
+        sx = 1.0f;
+    if (sy <= 0.0f)
+        sy = 1.0f;
 
     const float line_h_real = line_height * sy;
     const float g_real = glyph_size_px(line_h_real);
@@ -215,14 +220,16 @@ float input_glyph_draw_cell(GlyphDevice dev, int col, int row, float x, float y,
     const float u2 = u1 + cell / px;
     const float v2 = v1 + cell / px;
 
-    if (fade < 0) fade = 0;
-    else if (fade > 255) fade = 255;
+    if (fade < 0)
+        fade = 0;
+    else if (fade > 255)
+        fade = 255;
     const ULONG base_a = INPUT_GLYPH_DRAW_COLOUR >> 24;
     const ULONG faded_a = base_a * (ULONG)(255 - fade) / 255u;
     const ULONG colour = (INPUT_GLYPH_DRAW_COLOUR & 0x00FFFFFFu) | (faded_a << 24);
 
     PANEL_draw_quad(L.gx, L.gy, L.gx + L.gw, L.gy + L.gh, a.poly_page,
-                    colour, u1, v1, u2, v2);
+        colour, u1, v1, u2, v2);
     return L.advance;
 }
 
@@ -280,10 +287,10 @@ float round_virtual_y(float vy)
 // Per-line geometry derived from the text scale, shared by every draw path so
 // line spacing / inline-glyph centring can never diverge between them.
 struct TextMetrics {
-    float text_h;       // text cell height (virtual px)
+    float text_h; // text cell height (virtual px)
     float line_advance; // baseline-to-baseline step (cell + leading)
-    float space_w;      // width of a separator space
-    float glyph_y_off;  // y offset to centre an inline glyph on the letter ink
+    float space_w; // width of a separator space
+    float glyph_y_off; // y offset to centre an inline glyph on the letter ink
 };
 
 TextMetrics text_metrics(SLONG text_scale)
@@ -316,7 +323,7 @@ struct RichLine {
 // The wrap is a pure function of (str, wrap_width, text_scale) and the active
 // device's glyph advances, so it is deterministic — the same on every call.
 int build_lines(const char* str, float wrap_width, SLONG text_scale,
-                RichLine* out_lines, int max_lines)
+    RichLine* out_lines, int max_lines)
 {
     if (!str)
         return 0;
@@ -412,7 +419,7 @@ int build_lines(const char* str, float wrap_width, SLONG text_scale,
 // same atom/spacing rules build_lines used, so positions match exactly. Does NOT
 // wrap (the line is known to fit).
 void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
-                   unsigned long colour, SWORD fade, const TextMetrics& m)
+    unsigned long colour, SWORD fade, const TextMetrics& m)
 {
     float cursor_x = x;
     bool at_line_start = true;
@@ -457,7 +464,7 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
 
         if (is_glyph) {
             cursor_x += input_glyph_draw_cell(glyph->dev, glyph->col, glyph->row,
-                                              cursor_x, y + m.glyph_y_off, m.text_h, fade);
+                cursor_x, y + m.glyph_y_off, m.text_h, fade);
         } else {
             for (const char* c = atom_begin; c < p; ++c)
                 cursor_x += (float)FONT2D_DrawLetter(
@@ -475,7 +482,7 @@ const int RICH_TEXT_MAX_LINES = 256;
 } // namespace
 
 float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
-                            SLONG text_scale, unsigned long colour, SWORD fade)
+    SLONG text_scale, unsigned long colour, SWORD fade)
 {
     if (!str)
         return 0.0f;
@@ -496,10 +503,10 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
 }
 
 SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
-                                     float wrap_width, SLONG text_scale,
-                                     unsigned long colour, SWORD fade,
-                                     SLONG* first_line, float view_height,
-                                     SLONG* out_fit)
+    float wrap_width, SLONG text_scale,
+    unsigned long colour, SWORD fade,
+    SLONG* first_line, float view_height,
+    SLONG* out_fit)
 {
     const TextMetrics m = text_metrics(text_scale);
 
@@ -540,9 +547,9 @@ SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
 // --- Input-prompt catalog (dev test page, gated by OC_DEBUG_INPUT_PROMPT_CATALOG) ---
 
 SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
-                                         unsigned long colour, SWORD fade,
-                                         SLONG* first_line, float view_height,
-                                         SLONG* out_fit)
+    unsigned long colour, SWORD fade,
+    SLONG* first_line, float view_height,
+    SLONG* out_fit)
 {
     const TextMetrics m = text_metrics(text_scale);
     const GlyphDevice dev = active_glyph_device();
@@ -584,12 +591,12 @@ SLONG input_prompt_catalog_draw_scrolled(float x, float y, SLONG text_scale,
         float cursor_x = x;
         for (const char* c = INPUT_GLYPHS[i].label; *c; ++c)
             cursor_x += (float)FONT2D_DrawLetter((CBYTE)*c, (SLONG)cursor_x, (SLONG)ly,
-                                                 colour, text_scale, POLY_PAGE_FONT2D, fade);
+                colour, text_scale, POLY_PAGE_FONT2D, fade);
         for (const char* c = " - "; *c; ++c)
             cursor_x += (float)FONT2D_DrawLetter((CBYTE)*c, (SLONG)cursor_x, (SLONG)ly,
-                                                 colour, text_scale, POLY_PAGE_FONT2D, fade);
+                colour, text_scale, POLY_PAGE_FONT2D, fade);
         input_glyph_draw_cell(dev, INPUT_GLYPHS[i].col, INPUT_GLYPHS[i].row,
-                              cursor_x, ly + m.glyph_y_off, m.text_h, fade);
+            cursor_x, ly + m.glyph_y_off, m.text_h, fade);
 
         ly = round_virtual_y(ly + m.line_advance);
         ++drawn;

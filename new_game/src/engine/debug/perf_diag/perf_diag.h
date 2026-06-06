@@ -38,7 +38,8 @@
 
 namespace perf {
 
-enum SlotKind { KIND_TIME = 0, KIND_VALUE = 1 };
+enum SlotKind { KIND_TIME = 0,
+    KIND_VALUE = 1 };
 
 struct Slot; // opaque
 
@@ -56,8 +57,8 @@ struct ScopeTimer {
     Slot* slot;
     unsigned long long t0;
     unsigned long long ge0; // graphics-API accumulator snapshot at entry
-    unsigned long long gf0;   // glFinish-wait accumulator snapshot at entry
-    unsigned long long ov0;   // perf-overhead wall accumulator snapshot
+    unsigned long long gf0; // glFinish-wait accumulator snapshot at entry
+    unsigned long long ov0; // perf-overhead wall accumulator snapshot
     unsigned long long ovge0; // perf-overhead ge_* accumulator snapshot
     explicit ScopeTimer(Slot* s);
     ~ScopeTimer();
@@ -145,35 +146,32 @@ void draw();
 
 // One scope measures CPU, ge_* and GPU (ScopeTimer glFinishes on exit).
 // No separate GPU scope object.
-#define PERF_SCOPE(name)                                                       \
-    static ::perf::Slot* OC_PERF_CONCAT(perf_slot_, __LINE__) =                 \
-        ::perf::get_slot((name), ::perf::KIND_TIME);                            \
-    ::perf::ScopeTimer OC_PERF_CONCAT(perf_timer_, __LINE__)(                   \
+#define PERF_SCOPE(name)                                                                                     \
+    static ::perf::Slot* OC_PERF_CONCAT(perf_slot_, __LINE__) = ::perf::get_slot((name), ::perf::KIND_TIME); \
+    ::perf::ScopeTimer OC_PERF_CONCAT(perf_timer_, __LINE__)(                                                \
         OC_PERF_CONCAT(perf_slot_, __LINE__))
 
-#define PERF_COUNT(name, val)                                                  \
-    do {                                                                       \
-        static ::perf::Slot* OC_PERF_CONCAT(perf_cslot_, __LINE__) =            \
-            ::perf::get_slot((name), ::perf::KIND_VALUE);                       \
-        ::perf::add_value(OC_PERF_CONCAT(perf_cslot_, __LINE__),                \
-                          (double)(val));                                      \
+#define PERF_COUNT(name, val)                                                                                      \
+    do {                                                                                                           \
+        static ::perf::Slot* OC_PERF_CONCAT(perf_cslot_, __LINE__) = ::perf::get_slot((name), ::perf::KIND_VALUE); \
+        ::perf::add_value(OC_PERF_CONCAT(perf_cslot_, __LINE__),                                                   \
+            (double)(val));                                                                                        \
     } while (0)
 
 // RAII bracket marking diagnostics-only overhead (perf-panel queue +
 // flush). Books its cost to the separate "perfpanel" line, kept out of
 // every stage and every 100% (see OverheadTimer).
-#define PERF_OVERHEAD_SCOPE()                                                  \
+#define PERF_OVERHEAD_SCOPE() \
     ::perf::OverheadTimer OC_PERF_CONCAT(perf_ovh_, __LINE__)
 
 // Sequential phase markers for one big linear function (see phase_begin).
 // PERF_PHASE("a.b.c") closes the previous phase and opens this one;
 // PERF_PHASE_END() closes the last phase. Place inside a PERF_SCOPE
 // wrapper so the wrapper's ".other" soaks up any unphased remainder.
-#define PERF_PHASE(name)                                                       \
-    do {                                                                       \
-        static ::perf::Slot* OC_PERF_CONCAT(perf_phase_, __LINE__) =           \
-            ::perf::get_slot((name), ::perf::KIND_TIME);                        \
-        ::perf::phase_begin(OC_PERF_CONCAT(perf_phase_, __LINE__));             \
+#define PERF_PHASE(name)                                                                                          \
+    do {                                                                                                          \
+        static ::perf::Slot* OC_PERF_CONCAT(perf_phase_, __LINE__) = ::perf::get_slot((name), ::perf::KIND_TIME); \
+        ::perf::phase_begin(OC_PERF_CONCAT(perf_phase_, __LINE__));                                               \
     } while (0)
 #define PERF_PHASE_END() ::perf::phase_end()
 
@@ -185,28 +183,28 @@ void draw();
 
 // Put at the top of a hot ge_* boundary function body: its wall time
 // goes into the "ge_* CPU" column (graphics-API CPU: driver/submit).
-#define PERF_GE_CALL()                                                         \
+#define PERF_GE_CALL() \
     ::perf::GeCallTimer OC_PERF_CONCAT(perf_ge_call_, __LINE__)
 
 #define PERF_FRAME_BEGIN() ::perf::frame_begin()
-#define PERF_FRAME_END()   ::perf::frame_end()
+#define PERF_FRAME_END() ::perf::frame_end()
 #define PERF_HANDLE_KEYS() ::perf::handle_keys()
-#define PERF_DRAW()        ::perf::draw()
+#define PERF_DRAW() ::perf::draw()
 
 #else // !OC_PERF_ACTIVE — compile-time no-ops (args unevaluated)
 
-#define PERF_SCOPE(name)      ((void)0)
+#define PERF_SCOPE(name) ((void)0)
 #define PERF_COUNT(name, val) ((void)0)
 #define PERF_OVERHEAD_SCOPE() ((void)0)
-#define PERF_PHASE(name)      ((void)0)
-#define PERF_PHASE_END()      ((void)0)
-#define PERF_GPU_SCOPE(name)  ((void)0)
-#define PERF_GE_CALL()        ((void)0)
+#define PERF_PHASE(name) ((void)0)
+#define PERF_PHASE_END() ((void)0)
+#define PERF_GPU_SCOPE(name) ((void)0)
+#define PERF_GE_CALL() ((void)0)
 #define PERF_PRE_SWAP_GPU_DRAIN() ((void)0)
-#define PERF_FRAME_BEGIN()    ((void)0)
-#define PERF_FRAME_END()      ((void)0)
-#define PERF_HANDLE_KEYS()    ((void)0)
-#define PERF_DRAW()           ((void)0)
+#define PERF_FRAME_BEGIN() ((void)0)
+#define PERF_FRAME_END() ((void)0)
+#define PERF_HANDLE_KEYS() ((void)0)
+#define PERF_DRAW() ((void)0)
 
 #endif // OC_PERF_ACTIVE
 

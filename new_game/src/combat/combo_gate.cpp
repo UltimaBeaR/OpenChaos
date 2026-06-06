@@ -28,29 +28,29 @@
 // fight_tree node. 1.0 -> behaviour is 1:1 with the pre-gate combat.
 // Tune individual rows from here.
 static float s_chance[COMBO_NODE_COUNT] = {
-    1.0f,  //  0  root/idle (never gated)
-    1.0f,  //  1  PUNCH 1            -- 1st hit
-    1.0f,  //  2  punch return 1
+    1.0f, //  0  root/idle (never gated)
+    1.0f, //  1  PUNCH 1            -- 1st hit
+    1.0f, //  2  punch return 1
     0.80f, //  3  PUNCH 2            -- 2nd hit (hand-only: lowered, hands can't be dodged)
-    1.0f,  //  4  punch return 2
+    1.0f, //  4  punch return 2
     0.40f, //  5  PUNCH 3            -- 3rd hit (hand-only: lowered, hands can't be dodged)
-    1.0f,  //  6  KICK 1             -- 1st hit
-    1.0f,  //  7  kick return 1
+    1.0f, //  6  KICK 1             -- 1st hit
+    1.0f, //  7  kick return 1
     0.85f, //  8  KICK 2             -- 2nd hit
-    1.0f,  //  9  kick return 2
+    1.0f, //  9  kick return 2
     0.50f, // 10  KICK 3             -- 3rd hit, same button (kick x3)
     0.85f, // 11  PUNCH 2b           -- 2nd hit (punch1 -> kick, 2-hit combo)
     0.75f, // 12  PUNCH 3b           -- 3rd hit, button changes (punch, punch -> kick)
     0.75f, // 13  KICK 3b            -- 3rd hit, button changes (kick, kick -> punch)
-    1.0f,  // 14  KNIFE 1            -- 1st hit
-    1.0f,  // 15  knife return 1
+    1.0f, // 14  KNIFE 1            -- 1st hit
+    1.0f, // 15  knife return 1
     0.85f, // 16  KNIFE 2            -- 2nd hit
-    1.0f,  // 17  knife return 2
+    1.0f, // 17  knife return 2
     // Knife is an exception: 100/85/65. With a knife there is no
     // viable non-mash alternative (its cross-combos don't really work).
     0.65f, // 18  KNIFE 3            -- 3rd hit (knife exception)
-    1.0f,  // 19  BAT 1              -- 1st hit
-    1.0f,  // 20  bat return 1
+    1.0f, // 19  BAT 1              -- 1st hit
+    1.0f, // 20  bat return 1
     0.85f, // 21  BAT 2              -- 2nd hit (bat1 -> bat2, 2-hit combo)
 };
 
@@ -66,19 +66,38 @@ static float s_fail_bonus[MAX_PLAYERS][COMBO_NODE_COUNT];
 // nodes are never logged (they are not attack nodes) so "" is fine.
 #if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
 static const char* s_name[COMBO_NODE_COUNT] = {
-    "", "PUNCH1", "", "PUNCH2", "", "PUNCH3",
-    "KICK1", "", "KICK2", "", "KICK3",
-    "PUNCH2b", "PUNCH3b", "KICK3b",
-    "KNIFE1", "", "KNIFE2", "", "KNIFE3",
-    "BAT1", "", "BAT2",
+    "",
+    "PUNCH1",
+    "",
+    "PUNCH2",
+    "",
+    "PUNCH3",
+    "KICK1",
+    "",
+    "KICK2",
+    "",
+    "KICK3",
+    "PUNCH2b",
+    "PUNCH3b",
+    "KICK3b",
+    "KNIFE1",
+    "",
+    "KNIFE2",
+    "",
+    "KNIFE3",
+    "BAT1",
+    "",
+    "BAT2",
 };
 
 // Chance -> colour: 1.0 = green, 0.0 = red, 0.5 = yellow-ish. Higher
 // chance reads greener, lower reads redder.
 static ULONG combo_chance_rgb(float c)
 {
-    if (c < 0.0f) c = 0.0f;
-    if (c > 1.0f) c = 1.0f;
+    if (c < 0.0f)
+        c = 0.0f;
+    if (c > 1.0f)
+        c = 1.0f;
     const SLONG lo = 0x30, hi = 0xff;
     UBYTE g = (UBYTE)(lo + (SLONG)(c * (float)(hi - lo)));
     UBYTE r = (UBYTE)(lo + (SLONG)((1.0f - c) * (float)(hi - lo)));
@@ -106,7 +125,7 @@ static void combo_log(SLONG node, bool pass, float base, float chance)
     DBGLOG_commit();
 }
 #else
-static inline void combo_log(SLONG, bool, float, float) {}
+static inline void combo_log(SLONG, bool, float, float) { }
 #endif
 
 bool combo_gate_try(SLONG player_id, SLONG node)
@@ -122,14 +141,15 @@ bool combo_gate_try(SLONG player_id, SLONG node)
 
     float base = s_chance[node];
     float chance = base + s_fail_bonus[pidx][node];
-    if (chance > 1.0f) chance = 1.0f; // >=1.0 already always passes
+    if (chance > 1.0f)
+        chance = 1.0f; // >=1.0 already always passes
 
     SLONG roll = Random() & COMBO_GATE_ROLL_MASK;
     SLONG thresh = (SLONG)(chance * (float)COMBO_GATE_ROLL_RANGE);
     bool pass = roll < thresh;
 
     if (pass)
-        s_fail_bonus[pidx][node] = 0.0f;             // landed -> back to base
+        s_fail_bonus[pidx][node] = 0.0f; // landed -> back to base
     else
         s_fail_bonus[pidx][node] += COMBO_PITY_STEP; // missed -> easier next time
 

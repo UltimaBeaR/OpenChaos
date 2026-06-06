@@ -3041,7 +3041,7 @@ void EWAY_process_conversation(void)
     bool is_setup = (EWAY_conv_talk == 0);
     bool wave_quiet = (MFX_QUICK_still_playing() == 0);
     bool tail_passed = (s_eway_voice_last_seen_ms == 0)
-                       || ((sdl3_get_ticks() - s_eway_voice_last_seen_ms) >= MFX_CUTSCENE_VOICE_TAIL_MS);
+        || ((sdl3_get_ticks() - s_eway_voice_last_seen_ms) >= MFX_CUTSCENE_VOICE_TAIL_MS);
     if (EWAY_conv_timer <= 0 && (is_setup || (wave_quiet && tail_passed))) {
         str = &EWAY_mess_buffer[EWAY_conv_str];
 

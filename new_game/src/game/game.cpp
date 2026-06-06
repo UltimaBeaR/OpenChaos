@@ -114,7 +114,7 @@ extern UBYTE stealth_debug;
 // Physics-tick count executed in the most recent render frame. Written by
 // the main game loop, read by the debug timing overlay. Zero outside the
 // game loop.
-int  g_last_phys_tick_count = 0;
+int g_last_phys_tick_count = 0;
 
 // uc_orig: stop_all_fx_and_music (fallen/Source/Game.cpp)
 void stop_all_fx_and_music(void)
@@ -638,9 +638,9 @@ void playback_game_keys(void)
 #if OC_DEBUG_PHYSICS_TIMING
 void check_debug_timing_keys(void)
 {
-    constexpr SLONG PHYS_HZ_TOGGLE_LOW   = 5;
-    constexpr SLONG PHYS_HZ_FINE_MIN     = 1;
-    constexpr SLONG PHYS_HZ_FINE_MAX     = UC_PHYSICS_DESIGN_HZ;
+    constexpr SLONG PHYS_HZ_TOGGLE_LOW = 5;
+    constexpr SLONG PHYS_HZ_FINE_MIN = 1;
+    constexpr SLONG PHYS_HZ_FINE_MAX = UC_PHYSICS_DESIGN_HZ;
 
     // 30 deliberately: matches UC_VISUAL_CADENCE_HZ (PS1 hardware lock) so the
     // throttled debug mode reproduces the original visual cadence. Do not
@@ -671,12 +671,14 @@ void check_debug_timing_keys(void)
 
     if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_DEC_KKEY)) {
         g_physics_hz -= 1;
-        if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
+        if (g_physics_hz < PHYS_HZ_FINE_MIN)
+            g_physics_hz = PHYS_HZ_FINE_MIN;
     }
 
     if (input_key_just_pressed(ACT_DEV_PERF_PHYS_HZ_INC_KKEY)) {
         g_physics_hz += 1;
-        if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
+        if (g_physics_hz > PHYS_HZ_FINE_MAX)
+            g_physics_hz = PHYS_HZ_FINE_MAX;
     }
 }
 #endif // OC_DEBUG_PHYSICS_TIMING
@@ -861,7 +863,10 @@ round_again:;
     MEMORY_quick_init();
 
     BOOL _level_init_ok;
-    { PERF_SCOPE("io.levelload"); _level_init_ok = game_init(); }
+    {
+        PERF_SCOPE("io.levelload");
+        _level_init_ok = game_init();
+    }
     if (_level_init_ok) {
 
         already_warned_about_leaving_map = sdl3_get_ticks();
@@ -920,10 +925,9 @@ round_again:;
         // An explicit counter below makes the cap visible in the timing
         // overlay and guarantees it even when g_physics_hz is tuned at
         // runtime (debug keys 9/0).
-        static constexpr int MAX_PHYSICS_TICKS_PER_FRAME =
-            static_cast<int>(FRAME_DT_MAX_MS / (1000.0 / UC_PHYSICS_DESIGN_HZ));
+        static constexpr int MAX_PHYSICS_TICKS_PER_FRAME = static_cast<int>(FRAME_DT_MAX_MS / (1000.0 / UC_PHYSICS_DESIGN_HZ));
 
-        double   physics_acc_ms = 1000.0 / double(g_physics_hz);
+        double physics_acc_ms = 1000.0 / double(g_physics_hz);
 
         // Drop any stale interpolation snapshots from the previous mission
         // so the first capture re-seeds prev = curr (no startup judder).
@@ -936,7 +940,8 @@ round_again:;
             {
                 uint64_t now_pc = sdl3_get_performance_counter();
                 double frame_dt_ms = double(now_pc - prev_frame_pc) * 1000.0 / perf_freq_d;
-                if (frame_dt_ms > FRAME_DT_MAX_MS) frame_dt_ms = FRAME_DT_MAX_MS;
+                if (frame_dt_ms > FRAME_DT_MAX_MS)
+                    frame_dt_ms = FRAME_DT_MAX_MS;
                 prev_frame_pc = now_pc;
                 physics_acc_ms += frame_dt_ms;
                 // Publish wall-clock dt for render-side effects (rain
@@ -1107,13 +1112,13 @@ round_again:;
 
             {
                 PERF_SCOPE("physics");
-                const double phys_step_ms  = 1000.0 / double(g_physics_hz);
-                const SLONG  phys_tick_diff = 1000 / g_physics_hz;
-                const float  phys_dt_ms    = float(phys_step_ms);
+                const double phys_step_ms = 1000.0 / double(g_physics_hz);
+                const SLONG phys_tick_diff = 1000 / g_physics_hz;
+                const float phys_dt_ms = float(phys_step_ms);
 
                 g_last_phys_tick_count = 0;
                 while (should_i_process_game() && physics_acc_ms >= phys_step_ms
-                       && g_last_phys_tick_count < MAX_PHYSICS_TICKS_PER_FRAME) {
+                    && g_last_phys_tick_count < MAX_PHYSICS_TICKS_PER_FRAME) {
                     g_last_phys_tick_count++;
 
                     OVERLAY_begin_physics_tick();
@@ -1190,7 +1195,7 @@ round_again:;
                             CLASS_BARREL,
                             CLASS_BAT,
                             CLASS_BIKE,
-                            CLASS_SPECIAL,  // grenades thrown can move
+                            CLASS_SPECIAL, // grenades thrown can move
                         };
                         for (UBYTE c : moving_classes) {
                             UWORD t_idx = thing_class_head[c];
@@ -1235,7 +1240,8 @@ round_again:;
                 PERF_COUNT("physics.ticks", g_last_phys_tick_count);
 
                 const bool game_frozen = !should_i_process_game();
-                if (game_frozen) physics_acc_ms = 0.0;
+                if (game_frozen)
+                    physics_acc_ms = 0.0;
 
                 // Alpha = how far we are between the last and next physics
                 // tick. Read by RenderInterpFrame at draw time. Clamped to
@@ -1248,8 +1254,10 @@ round_again:;
                 // back ~50 ms (one physics tick).
                 {
                     double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
-                    if (a < 0.0) a = 0.0;
-                    else if (a > 1.0) a = 1.0;
+                    if (a < 0.0)
+                        a = 0.0;
+                    else if (a > 1.0)
+                        a = 1.0;
                     g_render_alpha = float(a);
                 }
             }
@@ -1474,9 +1482,15 @@ round_again:;
                 // "GPU wait (glFinish)" line, so these numbers are clean.
                 PERF_SCOPE("render");
 
-                { PERF_SCOPE("render.scene"); draw_screen(); }
+                {
+                    PERF_SCOPE("render.scene");
+                    draw_screen();
+                }
 
-                { PERF_SCOPE("render.hud"); OVERLAY_handle(); }
+                {
+                    PERF_SCOPE("render.hud");
+                    OVERLAY_handle();
+                }
 
                 BreakTime("About to flip");
 
@@ -1490,7 +1504,10 @@ round_again:;
             extern void AENG_set_render_pass(bool active);
             AENG_set_render_pass(false);
 
-            { PERF_SCOPE("idle"); lock_frame_rate(g_render_fps_cap); }
+            {
+                PERF_SCOPE("idle");
+                lock_frame_rate(g_render_fps_cap);
+            }
 
             BreakTime("Done flip");
 

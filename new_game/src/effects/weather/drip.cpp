@@ -109,7 +109,7 @@ void DRIP_create_if_in_puddle(
                 // reproduces our invisibility — confirms it's a
                 // pre-release defect MuckyFoot fixed for retail.
                 const SLONG PUDDLE_SPLASH_LIFT_Y_CENTER = 10;
-                const SLONG PUDDLE_SPLASH_LIFT_Y_EDGE   = -40;
+                const SLONG PUDDLE_SPLASH_LIFT_Y_EDGE = -40;
 
                 SLONG lift_y = PUDDLE_SPLASH_LIFT_Y_CENTER;
                 SLONG px1, pz1, px2, pz2;
@@ -118,10 +118,16 @@ void DRIP_create_if_in_puddle(
                     SLONG cz = (pz1 + pz2) >> 1;
                     SLONG halfw = (px2 - px1) >> 1;
                     SLONG halfh = (pz2 - pz1) >> 1;
-                    if (halfw < 1) halfw = 1;
-                    if (halfh < 1) halfh = 1;
-                    SLONG dx = SLONG(x) - cx; if (dx < 0) dx = -dx;
-                    SLONG dz = SLONG(z) - cz; if (dz < 0) dz = -dz;
+                    if (halfw < 1)
+                        halfw = 1;
+                    if (halfh < 1)
+                        halfh = 1;
+                    SLONG dx = SLONG(x) - cx;
+                    if (dx < 0)
+                        dx = -dx;
+                    SLONG dz = SLONG(z) - cz;
+                    if (dz < 0)
+                        dz = -dz;
                     // Euclidean L2 distance from rect center, normalised
                     // so that axis-aligned rect edge = 1.0 and rect
                     // corners ≈ √2. The puddle's wet area is roughly a
@@ -130,7 +136,7 @@ void DRIP_create_if_in_puddle(
                     // the inscribed circle, definitely dry, sink fully.
                     float dxn = float(dx) / float(halfw);
                     float dzn = float(dz) / float(halfh);
-                    float r   = sqrtf(dxn * dxn + dzn * dzn);
+                    float r = sqrtf(dxn * dxn + dzn * dzn);
 
                     // Plateau (no sink) up to PLATEAU_R, then smoothstep
                     // sink to full at r=1. Plateau covers the central
@@ -152,8 +158,9 @@ void DRIP_create_if_in_puddle(
                         t = u * u * (3.0f - 2.0f * u); // smoothstep
                     }
                     lift_y = SLONG(float(PUDDLE_SPLASH_LIFT_Y_CENTER)
-                                + (float(PUDDLE_SPLASH_LIFT_Y_EDGE)
-                                 - float(PUDDLE_SPLASH_LIFT_Y_CENTER)) * t);
+                        + (float(PUDDLE_SPLASH_LIFT_Y_EDGE)
+                              - float(PUDDLE_SPLASH_LIFT_Y_CENTER))
+                            * t);
                 }
 
                 PARTICLE_Add(

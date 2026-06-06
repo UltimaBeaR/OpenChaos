@@ -20,10 +20,14 @@ float keep_for_rubberness(float current_default_keep)
 {
     // Clamp inputs.
     float r = get_camera_rubberness();
-    if (r < 0.0f) r = 0.0f;
-    if (r > 1.0f) r = 1.0f;
-    if (current_default_keep < 0.0f) current_default_keep = 0.0f;
-    if (current_default_keep > 1.0f) current_default_keep = 1.0f;
+    if (r < 0.0f)
+        r = 0.0f;
+    if (r > 1.0f)
+        r = 1.0f;
+    if (current_default_keep < 0.0f)
+        current_default_keep = 0.0f;
+    if (current_default_keep > 1.0f)
+        current_default_keep = 1.0f;
 
     if (r <= 0.5f) {
         // [0..0.5]: linear from 0 (snap) up to the current shipping value.
@@ -45,9 +49,12 @@ float keep_for_rubberness(float current_default_keep)
 float orbit_lag_for_rubberness(float default_lag_at_half)
 {
     float r = get_camera_rubberness();
-    if (r < 0.0f) r = 0.0f;
-    if (r > 1.0f) r = 1.0f;
-    if (default_lag_at_half < 0.0f) default_lag_at_half = 0.0f;
+    if (r < 0.0f)
+        r = 0.0f;
+    if (r > 1.0f)
+        r = 1.0f;
+    if (default_lag_at_half < 0.0f)
+        default_lag_at_half = 0.0f;
 
     if (r <= 0.5f) {
         // [0..0.5]: linear from 0 (snap, no residual) up to shipping default.

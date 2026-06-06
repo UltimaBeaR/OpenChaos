@@ -42,12 +42,12 @@ GLint s_u_phase1 = -1;
 GLint s_u_phase2 = -1;
 // Issue #67 world-XZ phase: shader inverts POLY_perspective + POLY_cam_matrix
 // to map each pixel to a ground-plane (Y=0) point in world space.
-GLint s_u_inv_poly_cam    = -1;
-GLint s_u_poly_cam_pos    = -1;
+GLint s_u_inv_poly_cam = -1;
+GLint s_u_poly_cam_pos = -1;
 GLint s_u_poly_screen_mid = -1;
 GLint s_u_poly_screen_mul = -1;
-GLint s_u_poly_zclip      = -1;
-GLint s_u_viewport        = -1;
+GLint s_u_poly_zclip = -1;
+GLint s_u_viewport = -1;
 
 // Persistent scratch color texture, resized when the framebuffer grows.
 GLuint s_scratch_tex = 0;
@@ -82,12 +82,12 @@ bool ensure_program()
     s_u_wibble_s2 = glGetUniformLocation(s_program, "u_wibble_s2");
     s_u_phase1 = glGetUniformLocation(s_program, "u_phase1");
     s_u_phase2 = glGetUniformLocation(s_program, "u_phase2");
-    s_u_inv_poly_cam    = glGetUniformLocation(s_program, "u_inv_poly_cam");
-    s_u_poly_cam_pos    = glGetUniformLocation(s_program, "u_poly_cam_pos");
+    s_u_inv_poly_cam = glGetUniformLocation(s_program, "u_inv_poly_cam");
+    s_u_poly_cam_pos = glGetUniformLocation(s_program, "u_poly_cam_pos");
     s_u_poly_screen_mid = glGetUniformLocation(s_program, "u_poly_screen_mid");
     s_u_poly_screen_mul = glGetUniformLocation(s_program, "u_poly_screen_mul");
-    s_u_poly_zclip      = glGetUniformLocation(s_program, "u_poly_zclip");
-    s_u_viewport        = glGetUniformLocation(s_program, "u_viewport");
+    s_u_poly_zclip = glGetUniformLocation(s_program, "u_poly_zclip");
+    s_u_viewport = glGetUniformLocation(s_program, "u_viewport");
     return true;
 }
 
@@ -277,10 +277,10 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     // major; GL_TRUE upload makes GLSL see it via the column-major
     // convention so `M * v_col` in the shader matches `MATRIX_MUL`.
     glUniformMatrix3fv(s_u_inv_poly_cam, 1, GL_TRUE, p.inv_poly_cam);
-    glUniform3fv(s_u_poly_cam_pos,    1, p.poly_cam_pos);
+    glUniform3fv(s_u_poly_cam_pos, 1, p.poly_cam_pos);
     glUniform2fv(s_u_poly_screen_mid, 1, p.poly_screen_mid);
     glUniform2fv(s_u_poly_screen_mul, 1, p.poly_screen_mul);
-    glUniform1f (s_u_poly_zclip,         p.poly_zclip);
+    glUniform1f(s_u_poly_zclip, p.poly_zclip);
     glUniform4fv(s_u_viewport, 1, p.viewport);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

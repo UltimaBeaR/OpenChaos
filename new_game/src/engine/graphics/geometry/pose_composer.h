@@ -29,8 +29,8 @@ struct Thing;
 struct ComposedBone {
     // World transform — the (off_x/y/z, mat_final) pair FIGURE_draw_prim_tween
     // computes and passes to POLY_set_local_rotation.
-    float pos_x, pos_y, pos_z;     // world position (post character_scale, post WorldPos add)
-    Matrix33 rot;                   // world rotation (post character_scale, fixed-point ×32768)
+    float pos_x, pos_y, pos_z; // world position (post character_scale, post WorldPos add)
+    Matrix33 rot; // world rotation (post character_scale, fixed-point ×32768)
 
     // Body-local intermediates (mirrors FIGURE_dhpr_rdata2[].end_pos / .end_mat
     // in the original recurse). Used by snapshot capture to derive
@@ -40,8 +40,8 @@ struct ComposedBone {
     // These are independent of body angles and WorldPos — pure functions of
     // anim keyframes (CF/NF/AT) — which is why parent-local data lerps
     // smoothly across anim transitions while world data preserves cancel-out.
-    Matrix31 body_local_pos;        // end_pos: per-bone body-frame position (×256 scale)
-    Matrix33 body_local_rot;        // end_mat: per-bone body-frame rotation (slerp result, no character_scale)
+    Matrix31 body_local_pos; // end_pos: per-bone body-frame position (×256 scale)
+    Matrix33 body_local_rot; // end_mat: per-bone body-frame rotation (slerp result, no character_scale)
 };
 
 // Storage upper bound across all skeleton types. Person rig is 15 bones
@@ -58,9 +58,9 @@ constexpr int POSE_PERSON_BONE_COUNT = 15;
 extern const int body_part_parent[POSE_PERSON_BONE_COUNT];
 
 struct ComposedSkeletalPose {
-    int  bone_count;                              // 15 for persons; 0 if invalid
+    int bone_count; // 15 for persons; 0 if invalid
     ComposedBone bones[POSE_PERSON_BONE_COUNT];
-    bool valid;                                   // true iff composition succeeded
+    bool valid; // true iff composition succeeded
 };
 
 // Compose full per-bone pose for a person Thing using current Draw.Tweened state.
@@ -76,8 +76,8 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out);
 //   pos[i] = WorldPos + R(body_angles) * keyframe_offset_lerped * scale
 //   rot[i] = R(body_angles) * keyframe_rot_slerped * scale
 struct ComposedFlatPose {
-    int  bone_count;                       // 1..POSE_MAX_BONES; 0 if invalid
-    ComposedBone bones[POSE_MAX_BONES];    // body_local_pos/rot unused for flat
+    int bone_count; // 1..POSE_MAX_BONES; 0 if invalid
+    ComposedBone bones[POSE_MAX_BONES]; // body_local_pos/rot unused for flat
     bool valid;
 };
 

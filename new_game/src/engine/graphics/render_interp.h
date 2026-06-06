@@ -35,7 +35,6 @@ extern float g_render_alpha;
 // re-enabling at runtime gives instant smooth motion. Toggle hotkey: 3.
 extern bool g_render_interp_enabled;
 
-
 // Reset all snapshots. Call when the world resets (mission load, map change)
 // to prevent lerping from a stale previous position.
 void render_interp_reset(void);
@@ -113,8 +112,8 @@ void render_interp_capture_grenades(void);
 // (off_x/y/z, mat_final) pair that figure.cpp's draw functions feed to
 // POLY_set_local_rotation per body part.
 struct BoneInterpTransform {
-    float pos_x, pos_y, pos_z;     // world position in figure.cpp's "off_x/y/z" space
-    Matrix33 rot;                   // world rotation matrix (mat_final equivalent, fixed-point ×32768)
+    float pos_x, pos_y, pos_z; // world position in figure.cpp's "off_x/y/z" space
+    Matrix33 rot; // world rotation matrix (mat_final equivalent, fixed-point ×32768)
 };
 
 // Frame counter, incremented on every RenderInterpFrame ctor. Used as a

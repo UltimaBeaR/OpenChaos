@@ -441,4 +441,3 @@ void PolyPage::Clear()
     m_VBUsed = 0;
     m_PolyBufUsed = 0;
 }
-

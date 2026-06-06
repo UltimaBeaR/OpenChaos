@@ -36,7 +36,7 @@ enum CameraMode {
 // At runtime the active mode is derived by `get_active_camera_mode()`
 // from `active_input_device` and these constants. No code path checks
 // the input device directly for camera behaviour — only the mode.
-constexpr CameraMode KBM_DEFAULT_CAMERA_MODE     = CAMERA_MODE_MANUAL;
+constexpr CameraMode KBM_DEFAULT_CAMERA_MODE = CAMERA_MODE_MANUAL;
 constexpr CameraMode GAMEPAD_DEFAULT_CAMERA_MODE = CAMERA_MODE_AUTO;
 
 // Rubberness scalar [0..1] for AUTO mode only. Tunes ROTATION rubber
@@ -73,7 +73,7 @@ CameraMode get_active_camera_mode();
 
 // Convenience predicates.
 inline bool camera_is_manual() { return get_active_camera_mode() == CAMERA_MODE_MANUAL; }
-inline bool camera_is_auto()   { return get_active_camera_mode() == CAMERA_MODE_AUTO;   }
+inline bool camera_is_auto() { return get_active_camera_mode() == CAMERA_MODE_AUTO; }
 
 // Returns the active rubberness [0..1] (only meaningful when mode is
 // AUTO). Currently a constant; will become runtime-configurable in a

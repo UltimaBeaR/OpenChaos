@@ -653,7 +653,7 @@ void PYRO_fn_normal(Thing* thing)
         // over-bright bloom on low physics.
         if (pyro->counter < 240) {
             extern SLONG tick_tock_unclipped;
-            constexpr SLONG TWANGER_BASE_MS = 50;  // = 1000 / 20 Hz design
+            constexpr SLONG TWANGER_BASE_MS = 50; // = 1000 / 20 Hz design
             pyro->counter += (16 * tick_tock_unclipped) / TWANGER_BASE_MS;
         } else {
             free_pyro(thing);
@@ -1279,18 +1279,18 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
 // so bonfires, burning characters, etc. (which spawn their own particles with
 // their own sizes) are untouched even though they share the flame/smoke
 // texture pages.
-constexpr UBYTE FIREBOMB_FLAME_WAVE_SIZE  = 80;  // expanding ground-wave flames (PYRO_FLAGS_WAVE)
+constexpr UBYTE FIREBOMB_FLAME_WAVE_SIZE = 80; // expanding ground-wave flames (PYRO_FLAGS_WAVE)
 constexpr UBYTE FIREBOMB_FLAME_BURST_SIZE = 160; // main radial burst flames
 constexpr UBYTE FIREBOMB_FLAME_SPARK_SIZE = 160; // extra flame flung upward each clock
-constexpr UBYTE FIREBOMB_FLAME_LATE_SIZE  = 255; // sustained late flame (counter 110-140)
-constexpr UBYTE FIREBOMB_SMOKE_SIZE       = 100; // rising smoke (counter 4-110)
+constexpr UBYTE FIREBOMB_FLAME_LATE_SIZE = 255; // sustained late flame (counter 110-140)
+constexpr UBYTE FIREBOMB_SMOKE_SIZE = 100; // rising smoke (counter 4-110)
 
 // Per-tick growth rate (`resize` arg) for the growing flame/smoke particles
 // of the explosion. Pre-release uc_orig values; kept as named knobs alongside
 // the sizes above for consistent per-effect tuning.
 constexpr SBYTE FIREBOMB_FLAME_WAVE_GROW = 4;
 constexpr SBYTE FIREBOMB_FLAME_LATE_GROW = 5;
-constexpr SBYTE FIREBOMB_SMOKE_GROW      = 4; // SMOKE call adds + (Random() & 3) for variance
+constexpr SBYTE FIREBOMB_SMOKE_GROW = 4; // SMOKE call adds + (Random() & 3) for variance
 // uc_orig: DUSTWAVE_MULTIPLY (fallen/DDEngine/Source/drawxtra.cpp)
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_SECTORS)
 

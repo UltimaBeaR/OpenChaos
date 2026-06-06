@@ -2245,9 +2245,9 @@ static UBYTE FRONTEND_input(void)
         // from a previous screen produces no rising edge in the snapshot, so
         // a stale press cannot leak into the menu.
 
-        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY)    || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY);
-        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY)  || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY);
-        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY)  || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY);
+        const bool kb_up = input_key_held(ACT_MENU_NAV_UP_KKEY) || input_key_held(ACT_MENU_NAV_UP_ALT_KKEY);
+        const bool kb_dn = input_key_held(ACT_MENU_NAV_DOWN_KKEY) || input_key_held(ACT_MENU_NAV_DOWN_ALT_KKEY);
+        const bool kb_lt = input_key_held(ACT_MENU_NAV_LEFT_KKEY) || input_key_held(ACT_MENU_NAV_LEFT_ALT_KKEY);
         const bool kb_rt = input_key_held(ACT_MENU_NAV_RIGHT_KKEY) || input_key_held(ACT_MENU_NAV_RIGHT_ALT_KKEY);
 
         bool st_up = input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_UP_GDIR);
@@ -2320,7 +2320,7 @@ static UBYTE FRONTEND_input(void)
         // the key adjusts the value quickly. Up/down (item navigation) and every
         // non-slider screen keep the default cadence untouched.
         constexpr uint64_t SLIDER_REPEAT_INITIAL_MS = 250; // delay before fast repeat starts
-        constexpr uint64_t SLIDER_REPEAT_PERIOD_MS = 30;   // gap between value changes while held
+        constexpr uint64_t SLIDER_REPEAT_PERIOD_MS = 30; // gap between value changes while held
         const bool sel_is_slider = (menu_data[menu_state.selected].Type == OT_SLIDER);
 
         bool nav_up = ar_up.tick_combined(any_up_jp, any_up_held);
@@ -2345,10 +2345,14 @@ static UBYTE FRONTEND_input(void)
             nav_rt = false;
         }
 
-        if (nav_up) input |= INPUT_MASK_FORWARDS;
-        if (nav_dn) input |= INPUT_MASK_BACKWARDS;
-        if (nav_lt) input |= INPUT_MASK_LEFT;
-        if (nav_rt) input |= INPUT_MASK_RIGHT;
+        if (nav_up)
+            input |= INPUT_MASK_FORWARDS;
+        if (nav_dn)
+            input |= INPUT_MASK_BACKWARDS;
+        if (nav_lt)
+            input |= INPUT_MASK_LEFT;
+        if (nav_rt)
+            input |= INPUT_MASK_RIGHT;
 
         // Cross/A (index 0) = confirm, Triangle/Y (index 3) = cancel.
         // just_pressed gives both carry-over protection (e.g. X mashed during
@@ -2369,10 +2373,14 @@ static UBYTE FRONTEND_input(void)
         const bool theme3 = input_key_just_pressed(ACT_BANG_MENU_THEME_3_KKEY);
         const bool theme4 = input_key_just_pressed(ACT_BANG_MENU_THEME_4_KKEY);
         if (theme1 || theme2 || theme3 || theme4) {
-            if (theme1) menu_theme = 0;
-            if (theme2) menu_theme = 1;
-            if (theme3) menu_theme = 2;
-            if (theme4) menu_theme = 3;
+            if (theme1)
+                menu_theme = 0;
+            if (theme2)
+                menu_theme = 1;
+            if (theme3)
+                menu_theme = 2;
+            if (theme4)
+                menu_theme = 3;
             ge_set_background_override(screenfull_back);
             FRONTEND_kibble_init();
         }
@@ -2941,7 +2949,7 @@ SBYTE FRONTEND_loop()
     //     caused fade to advance ~240/sec at 240 FPS. The accumulator runs
     //     even at 30 FPS so per-frame fractional remainders don't drop.
     static const SLONG FADE_SPEED_MAX = 4;
-    constexpr SLONG FADE_DESIGN_TICK_MS = 1000 / UC_VISUAL_CADENCE_HZ;          // 33
+    constexpr SLONG FADE_DESIGN_TICK_MS = 1000 / UC_VISUAL_CADENCE_HZ; // 33
     constexpr float FADE_UNITS_PER_MS = float(FADE_SPEED_MAX) / float(FADE_DESIGN_TICK_MS);
 
     SLONG fade_dt = millisecs;

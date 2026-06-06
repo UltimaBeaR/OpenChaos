@@ -153,7 +153,6 @@ MenuState menu_state;
 // uc_orig: menu_buffer (fallen/Source/frontend.cpp)
 CBYTE menu_buffer[2048];
 
-
 // uc_orig: kibble (fallen/Source/frontend.cpp)
 Kibble kibble[512];
 // uc_orig: kibble_off (fallen/Source/frontend.cpp)

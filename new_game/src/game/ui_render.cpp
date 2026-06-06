@@ -158,27 +158,29 @@ void ui_render_post_composition(void)
             // enough to average out integer-ms granularity (33/34 ms
             // alternation at 30 fps).
             static constexpr uint64_t FPS_WINDOW_MS = 500;
-            static constexpr SLONG    FPS_RING_SIZE = 256; // 240+ fps × 0.5 s with headroom
-            static constexpr SLONG    FPS_RING_MASK = FPS_RING_SIZE - 1;
+            static constexpr SLONG FPS_RING_SIZE = 256; // 240+ fps × 0.5 s with headroom
+            static constexpr SLONG FPS_RING_MASK = FPS_RING_SIZE - 1;
             static uint64_t s_ring[FPS_RING_SIZE] = { 0 };
-            static SLONG    s_head  = 0;
-            static SLONG    s_count = 0;
-            static float    s_value = 0.0f;
+            static SLONG s_head = 0;
+            static SLONG s_count = 0;
+            static float s_value = 0.0f;
 
             const uint64_t now = sdl3_get_ticks();
             s_ring[s_head] = now;
             s_head = (s_head + 1) & FPS_RING_MASK;
-            if (s_count < FPS_RING_SIZE) s_count += 1;
+            if (s_count < FPS_RING_SIZE)
+                s_count += 1;
 
             const uint64_t cutoff = (now > FPS_WINDOW_MS) ? (now - FPS_WINDOW_MS) : 0;
-            SLONG    in_window     = 0;
+            SLONG in_window = 0;
             uint64_t oldest_in_win = now;
             for (SLONG i = 0; i < s_count; i++) {
-                const SLONG    idx = (s_head - 1 - i) & FPS_RING_MASK;
-                const uint64_t ts  = s_ring[idx];
-                if (ts < cutoff) break;
+                const SLONG idx = (s_head - 1 - i) & FPS_RING_MASK;
+                const uint64_t ts = s_ring[idx];
+                if (ts < cutoff)
+                    break;
                 oldest_in_win = ts;
-                in_window    += 1;
+                in_window += 1;
             }
 
             if (in_window >= 2) {
@@ -191,10 +193,10 @@ void ui_render_post_composition(void)
             if (s_value > 0.0f) {
                 CBYTE str[50];
                 snprintf((char*)str, sizeof(str), "(%d,%d,%d) fps %.2f",
-                         darci->WorldPos.X >> 16,
-                         darci->WorldPos.Y >> 16,
-                         darci->WorldPos.Z >> 16,
-                         s_value);
+                    darci->WorldPos.X >> 16,
+                    darci->WorldPos.Y >> 16,
+                    darci->WorldPos.Z >> 16,
+                    s_value);
                 FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
             }
         }
@@ -213,8 +215,14 @@ void ui_render_post_composition(void)
     // wrapped in PERF_OVERHEAD_SCOPE — summed into one standalone
     // "perfpanel" line, subtracted from every stage so it never skews
     // the real percentages (mirrors the GPU-wait line).
-    { PERF_SCOPE("render.ui.dbglog"); DBGLOG_draw(); } // no-op unless OC_DEBUG_LOG
-    { PERF_OVERHEAD_SCOPE(); PERF_DRAW(); }            // no-op unless OC_DEBUG_PERF
+    {
+        PERF_SCOPE("render.ui.dbglog");
+        DBGLOG_draw();
+    } // no-op unless OC_DEBUG_LOG
+    {
+        PERF_OVERHEAD_SCOPE();
+        PERF_DRAW();
+    } // no-op unless OC_DEBUG_PERF
     // F1 debug-key legend: same leak class as the HUD block above. Its
     // auto-hide timer is only ticked inside the gameplay loop (special_keys
     // -> debug_help_tick), so if a mission ends while the legend is up (e.g.
@@ -247,7 +255,10 @@ void ui_render_post_composition(void)
     // per-glyph cost of these lands here (shared; not splittable among
     // them). Watch render.ui.textflush grow with the dbglog line count.
     // The perf panel uses its own queue, flushed separately just below.
-    { PERF_SCOPE("render.ui.textflush"); FONT_buffer_draw(); }
+    {
+        PERF_SCOPE("render.ui.textflush");
+        FONT_buffer_draw();
+    }
 
     // The perf panel queues its glyphs into a SEPARATE queue (see
     // FONT_buffer_select in PERF_DRAW). Flush it on its own AFTER the main
@@ -255,7 +266,10 @@ void ui_render_post_composition(void)
     // this flush together with the queue site above into the single
     // "perfpanel" overhead line (not a game stage). No-op (empty queue)
     // unless OC_DEBUG_PERF and the panel is visible.
-    { PERF_OVERHEAD_SCOPE(); FONT_buffer_draw_perf(); }
+    {
+        PERF_OVERHEAD_SCOPE();
+        FONT_buffer_draw_perf();
+    }
 
     // Frontend menu overlay (text + map markers + corner tab buttons + title
     // wibble + mission select + moving-panel preview). Drawn LAST so it sits

@@ -67,8 +67,10 @@ static BOOL FORM_KeyProc(SLONG kb_code, SLONG gp_btn_idx = -1)
     const bool kb = input_key_press_pending(kb_code);
     const bool gp = (gp_btn_idx >= 0) && input_btn_press_pending(gp_btn_idx);
     if (kb || gp) {
-        if (kb) input_key_consume(kb_code);
-        if (gp) input_btn_consume(gp_btn_idx);
+        if (kb)
+            input_key_consume(kb_code);
+        if (gp)
+            input_btn_consume(gp_btn_idx);
         EatenKey = 1;
         return 1;
     }
@@ -152,13 +154,20 @@ SLONG FORM_Process(Form* form)
         // FORM_KeyProc below takes both a KKEY scancode and a GBTN index, so
         // form-level navigation reads the gamepad directly — no synthesis
         // through the input_frame message bus needed.
-        if (input & INPUT_MASK_JUMP)      key = 13;  // confirm — Cross/A
-        if (input & INPUT_MASK_CANCEL)    key = 27;  // cancel — Circle/B
-        if (input & INPUT_MASK_FORWARDS)  key = 11;  // nav up — DPad / stick
-        if (input & INPUT_MASK_BACKWARDS) key = 10;  // nav down
-        if (input & INPUT_MASK_LEFT)      key = 8;   // nav left
-        if (input & INPUT_MASK_RIGHT)     key = 9;   // nav right
-        if (input & INPUT_MASK_START)     form->returncode = -69;
+        if (input & INPUT_MASK_JUMP)
+            key = 13; // confirm — Cross/A
+        if (input & INPUT_MASK_CANCEL)
+            key = 27; // cancel — Circle/B
+        if (input & INPUT_MASK_FORWARDS)
+            key = 11; // nav up — DPad / stick
+        if (input & INPUT_MASK_BACKWARDS)
+            key = 10; // nav down
+        if (input & INPUT_MASK_LEFT)
+            key = 8; // nav left
+        if (input & INPUT_MASK_RIGHT)
+            key = 9; // nav right
+        if (input & INPUT_MASK_START)
+            form->returncode = -69;
         ticker = 10;
     }
     ticker--;

@@ -117,9 +117,9 @@ static void do_car_input(Thing* p_thing);
 // only after the turn eases — no every-tick parrot. The skid still needs the
 // turn HELD (windowed), so the squeal leads it.
 #define SKID_SQUEAL_SPEED 1700 // squeal speed gate (same as skid)
-#define SKID_YAW_NEAR 20       // squeal: yaw gate (strong turn; above moderate ~18)
-#define SKID_YAW_NEAR_OFF 14   // squeal re-arm: yaw must drop below this to reset
-#define SKID_SQUEAL_CONFIRM 4  // yaw must stay past the gate this many ticks (filters 1-2 tick spikes)
+#define SKID_YAW_NEAR 20 // squeal: yaw gate (strong turn; above moderate ~18)
+#define SKID_YAW_NEAR_OFF 14 // squeal re-arm: yaw must drop below this to reset
+#define SKID_SQUEAL_CONFIRM 4 // yaw must stay past the gate this many ticks (filters 1-2 tick spikes)
 // uc_orig: STABLE_COUNT (fallen/Source/Vehicle.cpp)
 #define STABLE_COUNT 16
 // uc_orig: CAR_VEL_SHIFT (fallen/Source/Vehicle.cpp)
@@ -163,10 +163,10 @@ void get_car_enter_anim_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
     // same Z) plus the per-model `along` offset (+ = toward the rear). The two
     // doors use separate offsets — each enter animation grabs a different door
     // edge, so the door width shifts them differently.
-    const SLONG along         = (door == 0) ? veh_enter_tune[type].alongLeft
-                                            : veh_enter_tune[type].alongRight;
+    const SLONG along = (door == 0) ? veh_enter_tune[type].alongLeft
+                                    : veh_enter_tune[type].alongRight;
     const SLONG front_wheel_z = veh_info[type].DZ[2];
-    const SLONG target_z      = front_wheel_z + along;
+    const SLONG target_z = front_wheel_z + along;
 
     // Forward axis maps a positive `length` toward the nose (−Z at angle 0), so
     // length = −target_z places the point at car-local Z = target_z.
@@ -199,9 +199,9 @@ void get_car_enter_anim_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
 // ANIM_ENTER_CAR, right = ANIM_ENTER_TAXI) climb in at different moments.
 // uc_orig: n/a (OpenChaos addition)
 #define CAR_ENTER_RISE_START_L 0.40
-#define CAR_ENTER_RISE_END_L   0.70
+#define CAR_ENTER_RISE_END_L 0.70
 #define CAR_ENTER_RISE_START_R 0.40
-#define CAR_ENTER_RISE_END_R   0.70
+#define CAR_ENTER_RISE_END_R 0.70
 
 // Safety cap when walking the keyframe chain to find its length.
 // uc_orig: n/a (OpenChaos addition)
@@ -240,16 +240,16 @@ void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
     if (dt && dt->CurrentFrame) {
         SLONG before = 0;
         for (GameKeyFrame* p = dt->CurrentFrame;
-             p->PrevFrame && before < CAR_ENTER_RISE_MAX_FRAMES; p = p->PrevFrame)
+            p->PrevFrame && before < CAR_ENTER_RISE_MAX_FRAMES; p = p->PrevFrame)
             before++;
 
         SLONG after = 0;
         for (GameKeyFrame* g = dt->CurrentFrame;
-             g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && after < CAR_ENTER_RISE_MAX_FRAMES; g = g->NextFrame)
+            g && !(g->Flags & ANIM_FLAG_LAST_FRAME) && after < CAR_ENTER_RISE_MAX_FRAMES; g = g->NextFrame)
             after++;
 
         const SLONG total = before + after + 1; // keyframes in clip
-        const SLONG pos   = before * 256 + (dt->AnimTween & 0xff);
+        const SLONG pos = before * 256 + (dt->AnimTween & 0xff);
         if (total > 0)
             prog01 = (double)pos / (double)(total * 256);
         if (prog01 < 0.0)
@@ -259,7 +259,7 @@ void car_enter_anim_rise(Thing* p_person, Thing* p_vehicle)
     }
 
     const double start = is_right ? CAR_ENTER_RISE_START_R : CAR_ENTER_RISE_START_L;
-    const double end   = is_right ? CAR_ENTER_RISE_END_R : CAR_ENTER_RISE_END_L;
+    const double end = is_right ? CAR_ENTER_RISE_END_R : CAR_ENTER_RISE_END_L;
 
     // Height fraction: flat on the ground before the window, smoothstep rise
     // across [start, end], flat at the top after — so there is a distinct
@@ -2973,7 +2973,7 @@ static void do_car_input(Thing* p_thing)
     if (veh->Skid < SKID_START) {
         const SLONG spd = abs(SLONG(p_thing->Velocity));
         const SLONG turn = (SLONG)veh->SkidYawAcc; // windowed rotation (skid)
-        const SLONG iyaw = abs(dangle);            // instant rotation (squeal)
+        const SLONG iyaw = abs(dangle); // instant rotation (squeal)
         // Gas must be held for the corner-skid to break loose: lifting the
         // throttle (coasting / braking through a turn) keeps grip and never
         // auto-spins. Only the physical skid is gated here — the tyre squeal

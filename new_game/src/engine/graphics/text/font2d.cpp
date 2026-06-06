@@ -239,8 +239,10 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
     float sy = PolyPage::ui_scale_y();
     const float ox = PolyPage::ui_offset_x();
     const float oy = PolyPage::ui_offset_y();
-    if (sx <= 0.0f) sx = 1.0f;
-    if (sy <= 0.0f) sy = 1.0f;
+    if (sx <= 0.0f)
+        sx = 1.0f;
+    if (sy <= 0.0f)
+        sy = 1.0f;
     auto snap_x = [&](float vx) { return ((float)(SLONG)(vx * sx + ox + 0.5f) - ox) / sx; };
     auto snap_y = [&](float vy) { return ((float)(SLONG)(vy * sy + oy + 0.5f) - oy) / sy; };
 

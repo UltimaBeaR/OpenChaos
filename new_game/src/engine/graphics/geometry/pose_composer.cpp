@@ -3,9 +3,9 @@
 #include "things/core/thing.h"
 #include "things/core/drawtype.h"
 #include "things/core/hierarchy.h"
-#include "things/characters/person.h"     // person_get_scale
-#include "engine/animation/anim_types.h"  // GetCMatrix, GameKeyFrame*, DrawTween, ANIM_FLAG_LAST_FRAME
-#include "engine/core/quaternion.h"       // CQuaternion::BuildTween
+#include "things/characters/person.h" // person_get_scale
+#include "engine/animation/anim_types.h" // GetCMatrix, GameKeyFrame*, DrawTween, ANIM_FLAG_LAST_FRAME
+#include "engine/core/quaternion.h" // CQuaternion::BuildTween
 #include "engine/graphics/geometry/figure.h" // FIGURE_rotate_obj
 
 // matrix_mult33 prototype is in fmatrix.h (transitively included).
@@ -15,21 +15,21 @@
 //   0 → [1, 4, 12]; 1 → [2]; 2 → [3]; 4 → [5, 8, 11]; 5 → [6]; 6 → [7];
 //   8 → [9]; 9 → [10]; 12 → [13]; 13 → [14]. Leaves: 3, 7, 10, 11, 14.
 const int body_part_parent[POSE_PERSON_BONE_COUNT] = {
-    -1,  // 0  PELVIS (root)
-     0,  // 1  LEFT_FEMUR
-     1,  // 2  LEFT_TIBIA
-     2,  // 3  LEFT_FOOT
-     0,  // 4  TORSO
-     4,  // 5  LEFT_HUMORUS
-     5,  // 6  LEFT_RADIUS
-     6,  // 7  LEFT_HAND
-     4,  // 8  RIGHT_HUMORUS
-     8,  // 9  RIGHT_RADIUS
-     9,  // 10 RIGHT_HAND
-     4,  // 11 HEAD
-     0,  // 12 RIGHT_FEMUR
-    12,  // 13 RIGHT_TIBIA
-    13,  // 14 RIGHT_FOOT
+    -1, // 0  PELVIS (root)
+    0, // 1  LEFT_FEMUR
+    1, // 2  LEFT_TIBIA
+    2, // 3  LEFT_FOOT
+    0, // 4  TORSO
+    4, // 5  LEFT_HUMORUS
+    5, // 6  LEFT_RADIUS
+    6, // 7  LEFT_HAND
+    4, // 8  RIGHT_HUMORUS
+    8, // 9  RIGHT_RADIUS
+    9, // 10 RIGHT_HAND
+    4, // 11 HEAD
+    0, // 12 RIGHT_FEMUR
+    12, // 13 RIGHT_TIBIA
+    13, // 14 RIGHT_FOOT
 };
 
 // Iterative pre-order DFS frame, mirroring FIGURE_draw_hierarchical_prim_recurse
@@ -53,31 +53,40 @@ inline Matrix31 rest_offset_from_ae1(GameKeyFrameElement* ae1, int part)
     return r;
 }
 
-}  // namespace
+} // namespace
 
 bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
 {
-    if (!out) return false;
+    if (!out)
+        return false;
     out->valid = false;
     out->bone_count = 0;
 
-    if (!p_thing) return false;
-    if (p_thing->Class != CLASS_PERSON) return false;
-    if (p_thing->DrawType != DT_ROT_MULTI) return false;
+    if (!p_thing)
+        return false;
+    if (p_thing->Class != CLASS_PERSON)
+        return false;
+    if (p_thing->DrawType != DT_ROT_MULTI)
+        return false;
 
     DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt) return false;
-    if (!dt->CurrentFrame || !dt->NextFrame) return false;
+    if (!dt)
+        return false;
+    if (!dt->CurrentFrame || !dt->NextFrame)
+        return false;
 
     GameKeyFrameElement* ae1 = dt->CurrentFrame->FirstElement;
     GameKeyFrameElement* ae2 = dt->NextFrame->FirstElement;
-    if (!ae1 || !ae2) return false;
+    if (!ae1 || !ae2)
+        return false;
 
-    if (!dt->TheChunk) return false;
+    if (!dt->TheChunk)
+        return false;
     // Phase 1: hierarchical 15-bone skeleton only. Other DT_TWEEN family
     // (DT_ANIM_PRIM animals/bats, generic DT_TWEEN) use a flat path —
     // handled in a later phase.
-    if (dt->TheChunk->ElementCount != 15) return false;
+    if (dt->TheChunk->ElementCount != 15)
+        return false;
 
     SLONG character_scale = person_get_scale(p_thing);
     float character_scalef = float(character_scale) / 256.f;
@@ -102,17 +111,17 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
     // when composing child bones via HIERARCHY_Get_Body_Part_Offset.
     Matrix31 end_pos[POSE_MAX_BONES];
     Matrix33 end_mat[POSE_MAX_BONES];
-    int      parent_of[POSE_MAX_BONES];
+    int parent_of[POSE_MAX_BONES];
     parent_of[0] = -1;
 
     // DFS stack. Hierarchy is a tree with depth ≤ 4 (PELVIS → TORSO →
     // ARM_HUMORUS → ARM_RADIUS → HAND), so stack depth bounded by 5.
     constexpr int MAX_STACK = 16;
     WalkFrame stack[MAX_STACK];
-    Matrix31  parent_base_pos_at_level[MAX_STACK];   // ae1[parent].Offset, captured on descent
+    Matrix31 parent_base_pos_at_level[MAX_STACK]; // ae1[parent].Offset, captured on descent
 
     int sp = 0;
-    stack[0].part_number = 0;            // PELVIS — root
+    stack[0].part_number = 0; // PELVIS — root
     stack[0].current_child_number = 0;
 
     while (sp >= 0) {
@@ -130,11 +139,11 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
                 // off_dx/dy/dz arguments are 0 here (no muzzle-flash hand
                 // offset); composer is invoked outside the gun-flash path.
                 bone_offset.M[0] = (SLONG(ae1[part].OffsetX) << 8)
-                                 + (SLONG(ae2[part].OffsetX - ae1[part].OffsetX) * tween);
+                    + (SLONG(ae2[part].OffsetX - ae1[part].OffsetX) * tween);
                 bone_offset.M[1] = (SLONG(ae1[part].OffsetY) << 8)
-                                 + (SLONG(ae2[part].OffsetY - ae1[part].OffsetY) * tween);
+                    + (SLONG(ae2[part].OffsetY - ae1[part].OffsetY) * tween);
                 bone_offset.M[2] = (SLONG(ae1[part].OffsetZ) << 8)
-                                 + (SLONG(ae2[part].OffsetZ - ae1[part].OffsetZ) * tween);
+                    + (SLONG(ae2[part].OffsetZ - ae1[part].OffsetZ) * tween);
             } else {
                 // Child: HIERARCHY_Get_Body_Part_Offset, mirroring
                 // figure.cpp:1851. Inputs:
@@ -251,23 +260,30 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
 // (figure.cpp:2836-2858) and ANIM_obj_draw (figure.cpp:2965-2986).
 bool compose_flat_skeletal_pose(Thing* p_thing, ComposedFlatPose* out)
 {
-    if (!out) return false;
+    if (!out)
+        return false;
     out->valid = false;
     out->bone_count = 0;
 
-    if (!p_thing) return false;
+    if (!p_thing)
+        return false;
 
     DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt) return false;
-    if (!dt->CurrentFrame || !dt->NextFrame) return false;
-    if (!dt->TheChunk) return false;
+    if (!dt)
+        return false;
+    if (!dt->CurrentFrame || !dt->NextFrame)
+        return false;
+    if (!dt->TheChunk)
+        return false;
 
     GameKeyFrameElement* ae1 = dt->CurrentFrame->FirstElement;
     GameKeyFrameElement* ae2 = dt->NextFrame->FirstElement;
-    if (!ae1 || !ae2) return false;
+    if (!ae1 || !ae2)
+        return false;
 
     SLONG ele_count = dt->TheChunk->ElementCount;
-    if (ele_count <= 0 || ele_count > POSE_MAX_BONES) return false;
+    if (ele_count <= 0 || ele_count > POSE_MAX_BONES)
+        return false;
 
     SLONG character_scale = person_get_scale(p_thing);
     float character_scalef = float(character_scale) / 256.f;
@@ -297,11 +313,11 @@ bool compose_flat_skeletal_pose(Thing* p_thing, ComposedFlatPose* out)
         // 1678) — base case (no cross-anim blend, no off_dx/dy/dz).
         Matrix31 bone_offset;
         bone_offset.M[0] = (SLONG(ae1[i].OffsetX) << 8)
-                         + (SLONG(ae2[i].OffsetX - ae1[i].OffsetX) * tween);
+            + (SLONG(ae2[i].OffsetX - ae1[i].OffsetX) * tween);
         bone_offset.M[1] = (SLONG(ae1[i].OffsetY) << 8)
-                         + (SLONG(ae2[i].OffsetY - ae1[i].OffsetY) * tween);
+            + (SLONG(ae2[i].OffsetY - ae1[i].OffsetY) * tween);
         bone_offset.M[2] = (SLONG(ae1[i].OffsetZ) << 8)
-                         + (SLONG(ae2[i].OffsetZ - ae1[i].OffsetZ) * tween);
+            + (SLONG(ae2[i].OffsetZ - ae1[i].OffsetZ) * tween);
 
         float ox = float(bone_offset.M[0]) / 256.f;
         float oy = float(bone_offset.M[1]) / 256.f;

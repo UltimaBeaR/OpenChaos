@@ -205,7 +205,6 @@ void SMAP_point_finished()
 #define SMAP_SCRATCH_DIM 256
 static UBYTE SMAP_setup_scratch[SMAP_SCRATCH_DIM * SMAP_SCRATCH_DIM];
 
-
 // P2-H GPU character shadow: one draw per character using the SAME
 // consolidated bind-space mesh + per-frame skin palette the body will
 // draw later this frame. Soft-skin weights deform the shadow naturally
@@ -225,14 +224,14 @@ bool SMAP_person_gpu(
     // FIGURE_get_skin_mesh_for_thing builds whatever is missing — so when
     // SMAP runs BEFORE the body draw, this triggers the TPO walk and the
     // bind-space VBO build, and the later body draw just reuses them.
-    GESkinMesh*              mesh       = NULL;
-    const float*             bone_aabb  = NULL;
-    int                      bone_count = 0;
-    const GameKeyFrameChunk* chunk      = NULL;
-    const GEMatrix*          bind_inv   = NULL;
+    GESkinMesh* mesh = NULL;
+    const float* bone_aabb = NULL;
+    int bone_count = 0;
+    const GameKeyFrameChunk* chunk = NULL;
+    const GEMatrix* bind_inv = NULL;
     if (!FIGURE_get_skin_mesh_for_thing(p_thing,
-                                        &mesh, &bone_aabb, &bone_count,
-                                        &chunk, &bind_inv))
+            &mesh, &bone_aabb, &bone_count,
+            &chunk, &bind_inv))
         return false;
     if (!mesh || !bone_aabb || bone_count <= 0)
         return false;
@@ -259,9 +258,9 @@ bool SMAP_person_gpu(
     {
         constexpr float S = 1.0F / 32768.0F;
         for (int i = 0; i < bone_count; ++i) {
-            const Matrix33& cR  = current[i].rot;
-            const GEMatrix& bi  = bind_inv[i];
-            const float     pos[3] = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
+            const Matrix33& cR = current[i].rot;
+            const GEMatrix& bi = bind_inv[i];
+            const float pos[3] = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
             for (int r = 0; r < 3; ++r) {
                 float* o = &skin_palette[(i * 3 + r) * 4];
                 const float cR0 = float(cR.M[r][0]);
@@ -290,7 +289,8 @@ bool SMAP_person_gpu(
     for (int b = 0; b < bone_count; ++b) {
         const float* mn = &bone_aabb[b * 6 + 0];
         const float* mx = &bone_aabb[b * 6 + 3];
-        if (mn[0] > mx[0]) continue; // bone unreferenced by any vertex
+        if (mn[0] > mx[0])
+            continue; // bone unreferenced by any vertex
 
         const float* sp = &skin_palette[b * 12];
         for (int c = 0; c < 8; ++c) {
@@ -298,18 +298,24 @@ bool SMAP_person_gpu(
             float ly = (c & 2) ? mx[1] : mn[1];
             float lz = (c & 4) ? mx[2] : mn[2];
             // world = skin[bone] × bind_corner (M*v form, .w = translation)
-            float wxf = sp[0] * lx + sp[1] * ly + sp[2]  * lz + sp[3];
-            float wyf = sp[4] * lx + sp[5] * ly + sp[6]  * lz + sp[7];
+            float wxf = sp[0] * lx + sp[1] * ly + sp[2] * lz + sp[3];
+            float wyf = sp[4] * lx + sp[5] * ly + sp[6] * lz + sp[7];
             float wzf = sp[8] * lx + sp[9] * ly + sp[10] * lz + sp[11];
             float au = wxf * SMAP_plane_ux + wyf * SMAP_plane_uy + wzf * SMAP_plane_uz;
             float av = wxf * SMAP_plane_vx + wyf * SMAP_plane_vy + wzf * SMAP_plane_vz;
             float an = wxf * SMAP_plane_nx + wyf * SMAP_plane_ny + wzf * SMAP_plane_nz;
-            if (au < SMAP_u_min) SMAP_u_min = au;
-            if (au > SMAP_u_max) SMAP_u_max = au;
-            if (av < SMAP_v_min) SMAP_v_min = av;
-            if (av > SMAP_v_max) SMAP_v_max = av;
-            if (an < SMAP_n_min) SMAP_n_min = an;
-            if (an > SMAP_n_max) SMAP_n_max = an;
+            if (au < SMAP_u_min)
+                SMAP_u_min = au;
+            if (au > SMAP_u_max)
+                SMAP_u_max = au;
+            if (av < SMAP_v_min)
+                SMAP_v_min = av;
+            if (av > SMAP_v_max)
+                SMAP_v_max = av;
+            if (an < SMAP_n_min)
+                SMAP_n_min = an;
+            if (an > SMAP_n_max)
+                SMAP_n_max = an;
         }
         parts_used++;
     }
@@ -323,28 +329,42 @@ bool SMAP_person_gpu(
     float proj16[16];
     {
         float resf = float(res);
-        float k    = 2.0F / resf;
-        float du   = SMAP_u_max - SMAP_u_min;
-        float dv   = SMAP_v_max - SMAP_v_min;
-        if (fabsf(du) < 1e-6F) du = 1e-6F;
-        if (fabsf(dv) < 1e-6F) dv = 1e-6F;
-        float su   = (resf - 2.0F) / du;
-        float sv   = (resf - 2.0F) / dv;
+        float k = 2.0F / resf;
+        float du = SMAP_u_max - SMAP_u_min;
+        float dv = SMAP_v_max - SMAP_v_min;
+        if (fabsf(du) < 1e-6F)
+            du = 1e-6F;
+        if (fabsf(dv) < 1e-6F)
+            dv = 1e-6F;
+        float su = (resf - 2.0F) / du;
+        float sv = (resf - 2.0F) / dv;
 
         float Aux = k * su * SMAP_plane_ux;
         float Auy = k * su * SMAP_plane_uy;
         float Auz = k * su * SMAP_plane_uz;
-        float bu  = k * (1.0F - SMAP_u_min * su) - 1.0F;
+        float bu = k * (1.0F - SMAP_u_min * su) - 1.0F;
 
         float Avx = k * sv * SMAP_plane_vx;
         float Avy = k * sv * SMAP_plane_vy;
         float Avz = k * sv * SMAP_plane_vz;
-        float bv  = k * (1.0F - SMAP_v_min * sv) - 1.0F;
+        float bv = k * (1.0F - SMAP_v_min * sv) - 1.0F;
 
-        proj16[0] = Aux; proj16[4] = Auy; proj16[8]  = Auz; proj16[12] = bu;
-        proj16[1] = Avx; proj16[5] = Avy; proj16[9]  = Avz; proj16[13] = bv;
-        proj16[2] = 0;   proj16[6] = 0;   proj16[10] = 0;   proj16[14] = 0;
-        proj16[3] = 0;   proj16[7] = 0;   proj16[11] = 0;   proj16[15] = 1;
+        proj16[0] = Aux;
+        proj16[4] = Auy;
+        proj16[8] = Auz;
+        proj16[12] = bu;
+        proj16[1] = Avx;
+        proj16[5] = Avy;
+        proj16[9] = Avz;
+        proj16[13] = bv;
+        proj16[2] = 0;
+        proj16[6] = 0;
+        proj16[10] = 0;
+        proj16[14] = 0;
+        proj16[3] = 0;
+        proj16[7] = 0;
+        proj16[11] = 0;
+        proj16[15] = 1;
     }
 
     // One draw per character — whole consolidated mesh through the

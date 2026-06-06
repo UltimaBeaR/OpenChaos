@@ -63,10 +63,10 @@ extern TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 #define MAX_NUMBER_D3D_ANIMALS 32
 struct AnimObjKey {
     const struct GameKeyFrameChunk* chunk;
-    SLONG                           start_object;
+    SLONG start_object;
 };
-extern AnimObjKey     D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS];
-extern TomsPrimObject D3DAnimObj    [MAX_NUMBER_D3D_ANIMALS];
+extern AnimObjKey D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS];
+extern TomsPrimObject D3DAnimObj[MAX_NUMBER_D3D_ANIMALS];
 
 // uc_orig: m_iLRUQueueSize (fallen/DDEngine/Source/figure.cpp)
 // Current number of entries in the TomsPrimObject LRU cache.
@@ -153,8 +153,8 @@ extern int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 // floored. The shader reconstructs the byte-truncated value at the
 // queried index (see skin_world_vert.glsl `u_fade_start`/`u_fade_step`).
 // Built per character in BuildMMLightingTable.
-extern float MM_FadeStart[3];     // ambient end (idx 0)
-extern float MM_FadeStep[3];      // per-index delta
+extern float MM_FadeStart[3]; // ambient end (idx 0)
+extern float MM_FadeStep[3]; // per-index delta
 
 // Tint variant — the legacy table applied a per-byte colour_and mask
 // to each entry; for the masks we actually use (each byte is 0x00 or

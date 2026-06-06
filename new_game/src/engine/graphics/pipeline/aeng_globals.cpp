@@ -134,7 +134,6 @@ AENG_Pow* AENG_pow_bucket[AENG_POW_NUM_BUCKETS];
 // Chunk 3 globals: sky, rect queue, floor tile infrastructure
 // ---------------------------------------------------------------------------
 
-
 // uc_orig: AENG_upper (fallen/DDEngine/Source/aeng.cpp)
 POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
 

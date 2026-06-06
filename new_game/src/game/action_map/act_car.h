@@ -42,8 +42,8 @@
 //
 // Priority (resolved in vehicle.cpp::pedals): brake > reverse > gas.
 
-constexpr int ACT_CAR_ACCEL_GBTN   = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
-constexpr int ACT_CAR_BRAKE_GBTN   = GBTN_L1;         // DS: L1, Xbox: LB (digital bumper)
+constexpr int ACT_CAR_ACCEL_GBTN = GBTN_R2_DIGITAL; // DS: R2, Xbox: RT (digital bit)
+constexpr int ACT_CAR_BRAKE_GBTN = GBTN_L1; // DS: L1, Xbox: LB (digital bumper)
 constexpr int ACT_CAR_REVERSE_GBTN = GBTN_L2_DIGITAL; // DS: L2, Xbox: LT (digital bit)
 
 // Analog trigger axis — drives proportional acceleration (gas) scaling in
@@ -54,9 +54,9 @@ constexpr int ACT_CAR_ACCEL_GTRIG = GTRIG_R2;
 // Read directly in apply_button_input_car (input_key_held) — W and S are
 // opposite ends of the WASD analog axis, so they can't go through the stick
 // bits (they'd cancel); they're read as individual keys.
-constexpr int ACT_CAR_ACCEL_KKEY   = KKEY_W;     // gas
-constexpr int ACT_CAR_BRAKE_KKEY   = KKEY_SPACE; // brake
-constexpr int ACT_CAR_REVERSE_KKEY = KKEY_S;     // reverse
+constexpr int ACT_CAR_ACCEL_KKEY = KKEY_W; // gas
+constexpr int ACT_CAR_BRAKE_KKEY = KKEY_SPACE; // brake
+constexpr int ACT_CAR_REVERSE_KKEY = KKEY_S; // reverse
 
 // ---- Siren toggle ----------------------------------------------------------
 // Toggles siren / lights in apply_button_input_car. Edge-triggered via

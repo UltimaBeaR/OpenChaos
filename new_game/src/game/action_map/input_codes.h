@@ -241,9 +241,9 @@
 // gameplay-side mouse-button action constants (ACT_FOOT_PUNCH_MBTN etc.).
 // =============================================================================
 
-#define MBTN_LEFT   0
+#define MBTN_LEFT 0
 #define MBTN_MIDDLE 1
-#define MBTN_RIGHT  2
+#define MBTN_RIGHT 2
 
 // =============================================================================
 // MAXIS_* — Mouse motion axes. Source vocabulary for the two axes returned by
@@ -285,9 +285,9 @@
 #define GBTN_L1 9
 // DS: R1, Xbox: RB
 #define GBTN_R1 10
-#define GBTN_DPAD_UP    11
-#define GBTN_DPAD_DOWN  12
-#define GBTN_DPAD_LEFT  13
+#define GBTN_DPAD_UP 11
+#define GBTN_DPAD_DOWN 12
+#define GBTN_DPAD_LEFT 13
 #define GBTN_DPAD_RIGHT 14
 // L2 as digital threshold (the trigger crossed ~half-deflection inside the
 // gamepad layer). DS: L2, Xbox: LT. For the analog value see GTRIG_L2.
@@ -302,7 +302,7 @@
 // DualSense touchpad click.
 #define DBTN_TOUCHPAD 17
 // DualSense mute button.
-#define DBTN_MUTE     18
+#define DBTN_MUTE 18
 
 // Number of common cross-pad buttons (indices 0..16: face, Select/Guide/Start,
 // stick clicks, L1/R1, D-pad, L2/R2 digital). The DualSense-only buttons
@@ -317,7 +317,7 @@
 // Values mirror InputStickId in input_frame.h (passed via implicit cast).
 // =============================================================================
 
-#define GAXIS_LEFT  0
+#define GAXIS_LEFT 0
 #define GAXIS_RIGHT 1
 
 // =============================================================================
@@ -326,9 +326,9 @@
 // Values mirror InputStickDir in input_frame.h.
 // =============================================================================
 
-#define GDIR_UP    0
-#define GDIR_DOWN  1
-#define GDIR_LEFT  2
+#define GDIR_UP 0
+#define GDIR_DOWN 1
+#define GDIR_LEFT 2
 #define GDIR_RIGHT 3
 
 // =============================================================================

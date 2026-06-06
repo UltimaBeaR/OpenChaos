@@ -30,24 +30,24 @@
 // throttle (see InputAutoRepeat::tick_combined). Each direction has both a
 // KKEY and a GBTN constant so the binding for each source is explicit.
 
-constexpr int ACT_MENU_NAV_UP_KKEY    = KKEY_UP;
-constexpr int ACT_MENU_NAV_DOWN_KKEY  = KKEY_DOWN;
-constexpr int ACT_MENU_NAV_LEFT_KKEY  = KKEY_LEFT;
+constexpr int ACT_MENU_NAV_UP_KKEY = KKEY_UP;
+constexpr int ACT_MENU_NAV_DOWN_KKEY = KKEY_DOWN;
+constexpr int ACT_MENU_NAV_LEFT_KKEY = KKEY_LEFT;
 constexpr int ACT_MENU_NAV_RIGHT_KKEY = KKEY_RIGHT;
 
-constexpr int ACT_MENU_NAV_UP_GBTN    = GBTN_DPAD_UP;
-constexpr int ACT_MENU_NAV_DOWN_GBTN  = GBTN_DPAD_DOWN;
-constexpr int ACT_MENU_NAV_LEFT_GBTN  = GBTN_DPAD_LEFT;
+constexpr int ACT_MENU_NAV_UP_GBTN = GBTN_DPAD_UP;
+constexpr int ACT_MENU_NAV_DOWN_GBTN = GBTN_DPAD_DOWN;
+constexpr int ACT_MENU_NAV_LEFT_GBTN = GBTN_DPAD_LEFT;
 constexpr int ACT_MENU_NAV_RIGHT_GBTN = GBTN_DPAD_RIGHT;
 
 // Left stick = menu navigation (discrete directions). The stick-id and each
 // direction are passed as args to input_stick_held / input_stick_just_pressed
 // in frontend.cpp and gamemenu.cpp menu-nav OR-chains.
-constexpr int ACT_MENU_NAV_GAXIS       = GAXIS_LEFT;
-constexpr int ACT_MENU_NAV_UP_GDIR     = GDIR_UP;
-constexpr int ACT_MENU_NAV_DOWN_GDIR   = GDIR_DOWN;
-constexpr int ACT_MENU_NAV_LEFT_GDIR   = GDIR_LEFT;
-constexpr int ACT_MENU_NAV_RIGHT_GDIR  = GDIR_RIGHT;
+constexpr int ACT_MENU_NAV_GAXIS = GAXIS_LEFT;
+constexpr int ACT_MENU_NAV_UP_GDIR = GDIR_UP;
+constexpr int ACT_MENU_NAV_DOWN_GDIR = GDIR_DOWN;
+constexpr int ACT_MENU_NAV_LEFT_GDIR = GDIR_LEFT;
+constexpr int ACT_MENU_NAV_RIGHT_GDIR = GDIR_RIGHT;
 
 // WASD as an ergonomic alternative to the arrow keys (modern keyboard
 // convention). The arrow keys stay bound; these are OR'd in alongside the
@@ -56,9 +56,9 @@ constexpr int ACT_MENU_NAV_RIGHT_GDIR  = GDIR_RIGHT;
 // characters (e.g. text entry), the letter is delivered to the widget's
 // Char handler first and only falls through to navigation when the widget
 // doesn't consume it — so typing WASD into a text field never navigates.
-constexpr int ACT_MENU_NAV_UP_ALT_KKEY    = KKEY_W;
-constexpr int ACT_MENU_NAV_DOWN_ALT_KKEY  = KKEY_S;
-constexpr int ACT_MENU_NAV_LEFT_ALT_KKEY  = KKEY_A;
+constexpr int ACT_MENU_NAV_UP_ALT_KKEY = KKEY_W;
+constexpr int ACT_MENU_NAV_DOWN_ALT_KKEY = KKEY_S;
+constexpr int ACT_MENU_NAV_LEFT_ALT_KKEY = KKEY_A;
 constexpr int ACT_MENU_NAV_RIGHT_ALT_KKEY = KKEY_D;
 
 // ---- Confirm / submit ------------------------------------------------------
@@ -68,7 +68,7 @@ constexpr int ACT_MENU_NAV_RIGHT_ALT_KKEY = KKEY_D;
 constexpr int ACT_MENU_CONFIRM_1_KKEY = KKEY_ENTER;
 constexpr int ACT_MENU_CONFIRM_2_KKEY = KKEY_SPACE;
 constexpr int ACT_MENU_CONFIRM_3_KKEY = KKEY_NUMPAD_ENTER;
-constexpr int ACT_MENU_CONFIRM_GBTN   = GBTN_SOUTH; // DS: Cross, Xbox: A
+constexpr int ACT_MENU_CONFIRM_GBTN = GBTN_SOUTH; // DS: Cross, Xbox: A
 
 // ---- Cancel / back ---------------------------------------------------------
 // Cancel-current-screen / back-out. Gamepad: Circle / B (modern PlayStation
@@ -94,7 +94,7 @@ constexpr int ACT_MENU_TOGGLE_PAUSE_GBTN = GBTN_START; // DS: Options, Xbox: Sta
 // — no gamepad equivalent in current layout.
 
 constexpr int ACT_MENU_PAGE_FIRST_KKEY = KKEY_HOME;
-constexpr int ACT_MENU_PAGE_LAST_KKEY  = KKEY_END;
+constexpr int ACT_MENU_PAGE_LAST_KKEY = KKEY_END;
 
 // ---- Form widget: focus cycle ----------------------------------------------
 // Tab inside a widget Form cycles focus between widget children (Shift+Tab
@@ -109,9 +109,9 @@ constexpr int ACT_MENU_FORM_CYCLE_FOCUS_KKEY = KKEY_TAB;
 // End cases reuse the nav / confirm / cancel / page constants above; PageUp /
 // PageDown / Delete have no other home and live here.
 
-constexpr int ACT_MENU_FORM_PAGE_UP_KKEY   = KKEY_PAGE_UP;
+constexpr int ACT_MENU_FORM_PAGE_UP_KKEY = KKEY_PAGE_UP;
 constexpr int ACT_MENU_FORM_PAGE_DOWN_KKEY = KKEY_PAGE_DOWN;
-constexpr int ACT_MENU_FORM_DELETE_KKEY    = KKEY_DELETE;
+constexpr int ACT_MENU_FORM_DELETE_KKEY = KKEY_DELETE;
 
 // ---- Attract-mode wake / quit ----------------------------------------------
 // Any of these keys held wakes the attract screen up so the menu stays alive
@@ -134,7 +134,7 @@ constexpr int ACT_MENU_ATTRACT_QUIT_KKEY = KKEY_Q;
 // regular-row keys is safe — gameplay keys 1-8 are weapon hotkeys but in
 // frontend (where these cheats live) those bindings are inert.
 constexpr int ACT_MENU_FE_CHEAT_ADVANCE_POINT_KKEY = KKEY_EQUALS; // Ctrl+Shift+=
-constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY     = KKEY_8;      // Ctrl+Shift+8 (asterisk via Shift)
+constexpr int ACT_MENU_FE_CHEAT_MAX_POINT_KKEY = KKEY_8; // Ctrl+Shift+8 (asterisk via Shift)
 
 // ---- Modal dialog acknowledge ----------------------------------------------
 // "Press anything sensible to continue" modal screens during gameplay (e.g.

@@ -59,13 +59,13 @@ void DBGLOG_draw(void);
 #else
 
 // Compile-time no-ops. Args are discarded unevaluated.
-#define DBGLOG(...)      ((void)0)
+#define DBGLOG(...) ((void)0)
 #define DBGLOG_color(...) (0ul)
-#define DBGLOG_begin()   ((void)0)
-#define DBGLOG_seg(...)  ((void)0)
-#define DBGLOG_commit()  ((void)0)
-#define DBGLOG_clear()   ((void)0)
-#define DBGLOG_draw()    ((void)0)
+#define DBGLOG_begin() ((void)0)
+#define DBGLOG_seg(...) ((void)0)
+#define DBGLOG_commit() ((void)0)
+#define DBGLOG_clear() ((void)0)
+#define DBGLOG_draw() ((void)0)
 
 #endif // OC_DEBUG_LOG
 

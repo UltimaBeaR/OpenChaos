@@ -526,7 +526,8 @@ void PLAYCUTS_Play(CPData* cutscene)
     while (SHELL_ACTIVE && !input_key_just_pressed(ACT_CINE_PLAYCUT_SKIP_KKEY) && !no_more_packets && !hardware_input_continue()) {
         uint64_t cut_now_ms = sdl3_get_ticks();
         float cut_dt_ms = float(cut_now_ms - cut_prev_ms);
-        if (cut_dt_ms > 200.0f) cut_dt_ms = 200.0f;
+        if (cut_dt_ms > 200.0f)
+            cut_dt_ms = 200.0f;
         cut_prev_ms = cut_now_ms;
 
         // Publish wall-clock dt for render-side effects (rain density,
@@ -596,7 +597,7 @@ void PLAYCUTS_Play(CPData* cutscene)
                 playcuts_voice_last_seen_ms = sdl3_get_ticks();
                 hold_for_voice = true;
             } else if (playcuts_voice_last_seen_ms != 0
-                       && (sdl3_get_ticks() - playcuts_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
+                && (sdl3_get_ticks() - playcuts_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
                 hold_for_voice = true;
             }
         }

@@ -6,11 +6,11 @@
 #include "engine/debug/perf_diag/perf_diag.h" // PERF_COUNT — flush attribution (Step 3)
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT
-#include "debug_config.h"                  // OC_DEBUG_PERF — flush top-pages overlay
+#include "debug_config.h" // OC_DEBUG_PERF — flush top-pages overlay
 #if OC_DEBUG_PERF
-#include "engine/graphics/text/font.h"     // FONT_buffer_add — top-pages overlay
-#include <stdio.h>                         // snprintf — page#N fallback
-#include <string.h>                        // memset — per-page tally reset
+#include "engine/graphics/text/font.h" // FONT_buffer_add — top-pages overlay
+#include <stdio.h> // snprintf — page#N fallback
+#include <string.h> // memset — per-page tally reset
 #endif
 #include "config.h"
 
@@ -141,7 +141,7 @@ void POLY_set_wibble(
     // is a clean wrap point — sin/cos values are continuous across the wrap.
     // Wrap happens every ~273 sec at 7680/sec; well within int32, no jitter.
     constexpr uint64_t WIBBLE_INC_PER_SEC = 7680;
-    constexpr SLONG    WIBBLE_PERIOD      = 1024 * 2048;
+    constexpr SLONG WIBBLE_PERIOD = 1024 * 2048;
     const uint64_t total_inc = sdl3_get_ticks() * WIBBLE_INC_PER_SEC / 1000;
     POLY_wibble_turn = SLONG(total_inc % uint64_t(WIBBLE_PERIOD));
 
@@ -1057,7 +1057,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
             ppoly->sort_z = zsum / 3.0f;
         }
-
     }
 
     return;
@@ -1127,7 +1126,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
-
 }
 
 // uc_orig: POLY_add_quad_fast (fallen/DDEngine/Source/poly.cpp)
@@ -1242,7 +1240,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
 
     pv[1] = pv[-1];
     pv[2] = pv[-2];
-
 }
 
 // uc_orig: POLY_add_quad (fallen/DDEngine/Headers/poly.h)
@@ -1571,72 +1568,137 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
 static const char* poly_page_short_name(int idx)
 {
     switch (idx) {
-        // Named alpha-sortable / commonly-active pages from poly.h.
-        case POLY_PAGE_SKY:               return "SKY";
-        case POLY_PAGE_SHADOW:            return "SHADOW";
-        case POLY_PAGE_SHADOW_OVAL:       return "SHADOW_OVAL";
-        case POLY_PAGE_SHADOW_SQUARE:     return "SHADOW_SQ";
-        case POLY_PAGE_PUDDLE:            return "PUDDLE";
-        case POLY_PAGE_CLOUDS:            return "CLOUDS";
-        case POLY_PAGE_ALPHA:             return "ALPHA";
-        case POLY_PAGE_ADDITIVE:          return "ADDITIVE";
-        case POLY_PAGE_MOON:              return "MOON";
-        case POLY_PAGE_MANONMOON:         return "MANONMOON";
-        case POLY_PAGE_MASKED:            return "MASKED";
-        case POLY_PAGE_ENVMAP:            return "ENVMAP";
-        case POLY_PAGE_WATER:             return "WATER";
-        case POLY_PAGE_DRIP:              return "DRIP";
-        case POLY_PAGE_FOG:               return "FOG";
-        case POLY_PAGE_STEAM:             return "STEAM";
-        case POLY_PAGE_BANG:              return "BANG";
-        case POLY_PAGE_TEXT:              return "TEXT";
-        case POLY_PAGE_LOGO:              return "LOGO";
-        case POLY_PAGE_DROPLET:           return "DROPLET";
-        case POLY_PAGE_RAINDROP:          return "RAINDROP";
-        case POLY_PAGE_SPARKLE:           return "SPARKLE";
-        case POLY_PAGE_EXPLODE1:          return "EXPLODE1";
-        case POLY_PAGE_EXPLODE2:          return "EXPLODE2";
-        case POLY_PAGE_COLOUR_ALPHA:      return "COLOUR_ALPHA";
-        case POLY_PAGE_TEST_SHADOWMAP:    return "TEST_SMAP";
-        case POLY_PAGE_SEWATER:           return "SEWATER";
-        case POLY_PAGE_FLAMES:            return "FLAMES";
-        case POLY_PAGE_SMOKE:             return "SMOKE";
-        case POLY_PAGE_LEAF:              return "LEAF";
-        case POLY_PAGE_BIG_LEAF:          return "BIG_LEAF";
-        case POLY_PAGE_RUBBISH:           return "RUBBISH";
-        case POLY_PAGE_FLAMES2:           return "FLAMES2";
-        case POLY_PAGE_FLAMES3:           return "FLAMES3";
-        case POLY_PAGE_SMOKECLOUD:        return "SMOKECLOUD";
-        case POLY_PAGE_SMOKECLOUD2:       return "SMOKECLOUD2";
-        case POLY_PAGE_BIGBANG:           return "BIGBANG";
-        case POLY_PAGE_DUSTWAVE:          return "DUSTWAVE";
-        case POLY_PAGE_HITSPANG:          return "HITSPANG";
-        case POLY_PAGE_BLOOM1:            return "BLOOM1";
-        case POLY_PAGE_BLOOM2:            return "BLOOM2";
-        case POLY_PAGE_FINALGLOW:         return "FINALGLOW";
-        case POLY_PAGE_BLOODSPLAT:        return "BLOODSPLAT";
-        case POLY_PAGE_TYRESKID:          return "TYRESKID";
-        case POLY_PAGE_TYRETRACK:         return "TYRETRACK";
-        case POLY_PAGE_FOOTPRINT:         return "FOOTPRINT";
-        case POLY_PAGE_SPLASH:            return "SPLASH";
-        case POLY_PAGE_COLOUR:            return "COLOUR";
-        case POLY_PAGE_COLOUR_WITH_FOG:   return "COLOUR_FOG";
-        case POLY_PAGE_BARBWIRE:          return "BARBWIRE";
-        case POLY_PAGE_LADDER:            return "LADDER";
-        case POLY_PAGE_LADSHAD:           return "LADSHAD";
-        case POLY_PAGE_METEOR:            return "METEOR";
-        case POLY_PAGE_LITE_BOLT:         return "LITE_BOLT";
-        case POLY_PAGE_SNOWFLAKE:         return "SNOWFLAKE";
-        case POLY_PAGE_FADECAT:           return "FADECAT";
-        case POLY_PAGE_PCFLAMER:          return "PCFLAMER";
-        case POLY_PAGE_EXPLODE1_ADDITIVE: return "EXPL1_ADD";
-        case POLY_PAGE_EXPLODE2_ADDITIVE: return "EXPL2_ADD";
-        case POLY_PAGE_LENSFLARE:         return "LENSFLARE";
-        case POLY_PAGE_SIGN:              return "SIGN";
-        case POLY_PAGE_ALPHA_OVERLAY:     return "ALPHA_OVRLY";
-        case POLY_PAGE_ADDITIVEALPHA:     return "ADD_ALPHA";
-        case POLY_PAGE_SUBTRACTIVEALPHA:  return "SUB_ALPHA";
-        default:                          return nullptr;
+    // Named alpha-sortable / commonly-active pages from poly.h.
+    case POLY_PAGE_SKY:
+        return "SKY";
+    case POLY_PAGE_SHADOW:
+        return "SHADOW";
+    case POLY_PAGE_SHADOW_OVAL:
+        return "SHADOW_OVAL";
+    case POLY_PAGE_SHADOW_SQUARE:
+        return "SHADOW_SQ";
+    case POLY_PAGE_PUDDLE:
+        return "PUDDLE";
+    case POLY_PAGE_CLOUDS:
+        return "CLOUDS";
+    case POLY_PAGE_ALPHA:
+        return "ALPHA";
+    case POLY_PAGE_ADDITIVE:
+        return "ADDITIVE";
+    case POLY_PAGE_MOON:
+        return "MOON";
+    case POLY_PAGE_MANONMOON:
+        return "MANONMOON";
+    case POLY_PAGE_MASKED:
+        return "MASKED";
+    case POLY_PAGE_ENVMAP:
+        return "ENVMAP";
+    case POLY_PAGE_WATER:
+        return "WATER";
+    case POLY_PAGE_DRIP:
+        return "DRIP";
+    case POLY_PAGE_FOG:
+        return "FOG";
+    case POLY_PAGE_STEAM:
+        return "STEAM";
+    case POLY_PAGE_BANG:
+        return "BANG";
+    case POLY_PAGE_TEXT:
+        return "TEXT";
+    case POLY_PAGE_LOGO:
+        return "LOGO";
+    case POLY_PAGE_DROPLET:
+        return "DROPLET";
+    case POLY_PAGE_RAINDROP:
+        return "RAINDROP";
+    case POLY_PAGE_SPARKLE:
+        return "SPARKLE";
+    case POLY_PAGE_EXPLODE1:
+        return "EXPLODE1";
+    case POLY_PAGE_EXPLODE2:
+        return "EXPLODE2";
+    case POLY_PAGE_COLOUR_ALPHA:
+        return "COLOUR_ALPHA";
+    case POLY_PAGE_TEST_SHADOWMAP:
+        return "TEST_SMAP";
+    case POLY_PAGE_SEWATER:
+        return "SEWATER";
+    case POLY_PAGE_FLAMES:
+        return "FLAMES";
+    case POLY_PAGE_SMOKE:
+        return "SMOKE";
+    case POLY_PAGE_LEAF:
+        return "LEAF";
+    case POLY_PAGE_BIG_LEAF:
+        return "BIG_LEAF";
+    case POLY_PAGE_RUBBISH:
+        return "RUBBISH";
+    case POLY_PAGE_FLAMES2:
+        return "FLAMES2";
+    case POLY_PAGE_FLAMES3:
+        return "FLAMES3";
+    case POLY_PAGE_SMOKECLOUD:
+        return "SMOKECLOUD";
+    case POLY_PAGE_SMOKECLOUD2:
+        return "SMOKECLOUD2";
+    case POLY_PAGE_BIGBANG:
+        return "BIGBANG";
+    case POLY_PAGE_DUSTWAVE:
+        return "DUSTWAVE";
+    case POLY_PAGE_HITSPANG:
+        return "HITSPANG";
+    case POLY_PAGE_BLOOM1:
+        return "BLOOM1";
+    case POLY_PAGE_BLOOM2:
+        return "BLOOM2";
+    case POLY_PAGE_FINALGLOW:
+        return "FINALGLOW";
+    case POLY_PAGE_BLOODSPLAT:
+        return "BLOODSPLAT";
+    case POLY_PAGE_TYRESKID:
+        return "TYRESKID";
+    case POLY_PAGE_TYRETRACK:
+        return "TYRETRACK";
+    case POLY_PAGE_FOOTPRINT:
+        return "FOOTPRINT";
+    case POLY_PAGE_SPLASH:
+        return "SPLASH";
+    case POLY_PAGE_COLOUR:
+        return "COLOUR";
+    case POLY_PAGE_COLOUR_WITH_FOG:
+        return "COLOUR_FOG";
+    case POLY_PAGE_BARBWIRE:
+        return "BARBWIRE";
+    case POLY_PAGE_LADDER:
+        return "LADDER";
+    case POLY_PAGE_LADSHAD:
+        return "LADSHAD";
+    case POLY_PAGE_METEOR:
+        return "METEOR";
+    case POLY_PAGE_LITE_BOLT:
+        return "LITE_BOLT";
+    case POLY_PAGE_SNOWFLAKE:
+        return "SNOWFLAKE";
+    case POLY_PAGE_FADECAT:
+        return "FADECAT";
+    case POLY_PAGE_PCFLAMER:
+        return "PCFLAMER";
+    case POLY_PAGE_EXPLODE1_ADDITIVE:
+        return "EXPL1_ADD";
+    case POLY_PAGE_EXPLODE2_ADDITIVE:
+        return "EXPL2_ADD";
+    case POLY_PAGE_LENSFLARE:
+        return "LENSFLARE";
+    case POLY_PAGE_SIGN:
+        return "SIGN";
+    case POLY_PAGE_ALPHA_OVERLAY:
+        return "ALPHA_OVRLY";
+    case POLY_PAGE_ADDITIVEALPHA:
+        return "ADD_ALPHA";
+    case POLY_PAGE_SUBTRACTIVEALPHA:
+        return "SUB_ALPHA";
+    default:
+        return nullptr;
     }
 }
 #endif // OC_DEBUG_PERF
@@ -1670,12 +1732,12 @@ static const char* poly_page_short_name(int idx)
 // alpha-sort draw-call count). Pre-3.1 was ~259; after 3.1 + 3.3 it sits
 // at ~25-50 in a typical city scene.
 static constexpr float POLY_ALPHA_FAR_START_VIEW_Z = 0.35f;
-static constexpr int   POLY_ALPHA_FAR_BUCKETS      = 128;
+static constexpr int POLY_ALPHA_FAR_BUCKETS = 128;
 
 // Derived sort constants — file scope so the alpha-sort key helper below
 // can reach them. NEAR_THRESHOLD splits the strict near zone from the
 // bucketed far zone; FAR_BUCKET_SCALE turns a sort_z into a far bucket index.
-static constexpr float POLY_ALPHA_NEAR_THRESHOLD   = POLY_ZCLIP_PLANE / POLY_ALPHA_FAR_START_VIEW_Z;
+static constexpr float POLY_ALPHA_NEAR_THRESHOLD = POLY_ZCLIP_PLANE / POLY_ALPHA_FAR_START_VIEW_Z;
 static constexpr float POLY_ALPHA_FAR_BUCKET_SCALE = (float)POLY_ALPHA_FAR_BUCKETS / POLY_ALPHA_NEAR_THRESHOLD;
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -1711,20 +1773,27 @@ static constexpr float POLY_ALPHA_FAR_BUCKET_SCALE = (float)POLY_ALPHA_FAR_BUCKE
 //   rank   — draw order inside a layer; higher = drawn later = on top.
 //            Fire is additive and reads best over smoke → fire pages get 1.
 // A page not listed is not batched — it keeps the ordinary alpha sort.
-struct SpriteLayerDef { int page; float layer_depth; int rank; };
+struct SpriteLayerDef {
+    int page;
+    float layer_depth;
+    int rank;
+};
 static const SpriteLayerDef s_sprite_layers[] = {
     //  page                   layer_depth  rank
-    { POLY_PAGE_FLAMES,         0.05f,       1 },
-    { POLY_PAGE_FLAMES2,        0.05f,       1 },
-    { POLY_PAGE_FLAMES3,        0.05f,       1 },
-    { POLY_PAGE_PCFLAMER,       0.05f,       1 },
-    { POLY_PAGE_SMOKE,          0.05f,       0 },
-    { POLY_PAGE_SMOKECLOUD,     0.05f,       0 },
-    { POLY_PAGE_SMOKECLOUD2,    0.05f,       0 },
+    { POLY_PAGE_FLAMES, 0.05f, 1 },
+    { POLY_PAGE_FLAMES2, 0.05f, 1 },
+    { POLY_PAGE_FLAMES3, 0.05f, 1 },
+    { POLY_PAGE_PCFLAMER, 0.05f, 1 },
+    { POLY_PAGE_SMOKE, 0.05f, 0 },
+    { POLY_PAGE_SMOKECLOUD, 0.05f, 0 },
+    { POLY_PAGE_SMOKECLOUD2, 0.05f, 0 },
 };
 
 // Resolved settings for one page. layer_depth 0 → page not batched.
-struct SpriteLayer { float layer_depth; int rank; };
+struct SpriteLayer {
+    float layer_depth;
+    int rank;
+};
 
 // Per-page lookup, built once from s_sprite_layers into an array indexed by
 // page number — the sort calls this once per poly, so it is a single array
@@ -1744,14 +1813,14 @@ static const SpriteLayer& sprite_layer(int page)
 // Sort key for one alpha poly — see the near/far + layer notes above.
 // Compared lexicographically: (zone, depth, rank, page).
 struct PolyAlphaKey {
-    int             zone;  // 0 = far, 1 = near — far drawn first
-    float           depth; // effective sort depth; smaller drawn first
-    int             rank;  // tie inside a layer: higher drawn later (on top)
-    const PolyPage* page;  // groups same-page polys → one batch
+    int zone; // 0 = far, 1 = near — far drawn first
+    float depth; // effective sort depth; smaller drawn first
+    int rank; // tie inside a layer: higher drawn later (on top)
+    const PolyPage* page; // groups same-page polys → one batch
 };
 static PolyAlphaKey poly_alpha_key(const PolyPoly* p)
 {
-    const int          k  = (int)(p->page - POLY_Page);
+    const int k = (int)(p->page - POLY_Page);
     const SpriteLayer& sl = sprite_layer(k);
     const bool layered = (sl.layer_depth != 0.0f);
 
@@ -1765,8 +1834,8 @@ static PolyAlphaKey poly_alpha_key(const PolyPoly* p)
         // (view_z = POLY_ZCLIP_PLANE / sort_z). Layer index and the snapped
         // depth are computed in view-depth, then converted back to a sort_z
         // value so the key stays comparable with the ordinary polys below.
-        const float sz    = (p->sort_z >= POLY_ZCLIP_PLANE) ? p->sort_z : POLY_ZCLIP_PLANE;
-        const int   layer = (int)(POLY_ZCLIP_PLANE / (sz * sl.layer_depth));
+        const float sz = (p->sort_z >= POLY_ZCLIP_PLANE) ? p->sort_z : POLY_ZCLIP_PLANE;
+        const int layer = (int)(POLY_ZCLIP_PLANE / (sz * sl.layer_depth));
         key.depth = POLY_ZCLIP_PLANE / (((float)layer + 0.5f) * sl.layer_depth);
     } else if (key.zone == 1) {
         // Ordinary near poly: strict per-poly depth.
@@ -1872,7 +1941,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         // whose polys can be visually interleaved with sorted alpha
         // geometry on the same screen-space pixels (leaves, dust, smoke).
         static const int batch_safe_pages[] = {
-            POLY_PAGE_SHADOW,         // detailed-shadow silhouette projections
+            POLY_PAGE_SHADOW, // detailed-shadow silhouette projections
             POLY_PAGE_SHADOW_SQUARE,
             POLY_PAGE_SHADOW_OVAL,
             // ENVMAP = car windows / reflective glass. Heavy contributor
@@ -1923,9 +1992,9 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             // also guarded by !draw_shadow_page in the standard check
             // above, so we don't double-skip it here).
             if (i == POLY_PAGE_SHADOW
-             || i == POLY_PAGE_SHADOW_SQUARE
-             || i == POLY_PAGE_SHADOW_OVAL
-             || i == POLY_PAGE_ENVMAP)
+                || i == POLY_PAGE_SHADOW_SQUARE
+                || i == POLY_PAGE_SHADOW_OVAL
+                || i == POLY_PAGE_ENVMAP)
                 continue;
 
 #if OC_DEBUG_PERF
@@ -1953,10 +2022,13 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             [](const PolyPoly* a, const PolyPoly* b) {
                 const PolyAlphaKey ka = poly_alpha_key(a);
                 const PolyAlphaKey kb = poly_alpha_key(b);
-                if (ka.zone  != kb.zone)  return ka.zone  < kb.zone;
-                if (ka.depth != kb.depth) return ka.depth < kb.depth;
-                if (ka.rank  != kb.rank)  return ka.rank  < kb.rank;
-                if (ka.page  != kb.page)
+                if (ka.zone != kb.zone)
+                    return ka.zone < kb.zone;
+                if (ka.depth != kb.depth)
+                    return ka.depth < kb.depth;
+                if (ka.rank != kb.rank)
+                    return ka.rank < kb.rank;
+                if (ka.page != kb.page)
                     return (uintptr_t)ka.page < (uintptr_t)kb.page;
                 return false;
             });

@@ -151,7 +151,6 @@ static int ini_read_int(const char* filepath, const char* section, const char* k
     return def;
 }
 
-
 // --- Public API ---
 
 // uc_orig: ENV_load (fallen/Source/env2.cpp)

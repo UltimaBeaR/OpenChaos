@@ -17,18 +17,18 @@
 namespace oc::dualsense {
 
 enum class TriggerEffect : std::uint8_t {
-    Off              = 0x05,  // canonical "no effect" mode
-    Feedback         = 0x21,  // continuous resistance from position
-    Weapon           = 0x25,  // click at a position, fixed strength
-    Vibration        = 0x26,  // periodic vibration above position
-    Bow              = 0x22,  // build-up resistance, snap release
-    Galloping        = 0x23,  // two-beat pattern
-    Machine          = 0x27,  // two amplitudes + frequency + period
-    Simple_Feedback  = 0x01,  // legacy raw mode code
-    Simple_Weapon    = 0x02,
-    Simple_Vibration = 0x06,
-    Limited_Feedback = 0x11,
-    Limited_Weapon   = 0x12,
+  Off = 0x05,             // canonical "no effect" mode
+  Feedback = 0x21,        // continuous resistance from position
+  Weapon = 0x25,          // click at a position, fixed strength
+  Vibration = 0x26,       // periodic vibration above position
+  Bow = 0x22,             // build-up resistance, snap release
+  Galloping = 0x23,       // two-beat pattern
+  Machine = 0x27,         // two amplitudes + frequency + period
+  Simple_Feedback = 0x01, // legacy raw mode code
+  Simple_Weapon = 0x02,
+  Simple_Vibration = 0x06,
+  Limited_Feedback = 0x11,
+  Limited_Weapon = 0x12,
 };
 
 // Clear the 10-byte slot (mode=Off, rest zero).
@@ -36,63 +36,58 @@ bool trigger_off(std::uint8_t out[10]);
 
 // Continuous resistance starting at `position` (0..9), `strength` 0..8.
 // strength == 0 → falls back to Off.
-bool trigger_feedback(std::uint8_t out[10], std::uint8_t position, std::uint8_t strength);
+bool trigger_feedback(std::uint8_t out[10], std::uint8_t position,
+                      std::uint8_t strength);
 
 // "Simple" (raw) continuous resistance, mode 0x01. Parameters are
 // raw bytes (0..255), not zone indices.
-bool trigger_simple_feedback(std::uint8_t out[10],
-                             std::uint8_t position_raw,
+bool trigger_simple_feedback(std::uint8_t out[10], std::uint8_t position_raw,
                              std::uint8_t strength_raw);
 
 // Single click between `start` (2..7) and `end` (start+1..8), strength 0..8.
-bool trigger_weapon(std::uint8_t out[10],
-                    std::uint8_t start, std::uint8_t end, std::uint8_t strength);
+bool trigger_weapon(std::uint8_t out[10], std::uint8_t start, std::uint8_t end,
+                    std::uint8_t strength);
 
-// Sustained vibration from `position` (0..9) onwards, amplitude 0..8, frequency in Hz.
-bool trigger_vibration(std::uint8_t out[10],
-                       std::uint8_t position, std::uint8_t amplitude, std::uint8_t frequency);
+// Sustained vibration from `position` (0..9) onwards, amplitude 0..8, frequency
+// in Hz.
+bool trigger_vibration(std::uint8_t out[10], std::uint8_t position,
+                       std::uint8_t amplitude, std::uint8_t frequency);
 
 // Bow-draw resistance between `start` and `end`, strength 0..8, snap 0..8.
-bool trigger_bow(std::uint8_t out[10],
-                 std::uint8_t start, std::uint8_t end,
+bool trigger_bow(std::uint8_t out[10], std::uint8_t start, std::uint8_t end,
                  std::uint8_t strength, std::uint8_t snap);
 
 // Machine (two-beat) effect: positions, two amplitudes 0..7, frequency, period.
-bool trigger_machine(std::uint8_t out[10],
-                     std::uint8_t start, std::uint8_t end,
+bool trigger_machine(std::uint8_t out[10], std::uint8_t start, std::uint8_t end,
                      std::uint8_t amplitude_a, std::uint8_t amplitude_b,
                      std::uint8_t frequency, std::uint8_t period);
 
 // Two-beat gallop pattern between `start` (0..7) and `end` (start+1..8).
 // first_foot 0..6, second_foot (first_foot+1)..7 are the gallop timings.
 // frequency == 0 → falls back to Off.
-bool trigger_galloping(std::uint8_t out[10],
-                       std::uint8_t start, std::uint8_t end,
-                       std::uint8_t first_foot, std::uint8_t second_foot,
-                       std::uint8_t frequency);
+bool trigger_galloping(std::uint8_t out[10], std::uint8_t start,
+                       std::uint8_t end, std::uint8_t first_foot,
+                       std::uint8_t second_foot, std::uint8_t frequency);
 
 // "Simple" (raw) single click. Parameters are raw bytes, not zone indices.
-bool trigger_simple_weapon(std::uint8_t out[10],
-                           std::uint8_t start_raw, std::uint8_t end_raw,
-                           std::uint8_t strength_raw);
+bool trigger_simple_weapon(std::uint8_t out[10], std::uint8_t start_raw,
+                           std::uint8_t end_raw, std::uint8_t strength_raw);
 
 // "Simple" (raw) vibration. Parameters are raw bytes.
 // amplitude == 0 or frequency == 0 → falls back to Off.
-bool trigger_simple_vibration(std::uint8_t out[10],
-                              std::uint8_t position, std::uint8_t amplitude,
-                              std::uint8_t frequency);
+bool trigger_simple_vibration(std::uint8_t out[10], std::uint8_t position,
+                              std::uint8_t amplitude, std::uint8_t frequency);
 
 // Limited feedback: like Feedback but strength is a raw 0..10 byte and
 // position is a raw byte (not a zone index). strength == 0 → falls back
 // to Off. strength > 10 is rejected.
-bool trigger_limited_feedback(std::uint8_t out[10],
-                              std::uint8_t position, std::uint8_t strength);
+bool trigger_limited_feedback(std::uint8_t out[10], std::uint8_t position,
+                              std::uint8_t strength);
 
 // Limited weapon: like Weapon but raw bytes. start_raw must be >= 0x10,
 // end_raw >= start_raw, (end_raw - start_raw) <= 100, strength 0..10.
 // strength == 0 → falls back to Off.
-bool trigger_limited_weapon(std::uint8_t out[10],
-                            std::uint8_t start_raw, std::uint8_t end_raw,
-                            std::uint8_t strength);
+bool trigger_limited_weapon(std::uint8_t out[10], std::uint8_t start_raw,
+                            std::uint8_t end_raw, std::uint8_t strength);
 
 } // namespace oc::dualsense

@@ -69,13 +69,20 @@ static bool s_base_set = false;
 
 unsigned long DBGLOG_color(const char* name)
 {
-    if (!name) return 0xffffff;
-    if (strcmp(name, "red") == 0) return 0xff3030;
-    if (strcmp(name, "green") == 0) return 0x30ff30;
-    if (strcmp(name, "yellow") == 0) return 0xffe030;
-    if (strcmp(name, "grey") == 0 || strcmp(name, "gray") == 0) return 0xa0a0a0;
-    if (strcmp(name, "cyan") == 0) return 0x30ffff;
-    if (strcmp(name, "orange") == 0) return 0xff9030;
+    if (!name)
+        return 0xffffff;
+    if (strcmp(name, "red") == 0)
+        return 0xff3030;
+    if (strcmp(name, "green") == 0)
+        return 0x30ff30;
+    if (strcmp(name, "yellow") == 0)
+        return 0xffe030;
+    if (strcmp(name, "grey") == 0 || strcmp(name, "gray") == 0)
+        return 0xa0a0a0;
+    if (strcmp(name, "cyan") == 0)
+        return 0x30ffff;
+    if (strcmp(name, "orange") == 0)
+        return 0xff9030;
     return 0xffffff; // "white" / unknown
 }
 

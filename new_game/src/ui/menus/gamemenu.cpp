@@ -24,7 +24,7 @@
 #include "engine/input/gamepad_globals.h" // active_input_device — reset test-page scroll on device change
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
-#include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
+#include "missions/eway.h" // EWAY_reset_cutscene_voice_tail on pause-resume
 #include "game/action_map/act_menu.h" // ACT_MENU_*
 
 // Stick navigation thresholds and auto-repeat live in input_frame
@@ -100,7 +100,7 @@ static SLONG s_help_detail_total = 0;
 // every other menu. INITIAL = delay before the first repeat (so a single tap
 // moves one line); PERIOD = gap between repeats while held (ms).
 #define GAMEMENU_HELP_DETAIL_SCROLL_INITIAL_MS 350
-#define GAMEMENU_HELP_DETAIL_SCROLL_PERIOD_MS  55
+#define GAMEMENU_HELP_DETAIL_SCROLL_PERIOD_MS 55
 
 // Resets fade/animation state and sets the active menu type.
 // When switching between non-NONE menus only the text re-fades; overlay stays.
@@ -108,7 +108,7 @@ static SLONG s_help_detail_total = 0;
 void GAMEMENU_initialise(SLONG menu)
 {
     const bool entering_menu = GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE && menu != GAMEMENU_MENU_TYPE_NONE;
-    const bool leaving_menu  = GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE;
+    const bool leaving_menu = GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE;
 
     // Gameplay → menu: drain sticky press_pending only. Held inputs
     // (stick deflection, held buttons, held triggers, mouse motion) are
@@ -286,11 +286,11 @@ SLONG GAMEMENU_process()
     // Suppress the keyboard ESC pause-toggle while F1 debug modifier is held
     // (gameplay-input gate). Gamepad Start is left as-is — F1 is a keyboard
     // concept; gamepad continues to behave normally.
-    const bool toggle_pause_kb       = can_react && input_gameplay_enabled()
-                                       && input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
+    const bool toggle_pause_kb = can_react && input_gameplay_enabled()
+        && input_key_press_pending(ACT_MENU_TOGGLE_PAUSE_KKEY);
     const bool toggle_pause_gp_start = can_react && input_btn_press_pending(ACT_MENU_TOGGLE_PAUSE_GBTN);
-    const bool cancel_in_open_menu   = can_react && menu_open
-                                       && input_btn_press_pending(ACT_MENU_CANCEL_GBTN);
+    const bool cancel_in_open_menu = can_react && menu_open
+        && input_btn_press_pending(ACT_MENU_CANCEL_GBTN);
     if (toggle_pause_kb || toggle_pause_gp_start || cancel_in_open_menu) {
         // Force-release in input_frame's CURRENT snapshot so same-frame
         // downstream consumers (e.g. weapon switch reading
@@ -298,9 +298,12 @@ SLONG GAMEMENU_process()
         // level read in get_hardware_input) don't see the menu-consumed
         // press leak into gameplay. force_release clears
         // curr/event_held/pressed_during_frame/press_pending all at once.
-        if (toggle_pause_kb)       input_key_force_release(ACT_MENU_TOGGLE_PAUSE_KKEY);
-        if (toggle_pause_gp_start) input_btn_consume(ACT_MENU_TOGGLE_PAUSE_GBTN);
-        if (cancel_in_open_menu)   input_btn_consume(ACT_MENU_CANCEL_GBTN);
+        if (toggle_pause_kb)
+            input_key_force_release(ACT_MENU_TOGGLE_PAUSE_KKEY);
+        if (toggle_pause_gp_start)
+            input_btn_consume(ACT_MENU_TOGGLE_PAUSE_GBTN);
+        if (cancel_in_open_menu)
+            input_btn_consume(ACT_MENU_CANCEL_GBTN);
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -429,7 +432,7 @@ SLONG GAMEMENU_process()
                 || input_stick_held(ACT_MENU_NAV_GAXIS, ACT_MENU_NAV_DOWN_GDIR)
                 || input_btn_held(ACT_MENU_NAV_DOWN_GBTN);
 
-            bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);
+            bool nav_up = ar_up.tick_combined(any_up_jp, any_up_held);
             bool nav_down = ar_down.tick_combined(any_dn_jp, any_dn_held);
 
             // Antagonist suppression: both opposite directions held = no clear
@@ -445,16 +448,20 @@ SLONG GAMEMENU_process()
             const bool confirm_kb1 = input_key_press_pending(ACT_MENU_CONFIRM_1_KKEY);
             const bool confirm_kb2 = input_key_press_pending(ACT_MENU_CONFIRM_2_KKEY);
             const bool confirm_kb3 = input_key_press_pending(ACT_MENU_CONFIRM_3_KKEY);
-            const bool confirm_gp  = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
+            const bool confirm_gp = input_btn_press_pending(ACT_MENU_CONFIRM_GBTN);
             const bool confirm = confirm_kb1 || confirm_kb2 || confirm_kb3 || confirm_gp;
             // Drain the confirm press the same way the generic path does, so a
             // held SPACE/ENTER/gamepad button doesn't leak into gameplay or
             // re-fire on the next screen.
             auto consume_confirm = [&]() {
-                if (confirm_kb1) input_key_force_release(ACT_MENU_CONFIRM_1_KKEY);
-                if (confirm_kb2) input_key_force_release(ACT_MENU_CONFIRM_2_KKEY);
-                if (confirm_kb3) input_key_force_release(ACT_MENU_CONFIRM_3_KKEY);
-                if (confirm_gp)  input_btn_consume(ACT_MENU_CONFIRM_GBTN);
+                if (confirm_kb1)
+                    input_key_force_release(ACT_MENU_CONFIRM_1_KKEY);
+                if (confirm_kb2)
+                    input_key_force_release(ACT_MENU_CONFIRM_2_KKEY);
+                if (confirm_kb3)
+                    input_key_force_release(ACT_MENU_CONFIRM_3_KKEY);
+                if (confirm_gp)
+                    input_btn_consume(ACT_MENU_CONFIRM_GBTN);
             };
 
             if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_LIST) {
@@ -533,100 +540,100 @@ SLONG GAMEMENU_process()
                 }
             } else {
 
-            if (nav_up) {
-                GAMEMENU_menu_selection -= 1;
+                if (nav_up) {
+                    GAMEMENU_menu_selection -= 1;
 
-                if (GAMEMENU_menu_selection < 1) {
-                    for (i = 1; i <= 7; i++) {
-                        if (GAMEMENU_menu[GAMEMENU_menu_type].word[i] != NULL) {
-                            GAMEMENU_menu_selection = i;
+                    if (GAMEMENU_menu_selection < 1) {
+                        for (i = 1; i <= 7; i++) {
+                            if (GAMEMENU_menu[GAMEMENU_menu_type].word[i] != NULL) {
+                                GAMEMENU_menu_selection = i;
+                            }
                         }
                     }
+
+                    MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
                 }
 
-                MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
-            }
+                if (nav_down) {
+                    GAMEMENU_menu_selection += 1;
 
-            if (nav_down) {
-                GAMEMENU_menu_selection += 1;
-
-                if ((GAMEMENU_menu_selection > 7) || (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL)) {
-                    GAMEMENU_menu_selection = 1;
-                }
-
-                MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
-            }
-
-            SATURATE(GAMEMENU_menu_selection, 1, 7);
-
-            if (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL) {
-                GAMEMENU_menu_selection -= 1;
-
-                if (GAMEMENU_menu_selection == 0) {
-                    GAMEMENU_menu_selection = 1;
-                }
-            }
-
-            if (confirm) {
-                // Force-release in input_frame's CURRENT snapshot — see
-                // comment in the ESC handler above. Otherwise SPACE held for
-                // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
-                // INPUT_MASK_SELECT (weapon switch popup opens), etc.
-                consume_confirm();
-
-                MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
-
-                switch (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection]) {
-                case NULL:
-                    return GAMEMENU_DO_NEXT_LEVEL;
-
-                case X_RESUME_LEVEL:
-                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
-                    break;
-
-                case X_RESTART_LEVEL:
-                    return GAMEMENU_DO_RESTART;
-
-                case X_CONTROLS:
-                    // Open the controls/how-to-play topic list. Start at the
-                    // first topic (menu→menu transitions don't reset state).
-                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_LIST);
-                    s_help_list_selection = 0;
-                    break;
-
-                case X_ABANDON_GAME:
-                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_SURE);
-                    // Default the confirmation to "Okay" (first item) instead of
-                    // the selection carried over from the Abandon entry, which
-                    // clamps onto "Cancel". Matches the main-menu quit prompt,
-                    // which also defaults to Okay. (Menu→menu transitions don't
-                    // reset the selection, so set it explicitly here.)
-                    GAMEMENU_menu_selection = 1;
-                    break;
-
-                case X_OKAY:
-                    return GAMEMENU_DO_CHOOSE_NEW_MISSION;
-
-                case X_CANCEL:
-                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
-                    break;
-
-                case X_SAVE_GAME:
-                    MEMORY_quick_save();
-                    GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
-                    break;
-
-                case X_LOAD_GAME:
-                    if (!MEMORY_quick_load()) {
-                        return GAMEMENU_DO_RESTART;
+                    if ((GAMEMENU_menu_selection > 7) || (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL)) {
+                        GAMEMENU_menu_selection = 1;
                     }
-                    break;
 
-                default:
-                    ASSERT(0);
-                    break;
+                    MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
                 }
-            }
+
+                SATURATE(GAMEMENU_menu_selection, 1, 7);
+
+                if (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL) {
+                    GAMEMENU_menu_selection -= 1;
+
+                    if (GAMEMENU_menu_selection == 0) {
+                        GAMEMENU_menu_selection = 1;
+                    }
+                }
+
+                if (confirm) {
+                    // Force-release in input_frame's CURRENT snapshot — see
+                    // comment in the ESC handler above. Otherwise SPACE held for
+                    // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
+                    // INPUT_MASK_SELECT (weapon switch popup opens), etc.
+                    consume_confirm();
+
+                    MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
+
+                    switch (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection]) {
+                    case NULL:
+                        return GAMEMENU_DO_NEXT_LEVEL;
+
+                    case X_RESUME_LEVEL:
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
+                        break;
+
+                    case X_RESTART_LEVEL:
+                        return GAMEMENU_DO_RESTART;
+
+                    case X_CONTROLS:
+                        // Open the controls/how-to-play topic list. Start at the
+                        // first topic (menu→menu transitions don't reset state).
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_HELP_LIST);
+                        s_help_list_selection = 0;
+                        break;
+
+                    case X_ABANDON_GAME:
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_SURE);
+                        // Default the confirmation to "Okay" (first item) instead of
+                        // the selection carried over from the Abandon entry, which
+                        // clamps onto "Cancel". Matches the main-menu quit prompt,
+                        // which also defaults to Okay. (Menu→menu transitions don't
+                        // reset the selection, so set it explicitly here.)
+                        GAMEMENU_menu_selection = 1;
+                        break;
+
+                    case X_OKAY:
+                        return GAMEMENU_DO_CHOOSE_NEW_MISSION;
+
+                    case X_CANCEL:
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
+                        break;
+
+                    case X_SAVE_GAME:
+                        MEMORY_quick_save();
+                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
+                        break;
+
+                    case X_LOAD_GAME:
+                        if (!MEMORY_quick_load()) {
+                            return GAMEMENU_DO_RESTART;
+                        }
+                        break;
+
+                    default:
+                        ASSERT(0);
+                        break;
+                    }
+                }
             } // end generic (non-HELP) nav/confirm
         }
     }
@@ -662,10 +669,10 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 
 // Vertical layout shared with the generic menu: title near top, list items
 // spaced ~40px apart, mirroring "155 + i*40".
-#define GAMEMENU_HELP_TITLE_Y     100
+#define GAMEMENU_HELP_TITLE_Y 100
 #define GAMEMENU_HELP_LIST_FIRST_Y 195 // == 155 + 1*40, matches generic first item
 #define GAMEMENU_HELP_LIST_SPACING 40
-#define GAMEMENU_HELP_ALPHA_SELECTED   255
+#define GAMEMENU_HELP_ALPHA_SELECTED 255
 #define GAMEMENU_HELP_ALPHA_UNSELECTED 128
 
 // Literal label for the pause "Help" item / help-list heading (no fitting
@@ -680,9 +687,9 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // 1/g_frame_scale real px, so the same constant becomes a LARGER physical margin
 // on a bigger display and a smaller one on a small window — which is what reads
 // well. The wrap width is whatever is left between the two paddings.
-#define GAMEMENU_HELP_DETAIL_PAD_PX       20     // virtual px (pre-scale), each side
-#define GAMEMENU_HELP_DETAIL_TEXT_SCALE   192    // 256 == 1.0, so ~0.75x (smaller body)
-#define GAMEMENU_HELP_DETAIL_TEXT_COLOUR  0xffffff
+#define GAMEMENU_HELP_DETAIL_PAD_PX 20 // virtual px (pre-scale), each side
+#define GAMEMENU_HELP_DETAIL_TEXT_SCALE 192 // 256 == 1.0, so ~0.75x (smaller body)
+#define GAMEMENU_HELP_DETAIL_TEXT_COLOUR 0xffffff
 
 // Vertical layout, in virtual units measured from the window edges (same scale
 // as the framed menus, so these stay constant physical insets at any size). The
@@ -690,16 +697,16 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // band reserved for the ▼ arrow. Only whole lines that fit are drawn; the rest
 // scroll. VIEW_BOTTOM_INSET is the gap from the window bottom to the ▼ arrow tip
 // (small edge margin); the text window ends ARROW_GAP above the arrow base.
-#define GAMEMENU_HELP_DETAIL_TITLE_Y           11  // title near the top
+#define GAMEMENU_HELP_DETAIL_TITLE_Y 11 // title near the top
 // How far LEFT of the title the reveal wipe starts (virtual px). The wipe then
 // only has to travel this short lead-in before the title begins animating, so
 // there's no long "nothing yet" pause while it crawls from x=0. Smaller = title
 // appears sooner; larger = a longer lead-in before it starts.
-#define GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD   48
-#define GAMEMENU_HELP_DETAIL_VIEW_TOP          78  // first body line (leaves a band
-                                                   // for the title + the ▲ arrow;
-                                                   // title→▲ gap ≈ ▼→edge gap)
-#define GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET 14  // ▼ arrow tip to window bottom
+#define GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD 48
+#define GAMEMENU_HELP_DETAIL_VIEW_TOP 78 // first body line (leaves a band
+                                         // for the title + the ▲ arrow;
+                                         // title→▲ gap ≈ ▼→edge gap)
+#define GAMEMENU_HELP_DETAIL_VIEW_BOTTOM_INSET 14 // ▼ arrow tip to window bottom
 
 // (GAMEMENU_HELP_DETAIL_SCROLL_LINES is defined near the scroll state up top,
 // since GAMEMENU_process uses it ahead of this block.)
@@ -710,7 +717,7 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // the arrow (kept small so the arrow hugs the text, not the window edge).
 #define GAMEMENU_HELP_DETAIL_ARROW_HALF_W 14
 #define GAMEMENU_HELP_DETAIL_ARROW_HEIGHT 14
-#define GAMEMENU_HELP_DETAIL_ARROW_GAP    8
+#define GAMEMENU_HELP_DETAIL_ARROW_GAP 8
 #define GAMEMENU_HELP_DETAIL_ARROW_COLOUR 0xD0E0F0 // cool light grey (RGB; alpha added)
 
 // Extra full-screen dim for the detail text screen, on TOP of the menu's base
@@ -732,9 +739,9 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 // Lower COMPLETE = the burst lands earlier in the reveal (0.5 = midpoint), then
 // holds. EASE sets how sharp the burst is (2 soft, 3, 4+ sharper). BODY_FADE_DELAY
 // = 0 (no start pause — the title's wipe starts at once).
-#define GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY    0.0f
+#define GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY 0.0f
 #define GAMEMENU_HELP_DETAIL_BODY_FADE_COMPLETE 0.35f
-#define GAMEMENU_HELP_DETAIL_BODY_FADE_EASE     6
+#define GAMEMENU_HELP_DETAIL_BODY_FADE_EASE 6
 
 // Reveal progress (0..1) of the detail screen. GAMEMENU_fadein_x ramps from 0 to
 // (800<<8) once the overlay is partly opaque (see GAMEMENU_process); normalising
@@ -745,8 +752,10 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 static float GAMEMENU_help_detail_reveal_t()
 {
     float t = (float)GAMEMENU_fadein_x / (float)GAMEMENU_HELP_DETAIL_FADE_RANGE;
-    if (t < 0.0f) t = 0.0f;
-    else if (t > 1.0f) t = 1.0f;
+    if (t < 0.0f)
+        t = 0.0f;
+    else if (t > 1.0f)
+        t = 1.0f;
     return t;
 }
 
@@ -754,7 +763,7 @@ static float GAMEMENU_help_detail_reveal_t()
 // like the menu text (same depth bodge as PANEL_draw_quad), on the colour-alpha
 // page. colour is ARGB. Used for the scroll arrows.
 static void GAMEMENU_draw_help_tri(float ax, float ay, float bx, float by,
-                                   float cx, float cy, ULONG colour)
+    float cx, float cy, ULONG colour)
 {
     const float w = PANEL_GetNextDepthBodge();
     const float z = 1.0f - w;
@@ -783,18 +792,18 @@ static void GAMEMENU_draw_help_tri(float ax, float ay, float bx, float by,
 static void GAMEMENU_draw_help_list()
 {
     MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
-                         (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
+        (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
 
     // Only the visible topics (dev-only INPUT TEST hidden unless the debug flag).
     const SLONG help_count = GAMEMENU_help_list_count();
     for (SLONG i = 0; i < help_count; i++) {
         const UBYTE alpha = (i == s_help_list_selection)
-                                ? GAMEMENU_HELP_ALPHA_SELECTED
-                                : GAMEMENU_HELP_ALPHA_UNSELECTED;
+            ? GAMEMENU_HELP_ALPHA_SELECTED
+            : GAMEMENU_HELP_ALPHA_UNSELECTED;
         MENUFONT_fadein_draw(320,
-                             GAMEMENU_HELP_LIST_FIRST_Y + i * GAMEMENU_HELP_LIST_SPACING,
-                             alpha,
-                             (CBYTE*)HELP_TOPICS[i].title);
+            GAMEMENU_HELP_LIST_FIRST_Y + i * GAMEMENU_HELP_LIST_SPACING,
+            alpha,
+            (CBYTE*)HELP_TOPICS[i].title);
     }
 }
 
@@ -824,7 +833,8 @@ static void GAMEMENU_draw_help_detail()
     // PolyPage::push_uniform_fullscreen_ui_mode). Fall back to 640x480 if the
     // frame scale isn't ready.
     float scale = ui_coords::g_frame_scale;
-    if (scale <= 0.0f) scale = 1.0f;
+    if (scale <= 0.0f)
+        scale = 1.0f;
     const float vw = ui_coords::g_screen_w_px / scale;
     const float vh = ui_coords::g_screen_h_px / scale;
     const float cx = vw * 0.5f;
@@ -861,15 +871,15 @@ static void GAMEMENU_draw_help_detail()
             title_w += MENUFONT_CharWidth((CBYTE)*c, 256); // 256 == 1.0 (raw width)
         }
         const float wipe_start = cx - (float)title_w * 0.5f
-                                 - (float)GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD;
+            - (float)GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD;
         MENUFONT_fadein_line(GAMEMENU_fadein_x + (SLONG)(wipe_start * 256.0f));
     }
 
     // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
     // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
     MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
-                         GAMEMENU_HELP_ALPHA_SELECTED,
-                         (CBYTE*)HELP_TOPICS[s_help_topic].title);
+        GAMEMENU_HELP_ALPHA_SELECTED,
+        (CBYTE*)HELP_TOPICS[s_help_topic].title);
 
     // Fade the body (and the scroll arrows) in with a sharp ease-IN BURST rather
     // than linearly: a linear/early text fade reaches full opacity before the
@@ -880,7 +890,7 @@ static void GAMEMENU_draw_help_detail()
     // The backdrop dim keeps its own (fast) ramp via reveal_t.
     const float reveal_t = GAMEMENU_help_detail_reveal_t();
     float p = (reveal_t - GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY)
-              / (1.0f - GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY);
+        / (1.0f - GAMEMENU_HELP_DETAIL_BODY_FADE_DELAY);
     if (p < 0.0f) {
         p = 0.0f;
     }
@@ -931,9 +941,9 @@ static void GAMEMENU_draw_help_detail()
     } else {
         // Pick the body for the active device (each topic is written per device).
         const HelpTopic& t = HELP_TOPICS[s_help_topic];
-        const char* body = (active_input_device == INPUT_DEVICE_XBOX)       ? t.body_xbox
-                           : (active_input_device == INPUT_DEVICE_DUALSENSE) ? t.body_ps
-                                                                             : t.body_kbm;
+        const char* body = (active_input_device == INPUT_DEVICE_XBOX) ? t.body_xbox
+            : (active_input_device == INPUT_DEVICE_DUALSENSE)         ? t.body_ps
+                                                                      : t.body_kbm;
         total = input_glyph_text_draw_scrolled(
             body,
             body_x,
@@ -956,8 +966,10 @@ static void GAMEMENU_draw_help_detail()
     const bool more_down = (s_help_detail_scroll_line + fit) < total;
     if (more_up || more_down) {
         SLONG a = (SLONG)(255.0f * body_t); // fade with the body, not the dim
-        if (a < 0) a = 0;
-        else if (a > 255) a = 255;
+        if (a < 0)
+            a = 0;
+        else if (a > 255)
+            a = 255;
         const ULONG arrow_col = ((ULONG)a << 24) | (GAMEMENU_HELP_DETAIL_ARROW_COLOUR & 0x00FFFFFFu);
 
         if (more_up) {
@@ -965,17 +977,17 @@ static void GAMEMENU_draw_help_detail()
             const float base_y = view_top - GAMEMENU_HELP_DETAIL_ARROW_GAP;
             const float tip_y = base_y - GAMEMENU_HELP_DETAIL_ARROW_HEIGHT;
             GAMEMENU_draw_help_tri(cx, tip_y,
-                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
-                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
-                                   arrow_col);
+                cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, base_y,
+                arrow_col);
         }
         if (more_down) {
             // Points down: apex (tip) near the bottom edge, base above it. Both
             // precomputed with the view geometry so the text sits just above.
             GAMEMENU_draw_help_tri(cx, down_tip_y,
-                                   cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
-                                   cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
-                                   arrow_col);
+                cx + GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
+                cx - GAMEMENU_HELP_DETAIL_ARROW_HALF_W, down_base_y,
+                arrow_col);
         }
     }
 
@@ -1012,7 +1024,8 @@ void GAMEMENU_draw()
         // as the body text, so the dim and the text appear together gradually.
         if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_HELP_DETAIL) {
             float t = GAMEMENU_help_detail_reveal_t() * GAMEMENU_HELP_DIM_FADE_SPEEDUP;
-            if (t > 1.0f) t = 1.0f;
+            if (t > 1.0f)
+                t = 1.0f;
             const ULONG dim_a = (ULONG)((float)(GAMEMENU_HELP_DETAIL_DIM_COLOUR >> 24) * t);
             const ULONG dim = (GAMEMENU_HELP_DETAIL_DIM_COLOUR & 0x00FFFFFFu) | (dim_a << 24);
             PANEL_draw_quad(0.0F, 0.0F, 640.0F, 480.0F, POLY_PAGE_ALPHA_OVERLAY, dim);

@@ -251,7 +251,6 @@ void AENG_draw_pows(void);
 // must be 2× this (TEXTURE_SHADOW_SIZE).
 #define AENG_AA_BUF_SIZE 32
 
-
 // uc_orig: MAP_SIZE_TWEAK (fallen/DDEngine/Source/aeng.cpp)
 // Extra padding on MAP_WIDTH/2 and MAP_HEIGHT/2 for vertex arrays.
 #define MAP_SIZE_TWEAK 0

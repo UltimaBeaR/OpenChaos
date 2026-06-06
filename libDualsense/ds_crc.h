@@ -25,7 +25,7 @@ namespace oc::dualsense {
 // pre-prepended nothing else — the 0xA2 prefix byte is baked into
 // the seed/table so the loop processes `buffer[0..len)` directly.
 // Used by build_output_report().
-std::uint32_t crc32_compute(const std::uint8_t* buffer, std::size_t len);
+std::uint32_t crc32_compute(const std::uint8_t *buffer, std::size_t len);
 
 // Compute CRC32 for a DualSense BT **feature** report.
 //
@@ -34,7 +34,7 @@ std::uint32_t crc32_compute(const std::uint8_t* buffer, std::size_t len);
 // last 4 bytes of the feature report buffer (little-endian) before
 // sending.
 std::uint32_t crc32_compute_feature_report(std::uint8_t report_id,
-                                           const std::uint8_t* data,
+                                           const std::uint8_t *data,
                                            std::size_t len);
 
 } // namespace oc::dualsense

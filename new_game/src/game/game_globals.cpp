@@ -48,7 +48,7 @@ UBYTE the_end = 0;
 // uc_orig: env_frame_rate (fallen/Source/Game.cpp)
 UWORD env_frame_rate = 30;
 
-SLONG g_physics_hz     = UC_PHYSICS_DESIGN_HZ;
+SLONG g_physics_hz = UC_PHYSICS_DESIGN_HZ;
 SLONG g_render_fps_cap = RENDER_FPS_DEFAULT_CAP;
 
 SLONG VISUAL_TURN = 0;
@@ -60,7 +60,8 @@ void visual_turn_tick(float dt_ms)
     // prevents catch-up bursts after long stalls / debugger pauses.
     static double acc_ms = 0.0;
     acc_ms += double(dt_ms);
-    if (acc_ms > 200.0) acc_ms = 200.0;
+    if (acc_ms > 200.0)
+        acc_ms = 200.0;
     while (acc_ms >= double(UC_VISUAL_CADENCE_TICK_MS)) {
         VISUAL_TURN++;
         acc_ms -= double(UC_VISUAL_CADENCE_TICK_MS);

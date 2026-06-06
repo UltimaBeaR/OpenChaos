@@ -236,12 +236,12 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
 namespace {
 
 struct FontQueue {
-    CBYTE*        buf_base;  // backing string storage
-    SLONG         buf_size;
-    CBYTE**       buf_upto;  // -> this queue's write cursor variable
-    FONT_Message* msgs;      // message records
-    SLONG         max_msgs;
-    SLONG*        msg_upto;  // -> this queue's message-count variable
+    CBYTE* buf_base; // backing string storage
+    SLONG buf_size;
+    CBYTE** buf_upto; // -> this queue's write cursor variable
+    FONT_Message* msgs; // message records
+    SLONG max_msgs;
+    SLONG* msg_upto; // -> this queue's message-count variable
 };
 
 #if OC_DEBUG_PERF
@@ -251,12 +251,12 @@ struct FontQueue {
 // smaller than the shared main queue (the panel is a few dozen short
 // lines, nothing like a full dbglog). Static RAM only, and only when
 // the panel is compiled in.
-constexpr SLONG PERF_FONT_BUFFER_SIZE  = 1024 * 8;
+constexpr SLONG PERF_FONT_BUFFER_SIZE = 1024 * 8;
 constexpr SLONG PERF_FONT_MAX_MESSAGES = 384;
-CBYTE        s_perf_font_buffer[PERF_FONT_BUFFER_SIZE];
-CBYTE*       s_perf_font_buffer_upto = nullptr;
+CBYTE s_perf_font_buffer[PERF_FONT_BUFFER_SIZE];
+CBYTE* s_perf_font_buffer_upto = nullptr;
 FONT_Message s_perf_font_message[PERF_FONT_MAX_MESSAGES];
-SLONG        s_perf_font_message_upto = 0;
+SLONG s_perf_font_message_upto = 0;
 
 constexpr int FONT_QUEUE_N = 2;
 
@@ -268,11 +268,11 @@ constexpr int FONT_QUEUE_N = 1; // PERF queue not built — MAIN only
 
 FontQueue s_queues[FONT_QUEUE_N] = {
     { &FONT_buffer[0], FONT_BUFFER_SIZE, &FONT_buffer_upto,
-      &FONT_message[0], FONT_MAX_MESSAGES, &FONT_message_upto },
+        &FONT_message[0], FONT_MAX_MESSAGES, &FONT_message_upto },
 #if OC_DEBUG_PERF
     { &s_perf_font_buffer[0], PERF_FONT_BUFFER_SIZE, &s_perf_font_buffer_upto,
-      &s_perf_font_message[0], PERF_FONT_MAX_MESSAGES,
-      &s_perf_font_message_upto },
+        &s_perf_font_message[0], PERF_FONT_MAX_MESSAGES,
+        &s_perf_font_message_upto },
 #endif
 };
 

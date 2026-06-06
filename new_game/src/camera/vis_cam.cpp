@@ -1,23 +1,23 @@
 #include "camera/vis_cam.h"
-#include "ai/mav.h"                   // MAV_inside, MAVHEIGHT
-#include "buildings/prim.h"           // get_prim_info, PrimInfo
-#include "buildings/ware.h"           // WARE_inside (indoor sampler)
-#include "camera/camera_mode.h"       // get_active_camera_mode, keep_for_rubberness
+#include "ai/mav.h" // MAV_inside, MAVHEIGHT
+#include "buildings/prim.h" // get_prim_info, PrimInfo
+#include "buildings/ware.h" // WARE_inside (indoor sampler)
+#include "camera/camera_mode.h" // get_active_camera_mode, keep_for_rubberness
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
-#include "engine/core/fixed_math.h"   // MUL64
-#include "engine/core/macros.h"       // QDIST2, QDIST3, WITHIN
-#include "engine/core/math.h"         // SIN / COS
-#include "engine/physics/collide.h"   // there_is_a_los, LOS_FLAG_*
-#include "buildings/prim_types.h"     // PrimFace4, PrimPoint
-#include "game/game_types.h"          // TO_THING, THINGS, THING_NUMBER
-#include "map/level_pools.h"          // prim_points, prim_faces4
-#include "map/map.h"                  // MAP_WIDTH, MAP_HEIGHT
-#include "map/pap.h"                  // PAP_calc_map_height_at
-#include "navigation/wmove.h"         // WMOVE_face — vehicle top-surface tris
+#include "engine/core/fixed_math.h" // MUL64
+#include "engine/core/macros.h" // QDIST2, QDIST3, WITHIN
+#include "engine/core/math.h" // SIN / COS
+#include "engine/physics/collide.h" // there_is_a_los, LOS_FLAG_*
+#include "buildings/prim_types.h" // PrimFace4, PrimPoint
+#include "game/game_types.h" // TO_THING, THINGS, THING_NUMBER
+#include "map/level_pools.h" // prim_points, prim_faces4
+#include "map/map.h" // MAP_WIDTH, MAP_HEIGHT
+#include "map/pap.h" // PAP_calc_map_height_at
+#include "navigation/wmove.h" // WMOVE_face — vehicle top-surface tris
 #include "things/characters/person_types.h" // Person, Person.InCar
-#include "things/core/thing.h"        // Thing, thing_class_head, CLASS_VEHICLE/PERSON
-#include "things/vehicles/vehicle.h"  // Vehicle, get_vehicle_body_prim/offset
+#include "things/core/thing.h" // Thing, thing_class_head, CLASS_VEHICLE/PERSON
+#include "things/vehicles/vehicle.h" // Vehicle, get_vehicle_body_prim/offset
 #include <cstdint>
 #include <cstdlib> // abs
 
@@ -246,7 +246,7 @@ struct VC_VehicleBox {
     SLONG mid_x, mid_z;
     SLONG min_x, min_z;
     SLONG max_x, max_z;
-    SLONG y_bottom;       // box floor: WorldPos.Y>>8 + PrimInfo.miny
+    SLONG y_bottom; // box floor: WorldPos.Y>>8 + PrimInfo.miny
     SLONG y_fallback_top; // flat box top, used where no ridge tri covers (x,z)
     SLONG sin_a, cos_a;
     VC_VehicleQuad quad[VC_MAX_VEHICLE_QUADS];
@@ -266,7 +266,8 @@ static bool vc_tri_surface_y(const VC_VehicleTri& t, SLONG px, SLONG pz,
     SLONG ppx = px - t.x0, ppz = pz - t.z0;
 
     std::int64_t denom = (std::int64_t)e1x * e2z - (std::int64_t)e2x * e1z;
-    if (denom == 0) return false;
+    if (denom == 0)
+        return false;
 
     // a, b as 16.16 fractions: a along e1 (v0→v1), b along e2 (v0→v2).
     std::int64_t a = (((std::int64_t)ppx * e2z - (std::int64_t)e2x * ppz) << 16) / denom;
@@ -291,13 +292,14 @@ static bool vc_quad_surface_y(const VC_VehicleQuad& q, SLONG px, SLONG pz,
     SLONG* surf_y)
 {
     VC_VehicleTri t1 = { q.x[0], q.y[0], q.z[0],
-                         q.x[1], q.y[1], q.z[1],
-                         q.x[2], q.y[2], q.z[2] };
-    if (vc_tri_surface_y(t1, px, pz, surf_y)) return true;
+        q.x[1], q.y[1], q.z[1],
+        q.x[2], q.y[2], q.z[2] };
+    if (vc_tri_surface_y(t1, px, pz, surf_y))
+        return true;
 
     VC_VehicleTri t2 = { q.x[1], q.y[1], q.z[1],
-                         q.x[3], q.y[3], q.z[3],
-                         q.x[2], q.y[2], q.z[2] };
+        q.x[3], q.y[3], q.z[3],
+        q.x[2], q.y[2], q.z[2] };
     return vc_tri_surface_y(t2, px, pz, surf_y);
 }
 
@@ -319,9 +321,10 @@ static SLONG vc_gather_vehicles(const VC_FocusPoint& focus, SLONG d_now,
 
     SLONG n = 0;
     for (UWORD idx = thing_class_head[CLASS_VEHICLE]; idx;
-         idx = TO_THING(idx)->NextLink) {
+        idx = TO_THING(idx)->NextLink) {
         Thing* p = TO_THING(idx);
-        if (p == exclude || p == exclude_vehicle) continue;
+        if (p == exclude || p == exclude_vehicle)
+            continue;
 
         Vehicle* v = p->Genus.Vehicle;
         PrimInfo* pi = get_prim_info(get_vehicle_body_prim(v->Type));
@@ -330,15 +333,17 @@ static SLONG vc_gather_vehicles(const VC_FocusPoint& focus, SLONG d_now,
         SLONG mz = p->WorldPos.Z >> 8;
         SLONG ddx = std::abs(mx - fx8);
         SLONG ddz = std::abs(mz - fz8);
-        if (QDIST2(ddx, ddz) > reach_xz + pi->radius) continue;
+        if (QDIST2(ddx, ddz) > reach_xz + pi->radius)
+            continue;
 
-        if (n >= VC_MAX_VEHICLE_CANDIDATES) break;
+        if (n >= VC_MAX_VEHICLE_CANDIDATES)
+            break;
 
         // Vertical datum = engine's vehicle Y-bounds formula
         // (vehicle.cpp run-over check). Body offset + bias put the box on
         // the same datum as the WMOVE ridge (which already has -offset).
         SLONG vy = ((p->WorldPos.Y - get_vehicle_body_offset(v->Type)) >> 8)
-                   - VC_VEHICLE_BODY_Y_BIAS;
+            - VC_VEHICLE_BODY_Y_BIAS;
         VC_VehicleBox& b = out[n++];
         b.mid_x = mx;
         b.mid_z = mz;
@@ -364,9 +369,10 @@ static SLONG vc_gather_vehicles(const VC_FocusPoint& focus, SLONG d_now,
         SLONG vidx = THING_NUMBER(p);
         b.nquad = 0;
         for (SLONG fi = 1;
-             fi < WMOVE_face_upto && b.nquad < VC_MAX_VEHICLE_QUADS; fi++) {
+            fi < WMOVE_face_upto && b.nquad < VC_MAX_VEHICLE_QUADS; fi++) {
             const WMOVE_Face* wf = &WMOVE_face[fi];
-            if (wf->thing != (UWORD)vidx) continue;
+            if (wf->thing != (UWORD)vidx)
+                continue;
 
             const PrimFace4* f4 = &prim_faces4[wf->face4];
             VC_VehicleQuad& qd = b.quad[b.nquad++];
@@ -395,7 +401,8 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     const VC_VehicleBox* cands, SLONG ncands, SLONG* d_hit_out)
 {
-    if (ncands == 0) return true;
+    if (ncands == 0)
+        return true;
 
     // Probe ray runs from focus to the target (camera sample point),
     // EXTENDED past the target by VC_WALL_OFFSET in the XZ direction
@@ -409,10 +416,10 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
     SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                     + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdz * cdz));
     SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                       + (std::int64_t)cdy * cdy
-                                       + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdy * cdy
+        + (std::int64_t)cdz * cdz));
     SLONG ext_tx = tx;
     SLONG ext_ty = ty;
     SLONG ext_tz = tz;
@@ -451,7 +458,8 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
             // Footprint / sides / floor: OBB in XZ + lower bound. Same
             // rotation as collide_box_with_line: matrix = {cos, sin, -sin,
             // cos}, rx = tx·m0 + tz·m1, rz = tx·m2 + tz·m3.
-            if (py < b.y_bottom) continue;
+            if (py < b.y_bottom)
+                continue;
             SLONG dxp = px - b.mid_x;
             SLONG dzp = pz - b.mid_z;
             SLONG rx = MUL64(dxp, b.cos_a) + MUL64(dzp, b.sin_a);
@@ -471,7 +479,8 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
                     break;
                 }
             }
-            if (py > ceil_y) continue;
+            if (py > ceil_y)
+                continue;
 
             SLONG full_len = QDIST3(std::abs(ext_tx - focus.x),
                 std::abs(ty - focus.y),
@@ -525,10 +534,10 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
     SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                     + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdz * cdz));
     SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                       + (std::int64_t)cdy * cdy
-                                       + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdy * cdy
+        + (std::int64_t)cdz * cdz));
     SLONG ext_tx = tx;
     SLONG ext_ty = ty;
     SLONG ext_tz = tz;
@@ -574,10 +583,12 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
         // Condition 2: sample below local ground (slope/hill).
         if (!hit) {
             SLONG ground_y = PAP_calc_map_height_at(sx >> 8, sz >> 8) << 8;
-            if (sy < ground_y) hit = true;
+            if (sy < ground_y)
+                hit = true;
         }
 
-        if (!hit) continue;
+        if (!hit)
+            continue;
 
         // Hit. Distance is the fraction of the focus→ext_target span we
         // traversed, mapped back to QDIST3 of that vector.
@@ -623,10 +634,10 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
     SLONG cdy = ty - focus.y;
     SLONG cdz = tz - focus.z;
     SLONG cd_xz = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                     + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdz * cdz));
     SLONG cd_full = (SLONG)sqrt((double)((std::int64_t)cdx * cdx
-                                       + (std::int64_t)cdy * cdy
-                                       + (std::int64_t)cdz * cdz));
+        + (std::int64_t)cdy * cdy
+        + (std::int64_t)cdz * cdz));
     SLONG ext_tx = tx;
     SLONG ext_ty = ty;
     SLONG ext_tz = tz;
@@ -744,7 +755,8 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
         hit_found = true;
     }
 
-    if (!hit_found) return true;
+    if (!hit_found)
+        return true;
 
     SLONG full_len = QDIST3(std::abs(ext_tx - focus.x),
         std::abs(ty - focus.y),
@@ -811,9 +823,10 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
     SLONG dy = vc.y - focus.y;
     SLONG dz = vc.z - focus.z;
     SLONG d_now = (SLONG)sqrt((double)((std::int64_t)dx * dx
-                                     + (std::int64_t)dy * dy
-                                     + (std::int64_t)dz * dz));
-    if (d_now <= 0) return false; // degenerate — camera coincident with focus
+        + (std::int64_t)dy * dy
+        + (std::int64_t)dz * dz));
+    if (d_now <= 0)
+        return false; // degenerate — camera coincident with focus
 
     // Nearby vehicles, gathered once per tick (not per ray/sample) to keep
     // the cost bounded on weak hardware.
@@ -830,23 +843,25 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
     // the probe loop (32 samples × 5 rays per tick).
     if (ware != 0) {
 
-#define VC_PROBE(SX, SY, SZ)                                                   \
-    do {                                                                       \
-        if (!vc_probe_ware(focus, (SX), (SY), (SZ), ware, &d_hit)) {           \
-            if (fail_count == 0 || d_hit < min_d_hit) min_d_hit = d_hit;       \
-            fail_count++;                                                      \
-        }                                                                      \
-        if (!vc_probe_vehicles(focus, (SX), (SY), (SZ), veh, nveh, &d_hit)) {  \
-            if (fail_count == 0 || d_hit < min_d_hit) min_d_hit = d_hit;       \
-            fail_count++;                                                      \
-        }                                                                      \
+#define VC_PROBE(SX, SY, SZ)                                                  \
+    do {                                                                      \
+        if (!vc_probe_ware(focus, (SX), (SY), (SZ), ware, &d_hit)) {          \
+            if (fail_count == 0 || d_hit < min_d_hit)                         \
+                min_d_hit = d_hit;                                            \
+            fail_count++;                                                     \
+        }                                                                     \
+        if (!vc_probe_vehicles(focus, (SX), (SY), (SZ), veh, nveh, &d_hit)) { \
+            if (fail_count == 0 || d_hit < min_d_hit)                         \
+                min_d_hit = d_hit;                                            \
+            fail_count++;                                                     \
+        }                                                                     \
     } while (0)
 
-        VC_PROBE(vc.x, vc.y, vc.z);            // centre
-        VC_PROBE(vc.x + rx, vc.y, vc.z + rz);  // right
-        VC_PROBE(vc.x - rx, vc.y, vc.z - rz);  // left
-        VC_PROBE(vc.x, vc.y + ry, vc.z);       // up
-        VC_PROBE(vc.x, vc.y - ry, vc.z);       // down
+        VC_PROBE(vc.x, vc.y, vc.z); // centre
+        VC_PROBE(vc.x + rx, vc.y, vc.z + rz); // right
+        VC_PROBE(vc.x - rx, vc.y, vc.z - rz); // left
+        VC_PROBE(vc.x, vc.y + ry, vc.z); // up
+        VC_PROBE(vc.x, vc.y - ry, vc.z); // down
 
 #undef VC_PROBE
 
@@ -862,29 +877,31 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
             focus_mavh = MAVHEIGHT(focus_cell_x, focus_cell_z);
         }
 
-#define VC_PROBE(SX, SY, SZ)                                                   \
-    do {                                                                       \
-        if (!vc_probe_mav(focus, (SX), (SY), (SZ), focus_mavh, &d_hit)) {      \
-            if (fail_count == 0 || d_hit < min_d_hit) min_d_hit = d_hit;       \
-            fail_count++;                                                      \
-        }                                                                      \
-        if (!vc_probe_vehicles(focus, (SX), (SY), (SZ), veh, nveh, &d_hit)) {  \
-            if (fail_count == 0 || d_hit < min_d_hit) min_d_hit = d_hit;       \
-            fail_count++;                                                      \
-        }                                                                      \
+#define VC_PROBE(SX, SY, SZ)                                                  \
+    do {                                                                      \
+        if (!vc_probe_mav(focus, (SX), (SY), (SZ), focus_mavh, &d_hit)) {     \
+            if (fail_count == 0 || d_hit < min_d_hit)                         \
+                min_d_hit = d_hit;                                            \
+            fail_count++;                                                     \
+        }                                                                     \
+        if (!vc_probe_vehicles(focus, (SX), (SY), (SZ), veh, nveh, &d_hit)) { \
+            if (fail_count == 0 || d_hit < min_d_hit)                         \
+                min_d_hit = d_hit;                                            \
+            fail_count++;                                                     \
+        }                                                                     \
     } while (0)
 
-        VC_PROBE(vc.x, vc.y, vc.z);            // centre
-        VC_PROBE(vc.x + rx, vc.y, vc.z + rz);  // right
-        VC_PROBE(vc.x - rx, vc.y, vc.z - rz);  // left
-        VC_PROBE(vc.x, vc.y + ry, vc.z);       // up
-        VC_PROBE(vc.x, vc.y - ry, vc.z);       // down
+        VC_PROBE(vc.x, vc.y, vc.z); // centre
+        VC_PROBE(vc.x + rx, vc.y, vc.z + rz); // right
+        VC_PROBE(vc.x - rx, vc.y, vc.z - rz); // left
+        VC_PROBE(vc.x, vc.y + ry, vc.z); // up
+        VC_PROBE(vc.x, vc.y - ry, vc.z); // down
 
 #undef VC_PROBE
-
     }
 
-    if (fail_count == 0) return false;
+    if (fail_count == 0)
+        return false;
 
     // Pull-in distances. SEPARATE XZ and Y buffers:
     //   • XZ: full VC_WALL_OFFSET — pulls camera horizontally back
@@ -896,14 +913,15 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
     //     camera Y near building foundations (probe samples dipped
     //     below ground hit raised-MAVHEIGHT cells around buildings).
     SLONG d_new_xz = min_d_hit - VC_WALL_OFFSET;
-    SLONG d_new_y  = min_d_hit - VC_WALL_OFFSET_Y;
+    SLONG d_new_y = min_d_hit - VC_WALL_OFFSET_Y;
 
     // Guard: probe-extension can register a hit past the camera (d_hit
     // > d_now); after subtracting the offset, if d_new_xz still lands
     // at or above d_now, the hit is outside our buffer in the XZ axis
     // and we shouldn't pull the camera back at all. Y uses its own
     // smaller buffer but tracks the same boundary semantics.
-    if (d_new_xz >= d_now) return false;
+    if (d_new_xz >= d_now)
+        return false;
 
     if (d_new_xz <= 0) {
         // XZ hit closer than the buffer — slide camera horizontally

@@ -375,10 +375,10 @@ SLONG find_best_grapple(Thing* p_person)
     bool player_grapple_intent = false;
     if (p_person->Genus.Person->PlayerID) {
         ULONG pin = NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Input;
-        const SLONG STICK_DEADZONE = 8;          // ANALOGUE_MIN_VELOCITY
+        const SLONG STICK_DEADZONE = 8; // ANALOGUE_MIN_VELOCITY
         SLONG stick_y = input_virtual_axis(pin, ACT_FOOT_MOVE_Y_VAXIS); // forward/back movement intent
-        bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0;  // keyboard / D-pad
-        bool fwd_stick = stick_y < -STICK_DEADZONE;           // analog stick up
+        bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0; // keyboard / D-pad
+        bool fwd_stick = stick_y < -STICK_DEADZONE; // analog stick up
         player_grapple_intent = fwd_digital || fwd_stick;
     }
     if (player_grapple_intent
@@ -692,8 +692,7 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
     //
     // Tunables: reach beyond pg->Dist, and the two facing windows
     // (victim orientation vs attacker, and attacker aim at victim).
-    const bool player_grab =
-        p_agressor->Genus.Person->PlayerID && pg->Anim == ANIM_GRAB_ARM;
+    const bool player_grab = p_agressor->Genus.Person->PlayerID && pg->Anim == ANIM_GRAB_ARM;
 // REACH_BONUS measured from real play: the player punch-engages a
 // target from ~150..180 units, so the original ring (Dist 60 +/- 20)
 // never lined up and the grab "missed the first presses". +144 ->
@@ -704,8 +703,8 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 // NOT by distance. FACE/AIM widen the original tight facing windows so
 // no pixel-perfect aim is needed; still much tighter than a free grab.
 #define GRAPPLE_PLAYER_REACH_BONUS 0x90 // +144: accept 0 .. Dist+144 (covers punch range)
-#define GRAPPLE_PLAYER_FACE_WINDOW 400  // victim orientation loose (~70 deg, vs orig ~28)
-#define GRAPPLE_PLAYER_AIM_RANGE 800    // attacker just roughly faces target (~70 deg, vs orig ~35)
+#define GRAPPLE_PLAYER_FACE_WINDOW 400 // victim orientation loose (~70 deg, vs orig ~28)
+#define GRAPPLE_PLAYER_AIM_RANGE 800 // attacker just roughly faces target (~70 deg, vs orig ~35)
 
     bool dist_ok = player_grab
         ? (dist < pg->Dist + GRAPPLE_PLAYER_REACH_BONUS)
@@ -1529,8 +1528,8 @@ SLONG find_attack_stance(
     // (priority stays equal -- no standing/lying preference).
     // uc_orig: none -- not in the original game.
 #define STANCE_DOWNED_MIN_DIST 0
-#define STANCE_DOWNED_MAX_DIST 0x100  // 256 (normal melee far reach is 224)
-#define STANCE_FRONT_MAX_DANGLE 300   // original literal: ~52 deg cone
+#define STANCE_DOWNED_MAX_DIST 0x100 // 256 (normal melee far reach is 224)
+#define STANCE_FRONT_MAX_DANGLE 300 // original literal: ~52 deg cone
 #define STANCE_DOWNED_MAX_DANGLE 1000 // ~176 deg: facing barely matters
 
     wangle = p_person->Draw.Tweened->Angle;

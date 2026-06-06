@@ -133,8 +133,8 @@ static SLONG DIRT_get_new_type(SLONG x, SLONG z)
 // load (DIRT_init) so the ring never references a stale previous-level slot.
 #define BRASS_MAX 200
 static SLONG s_brass_slots[BRASS_MAX]; // DIRT_dirt indices of live casings
-static SLONG s_brass_count = 0;        // ramps 0 -> BRASS_MAX
-static SLONG s_brass_next = 0;         // FIFO eviction pointer (oldest)
+static SLONG s_brass_count = 0; // ramps 0 -> BRASS_MAX
+static SLONG s_brass_next = 0; // FIFO eviction pointer (oldest)
 
 // uc_orig: DIRT_init (fallen/Source/dirt.cpp)
 void DIRT_init(

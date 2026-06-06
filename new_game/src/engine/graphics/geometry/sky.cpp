@@ -254,7 +254,7 @@ inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c, SLONG size = 1)
 // within a tick, so a blink lasts a full SKY_TWINKLE_TICK_MS span at any FPS.
 // Cadence is 20 Hz (50 ms/blink) rather than 30 Hz — the shorter 33 ms blink
 // was still too brief to read clearly; 50 ms makes the twinkle plainly visible.
-#define SKY_TWINKLE_TICK_HZ UC_PHYSICS_DESIGN_HZ        // 20 Hz
+#define SKY_TWINKLE_TICK_HZ UC_PHYSICS_DESIGN_HZ // 20 Hz
 #define SKY_TWINKLE_TICK_MS (1000 / SKY_TWINKLE_TICK_HZ) // 50 ms per blink tick
 //
 // 1-in-128: low 7 bits of the hash compared for equality against the star's
@@ -327,7 +327,7 @@ void SKY_draw_stars(
 
             uint32_t twinkle_tick = uint32_t(sdl3_get_ticks() / SKY_TWINKLE_TICK_MS);
             uint32_t twinkle_hash = twinkle_tick * SKY_TWINKLE_HASH_M1
-                                  + uint32_t(i) * SKY_TWINKLE_HASH_M2;
+                + uint32_t(i) * SKY_TWINKLE_HASH_M2;
             twinkle_hash ^= twinkle_hash >> SKY_TWINKLE_HASH_SHIFT;
             if ((twinkle_hash & SKY_TWINKLE_MASK) == uint32_t(i & SKY_TWINKLE_MASK)) {
                 // Star blinks off for this twinkle tick (FPS-independent).
