@@ -94,6 +94,16 @@ void PARTICLE_Run()
     } else
         prev_tick = cur_tick;
 
+    // Logical-tick counter used to throttle PFLAG_HURTPEOPLE damage (see below). Advances
+    // only on open-gate ticks (local_ratio > 255), i.e. once per simulated tick regardless
+    // of frame rate. The original threw away damage with GAME_TURN & 0x1, but at high frame
+    // rates the open-gate condition is phase-locked to even GAME_TURN values, so that test
+    // never coincided with an open gate and steam/fire never hurt anyone. Counting ticks
+    // locally restores the intended "every other tick" cadence independent of frame rate.
+    static ULONG hurt_logic_tick = 0;
+    if (local_ratio > 255)
+        hurt_logic_tick++;
+
     if (!particle_count)
         return;
 
@@ -274,8 +284,10 @@ void PARTICLE_Run()
             // PFLAG_HURTPEOPLE: deals fire damage to nearby persons every other tick.
             // Sphere query radius 0xa0, actual hit radius 0x40.
             if (p->flags & PFLAG_HURTPEOPLE) {
-                if (GAME_TURN & 0x1) // throttle to every other tick
-                {
+                // Throttle to every other logical tick (original cadence). Uses the
+                // local logical-tick counter instead of GAME_TURN parity — see the
+                // hurt_logic_tick definition above for why GAME_TURN & 0x1 never fired.
+                if (hurt_logic_tick & 0x1) {
                     SLONG i;
                     UWORD hurt[8];
                     SLONG num;
