@@ -2313,10 +2313,24 @@ static UBYTE FRONTEND_input(void)
         static InputAutoRepeat ar_lt;
         static InputAutoRepeat ar_rt;
 
+        // Sliders (the volume sliders in Options -> Sound) change by a small
+        // step per repeat, so the default left/right cadence takes ~19 s to
+        // cross the full range — far too slow for volume. When a slider is the
+        // selected item, give left/right a much faster auto-repeat so holding
+        // the key adjusts the value quickly. Up/down (item navigation) and every
+        // non-slider screen keep the default cadence untouched.
+        constexpr uint64_t SLIDER_REPEAT_INITIAL_MS = 250; // delay before fast repeat starts
+        constexpr uint64_t SLIDER_REPEAT_PERIOD_MS = 30;   // gap between value changes while held
+        const bool sel_is_slider = (menu_data[menu_state.selected].Type == OT_SLIDER);
+
         bool nav_up = ar_up.tick_combined(any_up_jp, any_up_held);
         bool nav_dn = ar_dn.tick_combined(any_dn_jp, any_dn_held);
-        bool nav_lt = ar_lt.tick_combined(any_lt_jp, any_lt_held);
-        bool nav_rt = ar_rt.tick_combined(any_rt_jp, any_rt_held);
+        bool nav_lt = sel_is_slider
+            ? ar_lt.tick_combined(any_lt_jp, any_lt_held, SLIDER_REPEAT_INITIAL_MS, SLIDER_REPEAT_PERIOD_MS)
+            : ar_lt.tick_combined(any_lt_jp, any_lt_held);
+        bool nav_rt = sel_is_slider
+            ? ar_rt.tick_combined(any_rt_jp, any_rt_held, SLIDER_REPEAT_INITIAL_MS, SLIDER_REPEAT_PERIOD_MS)
+            : ar_rt.tick_combined(any_rt_jp, any_rt_held);
 
         // Antagonist suppression: opposite directions held simultaneously =
         // no clear intent, suppress output. Timers keep ticking so releasing
