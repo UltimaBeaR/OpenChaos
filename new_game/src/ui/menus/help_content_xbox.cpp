@@ -13,7 +13,7 @@ const char* const HELP_CONTROLS_XBOX =
     "{xb_rs} - Look around.\n"
     "{xb_rt} - Attack or shoot. In a car: gas.\n"
     "{xb_rb} - Kick.\n"
-    "{xb_rs_press} - Draw or holster your weapon.\n"
+    "{xb_rs_press} - Switch to the next weapon.\n"
     "{xb_rs_press}+{xb_dpad_up} / {xb_rs_press}+{xb_dpad_down} - Cycle through "
     "your weapons.\n"
     "{xb_ls} - Move and run. In a car: steering.\n"
@@ -29,7 +29,7 @@ const char* const HELP_CONTROLS_XBOX =
     "{xb_dpad_left} - Select weapon: M16.\n"
     "{xb_dpad_right} - Select weapon: shotgun.\n"
     "{xb_dpad_up}+{xb_dpad_right} - Select weapon: grenade.\n"
-    "{xb_dpad_down} - Switch melee weapon: bat or knife.\n"
+    "{xb_dpad_down} - Put a drawn gun away, or switch melee: fists, bat, knife.\n"
     "{xb_start} - Pause.";
 
 const char* const HELP_MOVEMENT_XBOX =
@@ -115,9 +115,10 @@ const char* const HELP_WEAPONS_XBOX =
     "\n"
     "RELOADING AND AMMO\n"
     "When a gun runs dry the next {xb_rt} reloads a spare magazine instead of "
-    "firing - press again to shoot. With no spares left you just get empty "
-    "clicks. Spare ammo and dropped guns are picked up automatically as you walk "
-    "over them.\n"
+    "firing - press again to shoot. When a weapon is completely out, Darci "
+    "switches to your best remaining weapon with ammo, or to bare hands if "
+    "nothing is left. Spare ammo and dropped guns are picked up automatically as "
+    "you walk over them.\n"
     "\n"
     "GRENADE\n"
     "With the grenade selected, dotted lines show where it will land. Press "
@@ -127,11 +128,11 @@ const char* const HELP_WEAPONS_XBOX =
     "\n"
     "DRAWING AND SWITCHING\n"
     "Pick a gun directly on the {xb_dpad}: {xb_dpad_up} pistol, {xb_dpad_left} "
-    "M16, {xb_dpad_right} shotgun, {xb_dpad_up}+{xb_dpad_right} grenade; "
-    "{xb_dpad_down} switches between the bat and knife. To step through every "
-    "weapon you are carrying, hold {xb_rs_press} and press {xb_dpad_up} or "
-    "{xb_dpad_down}. A tap of {xb_rs_press} holsters your weapon for bare hands "
-    "or draws the last one again.";
+    "M16, {xb_dpad_right} shotgun, {xb_dpad_up}+{xb_dpad_right} grenade. "
+    "{xb_dpad_down} puts a drawn gun away to bare hands, or cycles your melee - "
+    "fists, bat, knife. To step through every weapon you are carrying, hold "
+    "{xb_rs_press} and press {xb_dpad_up} or {xb_dpad_down}. A tap of "
+    "{xb_rs_press} switches to the next weapon.";
 
 const char* const HELP_DRIVING_XBOX =
     "GETTING IN\n"

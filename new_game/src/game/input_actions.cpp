@@ -448,6 +448,15 @@ struct ActionInfo* action_tree[] = {
 // uc_orig: player_activate_in_hand (fallen/Source/interfac.cpp)
 SLONG player_activate_in_hand(Thing* p_person)
 {
+    // While the throw/release animation is already playing, swallow the attack
+    // button entirely: don't restart the animation (mashing used to reset it to
+    // frame 0, so the actual throw — fired at frame 3 — kept getting pushed
+    // back) and don't prime the NEXT grenade in the stack. The button does
+    // nothing until the current throw animation finishes.
+    if (p_person->SubState == SUB_STATE_CANNING_RELEASE) {
+        return 1; // consumed — ignore the press
+    }
+
     if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
         //
         // Release the coke can.

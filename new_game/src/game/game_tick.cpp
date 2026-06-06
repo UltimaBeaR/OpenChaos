@@ -1157,67 +1157,50 @@ static void controls_equip(Thing* darci, Thing* player, SLONG token)
     CONTROLS_set_inventory(darci, player, slot);
 }
 
-// D-pad ↓ / Tab melee toggle — SELECTS a melee weapon and cycles between the
-// owned ones (bat ↔ knife). The fist is NOT a target (disarm is R3 / middle-
-// mouse). No melee owned → popup-only (highlights the current weapon).
+// D-pad ↓ / backtick (`) melee toggle — two-stage behaviour (this is ALSO the disarm
+// path now that R3 / middle-mouse do the weapon-select algorithm):
+//   1. Holding a ranged weapon (pistol / AK47 / shotgun / grenade / ...) →
+//      put it away, switch to bare FISTS. Single press, no cycling yet.
+//   2. Already on fists or a melee weapon → cycle forward fist → bat → knife
+//      → fist (owned-only; the fist is always available so the cycle always
+//      lands somewhere).
+// Everything funnels through controls_equip so the popup / equip bookkeeping
+// (and its fixes) stay in one place. SPECIAL_NONE is the fist token.
 static void controls_dpad_select_melee(Thing* darci, Thing* player)
 {
-    constexpr SLONG cycle[] = { SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
+    const SLONG cur = CONTROLS_current_weapon_type(darci);
+    const bool holding_melee_or_fist =
+        cur == SPECIAL_NONE || cur == SPECIAL_KNIFE || cur == SPECIAL_BASEBALLBAT;
+
+    if (!holding_melee_or_fist) {
+        // Stage 1: holding a ranged weapon → disarm to fists.
+        controls_equip(darci, player, SPECIAL_NONE);
+        return;
+    }
+
+    // Stage 2: cycle through fist / melee (fixed order; fist always owned).
+    constexpr SLONG cycle[] = { SPECIAL_NONE, SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
     constexpr SLONG cycle_len = (SLONG)(sizeof(cycle) / sizeof(cycle[0]));
 
-    const SLONG cur = CONTROLS_current_weapon_type(darci);
-    SLONG idx = -1; // position of the current weapon in the cycle (-1 = none)
+    SLONG idx = 0; // current position in the cycle (default fist)
     for (SLONG i = 0; i < cycle_len; ++i)
         if (cycle[i] == cur) { idx = i; break; }
 
-    // First OWNED melee after the current one (wraps; skips un-owned).
+    // First reachable entry after the current one: fist is always reachable,
+    // owned melee otherwise. Guaranteed to terminate within cycle_len steps.
     for (SLONG step = 1; step <= cycle_len; ++step) {
         const SLONG t = cycle[(idx + step) % cycle_len];
-        if (dpad_find_inventory_slot_by_type(darci, t) >= 0) {
+        if (t == SPECIAL_NONE || dpad_find_inventory_slot_by_type(darci, t) >= 0) {
             controls_equip(darci, player, t);
             return;
         }
     }
-    controls_show_popup(darci, player); // no melee owned
 }
 
-// --- Disarm / last-weapon + inventory scroll (R3 / MMB / wheel) -------------
-// OpenChaos weapon scheme: R3 / middle-mouse toggle disarm ↔ last weapon (the
-// old "best weapon" auto-pick is gone); mouse wheel and R3 + D-pad ↑/↓ scroll
-// the inventory popup. See act_foot.h.
-
-// Most recently equipped non-fist weapon type (SPECIAL_GUN for the pistol).
-// Updated every gameplay frame while something is in hand; consulted to re-arm
-// from empty hands. SPECIAL_NONE = nothing equipped yet this session.
-static SLONG g_weapon_last_type = SPECIAL_NONE;
-
-// Re-arm: equip the last weapon (or the FIRST weapon in the canonical list —
-// pistol if owned — when the last is gone / never set). Opens the popup.
-static void weapon_arm_last(Thing* darci, Thing* player)
-{
-    CBYTE list[16];
-    const SLONG count = CONTROLS_build_weapon_list(darci, list, (SLONG)sizeof(list));
-    const SLONG weapon_count = count - 1; // trailing entry is the fist
-    if (weapon_count <= 0) {
-        controls_show_popup(darci, player); // no weapons owned
-        return;
-    }
-    SLONG idx = controls_weapon_list_index_of(darci, g_weapon_last_type);
-    if (idx < 0 || idx >= weapon_count)
-        idx = 0;
-    controls_equip(darci, player, (SLONG)list[idx]);
-}
-
-// Middle-mouse click: simple toggle — weapon in hand → disarm; fists → re-arm
-// the last weapon. (R3 splits these across press/release — see process_controls:
-// fists arm on PRESS, a held weapon disarms on RELEASE.)
-static void weapon_disarm_or_last(Thing* darci, Thing* player)
-{
-    if (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE)
-        controls_equip(darci, player, SPECIAL_NONE); // disarm
-    else
-        weapon_arm_last(darci, player);
-}
+// --- Weapon-select + inventory scroll (R3 / MMB / wheel) --------------------
+// R3 / middle-mouse switch to the NEXT weapon in the dedicated R3 cycle order
+// (empty firearms skipped); mouse wheel and R3 + D-pad ↑/↓ scroll the inventory
+// popup one step at a time. See act_foot.h.
 
 // Wheel / R3 + D-pad ↑↓ scroll: step through the canonical list (the same order
 // the popup draws) and equip as it goes, wrapping at the ends. The FIST is part
@@ -1240,6 +1223,99 @@ static void weapon_scroll(Thing* darci, Thing* player, SBYTE dir)
     else if (idx >= count)
         idx = 0;
     controls_equip(darci, player, (SLONG)list[idx]);
+}
+
+// True if a RANGED weapon (pistol / AK47 / shotgun / grenade) is owned AND has
+// ammo to use — loaded rounds OR spare packs (grenade: just its count). Used to
+// filter empty firearms out of the R3 / middle-mouse cycle so a tap never lands
+// on a gun that can't fire.
+static bool r3_ranged_owned_with_ammo(Thing* darci, SLONG type)
+{
+    auto* per = darci->Genus.Person;
+    if (type == SPECIAL_GUN)
+        return (darci->Flags & FLAGS_HAS_GUN) && (per->Ammo || per->ammo_packs_pistol);
+
+    Thing* s = person_has_special(darci, type);
+    if (!s)
+        return false;
+    switch (type) {
+    case SPECIAL_AK47:    return s->Genus.Special->ammo || per->ammo_packs_ak47;
+    case SPECIAL_SHOTGUN: return s->Genus.Special->ammo || per->ammo_packs_shotgun;
+    case SPECIAL_GRENADE: return s->Genus.Special->ammo != 0;
+    default:              return true;
+    }
+}
+
+// Builds the dedicated R3 / middle-mouse cycle list (DISTINCT from the visual
+// popup list CONTROLS_build_weapon_list). Fixed order:
+//   AK47, shotgun, pistol, grenade, bat, knife, then any other owned drawable
+//   item (C4, wire cutter, ...) in inventory order, then the FIST last.
+// Ranged weapons appear only when they actually have ammo; melee + other items
+// appear whenever owned; the fist is always present. Returns the entry count.
+static SLONG controls_build_r3_cycle_list(Thing* darci, CBYTE* out, SLONG max)
+{
+    static const SLONG ranged[] = { SPECIAL_AK47, SPECIAL_SHOTGUN, SPECIAL_GUN, SPECIAL_GRENADE };
+    static const SLONG ranged_len = (SLONG)(sizeof(ranged) / sizeof(ranged[0]));
+    static const SLONG melee[] = { SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
+    static const SLONG melee_len = (SLONG)(sizeof(melee) / sizeof(melee[0]));
+    SLONG n = 0;
+
+    // 1) Ranged weapons (best-first) — only when owned AND not empty.
+    for (SLONG i = 0; i < ranged_len; ++i)
+        if (r3_ranged_owned_with_ammo(darci, ranged[i]) && n < max)
+            out[n++] = (CBYTE)ranged[i];
+
+    // 2) Melee (fixed order) — whenever owned.
+    for (SLONG i = 0; i < melee_len; ++i)
+        if (dpad_find_inventory_slot_by_type(darci, melee[i]) >= 0 && n < max)
+            out[n++] = (CBYTE)melee[i];
+
+    // 3) Any other owned drawable item not already listed, in inventory order.
+    if (darci->Genus.Person->SpecialList) {
+        Thing* p = TO_THING(darci->Genus.Person->SpecialList);
+        while (p) {
+            ASSERT(p->Class == CLASS_SPECIAL);
+            if (can_i_draw_this_special(p)) {
+                const SLONG t = p->Genus.Special->SpecialType;
+                bool listed = false;
+                for (SLONG i = 0; i < ranged_len && !listed; ++i)
+                    if (ranged[i] == t) listed = true;
+                for (SLONG i = 0; i < melee_len && !listed; ++i)
+                    if (melee[i] == t) listed = true;
+                if (!listed && n < max)
+                    out[n++] = (CBYTE)t;
+            }
+            if (!p->Genus.Special->NextSpecial)
+                break;
+            p = TO_THING(p->Genus.Special->NextSpecial);
+        }
+    }
+
+    // 4) Fist last (always present).
+    if (n < max)
+        out[n++] = (CBYTE)SPECIAL_NONE;
+
+    return n;
+}
+
+// R3 / middle-mouse weapon select — steps through the dedicated R3 cycle list
+// (controls_build_r3_cycle_list) by +1 from whatever is currently in hand,
+// wrapping at the end. Empty firearms are absent from the list, so a tap only
+// ever lands on a usable ranged weapon, any melee, or the fist.
+static void weapon_select_algorithm(Thing* darci, Thing* player)
+{
+    CBYTE list[16];
+    const SLONG count = controls_build_r3_cycle_list(darci, list, (SLONG)sizeof(list));
+
+    // Locate the current weapon in the R3 list; not present (e.g. an empty gun
+    // that got filtered out) → -1 so the +1 below starts at the first entry.
+    const SLONG cur = CONTROLS_current_weapon_type(darci);
+    SLONG idx = -1;
+    for (SLONG i = 0; i < count; ++i)
+        if ((SLONG)list[i] == cur) { idx = i; break; }
+
+    const SLONG next = (idx + 1) % count; // wrap to the start past the last entry
+    controls_equip(darci, player, (SLONG)list[next]);
 }
 
 // uc_orig: context_music (fallen/Source/Controls.cpp)
@@ -1687,39 +1763,23 @@ void process_controls(void)
             // snapshot) — Player->Pressed only refreshes per physics tick, so at
             // high render rate it would re-fire across frames (issue #20).
             //
-            //   R3 (gamepad) / middle-mouse (KBM): disarm ↔ last weapon.
+            //   R3 (gamepad) / middle-mouse (KBM): switch to the next weapon
+            //     (own R3 order, skips empty firearms).
             //   Mouse wheel / R3 + D-pad ↑↓        : scroll the inventory popup.
             //   D-pad (no R3): ↑ pistol, ← AK, → shotgun, ↓ melee, ↑+→ grenade.
-            //   Keyboard 1-4: pistol / AK / shotgun / grenade. Tab: melee.
-
-            // Per-frame: remember the current non-fist weapon for the disarm/
-            // re-arm toggle and the empty-hand scroll start.
-            {
-                const SLONG cur_t = CONTROLS_current_weapon_type(darci);
-                if (cur_t != SPECIAL_NONE)
-                    g_weapon_last_type = cur_t;
-            }
+            //   Keyboard 1-4: pistol / AK / shotgun / grenade. Backtick (`): melee.
 
             const bool r3_held = input_btn_held(ACT_FOOT_INVENTORY_GBTN);
 
-            // R3 doubles as a scroll modifier. Track whether a D-pad ↑/↓ scroll
-            // happened during this hold — if so, the R3 RELEASE does NOT fire the
-            // disarm toggle (the press was "used" for scrolling). Middle-mouse
-            // has no such conflict (wheel is independent) → it fires on press.
+            // R3 doubles as a scroll modifier, so the select algorithm fires on
+            // RELEASE — and only if a D-pad ↑/↓ scroll did NOT happen during the
+            // hold (a scroll means the player was browsing, not tapping). The
+            // press just shows the popup. Middle-mouse has no such conflict (the
+            // wheel is independent) → it runs the algorithm on press instead.
             static bool s_r3_scroll_used = false;
-            static bool s_r3_press_armed = false; // had a weapon in hand at R3 press
             if (input_btn_just_pressed(ACT_FOOT_INVENTORY_GBTN)) {
                 s_r3_scroll_used = false;
-                s_r3_press_armed = (CONTROLS_current_weapon_type(darci) != SPECIAL_NONE);
-                if (s_r3_press_armed) {
-                    // Weapon in hand: just show the popup (current highlighted).
-                    // The disarm happens on RELEASE (so you can scroll instead).
-                    controls_show_popup(darci, the_player);
-                } else {
-                    // Fists: arm the last weapon immediately so the player sees it
-                    // selected and can then scroll from there.
-                    weapon_arm_last(darci, the_player);
-                }
+                controls_show_popup(darci, the_player);
             }
 
             const bool dpad_up    = input_btn_just_pressed(ACT_FOOT_WEAPON_PISTOL_GBTN);
@@ -1767,14 +1827,12 @@ void process_controls(void)
                 }
             }
 
-            // R3 release → disarm to fists, but ONLY if a weapon was in hand at
-            // press and nothing was scrolled during the hold. (Releasing after a
-            // press from fists keeps the weapon armed on press; scrolling means
-            // the player was browsing, not toggling.)
-            if (input_btn_just_released(ACT_FOOT_INVENTORY_GBTN) && !s_r3_scroll_used && s_r3_press_armed)
-                controls_equip(darci, the_player, SPECIAL_NONE); // disarm
+            // R3 release → run the weapon-select algorithm, unless the hold was
+            // used to scroll (then the press was "spent" browsing, not tapping).
+            if (input_btn_just_released(ACT_FOOT_INVENTORY_GBTN) && !s_r3_scroll_used)
+                weapon_select_algorithm(darci, the_player);
 
-            // Keyboard direct select (1-4) + Tab melee toggle.
+            // Keyboard direct select (1-4) + backtick (`) melee toggle.
             if (input_key_just_pressed(ACT_FOOT_WEAPON_PISTOL_KKEY))
                 controls_equip(darci, the_player, SPECIAL_GUN);
             if (input_key_just_pressed(ACT_FOOT_WEAPON_AK47_KKEY))
@@ -1786,9 +1844,9 @@ void process_controls(void)
             if (input_key_just_pressed(ACT_FOOT_WEAPON_MELEE_KKEY))
                 controls_dpad_select_melee(darci, the_player);
 
-            // Middle mouse = disarm ↔ last weapon (KBM counterpart of R3 click).
-            if (input_mouse_btn_just_pressed(ACT_FOOT_WEAPON_DISARM_MBTN))
-                weapon_disarm_or_last(darci, the_player);
+            // Middle mouse = weapon-select algorithm (KBM counterpart of R3).
+            if (input_mouse_btn_just_pressed(ACT_FOOT_WEAPON_SELECT_MBTN))
+                weapon_select_algorithm(darci, the_player);
 
             // Mouse wheel = scroll inventory. Wheel up (dy>0) = previous,
             // wheel down = next. One step per notch.
@@ -1801,7 +1859,7 @@ void process_controls(void)
 
             // Keep the popup open as long as R3 (or middle mouse) is held — the
             // wheel stays up while browsing, then lingers normally after release.
-            if (r3_held || input_mouse_btn_held(ACT_FOOT_WEAPON_DISARM_MBTN))
+            if (r3_held || input_mouse_btn_held(ACT_FOOT_WEAPON_SELECT_MBTN))
                 CONTROLS_inventory_mode = 3000;
 
             if (CONTROLS_inventory_mode) {

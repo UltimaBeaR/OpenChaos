@@ -13,7 +13,7 @@ const char* const HELP_CONTROLS_PS =
     "{ps_rs} - Look around.\n"
     "{ps_r2} - Attack or shoot. In a car: gas.\n"
     "{ps_r1} - Kick.\n"
-    "{ps_r3} - Draw or holster your weapon.\n"
+    "{ps_r3} - Switch to the next weapon.\n"
     "{ps_r3}+{ps_dpad_up} / {ps_r3}+{ps_dpad_down} - Cycle through "
     "your weapons.\n"
     "{ps_ls} - Move and run. In a car: steering.\n"
@@ -28,7 +28,7 @@ const char* const HELP_CONTROLS_PS =
     "{ps_dpad_left} - Select weapon: M16.\n"
     "{ps_dpad_right} - Select weapon: shotgun.\n"
     "{ps_dpad_up}+{ps_dpad_right} - Select weapon: grenade.\n"
-    "{ps_dpad_down} - Switch melee weapon: bat or knife.\n"
+    "{ps_dpad_down} - Put a drawn gun away, or switch melee: fists, bat, knife.\n"
     "{ps_start} - Pause.";
 
 const char* const HELP_MOVEMENT_PS =
@@ -114,9 +114,10 @@ const char* const HELP_WEAPONS_PS =
     "\n"
     "RELOADING AND AMMO\n"
     "When a gun runs dry the next {ps_r2} reloads a spare magazine instead of "
-    "firing - press again to shoot. With no spares left you just get empty "
-    "clicks. Spare ammo and dropped guns are picked up automatically as you walk "
-    "over them.\n"
+    "firing - press again to shoot. When a weapon is completely out, Darci "
+    "switches to your best remaining weapon with ammo, or to bare hands if "
+    "nothing is left. Spare ammo and dropped guns are picked up automatically as "
+    "you walk over them.\n"
     "\n"
     "GRENADE\n"
     "With the grenade selected, dotted lines show where it will land. Press "
@@ -126,11 +127,11 @@ const char* const HELP_WEAPONS_PS =
     "\n"
     "DRAWING AND SWITCHING\n"
     "Pick a gun directly on the {ps_dpad}: {ps_dpad_up} pistol, {ps_dpad_left} "
-    "M16, {ps_dpad_right} shotgun, {ps_dpad_up}+{ps_dpad_right} grenade; "
-    "{ps_dpad_down} switches between the bat and knife. To step through every "
-    "weapon you are carrying, hold {ps_r3} and press {ps_dpad_up} or "
-    "{ps_dpad_down}. A tap of {ps_r3} holsters your weapon for bare hands or "
-    "draws the last one again.";
+    "M16, {ps_dpad_right} shotgun, {ps_dpad_up}+{ps_dpad_right} grenade. "
+    "{ps_dpad_down} puts a drawn gun away to bare hands, or cycles your melee - "
+    "fists, bat, knife. To step through every weapon you are carrying, hold "
+    "{ps_r3} and press {ps_dpad_up} or {ps_dpad_down}. A tap of {ps_r3} "
+    "switches to the next weapon.";
 
 const char* const HELP_DRIVING_PS =
     "GETTING IN\n"

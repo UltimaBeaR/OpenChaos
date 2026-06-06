@@ -3854,6 +3854,35 @@ void actually_fire_gun(Thing* p_person)
     }
 }
 
+// Player-only auto-switch when a fired weapon is completely out of ammo
+// (ammo == 0; NOT a clip reload, which still has spares). Switches to the best
+// remaining weapon with ammo, or to bare fists when nothing is left. Shared by
+// the standing (set_person_shoot) and moving (set_person_running_shoot) fire
+// paths so the swap happens on the FIRST empty trigger pull either way — without
+// this on the moving path, firing dry while on the move just dry-clicked and the
+// switch only happened once the player stood still.
+static void player_switch_weapon_when_empty(Thing* p_person, SLONG ammo)
+{
+    if (!p_person->Genus.Person->PlayerID || ammo == HAD_TO_CHANGE_CLIP) {
+        return;
+    }
+
+    SLONG special = get_persons_best_weapon_with_ammo(p_person);
+    if (special) {
+        if (special == SPECIAL_GUN) {
+            set_person_draw_gun(p_person);
+        } else {
+            set_person_draw_item(p_person, special);
+        }
+    } else {
+        if (p_person->Genus.Person->SpecialUse) {
+            set_person_item_away(p_person);
+        } else {
+            set_person_gun_away(p_person);
+        }
+    }
+}
+
 // Fires weapon while running, enforcing per-weapon cooldown timer.
 // uc_orig: set_person_running_shoot (fallen/Source/Person.cpp)
 void set_person_running_shoot(Thing* p_person)
@@ -3883,6 +3912,9 @@ void set_person_running_shoot(Thing* p_person)
             input_actions_mark_ak47_reload_gate();
         }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
+        // Out-of-ammo auto-switch on the moving fire path too (see helper) so
+        // emptying a gun while running/walking swaps on the first dry pull.
+        player_switch_weapon_when_empty(p_person, ammo);
         return;
     }
 
@@ -3976,6 +4008,60 @@ void set_person_running_shoot(Thing* p_person)
             }
         }
     }
+}
+
+// Returns the best weapon type (with ammo) from the person's inventory, used by
+// the out-of-ammo auto-switch. Priority order (matches the start of the R3
+// cycle, minus grenade and other items, which are deliberately excluded — an
+// auto-switch onto a grenade or C4 would be unexpected): AK47 > shotgun > pistol
+// > bat > knife. Returns the FIRST owned weapon with ammo (melee always counts);
+// SPECIAL_NONE if none, so the caller falls back to bare fists.
+//
+// "Has ammo" means loaded rounds OR spare packs — same definition the R3 cycle
+// uses (r3_ranged_owned_with_ammo in game_tick.cpp), so a weapon whose magazine
+// is empty but still has spare clips is a valid switch target.
+// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp) — the
+// original checked loaded ammo only; the spare-pack check is an OpenChaos tweak.
+SLONG get_persons_best_weapon_with_ammo(Thing* p_person)
+{
+    Thing* p_special;
+    auto* per = p_person->Genus.Person;
+
+    static UBYTE weapon_order[5] = {
+        SPECIAL_AK47,
+        SPECIAL_SHOTGUN,
+        SPECIAL_GUN,
+        SPECIAL_BASEBALLBAT,
+        SPECIAL_KNIFE
+    };
+
+    SLONG i;
+
+    for (i = 0; i < 5; i++) {
+        if (i == 2) {
+            if (p_person->Flags & FLAGS_HAS_GUN) {
+                if (per->Ammo || per->ammo_packs_pistol) {
+                    return SPECIAL_GUN;
+                }
+            }
+        } else {
+            if (p_special = person_has_special(p_person, weapon_order[i])) {
+                if (i < 2) {
+                    // i == 0 → AK47, i == 1 → shotgun.
+                    const UBYTE packs = (weapon_order[i] == SPECIAL_AK47)
+                        ? per->ammo_packs_ak47
+                        : per->ammo_packs_shotgun;
+                    if (p_special->Genus.Special->ammo || packs) {
+                        return weapon_order[i];
+                    }
+                } else {
+                    return weapon_order[i];
+                }
+            }
+        }
+    }
+
+    return SPECIAL_NONE;
 }
 
 // Returns UC_TRUE if a cutscene is in progress and the NPC should not shoot p_target.
@@ -4123,12 +4209,14 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
 
-        // OpenChaos: the player's gun no longer auto-switches when the magazine
-        // runs dry — it just dry-clicks and stays equipped, leaving the weapon
-        // change to the player. (A firearm out of ammo remains in the inventory,
-        // so there is nothing to fall back FROM; the grenade "last one thrown →
-        // empty hands" case is handled in SPECIAL_throw_grenade, which clears
-        // SpecialUse directly.) NPCs never reached this branch (PlayerID gate).
+        // Auto-switch to the best available weapon when the magazine runs dry
+        // (player only, and not on a mere clip-change — those still have spares).
+        // Restores the original/retail behaviour: firing a fully empty weapon
+        // falls back to the best weapon WITH ammo, or to bare fists, instead of
+        // dry-clicking an empty gun in melee range.
+        // uc_orig: set_person_shoot empty-fire branch (fallen/Source/Person.cpp)
+        player_switch_weapon_when_empty(p_person, ammo);
+
         return;
     }
 

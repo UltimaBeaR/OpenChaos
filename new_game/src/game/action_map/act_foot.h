@@ -120,28 +120,31 @@ constexpr int ACT_FOOT_KICK_MBTN  = MBTN_RIGHT;
 constexpr int ACT_FOOT_TACTICAL_MODE_GTRIG = GTRIG_L2;
 constexpr int ACT_FOOT_TACTICAL_MODE_KKEY  = KKEY_LEFT_CONTROL;
 
-// ---- Weapon: disarm / last-weapon + inventory scroll (R3 / MMB / wheel) ----
-// R3 (gamepad) and middle mouse (KBM) toggle disarm ↔ last weapon. R3 also acts
-// as a modifier: holding R3 + D-pad ↑/↓ scrolls the inventory popup (and then
-// the R3 release does NOT fire disarm — see process_controls). Mouse wheel
-// scrolls the popup directly. INPUT_MASK_SELECT is still set from R3/Tab hold in
+// ---- Weapon: select-next + inventory scroll (R3 / MMB / wheel) --------------
+// R3 (gamepad) and middle mouse (KBM) switch to the next weapon in the dedicated
+// R3 cycle order (empty firearms skipped). R3 also acts as a modifier: holding
+// R3 + D-pad ↑/↓ scrolls the inventory popup (and then the R3 release does NOT
+// fire the switch — see process_controls). Mouse wheel scrolls the popup
+// directly. INPUT_MASK_SELECT is still set from R3/Tab hold in
 // get_hardware_input for the car-siren / cutscene-skip / map-quit paths.
 // All read in game_tick.cpp::process_controls.
 
 constexpr int ACT_FOOT_INVENTORY_KKEY      = KKEY_TAB;      // legacy SELECT mask (car/map/skip)
 constexpr int ACT_FOOT_INVENTORY_GBTN      = GBTN_R3;       // DS: R3, Xbox: RSB
-constexpr int ACT_FOOT_WEAPON_DISARM_MBTN  = MBTN_MIDDLE;   // disarm ↔ last weapon (KBM)
+constexpr int ACT_FOOT_WEAPON_SELECT_MBTN  = MBTN_MIDDLE;   // switch to next weapon (KBM)
 
-// ---- Weapon select: keyboard digit hotkeys + Tab melee ---------------------
-// Direct weapon switch (1..4) + Tab = melee toggle (fist ↔ bat ↔ knife, like
-// D-pad down). Read in game_tick.cpp::process_controls. Rarely-used items
+// ---- Weapon select: keyboard digit hotkeys + backtick melee ----------------
+// Direct weapon switch (1..4) + ` (backtick, the key left of "1") = melee toggle
+// (put a gun away / cycle fist ↔ bat ↔ knife, like D-pad down). Backtick was
+// chosen over Tab because it sits right by the digit row, so the player can find
+// it by feel. Read in game_tick.cpp::process_controls. Rarely-used items
 // (explosives etc.) have no hotkey — reach them via the wheel/R3 scroll.
 
 constexpr int ACT_FOOT_WEAPON_PISTOL_KKEY  = KKEY_1;
 constexpr int ACT_FOOT_WEAPON_AK47_KKEY    = KKEY_2;
 constexpr int ACT_FOOT_WEAPON_SHOTGUN_KKEY = KKEY_3;
 constexpr int ACT_FOOT_WEAPON_GRENADE_KKEY = KKEY_4;
-constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_TAB;
+constexpr int ACT_FOOT_WEAPON_MELEE_KKEY   = KKEY_GRAVE;
 
 // ---- Weapon select: D-pad on gamepad ---------------------------------------
 // Direct weapon select via D-pad (only when R3 is NOT held — R3+↑/↓ is the

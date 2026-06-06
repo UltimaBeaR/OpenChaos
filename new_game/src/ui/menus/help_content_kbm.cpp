@@ -15,7 +15,7 @@ const char* const HELP_CONTROLS_KBM =
     "{ms_move} - Look around.\n"
     "{ms_lmb} - Attack or shoot.\n"
     "{ms_rmb} - Kick.\n"
-    "{ms_mmb} - Draw or holster your weapon.\n"
+    "{ms_mmb} - Switch to the next weapon.\n"
     "{ms_wheel} - Cycle through your weapons.\n"
     "{kb_w}{kb_a}{kb_s}{kb_d} - Move and run. In a car: {kb_w} gas, {kb_s} "
     "reverse, {kb_a}{kb_d} steering.\n"
@@ -30,7 +30,7 @@ const char* const HELP_CONTROLS_KBM =
     "{kb_2} - Select weapon: M16.\n"
     "{kb_3} - Select weapon: shotgun.\n"
     "{kb_4} - Select weapon: grenade.\n"
-    "{kb_tab} - Switch melee weapon: bat or knife.\n"
+    "{kb_backtick} - Put a drawn gun away, or switch melee: fists, bat, knife.\n"
     "{kb_esc} - Pause."
     ;
 
@@ -118,9 +118,10 @@ const char* const HELP_WEAPONS_KBM =
     "\n"
     "RELOADING AND AMMO\n"
     "When a gun runs dry the next {ms_lmb} reloads a spare magazine instead of "
-    "firing - press again to shoot. With no spares left you just get empty "
-    "clicks. Spare ammo and dropped guns are picked up automatically as you walk "
-    "over them.\n"
+    "firing - press again to shoot. When a weapon is completely out, Darci "
+    "switches to your best remaining weapon with ammo, or to bare hands if "
+    "nothing is left. Spare ammo and dropped guns are picked up automatically as "
+    "you walk over them.\n"
     "\n"
     "GRENADE\n"
     "With the grenade selected, dotted lines show where it will land. Press "
@@ -130,9 +131,9 @@ const char* const HELP_WEAPONS_KBM =
     "\n"
     "DRAWING AND SWITCHING\n"
     "Pick a gun directly with {kb_1} (pistol), {kb_2} (M16), {kb_3} (shotgun) or "
-    "{kb_4} (grenade); {kb_tab} switches between the bat and knife. {ms_wheel} "
-    "steps through every weapon you are carrying, and {ms_mmb} holsters your "
-    "weapon for bare hands or draws the last one again.";
+    "{kb_4} (grenade). {kb_backtick} puts a drawn gun away to bare hands, or cycles "
+    "your melee - fists, bat, knife. {ms_wheel} steps through every weapon you "
+    "are carrying one at a time. {ms_mmb} switches to the next weapon.";
 
 const char* const HELP_DRIVING_KBM =
     "GETTING IN\n"
