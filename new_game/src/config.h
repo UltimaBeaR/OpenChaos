@@ -7,10 +7,6 @@
 // 1.0 = original game FOV. Adjust only with care — affects sky, poly correction, etc.
 static constexpr float OC_FOV_MULTIPLIER = 1.0f;
 
-// Language file path relative to the game directory.
-// Full localization support is not yet implemented (see known_issues_and_bugs.md).
-static constexpr const char* OC_LANGUAGE_FILE = "text/lang_english.txt";
-
 // Max characters that get a full (detailed silhouette) shadow at once;
 // everyone else gets the simple blob. Packed into the shared shadow page
 // (TEXTURE_SHADOW_SIZE) as AENG_AA_BUF_SIZE tiles in a square grid, so:

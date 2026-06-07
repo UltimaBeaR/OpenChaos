@@ -18,4 +18,9 @@ bool MISSING_RESOURCES_present(void);
 // Requires the renderer (ge_init) to be initialised; touches no game resources.
 [[noreturn]] void MISSING_RESOURCES_show_and_exit(void);
 
+// Show the "language files not found" screen and exit cleanly. Never returns.
+// Used when the game data is present but no text/lang_*.txt exists, so there is
+// no UI text to render. Same self-contained screen as the resources one.
+[[noreturn]] void MISSING_LANGUAGE_show_and_exit(void);
+
 #endif // GAME_MISSING_RESOURCES_H

@@ -228,7 +228,7 @@ void draw_centred(const char* s, int y)
 // must fit the 640px surface at TEXT_SCALE: a glyph advances GLYPH_ADVANCE_PX *
 // TEXT_SCALE px, so the limit is ~34 chars at scale 2. Longer lines would be
 // clipped at the surface edges, so keep them short.
-const char* const MESSAGE_LINES[] = {
+const char* const RESOURCES_MESSAGE_LINES[] = {
     "URBAN CHAOS FILES NOT FOUND",
     "",
     "OpenChaos could not find the",
@@ -237,6 +237,22 @@ const char* const MESSAGE_LINES[] = {
     "Copy the OpenChaos files into",
     "your Urban Chaos install folder,",
     "next to the game's own data.",
+    "",
+    "See the README for setup help.",
+    "",
+    "Press any key to exit.",
+};
+
+// Shown when the game data is present but no text/lang_*.txt exists. Same line
+// length budget as above (~34 chars at TEXT_SCALE 2).
+const char* const LANGUAGE_MESSAGE_LINES[] = {
+    "LANGUAGE FILES NOT FOUND",
+    "",
+    "OpenChaos found the game data",
+    "but no language file in text/.",
+    "",
+    "A file like text/lang_english.txt",
+    "is needed for menu and HUD text.",
     "",
     "See the README for setup help.",
     "",
@@ -255,20 +271,19 @@ void on_any_mouse(int, bool down, int, int)
 }
 void on_close_request(void) { s_dismiss = true; }
 
-} // namespace
-
-void MISSING_RESOURCES_show_and_exit(void)
+// Rasterise the given centred message into s_screen, show it, wait for any
+// key/click/close, then terminate the process. Shared by both screens.
+[[noreturn]] void show_message_and_exit(const char* const* lines, int line_count)
 {
     // Black background.
     memset(s_screen, 0, sizeof(s_screen));
 
     // Vertically centre the block of lines.
     const int line_step = LINE_ADVANCE_PX * TEXT_SCALE;
-    const int line_count = (int)(sizeof(MESSAGE_LINES) / sizeof(MESSAGE_LINES[0]));
     int y = (SCREEN_H - line_count * line_step) / 2;
     for (int i = 0; i < line_count; ++i) {
-        if (MESSAGE_LINES[i][0] != '\0')
-            draw_centred(MESSAGE_LINES[i], y);
+        if (lines[i][0] != '\0')
+            draw_centred(lines[i], y);
         y += line_step;
     }
 
@@ -302,4 +317,18 @@ void MISSING_RESOURCES_show_and_exit(void)
     // up — and crucially this skips the host's atexit handler that would
     // otherwise write a "Clean exit" OpenChaos.crash_log.txt next to the exe.
     std::_Exit(0);
+}
+
+} // namespace
+
+void MISSING_RESOURCES_show_and_exit(void)
+{
+    show_message_and_exit(RESOURCES_MESSAGE_LINES,
+        (int)(sizeof(RESOURCES_MESSAGE_LINES) / sizeof(RESOURCES_MESSAGE_LINES[0])));
+}
+
+void MISSING_LANGUAGE_show_and_exit(void)
+{
+    show_message_and_exit(LANGUAGE_MESSAGE_LINES,
+        (int)(sizeof(LANGUAGE_MESSAGE_LINES) / sizeof(LANGUAGE_MESSAGE_LINES[0])));
 }

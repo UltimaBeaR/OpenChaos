@@ -2679,7 +2679,9 @@ void FRONTEND_init(bool bGoToTitleScreen)
     // Reset the transition buffer's contents.
     lpFRONTEND_show_xition_LastBlit = NULL;
 
-    XLAT_load((CBYTE*)OC_LANGUAGE_FILE);
+    // Language file is resolved once at startup (config.ini [Game] language=
+    // with a text/ fallback scan); see XLAT_resolve_language_file in game().
+    XLAT_load((CBYTE*)XLAT_language_file());
     CBYTE* str;
     XLAT_init();
 

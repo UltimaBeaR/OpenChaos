@@ -416,4 +416,17 @@ void XLAT_load(CBYTE* fn);
 // uc_orig: XLAT_init (fallen/Headers/xlat_str.h)
 void XLAT_init();
 
+// Resolves which language file to load, following the original game's mechanism:
+// reads [Game] language= from config.ini; if that key is absent or its file does
+// not exist, falls back to scanning text/ for any lang_*.txt (preferring
+// text/lang_english.txt, otherwise the first by name for determinism). The
+// chosen path is cached and returned by XLAT_language_file().
+// Returns UC_TRUE if at least one language file is available, UC_FALSE if none
+// exist at all. Must be called once at startup, before XLAT_load / FRONTEND_init.
+bool XLAT_resolve_language_file(void);
+
+// Language file path chosen by XLAT_resolve_language_file() (relative to the
+// resource root). Only valid after that call returned UC_TRUE.
+const char* XLAT_language_file(void);
+
 #endif // ASSETS_XLAT_STR_H

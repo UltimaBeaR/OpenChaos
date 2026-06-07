@@ -1,6 +1,13 @@
 #include "assets/xlat_str.h"
 #include "assets/xlat_str_globals.h"
+#include "engine/io/env.h" // INI_get_string (config.ini [Game] language=)
 #include "engine/io/file.h"
+
+#include <algorithm> // std::sort
+#include <cctype> // tolower
+#include <filesystem> // directory scan for the language fallback
+#include <string>
+#include <vector>
 
 // Byte offset into xlat_ptr where control remapping strings start.
 // uc_orig: REMAP_OFFSET (fallen/Source/xlat_str.cpp)
@@ -229,4 +236,99 @@ void XLAT_init()
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_LOW, "shoulder");
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_ESC, "esc");
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_CONTINUE, "space");
+}
+
+// ---------------------------------------------------------------------------
+// Language file resolution (config.ini [Game] language=, with a fallback scan)
+// ---------------------------------------------------------------------------
+
+// Language files live in this directory as lang_<name>.txt (e.g.
+// text/lang_english.txt). The original game records the chosen one in config.ini.
+#define LANG_DIR "text"
+#define LANG_FILE_PREFIX "lang_"
+#define LANG_FILE_SUFFIX ".txt"
+// Preferred default when config.ini gives no usable language.
+#define LANG_DEFAULT_FILENAME "lang_english.txt"
+// config.ini location + key (the original game's, relative to the resource root).
+#define LANG_INI_FILE "config.ini"
+#define LANG_INI_SECTION "Game"
+#define LANG_INI_KEY "language"
+
+// Resolved language path (relative to resource root), set by
+// XLAT_resolve_language_file(), read by XLAT_language_file().
+static char xlat_language_path[_MAX_PATH] = { 0 };
+
+// Lowercase copy of a string (ASCII).
+static std::string to_lower(std::string s)
+{
+    for (char& c : s)
+        c = (char)tolower((unsigned char)c);
+    return s;
+}
+
+// True if name matches lang_*.txt (case-insensitive) with a non-empty middle.
+static bool is_language_filename(const std::string& name)
+{
+    const std::string lower = to_lower(name);
+    const std::string prefix = LANG_FILE_PREFIX;
+    const std::string suffix = LANG_FILE_SUFFIX;
+    return lower.size() > prefix.size() + suffix.size()
+        && lower.compare(0, prefix.size(), prefix) == 0
+        && lower.compare(lower.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+const char* XLAT_language_file(void)
+{
+    return xlat_language_path;
+}
+
+bool XLAT_resolve_language_file(void)
+{
+    // 1. Honour config.ini [Game] language= — the original game's mechanism and
+    //    what every "change language" guide for the retail game edits. The path
+    //    is relative to the resource root and may use backslashes; FileExists and
+    //    XLAT_load normalise those.
+    char ini_path[_MAX_PATH];
+    if (INI_get_string(LANG_INI_FILE, LANG_INI_SECTION, LANG_INI_KEY, ini_path, (int)sizeof(ini_path))
+        && ini_path[0] != '\0'
+        && FileExists((CBYTE*)ini_path)) {
+        strncpy(xlat_language_path, ini_path, sizeof(xlat_language_path) - 1);
+        xlat_language_path[sizeof(xlat_language_path) - 1] = '\0';
+        return true;
+    }
+
+    // 2. Fallback: scan text/ for any lang_*.txt. Prefer English; otherwise the
+    //    first by name so the choice is stable across runs.
+    //    NOTE: the file layer (FileExists/FileOpen) has no directory-listing API,
+    //    so we enumerate with std::filesystem directly. That means the scan is
+    //    relative to the current working directory and does NOT prepend the file
+    //    layer's base path (cBasePath). This is correct only because the base path
+    //    is always empty (FileSetBasePath("") at startup, never changed), so cwd
+    //    and base-path roots coincide. If a non-empty base path is ever
+    //    introduced, prepend it to LANG_DIR here (or add a base-path-aware
+    //    directory-list helper to the file layer and use it).
+    std::vector<std::string> langs;
+    std::error_code ec;
+    for (std::filesystem::directory_iterator it(LANG_DIR, ec), end; !ec && it != end; it.increment(ec)) {
+        if (!it->is_regular_file(ec))
+            continue;
+        std::string name = it->path().filename().string();
+        if (is_language_filename(name))
+            langs.push_back(name);
+    }
+
+    if (langs.empty())
+        return false;
+
+    std::sort(langs.begin(), langs.end());
+    std::string chosen = langs.front();
+    for (const std::string& n : langs) {
+        if (to_lower(n) == LANG_DEFAULT_FILENAME) {
+            chosen = n;
+            break;
+        }
+    }
+
+    snprintf(xlat_language_path, sizeof(xlat_language_path), "%s/%s", LANG_DIR, chosen.c_str());
+    return true;
 }

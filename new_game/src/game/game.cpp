@@ -249,6 +249,14 @@ void game_startup(void)
     if (!MISSING_RESOURCES_present())
         MISSING_RESOURCES_show_and_exit();
 
+    // Pick the language file now (config.ini [Game] language=, with a fallback
+    // scan of text/). Done right after the resource check and before anything
+    // reads UI text. If no language file exists at all, show a dedicated screen
+    // and exit — checked AFTER the resource check so the more fundamental
+    // "files not found" message takes priority when both are missing.
+    if (!XLAT_resolve_language_file())
+        MISSING_LANGUAGE_show_and_exit();
+
     AENG_init();
 
     ATTRACT_loadscreen_init();
