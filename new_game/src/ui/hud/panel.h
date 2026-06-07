@@ -31,6 +31,12 @@ void PANEL_new_text_init(void);
 // uc_orig: PANEL_new_text (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_text(struct Thing* who, SLONG delay, char* fmt, ...);
 
+// OpenChaos: like PANEL_new_text but for FIXED ENGLISH / dev text (verbatim, no
+// printf formatting) — tags the message to draw with the license-clean alt FONT2D
+// atlas so it survives a localised game font. Used by CONSOLE_text_en; localised /
+// resource messages keep PANEL_new_text (game font).
+void PANEL_new_text_alt(struct Thing* who, SLONG delay, char* text);
+
 // uc_orig: PANEL_new_help_message (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_help_message(char* fmt, ...);
 

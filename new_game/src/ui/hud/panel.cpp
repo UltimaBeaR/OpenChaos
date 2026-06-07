@@ -642,56 +642,35 @@ void PANEL_new_text_init(void)
     PANEL_text_tick = 0;
 }
 
-// Queues a floating speech text message above the given thing (NULL = radio message).
-// Plays a radio sound for NULL-thing messages. Deduplicates identical messages.
-// uc_orig: PANEL_new_text (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_text(Thing* who, SLONG delay, CBYTE* fmt, ...)
+// Returns true if the string has any non-whitespace character.
+static bool PANEL_text_has_content(CBYTE* s)
 {
-    CBYTE* ch;
+    for (CBYTE* ch = s; *ch; ch++) {
+        if (!isspace((unsigned char)*ch))
+            return true;
+    }
+    return false;
+}
+
+// Stores an already-formatted message into the circular queue, deduping against an
+// identical live message from the same speaker. alt_font marks fixed-English / dev
+// text to be drawn with the license-clean alt FONT2D atlas (see PANEL_Text).
+// uc_orig: PANEL_new_text body (fallen/DDEngine/Source/panel.cpp)
+static void PANEL_store_text(Thing* who, SLONG delay, int alt_font, const CBYTE* message)
+{
     PANEL_Text* pt;
-
-    if (fmt == NULL) {
-        return;
-    }
-
-    for (ch = fmt; *ch; ch++) {
-        if (!isspace(*ch)) {
-            goto found_non_white_space;
-        }
-    }
-
-    return;
-
-found_non_white_space:;
-
-    CBYTE message[1024];
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsprintf(message, fmt, ap);
-    va_end(ap);
 
     if (strlen(message) >= PANEL_TEXT_MAX_LENGTH) {
         ASSERT(0);
         return;
     }
 
-    /*
-    for (ch = message; *ch; *ch++ = toupper(*ch));
-    */
-
-    SLONG i;
-
-    for (i = 0; i < PANEL_MAX_TEXTS; i++) {
+    for (SLONG i = 0; i < PANEL_MAX_TEXTS; i++) {
         pt = &PANEL_text[i];
-
-        if (pt->delay) {
-            if (pt->who == who) {
-                if (strcmp(pt->text, message) == 0) {
-                    pt->delay = delay;
-                    return;
-                }
-            }
+        if (pt->delay && pt->who == who && strcmp(pt->text, message) == 0) {
+            pt->delay = delay;
+            pt->alt_font = alt_font;
+            return;
         }
     }
 
@@ -700,6 +679,7 @@ found_non_white_space:;
     pt->who = who;
     pt->delay = delay;
     pt->turns = 0;
+    pt->alt_font = alt_font;
 
     strcpy(pt->text, message);
 
@@ -707,6 +687,36 @@ found_non_white_space:;
 
     if (!who)
         MFX_play_ambient(0, S_RADIO_MESSAGE, 0);
+}
+
+// Queues a floating speech text message above the given thing (NULL = radio message).
+// Plays a radio sound for NULL-thing messages. Deduplicates identical messages.
+// uc_orig: PANEL_new_text (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_text(Thing* who, SLONG delay, CBYTE* fmt, ...)
+{
+    if (fmt == NULL || !PANEL_text_has_content(fmt)) {
+        return;
+    }
+
+    CBYTE message[1024];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    PANEL_store_text(who, delay, /*alt_font=*/0, message);
+}
+
+// OpenChaos: fixed-English / dev message — drawn with the license-clean alt FONT2D
+// atlas. Verbatim (no printf formatting), so a literal '%' in dev text is safe.
+void PANEL_new_text_alt(Thing* who, SLONG delay, CBYTE* text)
+{
+    if (text == NULL || !PANEL_text_has_content(text)) {
+        return;
+    }
+
+    PANEL_store_text(who, delay, /*alt_font=*/1, text);
 }
 
 // Advances the decay timer for all active text messages and increments turn counters.
@@ -2135,7 +2145,7 @@ void PANEL_last(void)
                                  y + 2,
                                  0xffffff,
                                  256,
-                                 POLY_PAGE_FONT2D,
+                                 pt->alt_font ? POLY_PAGE_FONT2D_ALT : POLY_PAGE_FONT2D,
                                  0,
                                  x2)
                         - y;

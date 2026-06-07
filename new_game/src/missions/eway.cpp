@@ -996,7 +996,7 @@ void EWAY_create(
         if (ew->ed.arg1 == NULL) {
             sprintf(EWAY_message, "Waypoint %d could not find an anim-prim to activate", ew->id);
 
-            CONSOLE_text(EWAY_message, 8000);
+            CONSOLE_text_en(EWAY_message, 8000);
         }
     }
 
@@ -1405,7 +1405,7 @@ void EWAY_created_last_waypoint()
             if (best_way == NULL) {
                 sprintf(EWAY_message, "Camera target %d couldn't attach", i);
 
-                CONSOLE_text(EWAY_message, 8000);
+                CONSOLE_text_en(EWAY_message, 8000);
             }
             ew->ed.arg1 = best_way;
         } else if (ew->ed.type == EWAY_DO_OBJECTIVE) {
@@ -1561,7 +1561,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         if (ec->arg1 == NULL) {
             sprintf(EWAY_message, "Waypoint %d has a NULL dependency", ew->id);
 
-            CONSOLE_text(EWAY_message, 8000);
+            CONSOLE_text_en(EWAY_message, 8000);
             ans = UC_FALSE;
 
             // Don't print the message again.
@@ -1667,7 +1667,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                 sprintf(mess, "Waypoint %d: cond person dead has NULL dependency", ew->id);
 
-                CONSOLE_text(mess, 8000);
+                CONSOLE_text_en(mess, 8000);
                 ew->flag |= EWAY_FLAG_DEAD;
             } else {
                 ew_dead = &EWAY_way[waypoint];
@@ -1723,7 +1723,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                     sprintf(mess, "Waypoint %d: cond person dead dependent on odd waypoint", ew->id);
 
-                    CONSOLE_text(mess, 8000);
+                    CONSOLE_text_en(mess, 8000);
                     ew->flag |= EWAY_FLAG_DEAD;
                 }
 
@@ -2082,7 +2082,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                 sprintf(mess, "Waypoint %d: cond person dead has NULL dependency", ew->id);
 
-                CONSOLE_text(mess, 8000);
+                CONSOLE_text_en(mess, 8000);
                 ew->flag |= EWAY_FLAG_DEAD;
             } else {
                 ew_dead = &EWAY_way[waypoint];
@@ -2115,7 +2115,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                     sprintf(mess, "Waypoint %d: killed not arrested dependent on odd waypoint", ew->id);
 
-                    CONSOLE_text(mess, 8000);
+                    CONSOLE_text_en(mess, 8000);
 
                     ew->flag |= EWAY_FLAG_DEAD;
                 }
@@ -2554,7 +2554,7 @@ void EWAY_create_camera(SLONG waypoint)
 
     if (EWAY_cam_target == EWAY_NO_MATCH) {
         // There is nothing for the camera to look at!
-        CONSOLE_text("No target for camera", 8000);
+        CONSOLE_text_en("No target for camera", 8000);
 
         EWAY_cam_active = UC_FALSE;
     }
@@ -3380,7 +3380,7 @@ void EWAY_set_active(EWAY_Way* ew)
 
     {
         if (!WITHIN(ew->ed.arg1, 0, EWAY_MAX_MESSES - 1)) {
-            CONSOLE_text("Too many messages for the waypoint system! Tell Mark!", 8000);
+            CONSOLE_text_en("Too many messages for the waypoint system! Tell Mark!", 8000);
         } else {
             SLONG time = ew->ed.subtype;
 
@@ -3471,7 +3471,7 @@ void EWAY_set_active(EWAY_Way* ew)
         UWORD track_thing = NULL;
 
         if (!WITHIN(ew->ed.arg1, 0, EWAY_MAX_MESSES - 1)) {
-            CONSOLE_text("Too many navbeacon messages for the waypoint system! Tell Mark!");
+            CONSOLE_text_en("Too many navbeacon messages for the waypoint system! Tell Mark!");
         }
 
         track_thing = EWAY_get_person(ew->ed.arg2);
@@ -3810,7 +3810,7 @@ void EWAY_set_active(EWAY_Way* ew)
                 EWAY_conv_talk = 0;
 
                 if (!WITHIN(ew->ed.subtype, 0, EWAY_MAX_MESSES - 1)) {
-                    CONSOLE_text("Too many messages for the waypoint system! Tell Mark!", 8000);
+                    CONSOLE_text_en("Too many messages for the waypoint system! Tell Mark!", 8000);
                 } else {
                     if (EWAY_mess[ew->ed.subtype] == NULL) {
                         EWAY_conv_str = 0;

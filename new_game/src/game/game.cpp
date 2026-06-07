@@ -712,9 +712,9 @@ SLONG special_keys(void)
     if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_CRT_KKEY)) {
         g_crt_enabled ^= 1;
         if (g_crt_enabled)
-            CONSOLE_text((CBYTE*)"CRT shader on", 3000);
+            CONSOLE_text_en((CBYTE*)"CRT shader on", 3000);
         else
-            CONSOLE_text((CBYTE*)"CRT shader off", 3000);
+            CONSOLE_text_en((CBYTE*)"CRT shader off", 3000);
     }
 
     // F8 toggles single-step mode. Originally bound to the quote key
@@ -731,9 +731,9 @@ SLONG special_keys(void)
     if (input_debug_modifier_active() && input_key_just_pressed(ACT_BANG_TOGGLE_FARFACET_DEBUG_KKEY)) {
         g_farfacet_debug ^= 1;
         if (g_farfacet_debug)
-            CONSOLE_text("farfacet debug on", 3000);
+            CONSOLE_text_en("farfacet debug on", 3000);
         else
-            CONSOLE_text("farfacet debug off", 3000);
+            CONSOLE_text_en("farfacet debug off", 3000);
     }
 
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames

@@ -12,6 +12,8 @@
 // Forward declarations for panel (panel.cpp not yet migrated).
 // uc_orig: PANEL_new_text (fallen/DDEngine/Headers/panel.h)
 extern void PANEL_new_text(struct Thing* who, SLONG delay, CBYTE* fmt, ...);
+// OpenChaos: alt-font (license-clean) variant for fixed-English / dev text.
+extern void PANEL_new_text_alt(struct Thing* who, SLONG delay, CBYTE* text);
 
 // Returns UC_TRUE when there are no active positioned messages to display.
 // uc_orig: CONSOLE_no_text (fallen/DDEngine/Source/console.cpp)
@@ -106,6 +108,12 @@ void CONSOLE_text(CBYTE* text, SLONG delay)
     // Route through the panel system — the old scrolling logic below is dead.
     PANEL_new_text(NULL, delay, text);
     return;
+}
+
+// OpenChaos: fixed-English / dev message → license-clean alt FONT2D atlas.
+void CONSOLE_text_en(CBYTE* text, SLONG delay)
+{
+    PANEL_new_text_alt(NULL, delay, text);
 }
 
 // uc_orig: CONSOLE_scroll (fallen/DDEngine/Headers/console.h)

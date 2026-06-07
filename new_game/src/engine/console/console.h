@@ -15,6 +15,12 @@ void CONSOLE_draw(void);
 // uc_orig: CONSOLE_text (fallen/DDEngine/Headers/console.h)
 void CONSOLE_text(CBYTE* text, SLONG delay = 4000);
 
+// OpenChaos: like CONSOLE_text but for FIXED ENGLISH / dev text (cheats, console
+// command replies, debug). Draws with the license-clean alt FONT2D atlas so it
+// survives a localisation that overwrites the game font. Use this for hard-coded
+// English literals; keep CONSOLE_text for localised / resource (mission) messages.
+void CONSOLE_text_en(CBYTE* text, SLONG delay = 4000);
+
 // Clears all queued messages.
 // uc_orig: CONSOLE_clear (fallen/DDEngine/Headers/console.h)
 void CONSOLE_clear(void);

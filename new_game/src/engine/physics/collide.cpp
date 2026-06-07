@@ -688,7 +688,7 @@ SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_th
                             if (ControlFlag && allow_debug_keys) {
                                 CBYTE str[100];
                                 sprintf(str, " land on walkable dy %d >%d  <%d \n", dy, neg_dy, pos_dy);
-                                CONSOLE_text(str, 10000);
+                                CONSOLE_text_en(str, 10000);
                             }
                             if (dy > neg_dy - offset_y && dy < pos_dy) {
                                 *ret_y = new_y;

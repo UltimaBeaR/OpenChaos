@@ -38,6 +38,8 @@ typedef struct
     char text[PANEL_TEXT_MAX_LENGTH + 2];
     int delay; // 0 = unused
     int turns; // number of game turns this has been alive
+    int alt_font; // 1 = fixed-English/dev text: draw with the license-clean alt
+                  // FONT2D atlas (survives a localised game font); 0 = game font
 } PANEL_Text;
 
 #define PANEL_MAX_TEXTS 8

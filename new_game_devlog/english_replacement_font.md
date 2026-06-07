@@ -12,7 +12,26 @@ Status: help body (FONT2D path) + help menu/list/title + pause "Help" item
 
 The F9 dev console was also routed onto the alt atlas (it draws via
 `FONT2D_DrawString` which already takes a `page` param — just pass
-`POLY_PAGE_FONT2D_ALT`; colours unchanged). Tracked as a post-1.0 task in
+`POLY_PAGE_FONT2D_ALT`; colours unchanged).
+
+Fixed-English HUD popup messages (`CONSOLE_text` / `PANEL_new_text` → the
+`PANEL_text[]` bubble list) were handled too: that queue is SHARED with localised
+text (NPC dialogue, cop lines), so a per-message `alt_font` flag was added. The new
+`CONSOLE_text_en` / `PANEL_new_text_alt` set it (verbatim, no printf) and the draw
+picks `POLY_PAGE_FONT2D_ALT`; plain `CONSOLE_text` / `PANEL_new_text` stay on the
+game font for localised/resource text.
+
+The rule: **every 100% English, non-resource string → alt font.**
+- Alt (`CONSOLE_text_en` / `PANEL_new_text_alt`): cheats, F9 command replies, debug
+  toggles, the EWAY waypoint DEV-error strings (`"Waypoint %d ..."`, formatted in
+  code — NOT mission text despite the `EWAY_message` name), and dev hints like
+  `"There is room behind Darci"`.
+- Game font (untouched): NPC conversations (EWAY conversation `str`), cop dialogue
+  (`XLAT_str(X_GET_DOWN)` / `X_CANT_SHOOT_COP`), and the fake-wander lines
+  (`EWAY_get_fake_wander_message`, which is language-dependent) — all genuinely
+  localised / resource text.
+
+Tracked as a post-1.0 task in
 `new_game_planning/known_issues_and_bugs_post_1_0.md` (section "UI и опции").
 
 ## The problem

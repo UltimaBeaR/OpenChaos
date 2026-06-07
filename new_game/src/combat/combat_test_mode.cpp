@@ -172,13 +172,13 @@ static void ctm_notify(void)
 {
     char buf[96];
     if (s_target <= 0) {
-        CONSOLE_text((CBYTE*)"combat test OFF");
+        CONSOLE_text_en((CBYTE*)"combat test OFF");
         return;
     }
     snprintf(buf, sizeof(buf), "combat test: enemies=%d  armament=%d/%d (%s)",
         (int)s_target, (int)s_armament, (int)(CTM_ARMAMENT_TIERS - 1),
         s_tier_name[s_armament]);
-    CONSOLE_text((CBYTE*)buf);
+    CONSOLE_text_en((CBYTE*)buf);
 }
 
 void combat_test_inc(void)

@@ -747,7 +747,7 @@ void ROAD_find_me_somewhere_to_appear(
         }
 
         if (*nrn1 == 0) {
-            CONSOLE_text("Road node alert!");
+            CONSOLE_text_en("Road node alert!");
 
             ASSERT(WITHIN(ROAD_edge[0], 1, ROAD_node_upto - 1));
 

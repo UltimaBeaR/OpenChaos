@@ -5260,9 +5260,9 @@ void cheat_apply_immortal_toggle()
         return;
     p_darci->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
     if (p_darci->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
-        CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
+        CONSOLE_text_en((CBYTE*)"I am immortal, I have inside me blood of kings.");
     else
-        CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+        CONSOLE_text_en((CBYTE*)"I'm just a mortal after all.");
 }
 
 void cheat_apply_full_health()
@@ -5275,7 +5275,7 @@ void cheat_apply_full_health()
     // from anything that hits you in one shot".
     constexpr SLONG CHEAT_FULL_HEALTH_HP = 1000;
     p_darci->Genus.Person->Health = CHEAT_FULL_HEALTH_HP;
-    CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+    CONSOLE_text_en((CBYTE*)"My wings are as a shield of steel.");
 }
 
 void cheat_apply_spawn_weapons()
@@ -5297,7 +5297,7 @@ void cheat_apply_spawn_weapons()
     alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE - 32, py, pz - CHEAT_RING_SIZE - 32, 0);
     alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE, py, pz - CHEAT_RING_SIZE, 0);
     alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, px + CHEAT_RING_SIZE + 32, py, pz - CHEAT_RING_SIZE + 32, 0);
-    CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+    CONSOLE_text_en((CBYTE*)"We need guns. Lots of guns.");
 }
 
 void cheat_apply_max_ammo()
@@ -5311,5 +5311,5 @@ void cheat_apply_max_ammo()
     p_darci->Genus.Person->ammo_packs_pistol = CHEAT_MAX_AMMO;
     p_darci->Genus.Person->ammo_packs_shotgun = CHEAT_MAX_AMMO;
     p_darci->Genus.Person->ammo_packs_ak47 = CHEAT_MAX_AMMO;
-    CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
+    CONSOLE_text_en((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
 }

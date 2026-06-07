@@ -179,15 +179,15 @@ void parse_console(CBYTE* str)
 
                 break;
             case 1: // echo -- for testing
-                CONSOLE_text(ptr, 5000);
+                CONSOLE_text_en(ptr, 5000);
                 break;
             case 2:
                 stored_pos = NET_PERSON(0)->WorldPos;
-                CONSOLE_text("stored.", 3000);
+                CONSOLE_text_en("stored.", 3000);
                 break;
             case 3: // store & restore teleport positions
                 if ((stored_pos.X == -1) && (stored_pos.Y == -1) && (stored_pos.Z == -1)) {
-                    CONSOLE_text("no tel stored.", 5000);
+                    CONSOLE_text_en("no tel stored.", 5000);
                     break;
                 }
                 set_person_idle(NET_PERSON(0));
@@ -195,7 +195,7 @@ void parse_console(CBYTE* str)
                 FC_force_camera_behind(0);
                 plant_feet(NET_PERSON(0));
                 NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
-                CONSOLE_text("restored.", 5000);
+                CONSOLE_text_en("restored.", 5000);
                 break;
             case 4: // telw -- teleport to numbered waypoint
                 i = atoi(ptr);
@@ -207,9 +207,9 @@ void parse_console(CBYTE* str)
                     FC_force_camera_behind(0);
                     plant_feet(NET_PERSON(0));
                     NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
-                    CONSOLE_text("z-z-zap.", 5000);
+                    CONSOLE_text_en("z-z-zap.", 5000);
                 } else
-                    CONSOLE_text("wpt not found");
+                    CONSOLE_text_en("wpt not found");
                 break;
             case 5: // break
                 ASSERT(0);
@@ -218,9 +218,9 @@ void parse_console(CBYTE* str)
                 way = eway_find_near(NET_PERSON(0)->WorldPos);
                 if (way) {
                     sprintf(cmd, "%d", way->id);
-                    CONSOLE_text(cmd);
+                    CONSOLE_text_en(cmd);
                 } else
-                    CONSOLE_text("wpt not found");
+                    CONSOLE_text_en("wpt not found");
                 break;
 
             case 7: // vtx - dump vertex buffer information
@@ -230,20 +230,20 @@ void parse_console(CBYTE* str)
                 if (fd) {
                     ge_dump_vpool_info(fd);
                     MF_Fclose(fd);
-                    CONSOLE_text("Info dumped at VertexBufferInfo.txt");
+                    CONSOLE_text_en("Info dumped at VertexBufferInfo.txt");
                 } else
-                    CONSOLE_text("Can't open VertexBufferInfo.txt");
+                    CONSOLE_text_en("Can't open VertexBufferInfo.txt");
             } break;
 
             case 8: // alpha - set alpha sort type
                 if (ptr[0] == '0') {
                     PolyPage::DisableAlphaSort();
-                    CONSOLE_text("Alpha sorting OFF");
+                    CONSOLE_text_en("Alpha sorting OFF");
                 } else if (ptr[0] == '1') {
                     PolyPage::EnableAlphaSort();
-                    CONSOLE_text("Alpha sorting ON");
+                    CONSOLE_text_en("Alpha sorting ON");
                 } else {
-                    CONSOLE_text((CBYTE*)(PolyPage::AlphaSortEnabled() ? "Alpha sorting is ON" : "Alpha sorting is OFF"));
+                    CONSOLE_text_en((CBYTE*)(PolyPage::AlphaSortEnabled() ? "Alpha sorting is ON" : "Alpha sorting is OFF"));
                 }
                 break;
 
@@ -252,20 +252,20 @@ void parse_console(CBYTE* str)
                     int val = 12 * (ptr[0] - '0');
                     ge_set_gamma(val, 256);
                 } else {
-                    CONSOLE_text("Gamma 0-7");
+                    CONSOLE_text_en("Gamma 0-7");
                 }
                 break;
 
             case 10: // dkeys -- debug keys en/disable
                 allow_debug_keys ^= 1;
                 if (allow_debug_keys) {
-                    CONSOLE_text("debug mode on");
+                    CONSOLE_text_en("debug mode on");
                     // Pop up the hotkey legend for 5 seconds so the user
                     // immediately sees what debug mode unlocks (F1 to
                     // redisplay).
                     debug_help_notify_bangunsnotgames_on();
                 } else
-                    CONSOLE_text("debug mode off");
+                    CONSOLE_text_en("debug mode off");
 
                 dkeys_have_been_used = UC_TRUE;
 
@@ -288,11 +288,11 @@ void parse_console(CBYTE* str)
                 break;
             case 14:
                 //				SAVE_ingame("");
-                //				CONSOLE_text("GAME SAVED");
+                //				CONSOLE_text_en("GAME SAVED");
                 break;
             case 15:
                 //				LOAD_ingame("");
-                //				CONSOLE_text("GAME LOADED");
+                //				CONSOLE_text_en("GAME LOADED");
                 break;
             case 16:
                 if (allow_debug_keys)
@@ -304,9 +304,9 @@ void parse_console(CBYTE* str)
                     CBYTE str[100];
                     SLONG r, g, b;
                     sscanf(ptr, "%d %d %d", &r, &g, &b);
-                    CONSOLE_text(ptr);
+                    CONSOLE_text_en(ptr);
                     sprintf(str, " red %d green %d blue %d \n", r, g, b);
-                    CONSOLE_text(str);
+                    CONSOLE_text_en(str);
 
                     NIGHT_amb_red = r;
                     NIGHT_amb_green = g;
@@ -323,7 +323,7 @@ void parse_console(CBYTE* str)
             case 19:
                 i = atoi(ptr);
                 sprintf(str, "loading music world %d...", i);
-                CONSOLE_text(str);
+                CONSOLE_text_en(str);
                 MUSIC_WORLD = i;
                 MFX_load_wave_list();
                 break;
@@ -358,9 +358,9 @@ void parse_console(CBYTE* str)
                 extern int AENG_detail_crinkles;
                 AENG_detail_crinkles ^= 1;
                 if (AENG_detail_crinkles)
-                    CONSOLE_text("crinkles on");
+                    CONSOLE_text_en("crinkles on");
                 else
-                    CONSOLE_text("crinkles off");
+                    CONSOLE_text_en("crinkles off");
                 break;
 
             case 24:
@@ -390,7 +390,7 @@ void parse_console(CBYTE* str)
             return;
         }
     }
-    CONSOLE_text("huh?", 3000);
+    CONSOLE_text_en("huh?", 3000);
 }
 
 // uc_orig: tga_dump (fallen/Source/Controls.cpp)
@@ -1498,7 +1498,7 @@ void process_controls(void)
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
-            PANEL_new_text(NULL, 400, "There is room behind Darci");
+            PANEL_new_text_alt(NULL, 400, "There is room behind Darci");
         }
 
         // set_person_recoil(darci, ANIM_HIT_FRONT_HI, 0);
@@ -2003,10 +2003,10 @@ void process_controls(void)
     if (input_key_just_pressed(ACT_BANG_TOGGLE_CLOUDS_KKEY)) {
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
-            CONSOLE_text("clouds off");
+            CONSOLE_text_en("clouds off");
         } else {
             aeng_draw_cloud_flag = 1;
-            CONSOLE_text("clouds on");
+            CONSOLE_text_en("clouds on");
         }
     }
 
@@ -2139,7 +2139,7 @@ void process_controls(void)
             which_pyro++;
             if (which_pyro == (sizeof(names) / sizeof(names[0])))
                 which_pyro = 0;
-            CONSOLE_text(names[which_pyro], 1500);
+            CONSOLE_text_en(names[which_pyro], 1500);
         }
 
         if (input_key_just_pressed(ACT_BANG_PYRO_SPAWN_KKEY)) {
@@ -2336,9 +2336,9 @@ void process_controls(void)
     if (input_key_just_pressed(ACT_BANG_TOGGLE_STEALTH_DEBUG_KKEY)) {
         stealth_debug = !stealth_debug;
         if (stealth_debug)
-            CONSOLE_text("STEALTH DEBUG MODE ON");
+            CONSOLE_text_en("STEALTH DEBUG MODE ON");
         else
-            CONSOLE_text("STEALTH DEBUG MODE OFF");
+            CONSOLE_text_en("STEALTH DEBUG MODE OFF");
     }
 
     // KKEY_PERIOD: continuous smoke spawn while held — no consume in original
