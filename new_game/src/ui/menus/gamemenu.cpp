@@ -791,6 +791,10 @@ static void GAMEMENU_draw_help_tri(float ax, float ay, float bx, float by,
 // Help topic list: heading + vertical list of topic titles, selected one bright.
 static void GAMEMENU_draw_help_list()
 {
+    // Draw this always-English text from the license-clean replacement menu atlas
+    // so it survives a localisation that overwrites the game's menu font.
+    MENUFONT_AltScope _alt_font;
+
     MENUFONT_fadein_draw(320, GAMEMENU_HELP_TITLE_Y, GAMEMENU_HELP_ALPHA_SELECTED,
         (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
 
@@ -857,29 +861,37 @@ static void GAMEMENU_draw_help_detail()
     POLY_screen_clip_right = vw;
     POLY_screen_clip_bottom = vh;
 
-    // Start the title's left→right reveal wipe just LEFT of the title itself,
-    // instead of at virtual x=0. The MENUFONT wipe travels rightward across the
-    // virtual screen and only reveals a glyph once it reaches that glyph's x; with
-    // the title centred on a wide window (x ≈ vw/2) the wipe had to crawl across
-    // the whole empty left margin first, a long "nothing visible yet" dead time.
-    // Offsetting the wipe origin to the title's left edge (minus a short lead-in)
-    // makes the title start animating almost immediately. TITLE_Y line below uses
-    // the same centring (sum of raw glyph widths) as MENUFONT_fadein_draw.
+    // Title is always-English: draw it (and measure it) from the license-clean
+    // replacement menu atlas so it survives a localised game menu font. The body
+    // below uses the FONT2D alt atlas via input_glyph_*, which is independent of
+    // FontInfo/FontPage, so the scope only needs to wrap the title work.
     {
-        SLONG title_w = 0;
-        for (const char* c = HELP_TOPICS[s_help_topic].title; *c; ++c) {
-            title_w += MENUFONT_CharWidth((CBYTE)*c, 256); // 256 == 1.0 (raw width)
-        }
-        const float wipe_start = cx - (float)title_w * 0.5f
-            - (float)GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD;
-        MENUFONT_fadein_line(GAMEMENU_fadein_x + (SLONG)(wipe_start * 256.0f));
-    }
+        MENUFONT_AltScope _alt_font;
 
-    // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
-    // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
-    MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
-        GAMEMENU_HELP_ALPHA_SELECTED,
-        (CBYTE*)HELP_TOPICS[s_help_topic].title);
+        // Start the title's left→right reveal wipe just LEFT of the title itself,
+        // instead of at virtual x=0. The MENUFONT wipe travels rightward across the
+        // virtual screen and only reveals a glyph once it reaches that glyph's x; with
+        // the title centred on a wide window (x ≈ vw/2) the wipe had to crawl across
+        // the whole empty left margin first, a long "nothing visible yet" dead time.
+        // Offsetting the wipe origin to the title's left edge (minus a short lead-in)
+        // makes the title start animating almost immediately. TITLE_Y line below uses
+        // the same centring (sum of raw glyph widths) as MENUFONT_fadein_draw.
+        {
+            SLONG title_w = 0;
+            for (const char* c = HELP_TOPICS[s_help_topic].title; *c; ++c) {
+                title_w += MENUFONT_CharWidth((CBYTE)*c, 256); // 256 == 1.0 (raw width)
+            }
+            const float wipe_start = cx - (float)title_w * 0.5f
+                - (float)GAMEMENU_HELP_DETAIL_TITLE_WIPE_LEAD;
+            MENUFONT_fadein_line(GAMEMENU_fadein_x + (SLONG)(wipe_start * 256.0f));
+        }
+
+        // (The dark backdrop is a full-screen dim drawn in GAMEMENU_draw's first
+        // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
+        MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
+            GAMEMENU_HELP_ALPHA_SELECTED,
+            (CBYTE*)HELP_TOPICS[s_help_topic].title);
+    }
 
     // Fade the body (and the scroll arrows) in with a sharp ease-IN BURST rather
     // than linearly: a linear/early text fade reaches full opacity before the
@@ -1075,16 +1087,21 @@ void GAMEMENU_draw()
             for (i = 1; i < 8; i++) {
                 const SLONG word = GAMEMENU_menu[GAMEMENU_menu_type].word[i];
                 if (word) {
-                    // The "Help" item reuses X_CONTROLS for its id (nav /
-                    // confirm), but shows a literal label — there is no fitting
-                    // localized string and 1.0 ships English.
-                    CBYTE* label = (word == X_CONTROLS) ? (CBYTE*)GAMEMENU_HELP_MENU_LABEL
-                                                        : XLAT_str(word);
-                    MENUFONT_fadein_draw(
-                        320,
-                        155 + i * 40,
-                        (i == GAMEMENU_menu_selection) ? 255 : 128,
-                        label);
+                    const UBYTE alpha = (i == GAMEMENU_menu_selection) ? 255 : 128;
+                    if (word == X_CONTROLS) {
+                        // The "Help" item reuses X_CONTROLS for its id (nav /
+                        // confirm), but shows a literal always-English label — there
+                        // is no fitting localized string and 1.0 ships English. Draw
+                        // it from the license-clean replacement menu atlas so it
+                        // survives a localisation that overwrites the menu font (the
+                        // OTHER items are localized game strings — XLAT_str — and must
+                        // keep using the game atlas so their translation shows).
+                        MENUFONT_AltScope _alt_font;
+                        MENUFONT_fadein_draw(320, 155 + i * 40, alpha,
+                            (CBYTE*)GAMEMENU_HELP_MENU_LABEL);
+                    } else {
+                        MENUFONT_fadein_draw(320, 155 + i * 40, alpha, XLAT_str(word));
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/audio/sound.h"
 #include "engine/graphics/text/font2d.h"
+#include "engine/graphics/text/menufont.h" // MENUFONT_build_alt_atlas (alt menu font)
 #include "engine/io/env.h"
 #include "assets/formats/tga.h"
 #include "map/level_pools.h"
@@ -411,6 +412,9 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // the 80..109 range; TEXTURE_num_textures below covers it). Generated in RAM
     // from font8x8 after FONT2D_init, not loaded from a game resource.
     TEXTURE_page_font2d_alt = TEXTURE_NUM_STANDARD + 80;
+    // OpenChaos: license-clean English replacement atlas for the MENU font (next
+    // free slot). Also generated in RAM from font8x8, independent of olyfont2.tga.
+    TEXTURE_page_menufont_alt = TEXTURE_NUM_STANDARD + 81;
 
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
@@ -463,6 +467,10 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // text so it survives a localisation that overwrites multifontPC.tga.
     FONT2D_build_alt_atlas(TEXTURE_page_font2d_alt);
     TEXTURE_needed[TEXTURE_page_font2d_alt] = 1;
+    // Same idea for the menu font: generate the license-clean replacement atlas
+    // (independent of olyfont2.tga, which the frontend loads later via MENUFONT_Load).
+    MENUFONT_build_alt_atlas(TEXTURE_page_menufont_alt, POLY_PAGE_MENUFONT_ALT);
+    TEXTURE_needed[TEXTURE_page_menufont_alt] = 1;
     ge_texture_load_tga(TEXTURE_page_face1, TEXTURE_EXTRA_DIR "face1.tga");
     ge_texture_load_tga(TEXTURE_page_face2, TEXTURE_EXTRA_DIR "face2.tga");
     LOADED_THIS_MANY_TEXTURES(5);

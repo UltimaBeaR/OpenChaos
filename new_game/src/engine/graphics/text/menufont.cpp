@@ -1,7 +1,11 @@
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/menufont_globals.h"
+#include "engine/graphics/text/font8x8.h" // public-domain glyph source for the alt atlas
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "assets/formats/tga.h"
 #include "engine/graphics/pipeline/poly.h"
+
+#include <cstring> // memcpy / memset
 
 // Forward declaration for PANEL_draw_quad (defined in old/panel.cpp,
 // will be migrated later; menufont only calls it from the fadein effect).
@@ -248,6 +252,173 @@ void MENUFONT_MergeLower()
     for (c = 224; c <= 252; c++) {
         FontInfo[c] = FontInfo[c - 32];
     }
+}
+
+// =========================================================================
+// License-clean ENGLISH replacement menu font (OpenChaos addition).
+//
+// Mirrors the FONT2D alt atlas: rasterise the embedded public-domain font8x8
+// into our own texture so our always-English menu text (the help screens) keeps
+// rendering correctly even when an unofficial localisation overwrites the game's
+// menu font atlas (olyfont2.tga). The menu font draws through globals (FontInfo +
+// FontPage) rather than a page parameter, so instead of branching on a page we
+// swap those globals for the duration of the draw (MENUFONT_AltScope).
+//
+// Rendered ALL-CAPS (lowercase mapped to the uppercase glyph, like the game menu
+// font via MENUFONT_MergeLower) so the help screens match the surrounding menus.
+// =========================================================================
+
+// The alt glyph table (indexed by char code, like FontInfo) and the POLY page
+// that binds the alt atlas. Filled by MENUFONT_build_alt_atlas; consumed by
+// MENUFONT_AltScope, which swaps them into the live FontInfo / FontPage.
+static CharData FontInfo_alt[256];
+static SLONG MENUFONT_alt_page = 0;
+
+// Atlas is 256x256 RGBA (a quarter MB, generated once). The UVs are fractional
+// so the atlas size is otherwise free.
+#define MENUFONT_ALT_ATLAS_SIZE 256
+// Integer scale of the 8x8 source on BOTH axes -> 24px glyphs, drawn 1:1 (crisp,
+// no stretch). Rendering only the non-lowercase printable set (lowercase maps to
+// uppercase) keeps ~69 glyphs, which fit a 256 atlas at this scale. The menu
+// glyph size is tuned later; this is the starting size.
+#define MENUFONT_ALT_SCALE 3
+// On-screen / atlas glyph box (source 8 * scale).
+#define MENUFONT_ALT_GLYPH_PX (FONT8X8_GLYPH_PX * MENUFONT_ALT_SCALE)
+// Gap between cells so the draw-time bilinear filter can't bleed a neighbour.
+#define MENUFONT_ALT_GAP 2
+// Inter-letter spacing, in SOURCE font pixels scaled with the glyph (so the gap
+// grows with the font like the game's menu font, which has wide letter spacing).
+//
+// IMPORTANT: the fade-in draw stretches each glyph's atlas region across its FULL
+// advance width AND advances by that same width, so spacing can't just be added to
+// the advance (that only stretches the glyph — no visible gap). Instead the spacing
+// is baked into the atlas as an EMPTY strip to the RIGHT of the ink, and the glyph's
+// UV covers ink + that empty strip. The ink then draws 1:1 (no stretch) followed by
+// an empty (additive-black = invisible) gap. This mirrors how the game's menu font
+// stores per-glyph padding inside each atlas cell.
+#define MENUFONT_ALT_SPACING_SRC_PX 2
+#define MENUFONT_ALT_SPACING_PX (MENUFONT_ALT_SPACING_SRC_PX * MENUFONT_ALT_SCALE)
+// Atlas cell footprint. Width includes the empty spacing strip; height only needs
+// the bleed-guard gap. COLS sized from the cell width.
+#define MENUFONT_ALT_CELL_W (MENUFONT_ALT_GLYPH_PX + MENUFONT_ALT_SPACING_PX + MENUFONT_ALT_GAP)
+#define MENUFONT_ALT_CELL_H (MENUFONT_ALT_GLYPH_PX + MENUFONT_ALT_GAP)
+#define MENUFONT_ALT_COLS (MENUFONT_ALT_ATLAS_SIZE / MENUFONT_ALT_CELL_W)
+// Advance width of the space character (source px, scaled). No glyph drawn.
+#define MENUFONT_ALT_SPACE_SRC_PX 4
+#define MENUFONT_ALT_SPACE_PX (MENUFONT_ALT_SPACE_SRC_PX * MENUFONT_ALT_SCALE)
+
+void MENUFONT_build_alt_atlas(SLONG alt_texture_slot, SLONG alt_page)
+{
+    MENUFONT_alt_page = alt_page;
+
+    const SLONG sz = MENUFONT_ALT_ATLAS_SIZE;
+    // RGBA, cleared to black/transparent. Ink pixels are written opaque white; the
+    // additive NEWFONT_INVERSE-style page tints them by the vertex colour/brightness.
+    UBYTE* rgba = (UBYTE*)MemAlloc(sz * sz * 4);
+    ASSERT(rgba != NULL);
+    memset(rgba, 0, sz * sz * 4);
+    memset(FontInfo_alt, 0, sizeof(FontInfo_alt));
+
+    SLONG slot = 0;
+    for (SLONG ch = FONT8X8_FIRST_CH; ch <= FONT8X8_LAST_CH; ch++) {
+        // Space gets an advance but no glyph; lowercase reuses the uppercase glyph
+        // (filled by the MergeLower pass below), so don't rasterise either here.
+        if (ch == ' ' || (ch >= 'a' && ch <= 'z')) {
+            continue;
+        }
+
+        const unsigned char* glyph = g_font8x8_basic[ch - FONT8X8_FIRST_CH];
+
+        // Source ink column range, so the advance width stays proportional.
+        SLONG lo = FONT8X8_GLYPH_PX, hi = -1;
+        for (SLONG c = 0; c < FONT8X8_GLYPH_PX; c++) {
+            for (SLONG r = 0; r < FONT8X8_GLYPH_PX; r++) {
+                if (glyph[r] & (1u << c)) {
+                    if (c < lo)
+                        lo = c;
+                    if (c > hi)
+                        hi = c;
+                    break;
+                }
+            }
+        }
+        if (hi < lo) {
+            lo = 0;
+            hi = 0;
+        }
+
+        const SLONG cell_x = (slot % MENUFONT_ALT_COLS) * MENUFONT_ALT_CELL_W;
+        const SLONG cell_y = (slot / MENUFONT_ALT_COLS) * MENUFONT_ALT_CELL_H;
+        slot++;
+
+        // Render at the same integer scale on both axes (each source pixel -> a
+        // MENUFONT_ALT_SCALE x MENUFONT_ALT_SCALE block). Every pixel square.
+        for (SLONG py = 0; py < MENUFONT_ALT_GLYPH_PX; py++) {
+            const SLONG sy = py / MENUFONT_ALT_SCALE;
+            const SLONG ty = cell_y + py;
+            if (!WITHIN(ty, 0, sz - 1))
+                continue;
+            for (SLONG px = 0; px < MENUFONT_ALT_GLYPH_PX; px++) {
+                const SLONG sx = px / MENUFONT_ALT_SCALE;
+                if (!(glyph[sy] & (1u << sx)))
+                    continue;
+                const SLONG tx = cell_x + px;
+                if (!WITHIN(tx, 0, sz - 1))
+                    continue;
+                UBYTE* p = &rgba[(ty * sz + tx) * 4];
+                p[0] = p[1] = p[2] = p[3] = 255; // opaque white; tinted at draw
+            }
+        }
+
+        // UV spans the ink columns PLUS the empty spacing strip to their right
+        // (which lies inside the cell and is never written, so it's blank). The
+        // draw stretches this whole span across cd.width = ink_w + spacing, and
+        // since the span IS ink_w + spacing wide the ink maps 1:1 (no stretch) and
+        // the blank strip becomes the inter-letter gap. ink_x+ink_w <= GLYPH_PX, so
+        // the strip stays within the cell and never reaches the next glyph.
+        const SLONG ink_x = lo * MENUFONT_ALT_SCALE;
+        const SLONG ink_w = (hi - lo + 1) * MENUFONT_ALT_SCALE;
+
+        CharData& cd = FontInfo_alt[ch];
+        cd.x = (float)(cell_x + ink_x) / (float)sz;
+        cd.y = (float)cell_y / (float)sz;
+        cd.ox = (float)(cell_x + ink_x + ink_w + MENUFONT_ALT_SPACING_PX) / (float)sz;
+        cd.oy = (float)(cell_y + MENUFONT_ALT_GLYPH_PX) / (float)sz;
+        cd.width = (UBYTE)(ink_w + MENUFONT_ALT_SPACING_PX);
+        cd.height = (UBYTE)MENUFONT_ALT_GLYPH_PX;
+        cd.xofs = 0;
+        cd.yofs = 0;
+    }
+
+    // All-caps: copy each uppercase glyph entry into its lowercase slot (matches
+    // the game menu font's MENUFONT_MergeLower so the look is consistent).
+    for (SLONG c = 'a'; c <= 'z'; c++) {
+        FontInfo_alt[c] = FontInfo_alt[c - 32];
+    }
+
+    // Space: advance only, no visible glyph (height 0 -> the draw quad collapses).
+    FontInfo_alt[' '].width = (UBYTE)MENUFONT_ALT_SPACE_PX;
+    FontInfo_alt[' '].height = 0;
+
+    ge_texture_load_rgba(alt_texture_slot, sz, sz, rgba, false);
+    MemFree(rgba);
+}
+
+MENUFONT_AltScope::MENUFONT_AltScope()
+{
+    // Save the live game menu font, then swap in the alt table + page so the
+    // existing draw path renders from the replacement atlas.
+    memcpy(saved_info_, FontInfo, sizeof(FontInfo));
+    saved_page_ = FontPage;
+
+    memcpy(FontInfo, FontInfo_alt, sizeof(FontInfo));
+    FontPage = MENUFONT_alt_page;
+}
+
+MENUFONT_AltScope::~MENUFONT_AltScope()
+{
+    memcpy(FontInfo, saved_info_, sizeof(FontInfo));
+    FontPage = saved_page_;
 }
 
 // =========================================================================

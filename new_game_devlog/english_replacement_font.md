@@ -1,8 +1,12 @@
-# Localization-safe English font (alt FONT2D atlas)
+# Localization-safe English font (alt FONT2D + alt MENUFONT atlases)
 
-Status: **help body done (FONT2D path)**. Menu items / F9 console / effects / glyph
-re-tune — pending (see end). Tracked as a post-1.0 task in
-`new_game_planning/known_issues_and_bugs_post_1_0.md` (section "UI и опции").
+Status: **functionally done** — help body (FONT2D path), help menu/list/title and
+the pause menu's "Help" item (MENUFONT path), with proper letter spacing on both.
+What remains is a **visual TUNING pass** (size, colour, transparency, effects,
+extra smoothing — make the fonts not jar and sit well next to the other fonts and
+the button glyphs) plus the optional F9 console. See "Pending / next slices".
+Tracked as a post-1.0 task in `new_game_planning/known_issues_and_bugs_post_1_0.md`
+(section "UI и опции").
 
 ## The problem
 
@@ -136,8 +140,14 @@ The help DETAIL body is rich-text (text + inline button glyphs), rendered by
   alt draw). The **catalog** path (`input_prompt_catalog_draw_scrolled`, the
   input-test screen) is left on the normal page/widths — only the alt path changed,
   nothing else broke.
-- The help TITLE + topic LIST still use **MENUFONT** (game atlas) — that's the
-  separate "menu items" slice, not done yet.
+- **Inter-letter spacing:** the embedded font8x8 glyphs are tight (no side bearing),
+  so the original `width+1` advance left letters almost touching. `FONT2D_DrawLetter`
+  / `FONT2D_GetLetterWidthAlt` use a wider gap (`FONT2D_ALT_LETTER_SPACING`, atlas px)
+  for the ALT page only — normal text keeps `+1`. Unlike the menu font (which
+  stretches glyphs to their advance, so spacing had to be baked into the atlas as an
+  empty strip), FONT2D draws each glyph at its ink width and advances separately, so
+  a bigger advance alone opens a clean gap — no atlas change. Layout and draw both
+  read the same gap so wrapping matches.
 - Inline button glyphs come from our input-glyph atlas (already embedded, not
   broken by localisation). Their alpha/brightness were tuned to match FONT2D; with
   the alt font next to them the balance may want a small re-tune (pending).
@@ -156,16 +166,116 @@ The help DETAIL body is rich-text (text + inline button glyphs), rendered by
 - `ui/input_glyphs/input_glyphs.cpp` — `font_page` + `use_alt` threading for the
   help text path.
 
+## The MENU font slice (alt MENUFONT)
+
+The menu font (olyfont2.tga, the proportional menu/title font with the fade-in
+"reveal wipe") is the SECOND atlas a localisation overwrites. The help screens use
+it for: the topic-LIST heading + items, and the topic-DETAIL TITLE. (The detail
+BODY is the FONT2D path above.)
+
+### Why the mechanism differs from FONT2D
+
+FONT2D's draw takes a `page` parameter, so we branch on the page inside the draw.
+The MENU font instead draws through **globals** — `FontInfo[256]` (per-char glyph
+table) + `FontPage` (the POLY page) — with no per-call page argument. So instead
+of a branch we **swap those globals** for the duration of our draw and restore
+them after. That's `MENUFONT_AltScope` (RAII): ctor saves `FontInfo`+`FontPage`
+and copies the alt table / alt page in; dtor restores. Zero changes to the
+MENUFONT draw/fade-in code — it just reads whatever's in the globals. Cost: two
+~5 KB `memcpy`s per help frame (help screen only, not a gameplay path).
+
+### Render path / blend (additive, not ModulateAlpha)
+
+The menu font page (`POLY_PAGE_NEWFONT_INVERSE`) is **additive** (`One`/`One`,
+`Modulate` texture blend): glyphs are bright-on-black and ADD onto the scene; the
+fade-in passes a grey `colour` = brightness on all channels. Our alt atlas is
+**white ink on black**, so with the same additive state a white glyph adds the
+vertex colour ⇒ grey text at brightness `fade`, exactly like olyfont2. The alt
+page `POLY_PAGE_MENUFONT_ALT` copies NEWFONT_INVERSE's state and only swaps the
+texture. Colour/brightness already work (vertex colour); a coloured menu (vs the
+current grey) is a later tuning step (the fade-in path currently hardcodes grey
+from `fade`).
+
+### All-caps (matches the game menu)
+
+The game menu font renders ALL-CAPS (olyfont2 has no lowercase; `MENUFONT_MergeLower`
+copies each uppercase glyph into the lowercase slot). To stay consistent with the
+surrounding menus (the pause menu still uses olyfont2), the alt menu font does the
+same: it rasterises only the non-lowercase printable set and copies uppercase →
+lowercase in `FontInfo_alt`. So "Help" → "HELP", topic titles all-caps. (font8x8
+HAS lowercase; switching to real mixed case is a one-line change for later if we
+ever move the whole menu to the alt font.)
+
+### Sizing (24px, crisp 1:1) — separate from the FONT2D body
+
+The menu fade-in draws glyphs at their NATIVE `FontInfo.width/height` (no scale
+multiply), so the stored size IS the on-screen size. `MENUFONT_ALT_SCALE = 3` →
+24px glyphs, rendered 1:1 into the atlas (crisp, no upscale). Only ~69 glyphs
+(no lowercase) fit a 256 atlas at 3×. This is a STARTING size — the menu glyph
+size is a tuning target. (Note: this is independent of the FONT2D help-BODY,
+which the user wants made SMALLER — that's the FONT2D `*_ALT` constants, a
+different atlas.)
+
+### Files touched (menu slice)
+
+- `engine/graphics/text/menufont.{h,cpp}` — `FontInfo_alt`, `MENUFONT_alt_page`,
+  `MENUFONT_build_alt_atlas`, `MENUFONT_AltScope`. (font8x8.h + ge_texture_load_rgba
+  includes added.)
+- `engine/graphics/pipeline/poly.h` — `POLY_PAGE_MENUFONT_ALT` (N=111, the last
+  free special-page slot).
+- `engine/graphics/pipeline/poly_render.cpp` — render-state case (mirror
+  NEWFONT_INVERSE, alt texture).
+- `assets/texture.{cpp,h}` + `texture_globals.{h,cpp}` — `TEXTURE_page_menufont_alt`
+  (`TEXTURE_NUM_STANDARD + 81`), built right after the FONT2D alt atlas.
+- `ui/menus/gamemenu.cpp` — `MENUFONT_AltScope` wraps: the help-list draw, the
+  help-detail TITLE block (the detail BODY already uses the FONT2D alt path), AND
+  the pause menu's "Help" item itself (X_CONTROLS) — that label is our always-English
+  literal, so it goes through the alt atlas; the OTHER pause items are localized
+  game strings (XLAT_str) and stay on the game atlas so their translation shows.
+
+### Menu-slice constants (menufont.cpp)
+
+```
+MENUFONT_ALT_ATLAS_SIZE = 256
+MENUFONT_ALT_SCALE      = 3     // 24px glyphs, drawn 1:1 (crisp). TUNE for menu size.
+MENUFONT_ALT_GLYPH_PX   = 24    // 8 * SCALE
+MENUFONT_ALT_GAP            = 2 // cell bleed-guard gap (bilinear)
+MENUFONT_ALT_SPACING_SRC_PX = 2 // inter-letter gap in SOURCE px, * SCALE -> 6 screen px
+MENUFONT_ALT_SPACE_SRC_PX   = 4 // space advance in SOURCE px, * SCALE -> 12 screen px
+MENUFONT_ALT_CELL_W = GLYPH_PX + SPACING_PX + GAP // 32 — includes the spacing strip
+MENUFONT_ALT_CELL_H = GLYPH_PX + GAP              // 26
+```
+
+### Letter spacing — must be baked into the atlas, NOT added to the advance
+
+First attempt added the gap to `FontInfo.width` (the advance). That did NOTHING
+visible, because the fade-in draw (`MENUFONT_fadein_char`) **stretches each glyph's
+atlas region across its full `width` AND advances by `width`** — so a bigger width
+just stretches the glyph to fill it, with the next letter still flush against it.
+(The glyph's UV covered only the ink, so the ink was stretched wider — no gap.)
+
+Fix: bake the spacing into the atlas as an **empty strip to the RIGHT of the ink**,
+and extend the glyph's UV to cover ink + strip. Now the draw maps ink 1:1 (no
+stretch) and the blank strip (additive-black = invisible) becomes the gap. The cell
+is widened to `GLYPH_PX + SPACING_PX + GAP` to hold the strip; `ink_x + ink_w <=
+GLYPH_PX` guarantees the strip stays inside the cell and never samples the next
+glyph. This mirrors how the game's menu font stores per-glyph padding inside each
+atlas cell. Spacing is in SOURCE font pixels (×SCALE) so the gap scales with the
+font (the game menu font has wide letter spacing); it's a starting value to tune.
+
 ## Pending / next slices
 
-- **Menu items** (pause/options/help list+title): currently MENUFONT (game atlas,
-  breaks). Plan: render them with the SAME alt font (font8x8) in the menu's colour.
-  MENUFONT's draw uses a global page (not a param) + global `FontInfo[]`, so route
-  via a page push/pop OR draw the menu text through alt FONT2D instead. **Decide.**
+- **TUNING PASS (next):** menu font + help body — colour, transparency, effects
+  (dithering / outline), extra smoothing, and SIZE. The help BODY (FONT2D alt) is
+  currently visually BIGGER than the old text and must be made SMALLER — render it
+  finer in the atlas (the FONT2D `*_ALT` constants). The menu font size
+  (`MENUFONT_ALT_SCALE`) and a COLOURED (vs grey) menu are also part of this pass.
+- **Pause menu / other menus**: still olyfont2 (break under localisation). Only the
+  help screens were routed to the alt menu font for now. Routing the whole menu is
+  the same `MENUFONT_AltScope` wrap (decide later; would also let us go mixed-case).
 - **F9 console** — also FONT2D/atlas, breaks under localisation. Low priority
   (debug). Skip or later.
 - **Inline glyph alpha/brightness re-tune** vs the alt font.
-- **Effects** (dithering / outline) baked into the generated atlas, if wanted.
-- Possible refinement: bigger atlas + reworked `/256` UV math if we ever want a
-  higher-res source (the user explicitly does NOT want a TTF — font8x8 at 2× is the
-  accepted look).
+- Possible refinement: bigger FONT2D atlas + reworked `/256` UV math if we ever
+  want a higher-res source (the user explicitly does NOT want a TTF — font8x8 is
+  the accepted look).

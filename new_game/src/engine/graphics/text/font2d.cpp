@@ -214,6 +214,18 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
     return FONT2D_letter[letter].width + 1;
 }
 
+// Extra advance (in atlas px) between letters of the alt font, BEYOND the glyph
+// ink width — the inter-letter gap. The normal FONT2D advance is width+1, which
+// suffices for the game font (its glyphs carry built-in side bearing), but the
+// embedded font8x8 glyphs are tight, so +1 leaves letters almost touching. This
+// replaces that +1 for the alt page only (normal text is unchanged). The alt atlas
+// is rendered at FONT2D_ALT_SCALE (2), so this is ~one source font pixel per 2;
+// it's a starting value to tune. Unlike the menu font (which stretches glyphs to
+// their advance, so spacing had to be baked into the atlas), FONT2D draws each
+// glyph at its ink width and advances separately, so a bigger advance alone opens
+// a clean gap — no atlas change needed.
+#define FONT2D_ALT_LETTER_SPACING 3
+
 // Same as FONT2D_GetLetterWidth but for the alternate (English replacement) font,
 // so text drawn through POLY_PAGE_FONT2D_ALT can be laid out (wrap/advance) with
 // matching widths. Callers that render alt text must use this for measurement.
@@ -225,7 +237,7 @@ SLONG FONT2D_GetLetterWidthAlt(CBYTE chr)
     }
     SLONG letter = FONT2D_GetIndex(chr);
     ASSERT(WITHIN(letter, 0, FONT2D_NUM_LETTERS - 1));
-    return FONT2D_letter_alt[letter].width + 1;
+    return FONT2D_letter_alt[letter].width + FONT2D_ALT_LETTER_SPACING;
 }
 
 // uc_orig: FONT2D_DrawLetter (fallen/DDEngine/Headers/font2d.h)
@@ -288,10 +300,15 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
         fl->u + float(fl->width) * (1.0F / 256.0F),
         fl->v + 18.0F * (1.0F / 256.0F));
 
+    // Alt page uses a wider inter-letter gap (font8x8 has no side bearing); normal
+    // text keeps the original +1. Must match FONT2D_GetLetterWidthAlt so layout and
+    // draw advance identically.
+    const SLONG gap = (page == POLY_PAGE_FONT2D_ALT) ? FONT2D_ALT_LETTER_SPACING : 1;
+
     if (chr == 'y') {
-        return ((fl->width + 1) * scale >> 8) - (2 * scale >> 8);
+        return ((fl->width + gap) * scale >> 8) - (2 * scale >> 8);
     } else {
-        return (fl->width + 1) * scale >> 8;
+        return (fl->width + gap) * scale >> 8;
     }
 }
 

@@ -41,6 +41,34 @@ extern CharData FontInfo[256];
 // uc_orig: MENUFONT_Load (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist);
 
+// OpenChaos addition: builds a license-clean ENGLISH replacement atlas for the
+// menu font into the given texture slot, with glyphs rasterised from the
+// embedded public-domain font8x8 in our own grid. Lets our always-English menu
+// text (the help screens) survive when the game's menu font atlas (olyfont2.tga)
+// is overwritten by an unofficial localisation. alt_page is the POLY page that
+// binds that texture (POLY_PAGE_MENUFONT_ALT). Renders all-caps (lowercase maps
+// to the uppercase glyph) to match the game menu font's look. Call once at
+// startup; activate per-draw via MENUFONT_AltScope.
+void MENUFONT_build_alt_atlas(SLONG alt_texture_slot, SLONG alt_page);
+
+// RAII: temporarily redirect the live menu font (FontInfo glyph table + FontPage)
+// to the license-clean English replacement atlas built by MENUFONT_build_alt_atlas,
+// so the existing MENUFONT draw path renders our text from that atlas instead of
+// the game's. Restores the game font on scope exit. Wrap the help-screen MENUFONT
+// calls in one of these. (Mirrors the FONT2D alt-page swap, but the menu font
+// draws through globals rather than a page parameter, so we swap the globals.)
+// OpenChaos addition.
+struct MENUFONT_AltScope {
+    MENUFONT_AltScope();
+    ~MENUFONT_AltScope();
+    MENUFONT_AltScope(const MENUFONT_AltScope&) = delete;
+    MENUFONT_AltScope& operator=(const MENUFONT_AltScope&) = delete;
+
+private:
+    CharData saved_info_[256];
+    SLONG saved_page_;
+};
+
 // Draws a string using the menu font with the given flags, scale, and colour.
 // uc_orig: MENUFONT_Draw (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max = -1);

@@ -1043,6 +1043,21 @@ void POLY_init_render_states()
 
                 break;
 
+            // OpenChaos: identical additive state to NEWFONT_INVERSE but samples the
+            // license-clean English replacement menu atlas. Used by our always-English
+            // menu text (help screens) so it renders correctly even when the game's
+            // menu font atlas (olyfont2.tga) was localised/overwritten.
+            case POLY_PAGE_MENUFONT_ALT:
+                SET_TEXTURE((TEXTURE_page_menufont_alt));
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
+
+                break;
+
             case POLY_PAGE_MENULOGO:
                 pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_menulogo));
