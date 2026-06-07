@@ -718,7 +718,7 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 #define GAMEMENU_HELP_DETAIL_ARROW_HALF_W 14
 #define GAMEMENU_HELP_DETAIL_ARROW_HEIGHT 14
 #define GAMEMENU_HELP_DETAIL_ARROW_GAP 8
-#define GAMEMENU_HELP_DETAIL_ARROW_COLOUR 0xD0E0F0 // cool light grey (RGB; alpha added)
+#define GAMEMENU_HELP_DETAIL_ARROW_COLOUR 0xFFFFFF // neutral white (RGB; alpha added)
 
 // Extra full-screen dim for the detail text screen, on TOP of the menu's base
 // darken (PANEL_darken_screen) but drawn in the same first pass — so it sits
@@ -977,7 +977,9 @@ static void GAMEMENU_draw_help_detail()
     const bool more_up = s_help_detail_scroll_line > 0;
     const bool more_down = (s_help_detail_scroll_line + fit) < total;
     if (more_up || more_down) {
-        SLONG a = (SLONG)(255.0f * body_t); // fade with the body, not the dim
+        // Fade in with the body (body_t), capped at the shared body translucency so
+        // the arrows match the text/glyph opacity (not fully opaque).
+        SLONG a = (SLONG)((float)INPUT_GLYPH_TEXT_BASE_ALPHA * body_t);
         if (a < 0)
             a = 0;
         else if (a > 255)

@@ -25,12 +25,11 @@
 #define INPUT_GLYPH_RGBA_CHANNELS 4
 
 // Glyph vertex colour (the glyph page blends with ModulateAlpha, so this
-// multiplies the texture's colour AND alpha). The FONT2D text reads slightly
-// COOL (greenish-blue) and a touch translucent, so a pure-white opaque glyph
-// stands out. We tint the glyph cool (lower red channel → green-blue) and reduce
-// alpha to match. ARGB: alpha byte for brightness, RGB for the tint. Tune the
-// red channel down for more cool, up toward 0xFF for neutral.
-#define INPUT_GLYPH_DRAW_COLOUR 0xA8E0F4F2u
+// multiplies the texture's colour AND alpha). The old game FONT2D text read cool
+// (greenish-blue), so the glyph was tinted to match; with the license-clean
+// replacement font that bluish tint no longer applies, so the glyph is NEUTRAL
+// white now. Alpha = the shared body translucency (so text/glyphs/arrows match).
+#define INPUT_GLYPH_DRAW_COLOUR ((INPUT_GLYPH_TEXT_BASE_ALPHA << 24) | 0x00FFFFFFu)
 
 // Extra inter-glyph gap added to a glyph's advance width, as a fraction of the
 // drawn glyph width. The 64px source cells already include transparent margin
@@ -39,8 +38,10 @@
 #define INPUT_GLYPH_GAP_FRACTION 0.0f
 
 // Whole-pixel vertical nudge (in real framebuffer pixels, positive = down)
-// applied to inline glyphs to optically centre them on the visible text.
-#define INPUT_GLYPH_VNUDGE_PX 1.0f
+// applied to inline glyphs to optically centre them on the visible text. Reset to
+// ZERO alignment for the new replacement font (the old +1 was tuned to the game
+// font, whose size/baseline changed). Re-tune once the body font size is settled.
+#define INPUT_GLYPH_VNUDGE_PX 0.0f
 
 namespace {
 
@@ -300,9 +301,11 @@ TextMetrics text_metrics(SLONG text_scale)
     m.text_h = (float)((FONT2D_LETTER_HEIGHT * text_scale) >> 8);
     m.line_advance = m.text_h + m.text_h * INPUT_GLYPH_TEXT_LEADING_FRACTION;
     m.space_w = (float)((FONT2D_GetLetterWidth(' ') * text_scale) >> 8);
-    // Align an inline glyph's centre to the FONT2D letter's visual centre rather
-    // than to the line-box centre (input_glyph_draw centres the glyph in the
-    // text_h box we pass), then bias slightly to taste.
+    // Centre an inline glyph on the FONT2D letter CELL (the quad runs y-3 .. y+15*s;
+    // our replacement font ink is centred in that cell, so the cell centre is the
+    // ink centre). glyph_y_off shifts the glyph from its line-box centring to the
+    // letter centre. It's a VERTICAL SHIFT only — layout_glyph still pixel-snaps the
+    // glyph and never rescales it, so the pixel-perfect glyph is preserved.
     const float letter_centre = (float)(-FONT2D_LETTER_TOP_PX + ((FONT2D_LETTER_BOTTOM_PX * text_scale) >> 8)) * 0.5f;
     m.glyph_y_off = letter_centre - m.text_h * 0.5f + m.text_h * INPUT_GLYPH_TEXT_VBIAS_FRACTION;
     return m;
@@ -390,7 +393,7 @@ int build_lines(const char* str, float wrap_width, SLONG text_scale,
             while (*p && *p != ' ' && *p != '\n' && *p != '{')
                 ++p;
             for (const char* c = atom_begin; c < p; ++c)
-                atom_w += text_char_width((CBYTE)*c, text_scale);
+                atom_w += text_char_width((CBYTE)*c, text_scale, use_alt);
         }
         (void)is_glyph;
 
@@ -425,6 +428,11 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
     float cursor_x = x;
     bool at_line_start = true;
     bool pending_space = false;
+
+    // Body text uses the same translucency ceiling as the inline glyphs: scale the
+    // fade-driven opacity (255-fade) by the shared base alpha, then convert back to
+    // a FONT2D fade (which sets letter alpha = 255 - fade).
+    const SWORD text_fade = (SWORD)(255 - (255 - (SLONG)fade) * (SLONG)INPUT_GLYPH_TEXT_BASE_ALPHA / 255);
 
     const char* p = line.begin;
     while (p < line.end) {
@@ -470,7 +478,7 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
             for (const char* c = atom_begin; c < p; ++c)
                 cursor_x += (float)FONT2D_DrawLetter(
                     (CBYTE)*c, (SLONG)cursor_x, (SLONG)y, colour, text_scale,
-                    font_page, fade);
+                    font_page, text_fade);
         }
         at_line_start = false;
     }

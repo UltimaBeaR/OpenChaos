@@ -1,11 +1,16 @@
 # Localization-safe English font (alt FONT2D + alt MENUFONT atlases)
 
 Status: help body (FONT2D path) + help menu/list/title + pause "Help" item
-(MENUFONT path), with proper letter spacing on both. The **MENU font visual is
-DONE** — weathered look (soft edges, halo glow, short frequent grunge streaks with
-carved holes) baked into the atlas and approved. Still pending: the FONT2D help-BODY
-visual (the user wants it SMALLER, plus colour/effects to match), inline-glyph
-re-tune, and the optional F9 console. See "Pending / next slices". Tracked as a
+(MENUFONT path). Both font VISUALS are **DONE & approved**:
+- MENU font — weathered look (soft edges, halo glow, short frequent grunge streaks
+  with carved holes), baked into the atlas.
+- HELP BODY font (FONT2D) — rendered SMALLER in the atlas (anti-aliased downscale +
+  edge-contrast), letters centred in their cells, translucency matched to the inline
+  glyphs; the inline glyphs were de-tinted (neutral) + re-centred, and the scroll
+  arrows de-tinted + opacity-matched. A real word-wrap bug (measure used the game
+  font, draw used ours) was fixed in passing.
+
+Still pending: the optional F9 console. See "Pending / next slices". Tracked as a
 post-1.0 task in `new_game_planning/known_issues_and_bugs_post_1_0.md` (section
 "UI и опции").
 
@@ -105,27 +110,37 @@ Why integer + equal on both axes (the bugs we hit, in order):
 Other details:
 - **Proportional advance:** each glyph's drawn/advance WIDTH is trimmed to its
   source ink columns (`lo..hi`, scaled), so spacing stays proportional (narrow
-  'i', wide 'M') even though every glyph is rendered at the same scale (uniform
-  stroke weight). No per-letter horizontal stretch.
-- **No AA in the atlas** (integer scale is hard-edged); the GPU **bilinear** filter
-  at draw time softens edges on screen.
+  'i', wide 'M') without per-letter horizontal stretch.
 - **Atlas stays 256×256.** `FONT2D_DrawLetter` converts width→UV with a hardcoded
-  `/256`, so `FONT2D_letter_alt.width`/`u`/`v` are in 256-atlas-pixel space. A
-  bigger atlas would need that `/256` reworked. 2× (16px glyphs) fits 139 glyphs in
-  256 (cell 16+2 gap wide × 18 tall → 14 cols × ~10 rows).
+  `/256`, so `FONT2D_letter_alt.width`/`u`/`v` are in 256-atlas-pixel space.
 - **Vertical region is 18px** (`FONT2D_ALT_CELL_H`, mirrors the draw's `v..v+18/256`
-  sample span). The 16px glyph is centred in it (`top_pad = (18-16)/2`).
+  sample span). The glyph is centred in it (`top_pad`).
+
+### Size reduction + anti-aliasing (UPDATE — supersedes the integer-2× above)
+
+The 2× integer render (16px glyph, hard edges) read TOO BIG next to the old game
+font (font8x8 fills its cell more) and a bit harsh. The body atlas now:
+- renders each 8×8 glyph into an explicit `FONT2D_ALT_BOX`-px square (currently 12,
+  < the 18px cell) — SMALLER letters at the SAME line height, since the draw samples
+  the whole 18px cell into the fixed quad, so visible size = BOX / CELL_H of it;
+- does this with an **area-averaged supersampled downscale** (`FONT2D_ALT_SS` sub-
+  samples) → anti-aliased edges baked as ALPHA (rgb stays white so the vertex colour
+  still tints), then a contrast remap (`FONT2D_ALT_EDGE_GAIN`) sharpens the edge back
+  so it isn't mushy;
+- centres the glyph in its advance cell (the trailing inter-letter gap is split
+  half-left / half-right via a DRAW-only x shift in `FONT2D_DrawLetter`, advance
+  unchanged) so narrow glyphs aren't shoved left.
 
 ### Constants (font2d.cpp)
 
 ```
-FONT2D_ALT_SCALE      = 2     // integer scale, BOTH axes (do not make fractional/unequal)
-FONT2D_ALT_RENDER_W   = 16    // 8 * SCALE
-FONT2D_ALT_GLYPH_H    = 16    // 8 * SCALE
-FONT2D_ALT_CELL_H     = 18    // draw samples v..v+18/256
-FONT2D_ALT_ATLAS_SIZE = 256   // tied to the /256 UV math in FONT2D_DrawLetter
-FONT2D_ALT_GAP_X      = 2     // gap so the bilinear filter can't bleed neighbours
-FONT2D_ALT_COLS       = 256/(16+2) = 14
+FONT2D_ALT_BOX           = 12   // glyph square in the cell (< CELL_H 18). SMALLER = smaller text
+FONT2D_ALT_SS            = 4    // supersample per axis for the AA downscale
+FONT2D_ALT_EDGE_GAIN     = 2.2  // edge contrast (1.0 = soft linear AA, higher = crisper)
+FONT2D_ALT_CELL_H        = 18   // draw samples v..v+18/256
+FONT2D_ALT_ATLAS_SIZE    = 256  // tied to the /256 UV math in FONT2D_DrawLetter
+FONT2D_ALT_GAP_X         = 2
+FONT2D_ALT_LETTER_SPACING= 2    // inter-letter gap (atlas px), alt page only; halved into bearings
 ```
 
 ## How the help body uses it (input_glyphs.cpp)
@@ -139,19 +154,26 @@ The help DETAIL body is rich-text (text + inline button glyphs), rendered by
 - `build_lines` / `text_char_width` got a `use_alt` flag (default false); the help
   callers pass `true` so wrap/advance use `FONT2D_GetLetterWidthAlt` (matching the
   alt draw). The **catalog** path (`input_prompt_catalog_draw_scrolled`, the
-  input-test screen) is left on the normal page/widths — only the alt path changed,
-  nothing else broke.
-- **Inter-letter spacing:** the embedded font8x8 glyphs are tight (no side bearing),
-  so the original `width+1` advance left letters almost touching. `FONT2D_DrawLetter`
-  / `FONT2D_GetLetterWidthAlt` use a wider gap (`FONT2D_ALT_LETTER_SPACING`, atlas px)
-  for the ALT page only — normal text keeps `+1`. Unlike the menu font (which
-  stretches glyphs to their advance, so spacing had to be baked into the atlas as an
-  empty strip), FONT2D draws each glyph at its ink width and advances separately, so
-  a bigger advance alone opens a clean gap — no atlas change. Layout and draw both
-  read the same gap so wrapping matches.
-- Inline button glyphs come from our input-glyph atlas (already embedded, not
-  broken by localisation). Their alpha/brightness were tuned to match FONT2D; with
-  the alt font next to them the balance may want a small re-tune (pending).
+  input-test screen) is left on the normal page/widths.
+  - **Wrap bug fixed:** `build_lines`' normal-text branch was measuring with the GAME
+    font (`text_char_width` called without `use_alt`) while the body draws with OURS.
+    Harmless when the two fonts had near-equal widths; once the body font was shrunk
+    the widths diverged and lines overflowed the wrap width. Now it passes `use_alt`.
+- **Inter-letter spacing:** font8x8 glyphs are tight (no side bearing), so the normal
+  `width+1` advance left letters almost touching. The alt page uses a wider gap
+  (`FONT2D_ALT_LETTER_SPACING`, atlas px) — normal text keeps `+1`. FONT2D draws each
+  glyph at its ink width and advances separately, so a bigger advance alone opens a
+  clean gap (no atlas change). The gap is then split into equal left/right bearings
+  by the draw-only centring shift (see size section). Layout and draw read the same
+  gap so wrapping matches.
+- **Shared body translucency:** the body text, the inline glyphs and the scroll
+  arrows all draw at one opacity, `INPUT_GLYPH_TEXT_BASE_ALPHA` (input_glyphs.h), so
+  they read as one element. The text gets it by scaling its fade by that alpha; the
+  glyph colour is built from it; the arrows multiply their fade by it.
+- **Inline glyphs:** de-tinted to NEUTRAL white (the old bluish tint matched the old
+  game font; the replacement font isn't blue) and vertically centred on the FONT2D
+  letter cell (`glyph_y_off`, a pixel-snapped SHIFT — never a rescale, so the
+  pixel-perfect glyph is preserved). Scroll arrows likewise de-tinted to white.
 
 ## Files touched
 

@@ -218,13 +218,12 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
 // ink width — the inter-letter gap. The normal FONT2D advance is width+1, which
 // suffices for the game font (its glyphs carry built-in side bearing), but the
 // embedded font8x8 glyphs are tight, so +1 leaves letters almost touching. This
-// replaces that +1 for the alt page only (normal text is unchanged). The alt atlas
-// is rendered at FONT2D_ALT_SCALE (2), so this is ~one source font pixel per 2;
-// it's a starting value to tune. Unlike the menu font (which stretches glyphs to
+// replaces that +1 for the alt page only (normal text is unchanged). It's in atlas
+// px (a starting value to tune). Unlike the menu font (which stretches glyphs to
 // their advance, so spacing had to be baked into the atlas), FONT2D draws each
 // glyph at its ink width and advances separately, so a bigger advance alone opens
 // a clean gap — no atlas change needed.
-#define FONT2D_ALT_LETTER_SPACING 3
+#define FONT2D_ALT_LETTER_SPACING 2
 
 // Same as FONT2D_GetLetterWidth but for the alternate (English replacement) font,
 // so text drawn through POLY_PAGE_FONT2D_ALT can be laid out (wrap/advance) with
@@ -288,10 +287,25 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
     auto snap_x = [&](float vx) { return ((float)(SLONG)(vx * sx + ox + 0.5f) - ox) / sx; };
     auto snap_y = [&](float vy) { return ((float)(SLONG)(vy * sy + oy + 0.5f) - oy) / sy; };
 
+    // Centre every alt-font letter in its advance cell. The advance is ink + a
+    // trailing inter-letter gap, so by default the ink is LEFT-aligned with all the
+    // slack on the right — narrow glyphs look shoved left in their cell. Shift the
+    // DRAW (not the advance) right by half the gap so the ink sits centred, with
+    // equal slack each side. Computed from the EXACT drawn/advance pixel widths so it
+    // lands on the right whole pixel. The advance is unchanged, so inter-letter
+    // spacing and wrapping are identical — only the per-letter bearing is balanced.
+    // Alt page only (the game font carries its own side bearing).
+    SLONG draw_x = x;
+    if (page == POLY_PAGE_FONT2D_ALT) {
+        const SLONG drawn_px = fl->width * scale >> 8;
+        const SLONG adv_px = (fl->width + FONT2D_ALT_LETTER_SPACING) * scale >> 8;
+        draw_x += (adv_px - drawn_px) / 2;
+    }
+
     PANEL_draw_quad(
-        snap_x((float)x),
+        snap_x((float)draw_x),
         snap_y((float)(y - 3)),
-        snap_x((float)(x + (fl->width * scale >> 8))),
+        snap_x((float)(draw_x + (fl->width * scale >> 8))),
         snap_y((float)(y + (15 * scale >> 8))),
         page,
         (rgb & 0xffffff) | ((255 - fade) << 24),
@@ -576,21 +590,28 @@ void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scal
 #define FONT2D_ALT_CELL_H 18
 // Atlas is 256x256 (matches FONT2D_init's load + the FONT2D_letter UV space).
 #define FONT2D_ALT_ATLAS_SIZE 256
-// Render the 8x8 source at the SAME integer scale on BOTH axes — exactly what the
-// "files not found" screen does (each source pixel -> a 2x2 block), which is the
-// look we want: every pixel square, no stretch. 2x both -> 16x16 glyphs, the right
-// size for the ~16px line. (A fractional or unequal scale is what caused the
-// earlier artefacts: 1.25x made some strokes 1px/some 2px; 1x-wide x 2x-tall made
-// letters narrow and '.' too tall.) The draw-time bilinear filter softens edges.
-#define FONT2D_ALT_SCALE 2
-// Glyph footprint in the atlas (source 8x8 x scale).
-#define FONT2D_ALT_RENDER_W (FONT8X8_GLYPH_PX * FONT2D_ALT_SCALE)
-#define FONT2D_ALT_GLYPH_H (FONT8X8_GLYPH_PX * FONT2D_ALT_SCALE)
+// Visible glyph SIZE in the atlas cell, in atlas px. The FONT2D draw samples the
+// whole FONT2D_ALT_CELL_H-tall cell into the (fixed-height) letter quad, so the
+// VISIBLE letter size on screen = FONT2D_ALT_BOX / CELL_H of the quad. A smaller box
+// → smaller letters at the SAME line height / spacing (the replacement font8x8 fills
+// its cell more than the old game font did, so it read too big — shrinking the box
+// matches the old size). Must be < CELL_H so the glyph centres with breathing room.
+// TUNE this for the body text size. (The 8×8 source is scaled to BOX on both axes,
+// keeping the aspect; BOX/8 is a non-integer ratio, hence the AA downscale below.)
+#define FONT2D_ALT_BOX 12
+// Supersample count per axis for the area-averaged downscale → anti-aliased edges
+// (the source is 8px; the target box is a non-integer fraction of it, so a plain
+// nearest scale would give uneven strokes — we average sub-samples instead).
+#define FONT2D_ALT_SS 4
+// Edge contrast applied to the AA coverage: remaps coverage around 0.5 so mid
+// values are pushed toward 0/1, SHARPENING the edges (less blur). 1.0 = pure
+// linear AA (softest); higher = crisper. TUNE for body-text sharpness.
+#define FONT2D_ALT_EDGE_GAIN 2.2f
 // Gap between glyph cells in the atlas so the draw-time linear filter can't bleed
 // a neighbouring glyph into one we sample.
 #define FONT2D_ALT_GAP_X 2
 // Columns of glyph cells per atlas row.
-#define FONT2D_ALT_COLS (FONT2D_ALT_ATLAS_SIZE / (FONT2D_ALT_RENDER_W + FONT2D_ALT_GAP_X))
+#define FONT2D_ALT_COLS (FONT2D_ALT_ATLAS_SIZE / (FONT2D_ALT_BOX + FONT2D_ALT_GAP_X))
 
 void FONT2D_build_alt_atlas(SLONG alt_texture_slot)
 {
@@ -602,10 +623,10 @@ void FONT2D_build_alt_atlas(SLONG alt_texture_slot)
     memset(rgba, 0, sz * sz * 4);
     memset(FONT2D_letter_alt, 0, sizeof(FONT2D_letter_alt));
 
-    // Lay glyphs out in our OWN uniform grid: each 8x8 source is rendered to the
-    // same FONT2D_ALT_RENDER_W x FONT2D_ALT_CELL_H box (consistent scale -> uniform
-    // stroke weight). The drawn/advance WIDTH is then trimmed to the glyph's ink
-    // columns so spacing stays proportional (narrow 'i', wide 'M') without the
+    // Lay glyphs out in our OWN uniform grid: each 8x8 source is downscaled to the
+    // same FONT2D_ALT_BOX square (consistent scale -> uniform stroke weight), centred
+    // in the CELL_H-tall cell. The drawn/advance WIDTH is then trimmed to the glyph's
+    // ink columns so spacing stays proportional (narrow 'i', wide 'M') without the
     // weight distortion the original per-letter widths caused.
     SLONG slot = 0;
     for (SLONG ch = FONT8X8_FIRST_CH; ch <= FONT8X8_LAST_CH; ch++) {
@@ -637,36 +658,60 @@ void FONT2D_build_alt_atlas(SLONG alt_texture_slot)
             hi = 0;
         }
 
-        const SLONG cell_x = (slot % FONT2D_ALT_COLS) * (FONT2D_ALT_RENDER_W + FONT2D_ALT_GAP_X);
+        const SLONG cell_x = (slot % FONT2D_ALT_COLS) * (FONT2D_ALT_BOX + FONT2D_ALT_GAP_X);
         const SLONG cell_y = (slot / FONT2D_ALT_COLS) * FONT2D_ALT_CELL_H;
         slot++;
 
-        // Render at the SAME integer scale on both axes (each source pixel -> a
-        // FONT2D_ALT_SCALE x FONT2D_ALT_SCALE block), centred vertically in the
-        // 18px cell. Every pixel is square — no stretch in either direction.
-        const SLONG glyph_h = FONT2D_ALT_GLYPH_H;
-        const SLONG top_pad = (FONT2D_ALT_CELL_H - glyph_h) / 2;
-        for (SLONG py = 0; py < glyph_h; py++) {
-            const SLONG sy = py / FONT2D_ALT_SCALE;
-            const SLONG ty = cell_y + top_pad + py;
-            if (!WITHIN(ty, 0, sz - 1))
+        // Source->atlas scale (8px source -> FONT2D_ALT_BOX px, both axes), and the
+        // vertical pad to centre the BOX in the CELL_H-tall cell the draw samples.
+        const float f = (float)FONT2D_ALT_BOX / (float)FONT8X8_GLYPH_PX;
+        const SLONG top_pad = (FONT2D_ALT_CELL_H - FONT2D_ALT_BOX) / 2;
+
+        // Area-averaged downscale: for each target pixel, sub-sample the source bits
+        // and store the coverage as ALPHA (rgb stays white so the vertex colour still
+        // tints; alpha carries the anti-aliased edge). Every pixel square — no stretch.
+        for (SLONG ty = 0; ty < FONT2D_ALT_BOX; ty++) {
+            const SLONG aty = cell_y + top_pad + ty;
+            if (!WITHIN(aty, 0, sz - 1))
                 continue;
-            for (SLONG px = 0; px < FONT2D_ALT_RENDER_W; px++) {
-                const SLONG sx = px / FONT2D_ALT_SCALE;
-                if (!(glyph[sy] & (1u << sx)))
+            for (SLONG tx = 0; tx < FONT2D_ALT_BOX; tx++) {
+                SLONG hit = 0;
+                for (SLONG sj = 0; sj < FONT2D_ALT_SS; sj++) {
+                    const float syf = ((float)ty + ((float)sj + 0.5f) / FONT2D_ALT_SS) / f;
+                    const SLONG syi = (SLONG)syf;
+                    if (syi < 0 || syi >= FONT8X8_GLYPH_PX)
+                        continue;
+                    for (SLONG si = 0; si < FONT2D_ALT_SS; si++) {
+                        const float sxf = ((float)tx + ((float)si + 0.5f) / FONT2D_ALT_SS) / f;
+                        const SLONG sxi = (SLONG)sxf;
+                        if (sxi < 0 || sxi >= FONT8X8_GLYPH_PX)
+                            continue;
+                        if (glyph[syi] & (1u << sxi))
+                            hit++;
+                    }
+                }
+                if (hit == 0)
                     continue;
-                const SLONG tx = cell_x + px;
-                if (!WITHIN(tx, 0, sz - 1))
+                const SLONG atx = cell_x + tx;
+                if (!WITHIN(atx, 0, sz - 1))
                     continue;
-                UBYTE* p = &rgba[(ty * sz + tx) * 4];
-                p[0] = p[1] = p[2] = p[3] = 255; // opaque white; tinted at draw
+                // Coverage [0,1], contrast-sharpened around 0.5 to reduce blur.
+                float cov = (float)hit / (float)(FONT2D_ALT_SS * FONT2D_ALT_SS);
+                cov = (cov - 0.5f) * FONT2D_ALT_EDGE_GAIN + 0.5f;
+                if (cov <= 0.0f)
+                    continue;
+                if (cov > 1.0f)
+                    cov = 1.0f;
+                UBYTE* p = &rgba[(aty * sz + atx) * 4];
+                p[0] = p[1] = p[2] = 255; // white; tinted by the vertex colour
+                p[3] = (UBYTE)(cov * 255.0f + 0.5f); // sharpened AA coverage
             }
         }
 
-        // Map source ink columns to atlas pixels (same 8 -> RENDER_W scale) and
-        // record the trimmed UV + advance width in the alt glyph table.
-        const SLONG ink_x = lo * FONT2D_ALT_RENDER_W / FONT8X8_GLYPH_PX;
-        SLONG ink_w = (hi - lo + 1) * FONT2D_ALT_RENDER_W / FONT8X8_GLYPH_PX;
+        // Map source ink columns to atlas px (same 8 -> BOX scale) and record the
+        // trimmed UV + advance width in the alt glyph table.
+        const SLONG ink_x = (SLONG)(lo * f + 0.5f);
+        SLONG ink_w = (SLONG)((hi - lo + 1) * f + 0.5f);
         if (ink_w < 1)
             ink_w = 1;
 

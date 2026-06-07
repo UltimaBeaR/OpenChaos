@@ -18,6 +18,12 @@
 // in input_glyph_coords.{h,cpp} (generated once from the Kenney pack's atlas XMLs,
 // which are not kept in the repo).
 
+// Shared opacity (alpha, 0..255) for the help body: the text, the inline glyphs
+// and the scroll arrows all draw at this translucency so they read as one element.
+// The fade-in animation scales BELOW this; this is the settled (fully-revealed)
+// ceiling. Tune once for the whole help body.
+#define INPUT_GLYPH_TEXT_BASE_ALPHA 0xA8u
+
 // Decode the four embedded glyph atlases and upload each to its texture page.
 // Must be called once after the GL context and texture system are ready.
 void input_glyphs_init(void);
