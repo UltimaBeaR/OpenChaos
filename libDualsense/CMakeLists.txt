@@ -31,5 +31,10 @@ target_compile_features(libDualsense PUBLIC cxx_std_20)
 # on sanitizer runtime version mismatches.
 if(ENABLE_ASAN)
     target_compile_options(libDualsense PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    # Match the parent build: disable MSVC STL container annotations so this lib's
+    # objects don't carry a /failifmismatch "annotate_string"/"annotate_vector"
+    # record (value 1) that conflicts with the non-instrumented vcpkg static libs
+    # (value 0). See the matching note in new_game/CMakeLists.txt.
+    target_compile_options(libDualsense PRIVATE -D_DISABLE_STRING_ANNOTATION -D_DISABLE_VECTOR_ANNOTATION)
     target_link_options(libDualsense PRIVATE -fsanitize=address)
 endif()

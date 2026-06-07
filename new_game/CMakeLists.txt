@@ -706,6 +706,16 @@ target_compile_options(OpenChaos PRIVATE
     # AddressSanitizer: detects heap overflows, use-after-free, etc.
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address>
     $<$<BOOL:${ENABLE_ASAN}>:-fno-omit-frame-pointer>
+    # vcpkg static libs (x64-windows-static) are built without ASan. The MSVC STL
+    # emits a /failifmismatch "annotate_string"/"annotate_vector" record when ASan
+    # is on (value 1), which conflicts at link time with the non-instrumented libs
+    # (value 0): lld-link errors with "mismatch detected for 'annotate_string'".
+    # Disabling the STL container annotations makes our objects match (value 0).
+    # We keep full heap/stack/global + use-after-free coverage; only the
+    # std::string/std::vector internal-buffer overflow annotation is lost.
+    # Gated on ENABLE_ASAN, so release builds are unaffected.
+    $<$<BOOL:${ENABLE_ASAN}>:-D_DISABLE_STRING_ANNOTATION>
+    $<$<BOOL:${ENABLE_ASAN}>:-D_DISABLE_VECTOR_ANNOTATION>
     # Dead-code report: function/data-level sections so linker can drop unreferenced ones.
     # On clang-cl/clang targeting MSVC, -ffunction-sections maps to /Gy.
     $<$<BOOL:${DEAD_CODE_REPORT}>:-ffunction-sections>

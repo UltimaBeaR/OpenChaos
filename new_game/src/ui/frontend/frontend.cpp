@@ -1355,8 +1355,12 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     }
     FileCloseScript();
 
-    if (!IsEnglish) {
+    if (!IsEnglish && secretIDbreakout >= 0) {
         // Never show breakout mission in non-English builds.
+        // Guard secretIDbreakout >= 0: the Breakout mission is not present in the
+        // PC mission script, so secretIDbreakout stays -1. Writing
+        // mission_hierarchy[-1] is an out-of-bounds store (latent in the original,
+        // harmless on x86 MSVC, but fatal under ASan and undefined behaviour).
         mission_hierarchy[secretIDbreakout] = 0;
     }
 
