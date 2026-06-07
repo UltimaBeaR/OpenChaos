@@ -9505,11 +9505,14 @@ void fn_person_dangling(Thing* p_person)
             // character has typically transitioned to RUNNING via analog stick
             // input, and the jump fires as a running-jump in the correctly
             // aligned facing direction. See g_post_climb_jump_block_ticks
-            // comment in input_actions.cpp for details. ~8 ticks = ~0.4s at
-            // 20 Hz physics — enough for analog rotation to catch up but
-            // short enough not to feel like a missed input.
+            // comment in input_actions.cpp for details. Kept to ~0.1s — the
+            // minimum that still lets analog rotation catch up before a buffered
+            // JUMP fires, while feeling instant to the player. Tune downward only
+            // if the wrong-direction jump stays fixed.
             extern SLONG g_post_climb_jump_block_ticks;
-            g_post_climb_jump_block_ticks = 8;
+            // 0.1s of physics ticks (UC_PHYSICS_DESIGN_HZ = 20 Hz -> 2 ticks).
+            constexpr SLONG POST_CLIMB_JUMP_BLOCK_TICKS = UC_PHYSICS_DESIGN_HZ / 10;
+            g_post_climb_jump_block_ticks = POST_CLIMB_JUMP_BLOCK_TICKS;
         }
         break;
 

@@ -1061,6 +1061,17 @@ round_again:;
             }
 
             if (EWAY_tutorial_string) {
+                // Discard mouse motion while the tutorial overlay is up. The game
+                // is frozen during the overlay (should_i_process_game() returns
+                // false on EWAY_tutorial_string), so the physics loop — and with
+                // it FC_process(), which normally consumes/applies mouse-look —
+                // does not run. Without draining, relative mouse motion keeps
+                // accumulating in the input layer and bursts out as one big
+                // snap-turn on the first tick after the overlay closes. Same idea
+                // as the vehicle enter/exit camera lock (fc.cpp drains there), but
+                // done here because fc.cpp is not ticking during the freeze.
+                input_mouse_drain_rel();
+
                 EWAY_tutorial_counter += 64 * TICK_RATIO >> TICK_SHIFT;
 
                 const uint64_t EWAY_TUT_INPUT_GRACE_MS = 1000;
