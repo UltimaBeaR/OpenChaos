@@ -2605,6 +2605,20 @@ void EWAY_process_camera(void)
         if (EWAY_cam_goinactive == 0) {
             EWAY_cam_active = UC_FALSE;
             EWAY_cam_goinactive = UC_FALSE;
+            // Hand control back to the player without a leftover turn-suppression
+            // window. EWAY_cam_jumped throttles player rotation (reduce_turn in
+            // player_turn_left_right_analogue) for ~10 ticks after a camera cut.
+            // During a cut-scene the conversation handler re-sets it to 10 on
+            // every spoken line, but it only decrements while the player turn
+            // function runs — which it doesn't while the player has no control.
+            // So the last value (10) survives to the first controlled tick and
+            // blocks the player from turning toward their input for ~10 ticks
+            // (character runs in its leftover cut-scene facing, then aligns).
+            // Clearing it here removes that suppression at the hand-off. The
+            // building<->street snap (fc.cpp) sets the same flag during live
+            // gameplay and is unaffected — control is continuous there, so it
+            // decrements normally.
+            EWAY_cam_jumped = 0;
         }
         return;
     }
