@@ -964,7 +964,8 @@ bool FRONTEND_save_savegame(CBYTE* mission_name, UBYTE slot)
     MFFileHandle file;
     UBYTE version = 3;
 
-    oc_mkdir("saves");
+    // The saves/ directory is created automatically by the user-data write path
+    // inside FileCreate (saves go to the per-user data folder).
 
     sprintf(fn, "saves/slot%d.wag", slot);
     file = FileCreate(fn, 1);

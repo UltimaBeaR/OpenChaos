@@ -403,8 +403,8 @@ void tga_dump(void)
 
     FILE* handle;
 
-    // Create output directory if needed.
-    oc_mkdir("debug_screenshots");
+    // Output directory (debug_screenshots/) is created automatically by the
+    // user-data write path inside TGA_save.
 
     for (i = 0; i < 10000; i++) {
         sprintf(fname, "debug_screenshots/shot%04d.tga", i);

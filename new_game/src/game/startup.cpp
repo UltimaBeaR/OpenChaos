@@ -6,6 +6,7 @@
 #include "engine/graphics/pipeline/aeng.h" // AENG_read_detail_levels
 #include "engine/io/env.h" // ENV_load
 #include "engine/io/oc_config.h" // OC_CONFIG_set_persistence
+#include "engine/io/user_data.h" // USERDATA_init
 #include "game/game.h" // game
 #include "game/missing_resources.h" // MISSING_RESOURCES_present
 
@@ -14,6 +15,11 @@
 // so that Win32 WinMain can invoke it). Initialises the engine and runs the game loop.
 SLONG main(UWORD argc, char* argv[])
 {
+    // Resolve the per-user writable data folder first — all writes (config,
+    // saves, crash log) go there, and reads overlay it on top of the game
+    // folder. Must precede any file I/O below. See engine/io/user_data.h.
+    USERDATA_init();
+
     FileSetBasePath("");
 
     // If the original game data is missing, the game can't run — it will only

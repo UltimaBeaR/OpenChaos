@@ -11,6 +11,7 @@
 #include "engine/input/mouse_capture.h" // mouse_capture_is_active — gate the above
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/io/user_data.h" // USERDATA_resolve_write (debug log path)
 #include "game/input_actions_globals.h"
 #include <cstring>
 
@@ -70,7 +71,8 @@ static GamepadState s_gamepad_state_raw = {};
 static void debug_log_backend([[maybe_unused]] const char* event)
 {
 #ifdef _DEBUG
-    if (FILE* f = fopen("gamepad_log.txt", "a")) {
+    char logpath[512];
+    if (FILE* f = fopen(USERDATA_resolve_write("gamepad_log.txt", logpath, sizeof(logpath)), "a")) {
         const char* backend = "none";
         if (s_is_dualsense)
             backend = "DualSense (libDualsense/ds_bridge)";

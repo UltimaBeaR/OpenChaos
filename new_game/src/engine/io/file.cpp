@@ -1,5 +1,6 @@
 #include "engine/io/file.h"
 #include "engine/io/file_globals.h"
+#include "engine/io/user_data.h"
 
 #include <cstring>
 #include <cstdio>
@@ -108,6 +109,7 @@ FILE* fopen_ci(const char* path, const char* mode) { return fopen(path, mode); }
 
 // Prepend cBasePath to filename. Returns pointer to static buffer.
 // Normalizes backslashes to forward slashes for cross-platform compatibility.
+// This is the GAME-FOLDER (working-dir) path — the read-only install.
 // uc_orig: MakeFullPathName (MFStdLib/Source/StdLib/StdFile.cpp)
 static CBYTE* MakeFullPathName(const CBYTE* cFilename)
 {
@@ -120,12 +122,35 @@ static CBYTE* MakeFullPathName(const CBYTE* cFilename)
     return (cTempFilename);
 }
 
+// Build the user-data-folder path for `rel` (no directory creation — for reads).
+// Returns false when there is no user folder, in which case the caller should
+// use the game-folder path. See engine/io/user_data.h for the overlay model.
+static bool MakeUserPathName(const char* rel, char* out, size_t out_size)
+{
+    const char* root = USERDATA_root();
+    if (!root[0])
+        return false;
+    snprintf(out, out_size, "%s%s", root, rel);
+    for (char* p = out; *p; ++p)
+        if (*p == '\\')
+            *p = '/';
+    return true;
+}
+
 // uc_orig: FileExists (MFStdLib/Source/StdLib/StdFile.cpp)
+// Overlay read: exists if the file is present in the user folder OR the game folder.
 BOOL FileExists(CBYTE* file_name)
 {
-    file_name = MakeFullPathName(file_name);
+    char upath[512];
+    if (MakeUserPathName(file_name, upath, sizeof(upath))) {
+        FILE* uf = fopen_ci(upath, "rb");
+        if (uf) {
+            fclose(uf);
+            return UC_TRUE;
+        }
+    }
 
-    FILE* f = fopen_ci(file_name, "rb");
+    FILE* f = fopen_ci(MakeFullPathName(file_name), "rb");
     if (f) {
         fclose(f);
         return UC_TRUE;
@@ -134,11 +159,17 @@ BOOL FileExists(CBYTE* file_name)
 }
 
 // uc_orig: FileOpen (MFStdLib/Source/StdLib/StdFile.cpp)
+// Overlay read: try the user folder first, then fall back to the game folder.
 MFFileHandle FileOpen(CBYTE* file_name)
 {
-    file_name = MakeFullPathName(file_name);
+    char upath[512];
+    if (MakeUserPathName(file_name, upath, sizeof(upath))) {
+        FILE* uf = fopen_ci(upath, "rb");
+        if (uf)
+            return uf;
+    }
 
-    FILE* f = fopen_ci(file_name, "rb");
+    FILE* f = fopen_ci(MakeFullPathName(file_name), "rb");
     if (!f)
         return FILE_OPEN_ERROR;
     return f;
@@ -152,38 +183,45 @@ void FileClose(MFFileHandle file_handle)
 }
 
 // uc_orig: FileCreate (MFStdLib/Source/StdLib/StdFile.cpp)
+// Writes always go to the user folder (the install dir may be read-only).
 MFFileHandle FileCreate(CBYTE* file_name, BOOL overwrite)
 {
-    file_name = MakeFullPathName(file_name);
+    char wpath[512];
+    USERDATA_resolve_write(file_name, wpath, sizeof(wpath));
 
     if (!overwrite) {
         // CREATE_NEW semantics: fail if file already exists.
-        FILE* test = fopen_ci(file_name, "rb");
+        FILE* test = fopen_ci(wpath, "rb");
         if (test) {
             fclose(test);
             return FILE_CREATION_ERROR;
         }
     }
 
-    FILE* f = fopen_ci(file_name, "w+b");
+    FILE* f = fopen_ci(wpath, "w+b");
     if (!f)
         return FILE_CREATION_ERROR;
     return f;
 }
 
 // uc_orig: FileDelete (MFStdLib/Source/StdLib/StdFile.cpp)
+// Deletes the user-folder copy only — the game folder is read-only and is never
+// touched (a file present only there reappears via the read overlay).
 void FileDelete(CBYTE* file_name)
 {
-    file_name = MakeFullPathName(file_name);
+    char upath[512];
+    const char* target = MakeUserPathName(file_name, upath, sizeof(upath))
+        ? upath
+        : MakeFullPathName(file_name);
 #ifndef _WIN32
     char resolved[512];
-    if (resolve_path_ci(file_name, resolved, sizeof(resolved))) {
+    if (resolve_path_ci(target, resolved, sizeof(resolved))) {
         remove(resolved);
     } else {
-        remove(file_name);
+        remove(target);
     }
 #else
-    remove(file_name);
+    remove(target);
 #endif
 }
 
@@ -273,13 +311,24 @@ void FileSetBasePath(CBYTE* path_name)
 }
 
 // uc_orig: MF_Fopen (MFStdLib/Source/StdLib/StdFile.cpp)
+// Write/append modes go to the user folder; read modes use the overlay
+// (user folder first, then game folder).
 FILE* MF_Fopen(const char* file_name, const char* mode)
 {
-    if (!FileExists((char*)file_name)) {
-        return NULL;
+    const bool writing = mode && (strchr(mode, 'w') || strchr(mode, 'a') || strchr(mode, '+'));
+    if (writing) {
+        char wpath[512];
+        USERDATA_resolve_write(file_name, wpath, sizeof(wpath));
+        return fopen_ci(wpath, mode);
     }
-    file_name = MakeFullPathName(file_name);
-    return fopen_ci(file_name, mode);
+
+    char upath[512];
+    if (MakeUserPathName(file_name, upath, sizeof(upath))) {
+        FILE* uf = fopen_ci(upath, mode);
+        if (uf)
+            return uf;
+    }
+    return fopen_ci(MakeFullPathName(file_name), mode);
 }
 
 // uc_orig: MF_Fclose (MFStdLib/Source/StdLib/StdFile.cpp)

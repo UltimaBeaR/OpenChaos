@@ -1,8 +1,10 @@
-// OpenChaos config system — reads/writes OpenChaos.config.json (next to the exe).
+// OpenChaos config system — reads/writes OpenChaos.config.json in the per-user
+// data folder (see engine/io/user_data.h; the install dir may be read-only).
 // See engine/io/oc_config.h for the public API and devlog for design notes.
 
 #include "engine/io/oc_config.h"
 #include "engine/io/env.h" // INI_get_string (for config.ini migration)
+#include "engine/io/user_data.h" // user data folder (config lives there)
 
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -136,10 +138,23 @@ static void build_defaults_and_migrate(const char* ini_path)
 
 void OC_CONFIG_load(const char* ini_path)
 {
-    // Config lives next to the exe (working dir). The open_chaos/ folder is
-    // reserved for future custom resources, but the config no longer goes there.
-    fs::path path = fs::path("OpenChaos.config.json");
-    g_config_path = path.string();
+    // Config lives in the per-user data folder (the install dir may be read-only;
+    // see engine/io/user_data.h). Reads use the overlay: prefer the user-folder
+    // copy, otherwise fall back to one next to the exe — this migrates configs
+    // from pre-overlay installs and lets a build ship a default config.
+    char wpath[512];
+    USERDATA_resolve_write("OpenChaos.config.json", wpath, sizeof(wpath));
+    g_config_path = wpath;
+
+    fs::path path = fs::path(wpath);
+    bool migrating_from_exe_dir = false;
+    if (!fs::exists(path)) {
+        fs::path exe_cfg = fs::path("OpenChaos.config.json");
+        if (fs::exists(exe_cfg)) {
+            path = exe_cfg;
+            migrating_from_exe_dir = true;
+        }
+    }
 
     if (fs::exists(path)) {
         std::ifstream f(path);
@@ -184,7 +199,10 @@ void OC_CONFIG_load(const char* ini_path)
                     *kit = (kit->get<int>() != 0);
                     upgraded = true;
                 }
-                if (upgraded)
+                // Persist into the user folder: on a bool-format upgrade, or
+                // when we read a legacy config from next to the exe (config_save
+                // always writes to g_config_path, i.e. the user folder).
+                if (upgraded || migrating_from_exe_dir)
                     config_save();
                 return;
             } catch (const std::exception& e) {

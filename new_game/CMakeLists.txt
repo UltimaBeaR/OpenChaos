@@ -293,6 +293,7 @@ set(SOURCES_NEW
     # === Engine: I/O ===
     src/engine/io/file.cpp
     src/engine/io/file_globals.cpp
+    src/engine/io/user_data.cpp
     src/engine/io/env.cpp
     src/engine/io/oc_config.cpp
 

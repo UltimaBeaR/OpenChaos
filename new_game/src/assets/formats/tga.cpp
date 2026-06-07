@@ -1,6 +1,7 @@
 #include "assets/formats/tga.h"
 #include "assets/formats/tga_globals.h"
 #include "engine/io/file.h"
+#include "engine/io/user_data.h" // TGA_save writes to the user data folder
 #include <cstring>
 
 // Forward declarations.
@@ -526,7 +527,10 @@ void TGA_save(
 
     FILE* handle;
 
-    handle = fopen_ci(file, "wb");
+    // TGA_save is only used for debug dumps; route writes to the user data
+    // folder (creating any parent dirs), mirroring the relative path.
+    char wpath[512];
+    handle = fopen_ci(USERDATA_resolve_write(file, wpath, sizeof(wpath)), "wb");
 
     if (handle == NULL) {
         return;
