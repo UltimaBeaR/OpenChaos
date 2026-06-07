@@ -10,9 +10,10 @@ Status: help body (FONT2D path) + help menu/list/title + pause "Help" item
   arrows de-tinted + opacity-matched. A real word-wrap bug (measure used the game
   font, draw used ours) was fixed in passing.
 
-Still pending: the optional F9 console. See "Pending / next slices". Tracked as a
-post-1.0 task in `new_game_planning/known_issues_and_bugs_post_1_0.md` (section
-"UI и опции").
+The F9 dev console was also routed onto the alt atlas (it draws via
+`FONT2D_DrawString` which already takes a `page` param — just pass
+`POLY_PAGE_FONT2D_ALT`; colours unchanged). Tracked as a post-1.0 task in
+`new_game_planning/known_issues_and_bugs_post_1_0.md` (section "UI и опции").
 
 ## The problem
 
@@ -344,17 +345,14 @@ font (the game menu font has wide letter spacing); it's a starting value to tune
 
 ## Pending / next slices
 
-- **TUNING PASS (next):** menu font + help body — colour, transparency, effects
-  (dithering / outline), extra smoothing, and SIZE. The help BODY (FONT2D alt) is
-  currently visually BIGGER than the old text and must be made SMALLER — render it
-  finer in the atlas (the FONT2D `*_ALT` constants). The menu font size
-  (`MENUFONT_ALT_SCALE`) and a COLOURED (vs grey) menu are also part of this pass.
+- **DONE:** menu-font visual, help-body visual (size + AA + edge contrast), inline
+  glyph de-tint/re-centre + shared translucency, scroll arrows, and the F9 console
+  (routed onto the alt atlas).
 - **Pause menu / other menus**: still olyfont2 (break under localisation). Only the
   help screens were routed to the alt menu font for now. Routing the whole menu is
   the same `MENUFONT_AltScope` wrap (decide later; would also let us go mixed-case).
-- **F9 console** — also FONT2D/atlas, breaks under localisation. Low priority
-  (debug). Skip or later.
-- **Inline glyph alpha/brightness re-tune** vs the alt font.
+- A COLOURED (vs grey) menu and baked effects beyond what's there are optional
+  future polish, not required.
 - Possible refinement: bigger FONT2D atlas + reworked `/256` UV math if we ever
   want a higher-res source (the user explicitly does NOT want a TTF — font8x8 is
   the accepted look).

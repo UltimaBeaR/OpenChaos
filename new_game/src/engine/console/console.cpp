@@ -42,10 +42,15 @@ void CONSOLE_draw(void)
         console_last_tick = console_this_tick - 1000;
     }
 
+    // All console text below draws on POLY_PAGE_FONT2D_ALT — the license-clean
+    // English replacement atlas (same as the help body), NOT the game font atlas —
+    // so the dev console stays readable even when a localisation overwrites the
+    // game's FONT2D atlas. Colours are unchanged (status/lines green, etc.).
+
     if (CONSOLE_no_text() && !console_Data[0].Age) {
         if (*console_status_text) {
             POLY_frame_init(UC_FALSE, UC_FALSE);
-            FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D);
+            FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D_ALT);
             POLY_frame_draw(UC_FALSE, UC_TRUE);
         }
         return;
@@ -54,16 +59,16 @@ void CONSOLE_draw(void)
     POLY_frame_init(UC_FALSE, UC_FALSE);
 
     if (*console_status_text) {
-        FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D);
+        FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D_ALT);
     }
 
     // Draw scrolling lines with fade-out when Age drops below 512.
     for (SLONG i = 0; i < CONSOLE_LINES; i++) {
         if (console_Data[i].Age) {
             if (console_Data[i].Age > 512) {
-                FONT2D_DrawString(console_Data[i].Text, 135, 370 + (17 * i), 0x00ff00, 256, POLY_PAGE_FONT2D);
+                FONT2D_DrawString(console_Data[i].Text, 135, 370 + (17 * i), 0x00ff00, 256, POLY_PAGE_FONT2D_ALT);
             } else {
-                FONT2D_DrawString(console_Data[i].Text, 135, 370 + (17 * i), 0x00ff00, 256, POLY_PAGE_FONT2D, (SWORD)((512 - console_Data[i].Age) >> 3));
+                FONT2D_DrawString(console_Data[i].Text, 135, 370 + (17 * i), 0x00ff00, 256, POLY_PAGE_FONT2D_ALT, (SWORD)((512 - console_Data[i].Age) >> 3));
             }
 
             console_Data[i].Age -= console_this_tick - console_last_tick;
@@ -80,7 +85,7 @@ void CONSOLE_draw(void)
     for (SLONG i = 0; i < CONSOLE_MAX_MESSES; i++) {
         CONSOLE_Mess* cm = &CONSOLE_mess[i];
         if (cm->delay) {
-            FONT2D_DrawString(cm->mess, cm->x, cm->y, 0xffffff, 256, POLY_PAGE_FONT2D);
+            FONT2D_DrawString(cm->mess, cm->x, cm->y, 0xffffff, 256, POLY_PAGE_FONT2D_ALT);
             cm->delay -= console_this_tick - console_last_tick;
             if (cm->delay < 0) {
                 cm->delay = 0;
