@@ -544,6 +544,13 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 #define POLY_PAGE_GLYPH_PS (POLY_NUM_PAGES - 29)
 #define POLY_PAGE_GLYPH_DECK (POLY_NUM_PAGES - 30)
 
+// OpenChaos: alternate FONT2D page that samples the license-clean English
+// replacement atlas (TEXTURE_page_font2d_alt) instead of the game's font atlas.
+// Same render state as POLY_PAGE_FONT2D — only the bound texture differs. Used by
+// our always-English text so it survives a localisation that overwrites the game
+// font atlas. N=91 is the one free gap in the -N sequence (1..110).
+#define POLY_PAGE_FONT2D_ALT (POLY_NUM_PAGES - 91)
+
 // uc_orig: POLY_frame_init (fallen/DDEngine/Headers/poly.h)
 // Clears polygon buffers for a new frame. keep_shadow_page/keep_text_page = UC_TRUE to preserve
 // previously submitted shadow/text polygons across frames.

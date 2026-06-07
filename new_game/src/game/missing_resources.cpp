@@ -46,7 +46,9 @@ bool MISSING_RESOURCES_present(void)
 #define FONT_LAST_CH 0x7E // last glyph in the table (~)
 #define FONT_GLYPH_PX 8 // each glyph is an 8x8 cell
 
-static const unsigned char FONT8X8[FONT_LAST_CH - FONT_FIRST_CH + 1][FONT_GLYPH_PX] = {
+// Externally linked (declared in engine/graphics/text/font8x8.h) so the FONT2D
+// alternate-atlas generator can reuse this public-domain glyph data.
+extern const unsigned char g_font8x8_basic[FONT_LAST_CH - FONT_FIRST_CH + 1][FONT_GLYPH_PX] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // ' '
     { 0x18, 0x3C, 0x3C, 0x18, 0x18, 0x00, 0x18, 0x00 }, // '!'
     { 0x36, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // '"'
@@ -198,7 +200,7 @@ void draw_glyph(char ch, int x, int y)
 {
     if ((unsigned char)ch < FONT_FIRST_CH || (unsigned char)ch > FONT_LAST_CH)
         return;
-    const unsigned char* rows = FONT8X8[(unsigned char)ch - FONT_FIRST_CH];
+    const unsigned char* rows = g_font8x8_basic[(unsigned char)ch - FONT_FIRST_CH];
     for (int row = 0; row < FONT_GLYPH_PX; ++row) {
         const unsigned char bits = rows[row];
         for (int col = 0; col < FONT_GLYPH_PX; ++col) {

@@ -407,6 +407,11 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_page_glyph_ps = TEXTURE_NUM_STANDARD + 78;
     TEXTURE_page_glyph_deck = TEXTURE_NUM_STANDARD + 79;
 
+    // OpenChaos: license-clean English replacement atlas for FONT2D (free slot in
+    // the 80..109 range; TEXTURE_num_textures below covers it). Generated in RAM
+    // from font8x8 after FONT2D_init, not loaded from a game resource.
+    TEXTURE_page_font2d_alt = TEXTURE_NUM_STANDARD + 80;
+
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
 #define TEXTURE_EXTRA_DIR "server/textures/extras/"
@@ -453,6 +458,11 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_needed[TEXTURE_page_lastpanel] = 1;
 
     FONT2D_init(TEXTURE_page_font2d);
+    // Build the license-clean English replacement atlas right after FONT2D_init
+    // (it needs the just-scanned FONT2D_letter UVs). Used by our always-English
+    // text so it survives a localisation that overwrites multifontPC.tga.
+    FONT2D_build_alt_atlas(TEXTURE_page_font2d_alt);
+    TEXTURE_needed[TEXTURE_page_font2d_alt] = 1;
     ge_texture_load_tga(TEXTURE_page_face1, TEXTURE_EXTRA_DIR "face1.tga");
     ge_texture_load_tga(TEXTURE_page_face2, TEXTURE_EXTRA_DIR "face2.tga");
     LOADED_THIS_MANY_TEXTURES(5);

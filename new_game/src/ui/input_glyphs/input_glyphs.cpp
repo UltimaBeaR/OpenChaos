@@ -270,9 +270,10 @@ namespace {
 // Width of one drawn text character in virtual px at `text_scale`. We add the
 // +1px the font's own DrawLetter advance includes, so measured width matches
 // drawn width and a greedy wrap never overflows by accumulated rounding.
-float text_char_width(CBYTE ch, SLONG text_scale)
+float text_char_width(CBYTE ch, SLONG text_scale, bool use_alt = false)
 {
-    return (float)(((FONT2D_GetLetterWidth(ch) + 1) * text_scale) >> 8);
+    const SLONG w = use_alt ? FONT2D_GetLetterWidthAlt(ch) : FONT2D_GetLetterWidth(ch);
+    return (float)(((w + 1) * text_scale) >> 8);
 }
 
 // Round a virtual-coord Y to a whole VIRTUAL pixel. FONT2D takes an integer y
@@ -323,7 +324,7 @@ struct RichLine {
 // The wrap is a pure function of (str, wrap_width, text_scale) and the active
 // device's glyph advances, so it is deterministic — the same on every call.
 int build_lines(const char* str, float wrap_width, SLONG text_scale,
-    RichLine* out_lines, int max_lines)
+    RichLine* out_lines, int max_lines, bool use_alt = false)
 {
     if (!str)
         return 0;
@@ -383,7 +384,7 @@ int build_lines(const char* str, float wrap_width, SLONG text_scale,
                 while (*p && *p != ' ' && *p != '\n')
                     ++p;
                 for (const char* c = atom_begin; c < p; ++c)
-                    atom_w += text_char_width((CBYTE)*c, text_scale);
+                    atom_w += text_char_width((CBYTE)*c, text_scale, use_alt);
             }
         } else {
             while (*p && *p != ' ' && *p != '\n' && *p != '{')
@@ -419,7 +420,7 @@ int build_lines(const char* str, float wrap_width, SLONG text_scale,
 // same atom/spacing rules build_lines used, so positions match exactly. Does NOT
 // wrap (the line is known to fit).
 void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
-    unsigned long colour, SWORD fade, const TextMetrics& m)
+    unsigned long colour, SWORD fade, const TextMetrics& m, SLONG font_page)
 {
     float cursor_x = x;
     bool at_line_start = true;
@@ -469,7 +470,7 @@ void draw_one_line(const RichLine& line, float x, float y, SLONG text_scale,
             for (const char* c = atom_begin; c < p; ++c)
                 cursor_x += (float)FONT2D_DrawLetter(
                     (CBYTE)*c, (SLONG)cursor_x, (SLONG)y, colour, text_scale,
-                    POLY_PAGE_FONT2D, fade);
+                    font_page, fade);
         }
         at_line_start = false;
     }
@@ -490,12 +491,17 @@ float input_glyph_text_draw(const char* str, float x, float y, float wrap_width,
     const TextMetrics m = text_metrics(text_scale);
 
     RichLine lines[RICH_TEXT_MAX_LINES];
-    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES);
+    // Help text renders via the alt (English replacement) font — measure with its
+    // matching widths so wrap/advance line up with the alt draw.
+    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES, /*use_alt=*/true);
     const int stored = (total < RICH_TEXT_MAX_LINES) ? total : RICH_TEXT_MAX_LINES;
 
     float ly = round_virtual_y(y);
     for (int i = 0; i < stored; ++i) {
-        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m);
+        // Our help text is always English — render it through the license-clean
+        // replacement atlas so it survives a localisation that overwrites the
+        // game's font atlas (POLY_PAGE_FONT2D_ALT). See FONT2D_build_alt_atlas.
+        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m, POLY_PAGE_FONT2D_ALT);
         ly = round_virtual_y(ly + m.line_advance);
     }
 
@@ -511,7 +517,9 @@ SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
     const TextMetrics m = text_metrics(text_scale);
 
     RichLine lines[RICH_TEXT_MAX_LINES];
-    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES);
+    // Help text renders via the alt (English replacement) font — measure with its
+    // matching widths so wrap/advance line up with the alt draw.
+    const int total = build_lines(str, wrap_width, text_scale, lines, RICH_TEXT_MAX_LINES, /*use_alt=*/true);
     const int stored = (total < RICH_TEXT_MAX_LINES) ? total : RICH_TEXT_MAX_LINES;
 
     // How many WHOLE lines fit the window (floor — no partial line peeks at the
@@ -537,7 +545,10 @@ SLONG input_glyph_text_draw_scrolled(const char* str, float x, float y,
     const int last = (first + fit < stored) ? (first + fit) : stored;
     float ly = round_virtual_y(y);
     for (int i = first; i < last; ++i) {
-        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m);
+        // Our help text is always English — render it through the license-clean
+        // replacement atlas so it survives a localisation that overwrites the
+        // game's font atlas (POLY_PAGE_FONT2D_ALT). See FONT2D_build_alt_atlas.
+        draw_one_line(lines[i], x, ly, text_scale, colour, fade, m, POLY_PAGE_FONT2D_ALT);
         ly = round_virtual_y(ly + m.line_advance);
     }
 

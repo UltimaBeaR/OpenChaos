@@ -897,6 +897,22 @@ void POLY_init_render_states()
 
                 break;
 
+            // OpenChaos: identical to FONT2D but samples the license-clean English
+            // replacement atlas. Used by our always-English text so it renders
+            // correctly even when the game's font atlas was localised/overwritten.
+            case POLY_PAGE_FONT2D_ALT:
+                pa->RS.SetDepthEnabled(false);
+                SET_TEXTURE((TEXTURE_page_font2d_alt));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureMag(GETextureFilter::Linear);
+                pa->RS.SetTextureMin(GETextureFilter::Linear);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+
+                break;
+
             case POLY_PAGE_BIGBANG:
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                 pa->RS.SetDepthWrite(false);

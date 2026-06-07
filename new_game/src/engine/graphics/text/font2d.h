@@ -24,9 +24,23 @@ typedef struct
 // uc_orig: FONT2D_init (fallen/DDEngine/Headers/font2d.h)
 void FONT2D_init(SLONG font_id);
 
+// OpenChaos addition: builds a license-clean ENGLISH replacement atlas into the
+// given texture slot, with glyphs rasterised (from the embedded public-domain
+// font8x8) into the SAME per-letter cells FONT2D_init scanned. Lets our own
+// always-English text (drawn via FONT2D_DrawLetter with the alternate POLY page)
+// survive when the game's font atlas is overwritten by an unofficial
+// localisation. Must be called AFTER FONT2D_init (needs the scanned FONT2D_letter
+// UVs). See poly.h POLY_PAGE_FONT2D_ALT.
+void FONT2D_build_alt_atlas(SLONG alt_texture_slot);
+
 // Returns the pixel width of the given character.
 // uc_orig: FONT2D_GetLetterWidth (fallen/DDEngine/Headers/font2d.h)
 SLONG FONT2D_GetLetterWidth(CBYTE chr);
+
+// Pixel width of a character in the alternate (English replacement) font — used
+// to lay out text drawn through POLY_PAGE_FONT2D_ALT so advance/wrap match.
+// OpenChaos addition (see FONT2D_build_alt_atlas).
+SLONG FONT2D_GetLetterWidthAlt(CBYTE chr);
 
 // Draws a single character at (x,y). Returns pixel advance width.
 // uc_orig: FONT2D_DrawLetter (fallen/DDEngine/Headers/font2d.h)

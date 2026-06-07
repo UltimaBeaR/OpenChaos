@@ -1,9 +1,13 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font2d_globals.h"
+#include "engine/graphics/text/font8x8.h" // public-domain glyph source for the alt atlas
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h" // UI affine for pixel-snapping letters
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "assets/formats/tga.h"
+
+#include <cstring> // memset
 
 // 256×256 array of TGA pixels — the actual type behind the void* font2d_data global.
 // uc_orig: MyArrayType (fallen/DDEngine/Source/font2d.cpp)
@@ -74,6 +78,14 @@ extern float PANEL_GetNextDepthBodge(void);
 // The actual dereferenced type is TGA_Pixel[256][256].
 // uc_orig: FONT2D_data (fallen/DDEngine/Source/font2d.cpp)
 #define FONT2D_DATA ((FontAtlasPixels*)font2d_data)
+
+// OpenChaos: glyph table for the alternate (license-clean English) atlas. Unlike
+// FONT2D_letter[] (whose per-glyph widths come from the original game atlas, which
+// would stretch our source font by a different factor per letter — fat 'M', thin
+// 'i'), this table is filled by FONT2D_build_alt_atlas with the alt font's OWN
+// consistent layout/widths, so every glyph is rendered at the same scale.
+// Used only when drawing through POLY_PAGE_FONT2D_ALT.
+static FONT2D_Letter FONT2D_letter_alt[FONT2D_NUM_LETTERS];
 
 // Returns true if any pixel in the column at x within a 17-row window around y has alpha.
 // Used to detect glyph boundaries during atlas scanning.
@@ -202,6 +214,20 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
     return FONT2D_letter[letter].width + 1;
 }
 
+// Same as FONT2D_GetLetterWidth but for the alternate (English replacement) font,
+// so text drawn through POLY_PAGE_FONT2D_ALT can be laid out (wrap/advance) with
+// matching widths. Callers that render alt text must use this for measurement.
+// uc_orig: n/a (OpenChaos addition)
+SLONG FONT2D_GetLetterWidthAlt(CBYTE chr)
+{
+    if ((chr == ' ') || (chr == '\xac')) {
+        return 8;
+    }
+    SLONG letter = FONT2D_GetIndex(chr);
+    ASSERT(WITHIN(letter, 0, FONT2D_NUM_LETTERS - 1));
+    return FONT2D_letter_alt[letter].width + 1;
+}
+
 // uc_orig: FONT2D_DrawLetter (fallen/DDEngine/Headers/font2d.h)
 SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade)
 {
@@ -223,7 +249,11 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
     SLONG letter = FONT2D_GetIndex(chr);
     ASSERT(WITHIN(letter, 0, FONT2D_NUM_LETTERS - 1));
 
-    FONT2D_Letter* fl = &FONT2D_letter[letter];
+    // Alt page samples the license-clean English atlas and its own consistent-width
+    // glyph table; the normal page is untouched.
+    FONT2D_Letter* fl = (page == POLY_PAGE_FONT2D_ALT)
+        ? &FONT2D_letter_alt[letter]
+        : &FONT2D_letter[letter];
 
     SATURATE(fade, 0, 255);
 
@@ -522,4 +552,112 @@ void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scal
     quad[3] = &pp[3];
 
     POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
+}
+
+// Texture height the FONT2D draw quad samples for one glyph (v .. v + 18/256).
+// Mirrors the 18/256 V span used in FONT2D_DrawLetter / FONT2D_DrawStrikethrough.
+#define FONT2D_ALT_CELL_H 18
+// Atlas is 256x256 (matches FONT2D_init's load + the FONT2D_letter UV space).
+#define FONT2D_ALT_ATLAS_SIZE 256
+// Render the 8x8 source at the SAME integer scale on BOTH axes — exactly what the
+// "files not found" screen does (each source pixel -> a 2x2 block), which is the
+// look we want: every pixel square, no stretch. 2x both -> 16x16 glyphs, the right
+// size for the ~16px line. (A fractional or unequal scale is what caused the
+// earlier artefacts: 1.25x made some strokes 1px/some 2px; 1x-wide x 2x-tall made
+// letters narrow and '.' too tall.) The draw-time bilinear filter softens edges.
+#define FONT2D_ALT_SCALE 2
+// Glyph footprint in the atlas (source 8x8 x scale).
+#define FONT2D_ALT_RENDER_W (FONT8X8_GLYPH_PX * FONT2D_ALT_SCALE)
+#define FONT2D_ALT_GLYPH_H (FONT8X8_GLYPH_PX * FONT2D_ALT_SCALE)
+// Gap between glyph cells in the atlas so the draw-time linear filter can't bleed
+// a neighbouring glyph into one we sample.
+#define FONT2D_ALT_GAP_X 2
+// Columns of glyph cells per atlas row.
+#define FONT2D_ALT_COLS (FONT2D_ALT_ATLAS_SIZE / (FONT2D_ALT_RENDER_W + FONT2D_ALT_GAP_X))
+
+void FONT2D_build_alt_atlas(SLONG alt_texture_slot)
+{
+    const SLONG sz = FONT2D_ALT_ATLAS_SIZE;
+    // RGBA, fully transparent to start; glyph pixels are written opaque white so
+    // the existing ModulateAlpha blend tints them with the requested colour/alpha.
+    UBYTE* rgba = (UBYTE*)MemAlloc(sz * sz * 4);
+    ASSERT(rgba != NULL);
+    memset(rgba, 0, sz * sz * 4);
+    memset(FONT2D_letter_alt, 0, sizeof(FONT2D_letter_alt));
+
+    // Lay glyphs out in our OWN uniform grid: each 8x8 source is rendered to the
+    // same FONT2D_ALT_RENDER_W x FONT2D_ALT_CELL_H box (consistent scale -> uniform
+    // stroke weight). The drawn/advance WIDTH is then trimmed to the glyph's ink
+    // columns so spacing stays proportional (narrow 'i', wide 'M') without the
+    // weight distortion the original per-letter widths caused.
+    SLONG slot = 0;
+    for (SLONG ch = FONT8X8_FIRST_CH; ch <= FONT8X8_LAST_CH; ch++) {
+        if (ch == ' ')
+            continue;
+
+        SLONG idx = FONT2D_GetIndex((CBYTE)ch);
+        if (!WITHIN(idx, 0, FONT2D_NUM_LETTERS - 1))
+            continue;
+
+        const unsigned char* glyph = g_font8x8_basic[ch - FONT8X8_FIRST_CH];
+
+        // Source ink column range (so the advance width is proportional). 'lo' may
+        // stay 8 (empty glyph) -> drawn as a 1px-wide nothing, harmless.
+        SLONG lo = FONT8X8_GLYPH_PX, hi = -1;
+        for (SLONG c = 0; c < FONT8X8_GLYPH_PX; c++) {
+            for (SLONG r = 0; r < FONT8X8_GLYPH_PX; r++) {
+                if (glyph[r] & (1u << c)) {
+                    if (c < lo)
+                        lo = c;
+                    if (c > hi)
+                        hi = c;
+                    break;
+                }
+            }
+        }
+        if (hi < lo) {
+            lo = 0;
+            hi = 0;
+        }
+
+        const SLONG cell_x = (slot % FONT2D_ALT_COLS) * (FONT2D_ALT_RENDER_W + FONT2D_ALT_GAP_X);
+        const SLONG cell_y = (slot / FONT2D_ALT_COLS) * FONT2D_ALT_CELL_H;
+        slot++;
+
+        // Render at the SAME integer scale on both axes (each source pixel -> a
+        // FONT2D_ALT_SCALE x FONT2D_ALT_SCALE block), centred vertically in the
+        // 18px cell. Every pixel is square — no stretch in either direction.
+        const SLONG glyph_h = FONT2D_ALT_GLYPH_H;
+        const SLONG top_pad = (FONT2D_ALT_CELL_H - glyph_h) / 2;
+        for (SLONG py = 0; py < glyph_h; py++) {
+            const SLONG sy = py / FONT2D_ALT_SCALE;
+            const SLONG ty = cell_y + top_pad + py;
+            if (!WITHIN(ty, 0, sz - 1))
+                continue;
+            for (SLONG px = 0; px < FONT2D_ALT_RENDER_W; px++) {
+                const SLONG sx = px / FONT2D_ALT_SCALE;
+                if (!(glyph[sy] & (1u << sx)))
+                    continue;
+                const SLONG tx = cell_x + px;
+                if (!WITHIN(tx, 0, sz - 1))
+                    continue;
+                UBYTE* p = &rgba[(ty * sz + tx) * 4];
+                p[0] = p[1] = p[2] = p[3] = 255; // opaque white; tinted at draw
+            }
+        }
+
+        // Map source ink columns to atlas pixels (same 8 -> RENDER_W scale) and
+        // record the trimmed UV + advance width in the alt glyph table.
+        const SLONG ink_x = lo * FONT2D_ALT_RENDER_W / FONT8X8_GLYPH_PX;
+        SLONG ink_w = (hi - lo + 1) * FONT2D_ALT_RENDER_W / FONT8X8_GLYPH_PX;
+        if (ink_w < 1)
+            ink_w = 1;
+
+        FONT2D_letter_alt[idx].u = (float)(cell_x + ink_x) / (float)sz;
+        FONT2D_letter_alt[idx].v = (float)cell_y / (float)sz;
+        FONT2D_letter_alt[idx].width = ink_w;
+    }
+
+    ge_texture_load_rgba(alt_texture_slot, sz, sz, rgba, false);
+    MemFree(rgba);
 }

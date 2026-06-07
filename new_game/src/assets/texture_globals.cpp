@@ -92,6 +92,8 @@ SLONG TEXTURE_page_menuflame = 0;
 SLONG TEXTURE_page_barbwire = 0;
 // uc_orig: TEXTURE_page_font2d (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_font2d = 0;
+// OpenChaos addition: alternate (license-clean English) FONT2D atlas slot.
+SLONG TEXTURE_page_font2d_alt = 0;
 // uc_orig: TEXTURE_page_dustwave (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_dustwave = 0;
 // uc_orig: TEXTURE_page_flames3 (fallen/DDEngine/Source/texture.cpp)

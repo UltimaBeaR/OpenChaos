@@ -93,6 +93,9 @@ extern SLONG TEXTURE_page_menuflame;
 extern SLONG TEXTURE_page_barbwire;
 // uc_orig: TEXTURE_page_font2d (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_font2d;
+// OpenChaos: license-clean English replacement atlas for FONT2D (see texture.cpp
+// FONT2D_build_alt_atlas / POLY_PAGE_FONT2D_ALT).
+extern SLONG TEXTURE_page_font2d_alt;
 // uc_orig: TEXTURE_page_dustwave (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_dustwave;
 // uc_orig: TEXTURE_page_flames3 (fallen/DDEngine/Headers/texture.h)
