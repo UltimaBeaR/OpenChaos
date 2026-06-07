@@ -174,6 +174,16 @@ void parse_console(CBYTE* str)
 
     for (i = 0; cmd_list[i]; i++) {
         if (!oc_stricmp(cmd, cmd_list[i])) {
+            // Gate dev/debug commands behind bangunsnotgames (allow_debug_keys), the
+            // same way `win` already was — these names are short and could be typed
+            // by accident (`lose`, `fade`, `world`, `break`...). EXEMPT (run without
+            // debug mode): the mode toggle itself (`bangunsnotgames`, cases 10/24)
+            // and the player cheats (cases 26+ — bloodofkings / shieldofsteel /
+            // weneedguns / losttrack, intended for players without debug mode).
+            const bool console_cmd_exempt = (i == 10) || (i == 24) || (i >= 26);
+            if (!console_cmd_exempt && !allow_debug_keys) {
+                return;
+            }
             switch (i) {
             case 0: // cam -- nothing yet
 
@@ -264,8 +274,18 @@ void parse_console(CBYTE* str)
                     // immediately sees what debug mode unlocks (F1 to
                     // redisplay).
                     debug_help_notify_bangunsnotgames_on();
-                } else
+                } else {
                     CONSOLE_text_en("debug mode off");
+                    // Leaving debug mode: clear debug overlays whose DRAW path does
+                    // NOT re-check allow_debug_keys, so none can stay active in normal
+                    // play. g_farfacet_debug would otherwise leave the level black /
+                    // split-coloured (aeng + farfacet shader); the skeleton overlay
+                    // would keep drawing on every character. (Resetting the flags is
+                    // enough — the next render reads them and restores normal output.)
+                    g_farfacet_debug = 0;
+                    g_skin_debug_draw_skeleton = false;
+                    stealth_debug = 0;
+                }
 
                 dkeys_have_been_used = UC_TRUE;
 
@@ -279,8 +299,7 @@ void parse_console(CBYTE* str)
                 break;
 
             case 12: // win
-                if (allow_debug_keys)
-                    GAME_STATE = GS_LEVEL_WON;
+                GAME_STATE = GS_LEVEL_WON;
                 break;
 
             case 13: // lose
@@ -295,8 +314,7 @@ void parse_console(CBYTE* str)
                 //				CONSOLE_text_en("GAME LOADED");
                 break;
             case 16:
-                if (allow_debug_keys)
-                    reload_level();
+                reload_level();
                 break;
             case 17:
                 // in-game ambient colour editor
@@ -335,24 +353,20 @@ void parse_console(CBYTE* str)
                     fade_black = 0;
                 break;
             case 21:
-                if (allow_debug_keys) {
-                    darci->Genus.Person->PersonType = PERSON_ROPER;
-                    darci->Genus.Person->AnimType = ANIM_TYPE_ROPER;
-                    darci->Draw.Tweened->TheChunk = &game_chunk[ANIM_TYPE_ROPER];
-                    darci->Draw.Tweened->MeshID = 0;
-                    darci->Draw.Tweened->PersonID = 0;
-                    set_person_idle(darci);
-                }
+                darci->Genus.Person->PersonType = PERSON_ROPER;
+                darci->Genus.Person->AnimType = ANIM_TYPE_ROPER;
+                darci->Draw.Tweened->TheChunk = &game_chunk[ANIM_TYPE_ROPER];
+                darci->Draw.Tweened->MeshID = 0;
+                darci->Draw.Tweened->PersonID = 0;
+                set_person_idle(darci);
                 break;
             case 22:
-                if (allow_debug_keys) {
-                    darci->Genus.Person->PersonType = PERSON_DARCI;
-                    darci->Genus.Person->AnimType = ANIM_TYPE_DARCI;
-                    darci->Draw.Tweened->TheChunk = &game_chunk[ANIM_TYPE_DARCI];
-                    darci->Draw.Tweened->MeshID = 0;
-                    darci->Draw.Tweened->PersonID = 0;
-                    set_person_idle(darci);
-                }
+                darci->Genus.Person->PersonType = PERSON_DARCI;
+                darci->Genus.Person->AnimType = ANIM_TYPE_DARCI;
+                darci->Draw.Tweened->TheChunk = &game_chunk[ANIM_TYPE_DARCI];
+                darci->Draw.Tweened->MeshID = 0;
+                darci->Draw.Tweened->PersonID = 0;
+                set_person_idle(darci);
                 break;
             case 23:
                 extern int AENG_detail_crinkles;
