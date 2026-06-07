@@ -1,12 +1,13 @@
 # Localization-safe English font (alt FONT2D + alt MENUFONT atlases)
 
-Status: **functionally done** — help body (FONT2D path), help menu/list/title and
-the pause menu's "Help" item (MENUFONT path), with proper letter spacing on both.
-What remains is a **visual TUNING pass** (size, colour, transparency, effects,
-extra smoothing — make the fonts not jar and sit well next to the other fonts and
-the button glyphs) plus the optional F9 console. See "Pending / next slices".
-Tracked as a post-1.0 task in `new_game_planning/known_issues_and_bugs_post_1_0.md`
-(section "UI и опции").
+Status: help body (FONT2D path) + help menu/list/title + pause "Help" item
+(MENUFONT path), with proper letter spacing on both. The **MENU font visual is
+DONE** — weathered look (soft edges, halo glow, short frequent grunge streaks with
+carved holes) baked into the atlas and approved. Still pending: the FONT2D help-BODY
+visual (the user wants it SMALLER, plus colour/effects to match), inline-glyph
+re-tune, and the optional F9 console. See "Pending / next slices". Tracked as a
+post-1.0 task in `new_game_planning/known_issues_and_bugs_post_1_0.md` (section
+"UI и опции").
 
 ## The problem
 
@@ -206,15 +207,52 @@ lowercase in `FontInfo_alt`. So "Help" → "HELP", topic titles all-caps. (font8
 HAS lowercase; switching to real mixed case is a one-line change for later if we
 ever move the whole menu to the alt font.)
 
-### Sizing (24px, crisp 1:1) — separate from the FONT2D body
+### Sizing (taller than wide) — separate from the FONT2D body
 
 The menu fade-in draws glyphs at their NATIVE `FontInfo.width/height` (no scale
-multiply), so the stored size IS the on-screen size. `MENUFONT_ALT_SCALE = 3` →
-24px glyphs, rendered 1:1 into the atlas (crisp, no upscale). Only ~69 glyphs
-(no lowercase) fit a 256 atlas at 3×. This is a STARTING size — the menu glyph
-size is a tuning target. (Note: this is independent of the FONT2D help-BODY,
-which the user wants made SMALLER — that's the FONT2D `*_ALT` constants, a
-different atlas.)
+multiply), so the stored size IS the on-screen size (drawn 1:1 with the atlas). The
+game menu letters are taller than wide, so the glyph box is taller than wide:
+- **Width** = integer scale of the 8px source: `MENUFONT_ALT_SCALE_X = 3` → 24px
+  (crisp).
+- **Height** = an EXPLICIT pixel target `MENUFONT_ALT_GLYPH_H` (currently 29, tuned
+  against the game font), NOT an integer multiple of 8 — the 8 source rows are
+  resampled (nearest) into it. This lets the height be fine-tuned ~1px at a time
+  without touching the width OR the streak/grunge size (those are in atlas px, so
+  they stay put when the height changes). The weathering blur hides the slightly
+  uneven row heights from the non-integer ratio.
+
+The stored `width`/`height` also include the halo margin (see effects), so the drawn
+quad has room for the glow. (Independent of the FONT2D help-BODY, a different atlas.)
+
+### Weathered-look effects (baked into the atlas)
+
+The game menu font is soft, slightly glowing and grungy (irregular bright/dark
+horizontal streaks with carved-out holes). We approximate that on the hard font8x8
+mask, ALL at atlas-generation time — runtime stays colour/alpha/quad-size only. The
+builder works in a float intensity buffer then bakes the result into the RGBA:
+
+1. **Rasterise** the hard 0/1 glyph mask (offset by a blank `HALO_MARGIN` on every
+   side so the blur/halo has room).
+2. **Core** = small blur (`CORE_BLUR_R`) × `CORE_GAIN` → soft anti-aliased edges
+   with solid stroke cores. The gain sets letter-edge crispness (higher = sharper).
+3. **Halo** = a wider, fainter blur (`HALO_BLUR_R` × `HALO_STRENGTH`) → the glow /
+   "ареол" around the letter. The sharp letter = `max(core, halo)`.
+4. **Grunge** = two octaves of value noise stretched SHORT-in-X / THIN-in-Y → short,
+   frequent horizontal bands, as a per-pixel multiplier: positive noise BRIGHTENS
+   (toward white, `GRUNGE_BRIGHT`); negative noise CARVES toward a FULL hole once it
+   passes a threshold ramp (`CARVE_START`..`CARVE_FULL`) — real holes, not a dim wash.
+5. **Blur ONLY the grunge multiplier** (`STREAK_BLUR_R`, blended by `STREAK_BLUR_MIX`
+   so it can soften less than a whole pixel) → soft streak/hole edges WITHOUT
+   blurring the letter shape. Final intensity = sharp letter × soft grunge.
+
+**Determinism:** the grunge comes from a pure positional integer hash
+(`menufont_alt_hash01`) seeded by a hardcoded constant (`MENUFONT_ALT_GRUNGE_SEED`) —
+NOT `rand()` or any global RNG. The atlas is byte-identical every launch and fully
+independent of any randomness the game uses elsewhere. Never tie the seed to a
+runtime value.
+
+**Atlas size:** the halo margins push it past 256, so the menu atlas is **512×512**
+(~1 MB, generated once at startup then freed from RAM — only the GPU texture stays).
 
 ### Files touched (menu slice)
 
@@ -233,18 +271,37 @@ different atlas.)
   literal, so it goes through the alt atlas; the OTHER pause items are localized
   game strings (XLAT_str) and stay on the game atlas so their translation shows.
 
-### Menu-slice constants (menufont.cpp)
+### Menu-slice constants (menufont.cpp) — all TUNABLE, these are the approved values
 
 ```
-MENUFONT_ALT_ATLAS_SIZE = 256
-MENUFONT_ALT_SCALE      = 3     // 24px glyphs, drawn 1:1 (crisp). TUNE for menu size.
-MENUFONT_ALT_GLYPH_PX   = 24    // 8 * SCALE
-MENUFONT_ALT_GAP            = 2 // cell bleed-guard gap (bilinear)
-MENUFONT_ALT_SPACING_SRC_PX = 2 // inter-letter gap in SOURCE px, * SCALE -> 6 screen px
-MENUFONT_ALT_SPACE_SRC_PX   = 4 // space advance in SOURCE px, * SCALE -> 12 screen px
-MENUFONT_ALT_CELL_W = GLYPH_PX + SPACING_PX + GAP // 32 — includes the spacing strip
-MENUFONT_ALT_CELL_H = GLYPH_PX + GAP              // 26
+// Geometry
+MENUFONT_ALT_ATLAS_SIZE = 512   // halo margins don't fit 256
+MENUFONT_ALT_SCALE_X    = 3     // 8*X = 24px glyph width (integer-scaled, crisp)
+MENUFONT_ALT_GLYPH_H    = 29    // explicit px height (source resampled), taller than wide
+MENUFONT_ALT_GAP        = 2     // cell bleed-guard gap
+MENUFONT_ALT_HALO_MARGIN= 4     // blank ring around each glyph for the glow/blur
+MENUFONT_ALT_SPACING_SRC_PX = 2 // inter-letter gap in SOURCE px, * SCALE_X
+MENUFONT_ALT_SPACE_SRC_PX   = 4 // space advance in SOURCE px, * SCALE_X
+// Edge softening (the letter)
+MENUFONT_ALT_CORE_BLUR_R = 1
+MENUFONT_ALT_CORE_GAIN   = 2.9  // higher = sharper letter edges
+// Halo / glow
+MENUFONT_ALT_HALO_BLUR_R   = 3
+MENUFONT_ALT_HALO_STRENGTH = 0.75
+// Grunge streaks (bright) + carved holes (dark)
+MENUFONT_ALT_GRUNGE_BRIGHT = 0.9
+MENUFONT_ALT_CARVE_START   = 0.28   // |neg noise| below this: no hole
+MENUFONT_ALT_CARVE_FULL    = 0.60   // at/above this: full hole
+MENUFONT_ALT_STREAK_LEN1/THICK1 = 5.8 / 1.15   // broad octave (short, frequent)
+MENUFONT_ALT_STREAK_LEN2/THICK2 = 2.3 / 0.6    // fine octave
+MENUFONT_ALT_GRUNGE_W1/W2  = 0.65 / 0.35       // octave weights
+MENUFONT_ALT_STREAK_BLUR_R = 1, _MIX = 0.5     // soften streaks only, < 1px
+MENUFONT_ALT_GRUNGE_SEED   = 0x9E3779B9         // fixed pattern (determinism)
 ```
+
+The letter-spacing baked-strip note below still applies, but the cell is now
+`GLYPH_W + 2*HALO_MARGIN + SPACING_PX + GAP` wide × `GLYPH_H + 2*HALO_MARGIN + GAP`
+tall, and the UV box is extended by `HALO_MARGIN` on every side so the glow shows.
 
 ### Letter spacing — must be baked into the atlas, NOT added to the advance
 

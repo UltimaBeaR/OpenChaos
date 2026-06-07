@@ -6,6 +6,8 @@
 #include "engine/graphics/pipeline/poly.h"
 
 #include <cstring> // memcpy / memset
+#include <cmath> // floorf (alt-atlas grunge noise)
+#include <cstdint> // uint32_t (alt-atlas hash)
 
 // Forward declaration for PANEL_draw_quad (defined in old/panel.cpp,
 // will be migrated later; menufont only calls it from the fadein effect).
@@ -274,49 +276,170 @@ void MENUFONT_MergeLower()
 static CharData FontInfo_alt[256];
 static SLONG MENUFONT_alt_page = 0;
 
-// Atlas is 256x256 RGBA (a quarter MB, generated once). The UVs are fractional
-// so the atlas size is otherwise free.
-#define MENUFONT_ALT_ATLAS_SIZE 256
-// Integer scale of the 8x8 source on BOTH axes -> 24px glyphs, drawn 1:1 (crisp,
-// no stretch). Rendering only the non-lowercase printable set (lowercase maps to
-// uppercase) keeps ~69 glyphs, which fit a 256 atlas at this scale. The menu
-// glyph size is tuned later; this is the starting size.
-#define MENUFONT_ALT_SCALE 3
-// On-screen / atlas glyph box (source 8 * scale).
-#define MENUFONT_ALT_GLYPH_PX (FONT8X8_GLYPH_PX * MENUFONT_ALT_SCALE)
-// Gap between cells so the draw-time bilinear filter can't bleed a neighbour.
+// Atlas is 512x512 RGBA (1 MB, generated once at startup, then freed from RAM —
+// only the GPU texture stays). 512 (vs the FONT2D alt's 256) buys room for the
+// per-glyph halo margin the weathered look needs. UVs are fractional so the size
+// is otherwise free.
+#define MENUFONT_ALT_ATLAS_SIZE 512
+// Glyph box size in atlas px (= on-screen px, drawn 1:1). WIDTH is an integer scale
+// of the 8px source (crisp). HEIGHT is an explicit pixel target (NOT an integer
+// multiple of 8), so the letter height can be fine-tuned in small steps — the
+// source is resampled to it — without touching the width or the streak/grunge size
+// (those are in atlas px, so they stay put). The game menu letters are taller than
+// wide, so GLYPH_H > GLYPH_W.
+#define MENUFONT_ALT_SCALE_X 3
+#define MENUFONT_ALT_GLYPH_W (FONT8X8_GLYPH_PX * MENUFONT_ALT_SCALE_X) // 24
+#define MENUFONT_ALT_GLYPH_H 29 // shorter than the original 32 (was 8*4)
+// Bleed-guard gap between cells (the blur must not reach a neighbour's ink).
 #define MENUFONT_ALT_GAP 2
-// Inter-letter spacing, in SOURCE font pixels scaled with the glyph (so the gap
-// grows with the font like the game's menu font, which has wide letter spacing).
-//
-// IMPORTANT: the fade-in draw stretches each glyph's atlas region across its FULL
-// advance width AND advances by that same width, so spacing can't just be added to
-// the advance (that only stretches the glyph — no visible gap). Instead the spacing
-// is baked into the atlas as an EMPTY strip to the RIGHT of the ink, and the glyph's
-// UV covers ink + that empty strip. The ink then draws 1:1 (no stretch) followed by
-// an empty (additive-black = invisible) gap. This mirrors how the game's menu font
-// stores per-glyph padding inside each atlas cell.
+// Blank margin around each glyph (atlas px) the halo/blur bleeds into. The UV box
+// is extended by this on every side so the glow shows around the whole letter. Must
+// be >= MENUFONT_ALT_HALO_BLUR_R so the halo stays inside the cell.
+#define MENUFONT_ALT_HALO_MARGIN 4
+// Inter-letter spacing, in SOURCE font pixels scaled with the glyph (the game menu
+// font has wide letter spacing). Baked into the atlas as a blank strip to the RIGHT
+// of the ink (see the UV note in the builder): the fade-in draw stretches each
+// glyph's UV across its full advance, so a clean gap needs blank atlas pixels, not
+// just a bigger advance number.
 #define MENUFONT_ALT_SPACING_SRC_PX 2
-#define MENUFONT_ALT_SPACING_PX (MENUFONT_ALT_SPACING_SRC_PX * MENUFONT_ALT_SCALE)
-// Atlas cell footprint. Width includes the empty spacing strip; height only needs
-// the bleed-guard gap. COLS sized from the cell width.
-#define MENUFONT_ALT_CELL_W (MENUFONT_ALT_GLYPH_PX + MENUFONT_ALT_SPACING_PX + MENUFONT_ALT_GAP)
-#define MENUFONT_ALT_CELL_H (MENUFONT_ALT_GLYPH_PX + MENUFONT_ALT_GAP)
+#define MENUFONT_ALT_SPACING_PX (MENUFONT_ALT_SPACING_SRC_PX * MENUFONT_ALT_SCALE_X)
+// Atlas cell footprint: glyph box + halo margin on each side + right spacing strip,
+// plus the bleed-guard gap. COLS sized from the cell width.
+#define MENUFONT_ALT_CELL_W (MENUFONT_ALT_GLYPH_W + 2 * MENUFONT_ALT_HALO_MARGIN + MENUFONT_ALT_SPACING_PX + MENUFONT_ALT_GAP)
+#define MENUFONT_ALT_CELL_H (MENUFONT_ALT_GLYPH_H + 2 * MENUFONT_ALT_HALO_MARGIN + MENUFONT_ALT_GAP)
 #define MENUFONT_ALT_COLS (MENUFONT_ALT_ATLAS_SIZE / MENUFONT_ALT_CELL_W)
 // Advance width of the space character (source px, scaled). No glyph drawn.
 #define MENUFONT_ALT_SPACE_SRC_PX 4
-#define MENUFONT_ALT_SPACE_PX (MENUFONT_ALT_SPACE_SRC_PX * MENUFONT_ALT_SCALE)
+#define MENUFONT_ALT_SPACE_PX (MENUFONT_ALT_SPACE_SRC_PX * MENUFONT_ALT_SCALE_X)
+
+// --- Baked weathered-look effect tuning (all applied once, into the atlas) ---
+// The game menu font is soft, slightly glowing and grungy (irregular bright/dark
+// horizontal streaks). We approximate that on the hard font8x8 mask so our text
+// sits next to it. All of this is TUNABLE — these are starting values.
+//
+// Edge softening (anti-alias): small blur of the mask, then a gain so stroke cores
+// stay solid while edges feather.
+#define MENUFONT_ALT_CORE_BLUR_R 1
+#define MENUFONT_ALT_CORE_GAIN 2.9f // higher = sharper edges (less feather)
+// Halo / glow: a wider, fainter blur added around the letter (the "ареол").
+#define MENUFONT_ALT_HALO_BLUR_R 3
+#define MENUFONT_ALT_HALO_STRENGTH 0.75f
+// Grunge streaks: value-noise stretched wide-in-X / thin-in-Y makes broad horizontal
+// bands across the letters. Two octaves (broad + fine). Positive noise BRIGHTENS
+// (toward white); negative noise CARVES the letter away to full transparency (holes),
+// like the weathered original — see the carve ramp in the post-process loop.
+#define MENUFONT_ALT_GRUNGE_BRIGHT 0.9f // bright-streak strength
+// Dark streaks punch holes: negative-noise magnitude below CARVE_START does nothing,
+// at/above CARVE_FULL it cuts a FULL hole (v -> 0), ramping between. The window is
+// kept high so only strong bands carve, giving occasional holes (not a dim wash).
+#define MENUFONT_ALT_CARVE_START 0.28f
+#define MENUFONT_ALT_CARVE_FULL 0.60f
+#define MENUFONT_ALT_STREAK_LEN1 5.8f   // horizontal band length (px) — short & frequent
+#define MENUFONT_ALT_STREAK_THICK1 1.15f // vertical band thickness (px) — thin & frequent
+#define MENUFONT_ALT_STREAK_LEN2 2.3f   // finer octave
+#define MENUFONT_ALT_STREAK_THICK2 0.6f
+// Blur applied ONLY to the grunge (streak/hole) modulation — NOT the letter. The
+// streaks and carved holes get soft edges while the LETTER shape stays as crisp as
+// the core blur makes it. (Letter-edge softness is CORE_BLUR_R; this is independent.)
+// MIX blends the blurred grunge back toward the sharp grunge (0 = no streak blur,
+// 1 = full box-blur) — lets the streak softening go below one whole pixel.
+#define MENUFONT_ALT_STREAK_BLUR_R 1
+#define MENUFONT_ALT_STREAK_BLUR_MIX 0.5f
+#define MENUFONT_ALT_GRUNGE_W1 0.65f // broad-octave weight
+#define MENUFONT_ALT_GRUNGE_W2 0.35f // fine-octave weight
+// Hardcoded seed for the grunge pattern. The streaks come from a pure positional
+// hash (NOT rand()/any global RNG), so the atlas is already identical every launch
+// and fully independent of any randomness the game uses elsewhere. This seed is
+// mixed into that hash purely to PIN the pattern explicitly and to let us pick a
+// different fixed pattern by changing one number — never tie it to a runtime/random
+// value or the fonts would change between runs.
+#define MENUFONT_ALT_GRUNGE_SEED 0x9E3779B9u
+
+// Deterministic 32-bit integer hash -> [0,1]. Pure function of (xi, yi) + the fixed
+// seed, so the atlas is byte-identical every run (the streaks never re-randomise).
+static float menufont_alt_hash01(SLONG xi, SLONG yi)
+{
+    uint32_t n = (uint32_t)xi * 374761393u + (uint32_t)yi * 668265263u + MENUFONT_ALT_GRUNGE_SEED;
+    n = (n ^ (n >> 13)) * 1274126177u;
+    n = n ^ (n >> 16);
+    return (float)(n & 0x7fffffffu) / (float)0x7fffffffu;
+}
+
+// Smooth (smoothstep-interpolated) 2D value noise in [0,1] over the hash lattice.
+static float menufont_alt_vnoise(float x, float y)
+{
+    const SLONG xi = (SLONG)floorf(x);
+    const SLONG yi = (SLONG)floorf(y);
+    float fx = x - (float)xi;
+    float fy = y - (float)yi;
+    fx = fx * fx * (3.0f - 2.0f * fx);
+    fy = fy * fy * (3.0f - 2.0f * fy);
+    const float a = menufont_alt_hash01(xi, yi);
+    const float b = menufont_alt_hash01(xi + 1, yi);
+    const float c = menufont_alt_hash01(xi, yi + 1);
+    const float d = menufont_alt_hash01(xi + 1, yi + 1);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+}
+
+// Separable box blur of a float buffer (src -> dst), using tmp as scratch. Edges
+// clamp. radius<=0 copies through.
+static void menufont_alt_box_blur(const float* src, float* dst, float* tmp, SLONG sz, SLONG radius)
+{
+    if (radius <= 0) {
+        memcpy(dst, src, (size_t)sz * sz * sizeof(float));
+        return;
+    }
+    const float inv = 1.0f / (float)(2 * radius + 1);
+    for (SLONG y = 0; y < sz; y++) {
+        const float* srow = src + (size_t)y * sz;
+        float* trow = tmp + (size_t)y * sz;
+        for (SLONG x = 0; x < sz; x++) {
+            float acc = 0.0f;
+            for (SLONG k = -radius; k <= radius; k++) {
+                SLONG xx = x + k;
+                if (xx < 0)
+                    xx = 0;
+                else if (xx >= sz)
+                    xx = sz - 1;
+                acc += srow[xx];
+            }
+            trow[x] = acc * inv;
+        }
+    }
+    for (SLONG y = 0; y < sz; y++) {
+        for (SLONG x = 0; x < sz; x++) {
+            float acc = 0.0f;
+            for (SLONG k = -radius; k <= radius; k++) {
+                SLONG yy = y + k;
+                if (yy < 0)
+                    yy = 0;
+                else if (yy >= sz)
+                    yy = sz - 1;
+                acc += tmp[(size_t)yy * sz + x];
+            }
+            dst[(size_t)y * sz + x] = acc * inv;
+        }
+    }
+}
 
 void MENUFONT_build_alt_atlas(SLONG alt_texture_slot, SLONG alt_page)
 {
     MENUFONT_alt_page = alt_page;
 
     const SLONG sz = MENUFONT_ALT_ATLAS_SIZE;
-    // RGBA, cleared to black/transparent. Ink pixels are written opaque white; the
-    // additive NEWFONT_INVERSE-style page tints them by the vertex colour/brightness.
-    UBYTE* rgba = (UBYTE*)MemAlloc(sz * sz * 4);
-    ASSERT(rgba != NULL);
-    memset(rgba, 0, sz * sz * 4);
+    const size_t npix = (size_t)sz * sz;
+
+    // Work in a float intensity buffer (the hard glyph mask), then post-process it
+    // (blur -> halo -> grunge) into the final RGBA. The page is additive with a
+    // Modulate texture blend, so intensity lives in RGB (tinted by the vertex
+    // colour at draw time); alpha mirrors it for completeness.
+    float* mask = (float*)MemAlloc(npix * sizeof(float));
+    float* core = (float*)MemAlloc(npix * sizeof(float));
+    float* halo = (float*)MemAlloc(npix * sizeof(float));
+    float* tmp = (float*)MemAlloc(npix * sizeof(float));
+    UBYTE* rgba = (UBYTE*)MemAlloc(npix * 4);
+    ASSERT(mask && core && halo && tmp && rgba);
+    memset(mask, 0, npix * sizeof(float));
     memset(FontInfo_alt, 0, sizeof(FontInfo_alt));
 
     SLONG slot = 0;
@@ -351,43 +474,114 @@ void MENUFONT_build_alt_atlas(SLONG alt_texture_slot, SLONG alt_page)
         const SLONG cell_y = (slot / MENUFONT_ALT_COLS) * MENUFONT_ALT_CELL_H;
         slot++;
 
-        // Render at the same integer scale on both axes (each source pixel -> a
-        // MENUFONT_ALT_SCALE x MENUFONT_ALT_SCALE block). Every pixel square.
-        for (SLONG py = 0; py < MENUFONT_ALT_GLYPH_PX; py++) {
-            const SLONG sy = py / MENUFONT_ALT_SCALE;
-            const SLONG ty = cell_y + py;
+        // Glyph box origin inside the cell — offset by the halo margin so there is
+        // blank room on every side for the blur/halo to bleed into.
+        const SLONG gx0 = cell_x + MENUFONT_ALT_HALO_MARGIN;
+        const SLONG gy0 = cell_y + MENUFONT_ALT_HALO_MARGIN;
+
+        // Rasterise the hard mask. Width: source col -> SCALE_X px (crisp). Height:
+        // resample the 8 source rows into GLYPH_H px (nearest; the weathering blur
+        // hides the slightly uneven row heights from the non-integer ratio).
+        for (SLONG py = 0; py < MENUFONT_ALT_GLYPH_H; py++) {
+            const SLONG sy = py * FONT8X8_GLYPH_PX / MENUFONT_ALT_GLYPH_H;
+            const SLONG ty = gy0 + py;
             if (!WITHIN(ty, 0, sz - 1))
                 continue;
-            for (SLONG px = 0; px < MENUFONT_ALT_GLYPH_PX; px++) {
-                const SLONG sx = px / MENUFONT_ALT_SCALE;
+            for (SLONG px = 0; px < MENUFONT_ALT_GLYPH_W; px++) {
+                const SLONG sx = px / MENUFONT_ALT_SCALE_X;
                 if (!(glyph[sy] & (1u << sx)))
                     continue;
-                const SLONG tx = cell_x + px;
+                const SLONG tx = gx0 + px;
                 if (!WITHIN(tx, 0, sz - 1))
                     continue;
-                UBYTE* p = &rgba[(ty * sz + tx) * 4];
-                p[0] = p[1] = p[2] = p[3] = 255; // opaque white; tinted at draw
+                mask[(size_t)ty * sz + tx] = 1.0f;
             }
         }
 
-        // UV spans the ink columns PLUS the empty spacing strip to their right
-        // (which lies inside the cell and is never written, so it's blank). The
-        // draw stretches this whole span across cd.width = ink_w + spacing, and
-        // since the span IS ink_w + spacing wide the ink maps 1:1 (no stretch) and
-        // the blank strip becomes the inter-letter gap. ink_x+ink_w <= GLYPH_PX, so
-        // the strip stays within the cell and never reaches the next glyph.
-        const SLONG ink_x = lo * MENUFONT_ALT_SCALE;
-        const SLONG ink_w = (hi - lo + 1) * MENUFONT_ALT_SCALE;
+        // UV box = ink + halo margin on every side + the right-hand spacing strip.
+        // Horizontally it starts one halo margin LEFT of the ink (so the left glow
+        // shows) and ends one halo margin + the spacing PAST the ink; the drawn quad
+        // (cd.width/height) matches this box 1:1, so nothing stretches. ink_x+ink_w
+        // <= GLYPH_W keeps the box inside the cell (GAP guards the next glyph).
+        const SLONG ink_x = lo * MENUFONT_ALT_SCALE_X;
+        const SLONG ink_w = (hi - lo + 1) * MENUFONT_ALT_SCALE_X;
 
         CharData& cd = FontInfo_alt[ch];
-        cd.x = (float)(cell_x + ink_x) / (float)sz;
-        cd.y = (float)cell_y / (float)sz;
-        cd.ox = (float)(cell_x + ink_x + ink_w + MENUFONT_ALT_SPACING_PX) / (float)sz;
-        cd.oy = (float)(cell_y + MENUFONT_ALT_GLYPH_PX) / (float)sz;
-        cd.width = (UBYTE)(ink_w + MENUFONT_ALT_SPACING_PX);
-        cd.height = (UBYTE)MENUFONT_ALT_GLYPH_PX;
+        cd.x = (float)(gx0 + ink_x - MENUFONT_ALT_HALO_MARGIN) / (float)sz;
+        cd.y = (float)(gy0 - MENUFONT_ALT_HALO_MARGIN) / (float)sz;
+        cd.ox = (float)(gx0 + ink_x + ink_w + MENUFONT_ALT_HALO_MARGIN + MENUFONT_ALT_SPACING_PX) / (float)sz;
+        cd.oy = (float)(gy0 + MENUFONT_ALT_GLYPH_H + MENUFONT_ALT_HALO_MARGIN) / (float)sz;
+        cd.width = (UBYTE)(ink_w + 2 * MENUFONT_ALT_HALO_MARGIN + MENUFONT_ALT_SPACING_PX);
+        cd.height = (UBYTE)(MENUFONT_ALT_GLYPH_H + 2 * MENUFONT_ALT_HALO_MARGIN);
         cd.xofs = 0;
         cd.yofs = 0;
+    }
+
+    // Post-process into the final intensity. The LETTER stays crisp; only the grunge
+    // (streaks/holes) is blurred:
+    //  - core: small blur + gain   -> soft anti-aliased edges, solid stroke cores
+    //  - halo: wider faint blur     -> the glow/areola around letters
+    //  -> these two make the SHARP letter intensity (mask).
+    //  - grunge: short value-noise bands -> a per-pixel multiplier (core).
+    //  - blur ONLY that multiplier (halo) -> soft streak/hole edges.
+    //  - final = sharp letter * blurred grunge.
+    menufont_alt_box_blur(mask, core, tmp, sz, MENUFONT_ALT_CORE_BLUR_R);
+    menufont_alt_box_blur(mask, halo, tmp, sz, MENUFONT_ALT_HALO_BLUR_R);
+
+    // Sharp letter intensity (core over halo) -> mask (hard mask no longer needed).
+    for (size_t i = 0; i < npix; i++) {
+        float c = core[i] * MENUFONT_ALT_CORE_GAIN;
+        if (c > 1.0f)
+            c = 1.0f;
+        const float h = halo[i] * MENUFONT_ALT_HALO_STRENGTH;
+        mask[i] = (c > h) ? c : h;
+    }
+
+    // Grunge multiplier per pixel -> core (reused). >1 brightens, ->0 carves a hole.
+    for (SLONG y = 0; y < sz; y++) {
+        for (SLONG x = 0; x < sz; x++) {
+            const float g1 = menufont_alt_vnoise(
+                                 (float)x / MENUFONT_ALT_STREAK_LEN1,
+                                 (float)y / MENUFONT_ALT_STREAK_THICK1)
+                - 0.5f;
+            const float g2 = menufont_alt_vnoise(
+                                 (float)x / MENUFONT_ALT_STREAK_LEN2 + 100.0f,
+                                 (float)y / MENUFONT_ALT_STREAK_THICK2 + 50.0f)
+                - 0.5f;
+            const float g = 2.0f * (g1 * MENUFONT_ALT_GRUNGE_W1 + g2 * MENUFONT_ALT_GRUNGE_W2);
+            float m;
+            if (g > 0.0f) {
+                // Bright band: push toward white.
+                m = 1.0f + g * MENUFONT_ALT_GRUNGE_BRIGHT;
+            } else {
+                // Dark band: carve toward a full hole once strong enough.
+                float t = (-g - MENUFONT_ALT_CARVE_START)
+                    / (MENUFONT_ALT_CARVE_FULL - MENUFONT_ALT_CARVE_START);
+                if (t < 0.0f)
+                    t = 0.0f;
+                else if (t > 1.0f)
+                    t = 1.0f;
+                m = 1.0f - t;
+            }
+            core[(size_t)y * sz + x] = m;
+        }
+    }
+
+    // Blur ONLY the grunge multiplier (core -> halo), then blend back toward the
+    // sharp grunge by MIX (so the streak softening can be less than one pixel).
+    menufont_alt_box_blur(core, halo, tmp, sz, MENUFONT_ALT_STREAK_BLUR_R);
+    for (size_t i = 0; i < npix; i++) {
+        halo[i] = core[i] + (halo[i] - core[i]) * MENUFONT_ALT_STREAK_BLUR_MIX;
+    }
+
+    // Combine: crisp letter * soft grunge.
+    for (size_t i = 0; i < npix; i++) {
+        float v = mask[i] * halo[i];
+        if (v > 1.0f)
+            v = 1.0f;
+        const UBYTE b = (UBYTE)(v * 255.0f + 0.5f);
+        UBYTE* p = &rgba[i * 4];
+        p[0] = p[1] = p[2] = p[3] = b; // intensity; tinted by the vertex colour
     }
 
     // All-caps: copy each uppercase glyph entry into its lowercase slot (matches
@@ -402,6 +596,10 @@ void MENUFONT_build_alt_atlas(SLONG alt_texture_slot, SLONG alt_page)
 
     ge_texture_load_rgba(alt_texture_slot, sz, sz, rgba, false);
     MemFree(rgba);
+    MemFree(tmp);
+    MemFree(halo);
+    MemFree(core);
+    MemFree(mask);
 }
 
 MENUFONT_AltScope::MENUFONT_AltScope()
