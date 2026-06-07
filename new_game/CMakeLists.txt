@@ -286,6 +286,7 @@ set(SOURCES_NEW
     src/engine/platform/host.cpp
     src/engine/platform/host_globals.cpp
     src/engine/platform/crash_handler_win.cpp
+    src/engine/platform/single_instance.cpp
     src/engine/platform/sdl3_bridge.cpp
     ${DS_BRIDGE_SOURCES}
 

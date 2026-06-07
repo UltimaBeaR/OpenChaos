@@ -1,6 +1,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
 #include "engine/platform/crash_log_file.h" // OC_CRASH_LOG_FILE
+#include "engine/platform/single_instance.h" // single_instance_acquire
 #include "version.h" // OPENCHAOS_VERSION (window title)
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/oc_config.h"
@@ -481,6 +482,13 @@ void HOST_fatal_error(const char* reason)
 
 int HOST_run(int argc_in, char* argv_in[])
 {
+    // Single-instance guard: if another copy is already running, exit silently
+    // (no window, no message, no logs) before touching anything else. Returning
+    // here happens before atexit/crash handlers are registered, so a blocked
+    // second launch leaves no trace.
+    if (!single_instance_acquire())
+        return 0;
+
     // Timestamp at the very start of stderr (redirected to stderr.log by Makefile)
     {
         time_t raw = time(nullptr);
