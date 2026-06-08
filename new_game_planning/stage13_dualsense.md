@@ -1,89 +1,89 @@
-# DualSense доработки (часть Этапа 13)
+# DualSense improvements (part of Stage 13)
 
-Всё что касается DualSense-специфичных фич. Базовая поддержка сделана на Этапе 5.1 (LED, adaptive triggers для пистолета, вибрация). Здесь — что осталось.
+Everything concerning DualSense-specific features. Basic support was done in Stage 5.1 (LED, adaptive triggers for the pistol, vibration). Here — what's left.
 
-Техническая документация по API библиотеки → [stage5_1_dualsense.md](stage5_1_dualsense.md)
-Общие доработки геймпада (generic + shared) → [stage13_gamepad.md](stage13_gamepad.md)
+Technical documentation for the library API → [stage5_1_dualsense.md](stage5_1_dualsense.md)
+Generic gamepad improvements (generic + shared) → [stage13_gamepad.md](stage13_gamepad.md)
 
 ---
 
-## ~~Синхронизация adaptive trigger с выстрелом~~ ✅ Готово
-Реализовано через act-bit детект. См. [`known_issues_and_bugs_resolved.md`](../known_issues_and_bugs/known_issues_and_bugs_resolved.md) — "DualSense adaptive trigger: щелчок не совпадает с выстрелом".
+## ~~Sync the adaptive trigger with the shot~~ ✅ Done
+Implemented via act-bit detection. See [`known_issues_and_bugs_resolved.md`](../known_issues_and_bugs/known_issues_and_bugs_resolved.md) — "DualSense adaptive trigger: click doesn't coincide with the shot".
 
-## ~~Weapon-specific feedback (дробовик, автомат)~~ ✅ Готово (2026-04-19)
+## ~~Weapon-specific feedback (shotgun, machine gun)~~ ✅ Done (2026-04-19)
 
-Реализовано для всех трёх основных оружий. Фактическая конфигурация — в [`weapon_feel.cpp`](../new_game/src/engine/input/weapon_feel.cpp):
+Implemented for all three main weapons. The actual configuration — in [`weapon_feel.cpp`](../new_game/src/engine/input/weapon_feel.cpp):
 
-- **Пистолет:** Weapon25 клик зоны 4-6, strength 5. Envelope на slow-моторе DualSense.
-- **Автомат (AK47):** Machine (0x27) двуамплитудный пульс (start=4, end=9, ampA=7, ampB=3, freq=8, period=80) — непрерывный rattle на всём диапазоне. Envelope на slow-моторе DualSense + **на Xbox per-motor routing 75/100** (оба мотора, low чуть слабее для более "layered" ощущения).
-- **Дробовик (shotgun):** Weapon25 клик (зоны 3-6, strength 7 — тяжелее пистолетного) как baseline + **post-shot Vibration burst** — после выстрела на триггер включается `ds_trigger_vibration` (position=0, freq=60Hz) с линейно затухающей амплитудой 8→0 за 0.25с. Эмулирует отдачу в курке. Инфраструктура: `TriggerEffectType::Vibration` + поля `post_shot_vibration_*` в профиле + `weapon_feel_tick_trigger_vibration()` API + override в `gamepad_triggers_update`.
+- **Pistol:** Weapon25 click zones 4-6, strength 5. Envelope on the DualSense slow motor.
+- **Machine gun (AK47):** Machine (0x27) two-amplitude pulse (start=4, end=9, ampA=7, ampB=3, freq=8, period=80) — a continuous rattle across the whole range. Envelope on the DualSense slow motor + **on Xbox per-motor routing 75/100** (both motors, low slightly weaker for a more "layered" feel).
+- **Shotgun:** Weapon25 click (zones 3-6, strength 7 — heavier than the pistol) as a baseline + **post-shot Vibration burst** — after a shot, `ds_trigger_vibration` (position=0, freq=60Hz) is engaged on the trigger with a linearly decaying amplitude 8→0 over 0.25s. Emulates recoil in the trigger. Infrastructure: `TriggerEffectType::Vibration` + `post_shot_vibration_*` fields in the profile + `weapon_feel_tick_trigger_vibration()` API + override in `gamepad_triggers_update`.
 
-Подробности реализации — в архиве решённых багов.
+Implementation details — in the resolved-bugs archive.
 
-**Референс:** современные шутеры на PS5 (Returnal, Ratchet & Clank, COD MW2) — у каждого оружия свой профиль триггера и haptics.
+**Reference:** modern PS5 shooters (Returnal, Ratchet & Clank, COD MW2) — each weapon has its own trigger profile and haptics.
 
-## Тачпад (B5)
-- API: `EnableTouch()`, читать `TouchPosition`/`TouchRelative`/`TouchFingerCount`
-- Варианты: камера, карта, быстрый доступ к инвентарю
-- Требует дизайн-решения
+## Touchpad (B5)
+- API: `EnableTouch()`, read `TouchPosition`/`TouchRelative`/`TouchFingerCount`
+- Options: camera, map, quick inventory access
+- Requires a design decision
 
-## Гироскоп (B6)
-- API: `EnableMotionSensor()`, читать `Gyroscope`/`Accelerometer`
-- Применение: точное прицеливание в first-person mode
-- Требует калибровку и UI
+## Gyroscope (B6)
+- API: `EnableMotionSensor()`, read `Gyroscope`/`Accelerometer`
+- Use: precise aiming in first-person mode
+- Requires calibration and UI
 
 ## Audio-to-haptic (B7)
 
-Геймплейная идея: конвертация игровых звуков в тактильную обратную
-связь на контроллере.
+Gameplay idea: converting in-game sounds into tactile feedback
+on the controller.
 
-- Приоритетные эффекты: стрельба (отдача), взрывы, удары, двигатель
-  машины (ощущение оборотов), шаги по разным поверхностям.
-- Для 1.0 идём **упрощённым путём** — envelope реального WAV'а
-  модулирует обычные rumble-моторы (низкочастотный + высокочастотный).
-  Не требует нового пути в libDualsense.
-- **Полноценный audio-haptic** (PCM через HID 0x32 прямо в DSP
-  контроллера — как Astro's Playroom делает) — отдельная задача,
-  упирается в нереализованный transport в libDualsense. Когда он
-  появится, игровую сторону (какие звуки пускать, как их
-  нормализовывать) пилим здесь. См. план либы:
+- Priority effects: gunfire (recoil), explosions, hits, the car
+  engine (the feel of the revs), footsteps on different surfaces.
+- For 1.0 we take a **simplified path** — the envelope of the real WAV
+  modulates the regular rumble motors (low-frequency + high-frequency).
+  Doesn't require a new path in libDualsense.
+- **Full audio-haptic** (PCM via HID 0x32 straight into the controller's
+  DSP — the way Astro's Playroom does it) — a separate task,
+  blocked on the not-yet-implemented transport in libDualsense. When it
+  appears, we develop the game side (which sounds to play, how to
+  normalize them) here. See the library plan:
   [`own_dualsense_lib_plan.md §13.2`](../new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md).
 
-## Вибрация в видеовставках
-- `MDEC_vibra[]` — frame-synchronized vibration для intro/endgame
-- Требует интеграцию с видеоплеером
+## Vibration in video cutscenes
+- `MDEC_vibra[]` — frame-synchronized vibration for intro/endgame
+- Requires integration with the video player
 
-## Вибрация в меню
-- Тест-вибрация при включении опции в настройках
-- Опция пока не в UI
+## Vibration in menus
+- Test vibration when toggling the option in settings
+- The option is not in the UI yet
 
-## libDualsense follow-up (post-1.0 доработки либы)
+## libDualsense follow-up (post-1.0 library improvements)
 
-Весь список отложенных задач по самой libDualsense собран в плане
-библиотеки:
+The whole list of deferred tasks for libDualsense itself is collected in the
+library plan:
 [`new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md`](../new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md).
 
-Кратко что там:
-- **§12 Convenience layer** — ввести чёткое разделение на raw API
-  (internal, байты/HID units — текущее состояние) и convenience API
-  (public, проценты / normalized float / physical units / enum-ы).
-  Сейчас в либе **пёстрая картина**: часть полей уже convenience
-  (sticks/triggers/battery в `DS_InputState`, enum-ы для
-  MuteLed/AudioRoute), часть всё ещё raw (rumble 0..255, LED brightness
-  0..2 с перевёрнутой шкалой, IMU int16 без применённой калибровки,
-  audio volumes 0..255). Таблица inconsistency — в §12.1 плана.
-  Заодно переделка in-game тестера на friendly-форматы (сейчас
-  показывает сырые байты для диагностики wire-багов — это было
-  оправдано на этапе разработки, но мешает нормальному использованию).
-  См. §12.5 плана.
-- **§13.1 USB Audio Class PCM output** (обычный звук в спикер/jack
-  контроллера) — **не делаем, только документация**. Работает на USB
-  «сам собой» как обычная звуковая карта ОС, но нам не нужно.
-- **§13.2 Audio haptics через HID 0x32** — PCM-вибрация (как Astro's
-  Playroom: звук шагов по снегу «чувствуется» ладонями). Единственный
-  способ доставить пользовательский аудиоконтент на **BT-контроллер**
-  (USB Audio Class по BT недоступен). Требует reverse-engineer
-  Sony-undocumented wire format'а. Это то же самое что «Audio-to-haptic
-  (B7)» выше в этом же документе — там высокоуровневое описание фичи
-  со стороны игры, а в §13.2 плана либы — как именно реализовать
-  API внутри библиотеки. Связаны.
+In short, what's there:
+- **§12 Convenience layer** — introduce a clear split into a raw API
+  (internal, bytes/HID units — the current state) and a convenience API
+  (public, percentages / normalized float / physical units / enums).
+  Right now the library is a **mixed bag**: some fields are already convenience
+  (sticks/triggers/battery in `DS_InputState`, enums for
+  MuteLed/AudioRoute), some are still raw (rumble 0..255, LED brightness
+  0..2 with an inverted scale, IMU int16 without applied calibration,
+  audio volumes 0..255). The inconsistency table — in §12.1 of the plan.
+  Along the way, reworking the in-game tester into friendly formats (it currently
+  shows raw bytes for diagnosing wire bugs — this was justified during
+  the development stage, but gets in the way of normal use).
+  See §12.5 of the plan.
+- **§13.1 USB Audio Class PCM output** (regular sound to the controller's
+  speaker/jack) — **not doing it, documentation only**. Works over USB
+  "by itself" like a regular OS sound card, but we don't need it.
+- **§13.2 Audio haptics via HID 0x32** — PCM vibration (like Astro's
+  Playroom: the sound of footsteps in snow is "felt" in the palms). The only
+  way to deliver custom audio content to a **BT controller**
+  (USB Audio Class over BT is unavailable). Requires reverse-engineering
+  Sony's undocumented wire format. This is the same thing as "Audio-to-haptic
+  (B7)" above in this same document — there it's a high-level description of the feature
+  from the game's side, and in §13.2 of the library plan — exactly how to implement
+  the API inside the library. They're related.

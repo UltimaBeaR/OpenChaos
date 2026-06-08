@@ -1,11 +1,11 @@
-# Тестовая инфраструктура (часть Этапа 13)
+# Testing infrastructure (part of Stage 13)
 
-Бывший Этап 6. Делается ПЕРЕД архитектурным рефакторингом.
+Former Stage 6. Done BEFORE the architecture refactoring.
 
-**Цель:** создать страховочную сетку для архитектурного рефакторинга. Рефакторинг затронет весь код — нужен способ убедиться что после переноса на новую архитектуру ничего не сломалось.
+**Goal:** create a safety net for the architecture refactoring. The refactoring will touch all of the code — we need a way to make sure that nothing broke after porting to the new architecture.
 
-**Принцип:** снимаем "слепок" поведения игры ДО рефакторинга, после рефакторинга сравниваем — расхождения = баги.
+**Principle:** we take a "snapshot" of the game's behavior BEFORE the refactoring, and after the refactoring we compare — discrepancies = bugs.
 
-Подробно → [`testing.md`](testing.md)
+Details → [`testing.md`](testing.md)
 
-**Критерий:** тестовая инфраструктура реализована и покрывает основные подсистемы перед началом архитектурного рефакторинга.
+**Criterion:** the testing infrastructure is implemented and covers the main subsystems before the architecture refactoring begins.

@@ -1,212 +1,212 @@
-# Глобальные идеи (часть Этапа 13)
+# Global ideas (part of Stage 13)
 
-Идеи которые могут радикально поменять проект. Требуют серьёзной проработки и решения "а надо ли вообще". Скорее всего не будут реализованы.
+Ideas that could radically change the project. They require serious study and a decision on "is this even needed". Most likely will not be implemented.
 
 ---
 
-## Скелетные анимации персонажей
+## Skeletal character animations
 
-**Проблема:** Оригинальная система анимирует персонажей как набор отдельных «болванок» (по одной на каждую часть тела). На стыках конечностей видны щели — особенно заметно между головой и шеей. Артефакт полностью воспроизводится и в оригинальной игре, просто в высоком разрешении виден ещё сильнее.
+**Problem:** The original system animates characters as a set of separate "blobs" (one per body part). Gaps are visible at the joints between limbs — especially noticeable between the head and the neck. The artifact is fully reproduced in the original game too, it's just even more visible at high resolution.
 
-**Идея:** Перевести анимации персонажей на скелетную систему с skin weights.
+**Idea:** Move character animations to a skeletal system with skin weights.
 
-**Концепция workflow:**
+**Workflow concept:**
 
-1. **Подготовка ресурсов (один раз при первом запуске, или при изменении оригиналов):**
-   - Оригинальные ресурсы (`original_game/fallen/Debug/`) не трогаются
-   - `openchaos/` — папка рядом с exe для всех просчитанных производных ресурсов OpenChaos (не только скелеты — сюда же пойдут любые будущие pre-baked данные)
-   - При запуске игры: если в `openchaos/skeletal/` нет кешированных данных для персонажа, или timestamp оригинала изменился — запускаем процессинг
-   - Процессинг на каждого персонажа: оригинальная модель → T-поза → скелет → skin weights → сохраняем весь риг в `openchaos/skeletal/<character_name>/` (скелет, веса, T-поза меш)
-   - Последующие запуски: грузим готовые данные из `openchaos/` без пересчёта
+1. **Resource preparation (once on first launch, or when the originals change):**
+   - Original resources (`original_game/fallen/Debug/`) are not touched
+   - `openchaos/` — a folder next to the exe for all precomputed derived OpenChaos resources (not just skeletons — any future pre-baked data goes here too)
+   - On game launch: if there's no cached data in `openchaos/skeletal/` for a character, or the original's timestamp has changed — run the processing
+   - Per-character processing: original model → T-pose → skeleton → skin weights → save the entire rig in `openchaos/skeletal/<character_name>/` (skeleton, weights, T-pose mesh)
+   - Subsequent launches: load the ready data from `openchaos/` without recomputing
 
-2. **Программный автоматический риггинг:**
-   - T-поза реконструируется из набора кусков тела по их относительным позициям в нейтральном кадре
-   - Скелет генерируется автоматически по иерархии частей тела (уже есть в оригинале как `body_part_parent_numbers`)
-   - Skin weights считаются по близости вершины к «суставу» (Dual Quaternion Skinning или простой linear blend)
-   - Швы между частями тела закрываются blend-зоной
+2. **Programmatic automatic rigging:**
+   - The T-pose is reconstructed from the set of body-part pieces by their relative positions in the neutral frame
+   - The skeleton is generated automatically from the body-part hierarchy (already present in the original as `body_part_parent_numbers`)
+   - Skin weights are computed by the proximity of a vertex to a "joint" (Dual Quaternion Skinning or simple linear blend)
+   - Seams between body parts are closed with a blend zone
 
 3. **Runtime:**
-   - В игре вместо рисования каждой болванки отдельно — трансформируем единый скинированный меш через матрицы костей
-   - Матрицы костей вычисляются из тех же оригинальных данных анимации что и сейчас (формат не меняется)
+   - In-game, instead of drawing each blob separately — we transform a single skinned mesh through bone matrices
+   - Bone matrices are computed from the same original animation data as now (the format doesn't change)
 
-**Ожидаемый результат:** исчезают щели на стыках конечностей, нет «дырок в шее», персонажи выглядят как единое тело а не набор частей.
+**Expected result:** gaps at the limb joints disappear, no more "holes in the neck", characters look like a single body rather than a set of parts.
 
-**Сложности:**
-- Программный автоматический риг — нетривиальная задача; качество blend weights без ручного художника будет компромиссным
-- Нужно решить как обрабатывать части тела с собственными текстурами (каждая болванка сейчас рисуется со своей текстурой — merge в один draw call потребует текстурного атласа или multi-texture)
-- Совместимость с текущей системой анимации (figure.cpp / `ge_draw_multi_matrix`) — скорее всего потребует замены пути рендеринга персонажей
-
----
-
-## Полный ремейк с нуля на новом движке
-
-Когда модернизированная версия игры полностью готова и стабильна — можно рассмотреть полное
-переписывание: другой движок, новые модели, новая физика, новый код.
-
-Модернизированная кодовая база OpenChaos используется как **референс** — она значительно
-короче, чище и понятнее оригинала, что упрощает анализ логики при написании нового кода с нуля.
+**Difficulties:**
+- Programmatic automatic rigging is a non-trivial task; the quality of blend weights without a manual artist will be a compromise
+- We need to decide how to handle body parts with their own textures (each blob is currently drawn with its own texture — merging into one draw call will require a texture atlas or multi-texture)
+- Compatibility with the current animation system (figure.cpp / `ge_draw_multi_matrix`) — will most likely require replacing the character rendering path
 
 ---
 
-## Переход проекта на Zig
+## Full remake from scratch on a new engine
 
-Zig полностью совместим с C (импорт C хедеров, линковка с C библиотеками), но не с C++.
-Проверка кодовой базы показала что проект — по сути **C код скомпилированный как C++**:
+Once the modernized version of the game is fully ready and stable — we can consider a full
+rewrite: a different engine, new models, new physics, new code.
 
-- 27 классов в проекте, из них ~10 в D3D бэкенде (уйдут при удалении D3D)
-- Классы примитивные: struct с методами, нет виртуальных методов, нет полиморфизма
-- Единственное наследование: `PolyPoint2D : private GEVertexTL` (тривиальное)
-- Один шаблон: `DoMerge<T>` в polypage.cpp
-- Нет STL, нет исключений (`catch`/`throw`), нет RTTI (`dynamic_cast`)
-- `new`/`delete` почти не используются — вместо них `MemAlloc`/`MemFree`
-- 263 вхождения C++-паттернов в 98 файлах — но большинство это `new`/`delete` в D3D коде
-
-Переход на Zig реалистичен и может быть **постепенным**:
-
-1. **Обёртка и точка входа** — билд система на Zig (заменяет CMake), main entry point на Zig,
-   C++ часть (классы → struct + функции) переписывается первой т.к. Zig не импортирует C++
-2. **Включение C кода напрямую** — Zig умеет `@cImport` C хедеров, весь существующий C код
-   (а проект по сути C) продолжает работать без изменений, линкуется с Zig
-3. **Итеративная миграция** — постепенно переписываем C файлы на Zig, по одному модулю за раз,
-   остальные продолжают компилироваться как C через Zig build system
-
-Основная работа на первом шаге — убрать C++ (классы, единственный шаблон, `inline` в .cpp).
-После этого весь код — чистый C, и Zig может его импортировать напрямую.
-
-Все внешние библиотеки проекта — чистый C API, проблем с Zig нет:
-- **OpenGL** (opengl32) — Zig имеет встроенную поддержку, есть биндинги
-- **GLAD** (vendored, gl.c) — чистый C, `@cImport` напрямую
-- **SDL3** — C API, есть Zig биндинги, или `@cImport`
-- **OpenAL** — C API, `@cImport` напрямую
-
-**Риски:** Claude знает Zig хорошо (синтаксис, build system, @cImport, comptime, allocators,
-error handling), но не так глубоко как C/C++ — меньше опыта с edge cases, идиоматическими
-паттернами и отладкой нетривиальных проблем. Zig ещё не 1.0 (на 2026 год — 0.13+),
-API может ломаться между версиями. Сообщество и экосистема значительно меньше чем у C/C++.
-Перед началом миграции желательно провести тестовые задачи на Zig (hello world, @cImport C
-библиотеки, SDL+OpenGL окно) — чтобы оценить реальный уровень владения Claude этим языком
-и выявить проблемы до того как они заблокируют основной проект.
+The modernized OpenChaos codebase is used as a **reference** — it is significantly
+shorter, cleaner and more understandable than the original, which simplifies analyzing the logic when writing new code from scratch.
 
 ---
 
-## Перевод рендера на Vulkan (пробовать после 1.0)
+## Migrating the project to Zig
 
-**Статус:** идея для проработки после стабильного релиза 1.0. Сначала —
-диагностика и оптимизация архитектуры рендера на текущем OpenGL (см. ниже
-«предусловие»). Vulkan — только если профилировка подтвердит что упор
-именно туда.
+Zig is fully compatible with C (importing C headers, linking with C libraries), but not with C++.
+A check of the codebase showed that the project is essentially **C code compiled as C++**:
 
-### Что Vulkan НЕ даёт
+- 27 classes in the project, ~10 of them in the D3D backend (will go away when D3D is removed)
+- The classes are primitive: structs with methods, no virtual methods, no polymorphism
+- The only inheritance: `PolyPoint2D : private GEVertexTL` (trivial)
+- One template: `DoMerge<T>` in polypage.cpp
+- No STL, no exceptions (`catch`/`throw`), no RTTI (`dynamic_cast`)
+- `new`/`delete` are almost never used — `MemAlloc`/`MemFree` are used instead
+- 263 occurrences of C++ patterns across 98 files — but most of them are `new`/`delete` in D3D code
 
-Чистая GPU-растеризация **не ускоряется**: тот же GPU, те же шейдеры, те же
-пиксели. Геометрия этой игры — уровня 1999 года, для любого современного /
-интегрированного GPU и для Steam Deck сама сцена по GPU-нагрузке копеечная.
-Если упор в overdraw/fill — Vulkan не спасёт.
+Migrating to Zig is realistic and can be **gradual**:
 
-### Что Vulkan реально даёт
+1. **Wrapper and entry point** — Zig build system (replaces CMake), main entry point in Zig,
+   the C++ part (classes → struct + functions) is rewritten first since Zig doesn't import C++
+2. **Including C code directly** — Zig can `@cImport` C headers, all existing C code
+   (and the project is essentially C) keeps working unchanged, links with Zig
+3. **Iterative migration** — gradually rewrite C files in Zig, one module at a time,
+   the rest keep compiling as C through the Zig build system
 
-Выигрыш весь на стороне **CPU/драйвера**, и это ровно наш профиль боли:
+The main work in the first step is to remove C++ (classes, the single template, `inline` in .cpp).
+After that all code is pure C, and Zig can import it directly.
 
-- Резко меньше оверхед на draw-вызовы и смены стейта. Легаси-пайплайн игры
-  (poly pages, много мелких батчей, per-object стейт) генерит этого добра
-  много. Гипотеза: основная масса draw-вызовов — рендер 3D-моделей через
-  poly pages; перевод их на нормальные (по возможности персистентные)
-  вертексные буферы — главный рычаг, и он помогает на **любом** API.
-- Командные буферы можно собирать в несколько потоков.
-- Полный контроль над памятью/синхронизацией.
-- **Steam Deck / Linux:** Vulkan — родной API первого класса (драйвер RADV
-  отличный). OpenGL там гражданин второго сорта (через прослойку Zink/Mesa
-  GL, работает хуже). На главной целевой платформе Vulkan — архитектурно
-  правильный путь, не «чуть лучше».
+All of the project's external libraries have a pure C API, no problems with Zig:
+- **OpenGL** (opengl32) — Zig has built-in support, bindings exist
+- **GLAD** (vendored, gl.c) — pure C, `@cImport` directly
+- **SDL3** — C API, Zig bindings exist, or `@cImport`
+- **OpenAL** — C API, `@cImport` directly
 
-### Почему это дорого (в отличие от D3D6 → OpenGL)
+**Risks:** Claude knows Zig well (syntax, build system, @cImport, comptime, allocators,
+error handling), but not as deeply as C/C++ — less experience with edge cases, idiomatic
+patterns and debugging non-trivial problems. Zig is not yet 1.0 (as of 2026 — 0.13+),
+the API can break between versions. The community and ecosystem are significantly smaller than C/C++'s.
+Before starting the migration it's advisable to do test tasks in Zig (hello world, @cImport a C
+library, SDL+OpenGL window) — to gauge Claude's real level of proficiency with this language
+and surface problems before they block the main project.
 
-D3D6 и OpenGL — **одна парадигма**: immediate-style, неявная
-синхронизация, памятью управляет драйвер. D3D6→GL был во многом
-механический 1:1 маппинг, наша абстракция `ge_*` спроектирована под эту
-immediate-модель.
+---
 
-Vulkan — **другая парадигма целиком**: всё явное и на нас (аллокация и
-суб-аллокация GPU-памяти, residency, барьеры/семафоры/фенсы, предсобранные
-command buffers, pipeline state objects, descriptor sets, ручной
-swapchain). Драйвер больше не делает тяжёлую работу за нас. Это не
-«переписать вызовы», а переосмыслить модель; `ge_*` абстракцию пришлось бы
-перекраивать под explicit-модель. Отсюда «месяцы», а не «портирование
-вызовов».
+## Porting the renderer to Vulkan (try after 1.0)
 
-### Целевая архитектура (GPU-driven), куда есть смысл идти
+**Status:** an idea to work out after a stable 1.0 release. First —
+diagnostics and optimization of the render architecture on the current OpenGL (see the
+"precondition" below). Vulkan — only if profiling confirms that the bottleneck
+is really there.
 
-Мало шейдеров + большие общие вершинно-индексные буферы + сабмит пачки
-объектов **одной CPU-командой** (multi-draw-indirect / инстансинг).
-Группировка по pipeline-стейту на ~3 корзины: **opaque / transparent /
-UI**. Важные нюансы, чтобы не обмануться:
+### What Vulkan does NOT give
 
-- **«God-shader» — не главный рычаг.** Draw-вызовы дробятся в основном
-  из-за разных **текстур**, не шейдеров. Настоящий enabler — **bindless**
-  (все текстуры резидентны, шейдер индексирует по `textureId`, нет
-  per-draw bind). God-shader решает только шейдерную часть и сам не
-  бесплатен на GPU (распухает, ниже occupancy, может быть медленнее
-  специализированных) — на слабом железе/Deck важно. На практике —
-  небольшой набор + убершейдер со specialization constants, не «один
-  шейдер на всё».
-- **«За один вызов» = один indirect/instanced сабмит**, не один
-  треугольный список всего. GPU всё так же рисует каждый объект; выигрыш —
-  CPU/драйвер-оверхед на сабмит, GPU-fill тот же.
-- **Прозрачность требует сортировки back-to-front** → внутри одного
-  мегабатча свободно переупорядочить нельзя. Opaque можно (z-буфер),
-  transparent — нет. Ограничивает «всё в один вызов» для прозрачной
-  корзины.
-- **Геометрия разнородная:** статичный мир (батчится идеально) vs
-  скиннованные персонажи (апдейт вершин по кадрам) vs
-  спрайты/частицы/небо/тени. Текущие poly pages ещё и сортируют/группируют
-  по стейту — эту логику надо воспроизвести в новой системе батчинга,
-  иначе случайно наплодишь смен стейта.
-- **Бо́льшую часть CPU-выигрыша можно получить и на OpenGL** (текстурные
-  массивы/атлас, инстансинг, персистентные буферы,
-  `glMultiDrawElementsIndirect` в GL 4.3+). Рычаг — **архитектура
-  рендера**, не сам факт Vulkan. Vulkan лишь делает explicit/bindless путь
-  чистым и он родной на Deck.
+Pure GPU rasterization is **not sped up**: the same GPU, the same shaders, the same
+pixels. This game's geometry is 1999-era; for any modern /
+integrated GPU and for the Steam Deck the scene itself is pennies in terms of GPU load.
+If the bottleneck is overdraw/fill — Vulkan won't help.
 
-### Bindless и платформы
+### What Vulkan actually gives
 
-Текстуры этой игры копеечные — residency не проблема, все влезут в VRAM.
-Механизм:
+The win is all on the **CPU/driver** side, and that's exactly our pain profile:
 
-- **Vulkan:** один большой массив дескрипторов со всеми текстурами (фича
-  `descriptorIndexing`), биндится один раз, в шейдер — `textureId`. Чисто,
-  без ограничений по размеру/формату. Есть везде на современном железе и
-  на Deck.
-- **OpenGL:** либо `ARB_bindless_texture` (не на всех драйверах), либо
-  портируемый fallback — текстурные массивы/атлас + индекс слоя (требует
-  одинакового размера/формата на слой → возня с атласами).
-- **macOS на нативном GL — bindless НЕТ** (Apple застряла на OpenGL 4.1).
-  Это ограничение Apple-овского GL, **не железа**: сам Metal умеет
+- Drastically less overhead on draw calls and state changes. The game's legacy pipeline
+  (poly pages, many small batches, per-object state) generates a lot of this.
+  Hypothesis: the bulk of draw calls is rendering 3D models through
+  poly pages; moving them to proper (persistent where possible)
+  vertex buffers is the main lever, and it helps on **any** API.
+- Command buffers can be assembled across multiple threads.
+- Full control over memory/synchronization.
+- **Steam Deck / Linux:** Vulkan is a first-class native API (the RADV driver
+  is excellent). OpenGL there is a second-class citizen (via the Zink/Mesa
+  GL layer, works worse). On the main target platform Vulkan is the architecturally
+  correct path, not "a bit better".
+
+### Why this is expensive (unlike D3D6 → OpenGL)
+
+D3D6 and OpenGL are the **same paradigm**: immediate-style, implicit
+synchronization, memory managed by the driver. D3D6→GL was largely a
+mechanical 1:1 mapping, our `ge_*` abstraction was designed for that
+immediate model.
+
+Vulkan is a **completely different paradigm**: everything is explicit and on us (allocation and
+sub-allocation of GPU memory, residency, barriers/semaphores/fences, prebuilt
+command buffers, pipeline state objects, descriptor sets, manual
+swapchain). The driver no longer does the heavy lifting for us. This is not
+"rewrite the calls", but rethinking the model; the `ge_*` abstraction would have to be
+reworked for the explicit model. Hence "months", not "porting
+the calls".
+
+### Target architecture (GPU-driven), where it makes sense to head
+
+Few shaders + large shared vertex-index buffers + submitting a batch of
+objects with **one CPU command** (multi-draw-indirect / instancing).
+Grouping by pipeline state into ~3 buckets: **opaque / transparent /
+UI**. Important nuances so as not to fool ourselves:
+
+- **The "god-shader" is not the main lever.** Draw calls are fragmented mostly
+  because of different **textures**, not shaders. The real enabler is **bindless**
+  (all textures resident, the shader indexes by `textureId`, no
+  per-draw bind). The god-shader only solves the shader part and isn't itself
+  free on the GPU (it bloats, lower occupancy, can be slower than
+  specialized ones) — important on weak hardware/the Deck. In practice —
+  a small set + an ubershader with specialization constants, not "one
+  shader for everything".
+- **"In one call" = one indirect/instanced submit**, not one
+  triangle list of everything. The GPU still draws each object; the win is
+  the CPU/driver overhead on submit, the GPU fill is the same.
+- **Transparency requires back-to-front sorting** → within a single
+  megabatch you can't freely reorder. Opaque you can (z-buffer),
+  transparent — no. This limits "everything in one call" for the transparent
+  bucket.
+- **The geometry is heterogeneous:** the static world (batches perfectly) vs
+  skinned characters (per-frame vertex updates) vs
+  sprites/particles/sky/shadows. The current poly pages also sort/group
+  by state — this logic must be reproduced in the new batching system,
+  otherwise you'll accidentally spawn a bunch of state changes.
+- **Most of the CPU win can be had on OpenGL too** (texture
+  arrays/atlas, instancing, persistent buffers,
+  `glMultiDrawElementsIndirect` in GL 4.3+). The lever is the **render
+  architecture**, not the mere fact of Vulkan. Vulkan only makes the explicit/bindless path
+  clean, and it's native on the Deck.
+
+### Bindless and platforms
+
+This game's textures are pennies — residency is not a problem, they'll all fit in VRAM.
+Mechanism:
+
+- **Vulkan:** one large descriptor array with all textures (the
+  `descriptorIndexing` feature), bound once, into the shader — `textureId`. Clean,
+  with no size/format limits. Available everywhere on modern hardware and
+  on the Deck.
+- **OpenGL:** either `ARB_bindless_texture` (not on all drivers), or a
+  portable fallback — texture arrays/atlas + layer index (requires
+  the same size/format per layer → fiddling with atlases).
+- **macOS on native GL — NO bindless** (Apple is stuck on OpenGL 4.1).
+  This is a limitation of Apple's GL, **not the hardware**: Metal itself can do
   argument buffers (≈bindless).
 
-### MoltenVK решает проблему macOS
+### MoltenVK solves the macOS problem
 
-MoltenVK — прослойка Vulkan→Metal (нативного Vulkan на macOS нет, только
-Metal). Помогает **только в Vulkan-мире** (к GL отношения не имеет). В
-Vulkan-мире — решает: MoltenVK мапит Vulkan descriptor indexing на Metal
-argument buffers → **bindless на macOS работает**, atlas-костыль ради Mac
-не нужен. Стратегически это всё равно неизбежно: Apple задеприкейтила
-OpenGL, долгосрочно на Mac путь только Metal/MoltenVK. Итог: один
-Vulkan-бэкенд = Windows/Linux/Deck нативно + macOS через MoltenVK, bindless
-на всех. На OpenGL же Mac остаётся ущербным навсегда и упрётся в депрекейт.
+MoltenVK is a Vulkan→Metal layer (there is no native Vulkan on macOS, only
+Metal). It helps **only in the Vulkan world** (has nothing to do with GL). In
+the Vulkan world — it solves it: MoltenVK maps Vulkan descriptor indexing onto Metal
+argument buffers → **bindless works on macOS**, no atlas hack for the sake of Mac
+is needed. Strategically this is inevitable anyway: Apple has deprecated
+OpenGL, long-term the only path on Mac is Metal/MoltenVK. Bottom line: one
+Vulkan backend = Windows/Linux/Deck natively + macOS via MoltenVK, bindless
+everywhere. On OpenGL, Mac stays crippled forever and will hit deprecation.
 
-**Оговорки MoltenVK:** не 100% Vulkan (подмножество, часть
-расширений/фич не ложится на Metal), оверхед трансляции, ещё одна
-зависимость для поддержки/тестов.
+**MoltenVK caveats:** not 100% Vulkan (a subset, some
+extensions/features don't map onto Metal), translation overhead, one more
+dependency to support/test.
 
-### Предусловие (обязательно до принятия решения)
+### Precondition (mandatory before making the decision)
 
-Не лезть в Vulkan по гипотезе. Сначала — диагностика на текущем OpenGL:
-**счётчики draw-вызовов и смен стейта по подсистемам** (сцена / 3D-модели /
-HUD / debug-оверлеи). Подтвердить что CPU draw-call/драйвер-оверхед —
-**доминирующий** кост на целевом железе (Steam Deck, интегрированная
-графика), а не наша догадка. Затем — выжать что можно на OpenGL (перевод
-3D-моделей с poly pages на персистентные VBO, меньше смен стейта,
-текстурные массивы/инстансинг). Vulkan — только если после этого CPU-упор
-остаётся общим и значимым по всей игре. Перевод 3D-моделей на нормальные
-вертексные буферы — рычаг полезный сам по себе и предусловие, чтобы Vulkan
-вообще дал профит.
+Don't dive into Vulkan on a hypothesis. First — diagnostics on the current OpenGL:
+**draw-call and state-change counters per subsystem** (scene / 3D models /
+HUD / debug overlays). Confirm that CPU draw-call/driver overhead is the
+**dominant** cost on the target hardware (Steam Deck, integrated
+graphics), and not our guess. Then — squeeze out what we can on OpenGL (moving
+3D models from poly pages to persistent VBOs, fewer state changes,
+texture arrays/instancing). Vulkan — only if after this the CPU bottleneck
+remains general and significant across the whole game. Moving 3D models to proper
+vertex buffers is a lever useful in itself and a precondition for Vulkan
+to give any profit at all.

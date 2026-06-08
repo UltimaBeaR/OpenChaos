@@ -1,24 +1,24 @@
-# Дополнительный игровой контент (часть Этапа 13)
+# Additional game content (part of Stage 13)
 
-Создание новых карт, миссий и другого контента поверх оригинальной игры. Потребуется рабочий игровой редактор.
+Creating new maps, missions, and other content on top of the original game. Requires a working game editor.
 
 ---
 
-## Подготовка: редактор
+## Preparation: the editor
 
-- Восстановить редактор игры — код вырезан из new_game, придётся тащить из оригинала (`original_game/`)
-- Не обязательно 1:1 оригинальный редактор — возможно другой, более удобный
-- Референсы: PieroZ (рабочая версия, записывал видео), [Darci's Shield](https://github.com/SirSwish/Darcis-Shield)
+- Restore the game editor — the code was cut out of new_game, so it will have to be pulled from the original (`original_game/`)
+- Not necessarily a 1:1 copy of the original editor — possibly a different, more convenient one
+- References: PieroZ (working version, recorded videos), [Darci's Shield](https://github.com/SirSwish/Darcis-Shield)
 
-## Два подхода
+## Two approaches
 
-Не взаимоисключающие — можно использовать оба вместе. ИИ создаёт основу → человек дорабатывает в редакторе, или наоборот: человек делает layout → ИИ расставляет детали.
+Not mutually exclusive — both can be used together. The AI creates the foundation → a human refines it in the editor, or the other way around: a human makes the layout → the AI places the details.
 
-### Ручное создание
-- Классический workflow: человек работает в редакторе вручную
-- Отдельная система, свой UI, свои инструменты
+### Manual creation
+- Classic workflow: a human works in the editor by hand
+- Separate system, its own UI, its own tools
 
-### AI-система создания миссий
-- ИИ (Claude Code) создаёт контент через MCP-сервер, пользователь направляет
-- Принципиально другой воркфлоу, построенный вокруг ИИ
-- Подробно → [stage13_ai_level_design.md](stage13_ai_level_design.md)
+### AI mission-creation system
+- The AI (Claude Code) creates content via an MCP server, the user provides direction
+- A fundamentally different workflow, built around the AI
+- Details → [stage13_ai_level_design.md](stage13_ai_level_design.md)

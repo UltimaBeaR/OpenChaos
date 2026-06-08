@@ -1,181 +1,182 @@
-# Stage 13 — Полная чистка мёртвого кода
+# Stage 13 — Complete dead code cleanup
 
-**Текущий рабочий артефакт чистки:** [stage13_dead_code_report.md](stage13_dead_code_report.md) — список кандидатов из последнего прогона `--gc-sections`, разделённый на leaf vs transitive, прогресс по итерациям.
+**Current working cleanup artifact:** [stage13_dead_code_report.md](stage13_dead_code_report.md) — list of candidates from the latest `--gc-sections` run, split into leaf vs transitive, progress by iteration.
 
-## ⚠️ ЖЕЛЕЗОБЕТОННЫЕ ПРАВИЛА ЭТОЙ ЧИСТКИ
+## ⚠️ ROCK-SOLID RULES FOR THIS CLEANUP
 
-**Цель — НОЛЬ риска сломать что-либо.** Никаких "пока тут трогаем — давай ещё это поправим".
+**Goal — ZERO risk of breaking anything.** No "while we're in here — let's also fix this".
 
-1. **ТОЛЬКО удаление мёртвых символов.** Никаких рефакторингов, никаких "defensive fix"-ов, никаких изменений живого кода.
-2. **Линкер `--gc-sections` — единственный авторитет** что мёртво. Symbol должен быть в discarded list.
-3. **Каждый символ верифицировать grep'ом по `new_game/src/`** — нет ли реальных вызовов вне dead-set.
-4. **НЕ удалять вызовы функций** — даже если кажется что вызов это no-op. Это **изменение кода**, не удаление dead-кода.
-5. **НЕ дописывать early-return / nullptr-check / "защитные" проверки** в живые функции — это изменение кода.
-6. **Если нашёл баг по ходу чистки** — записать в `new_game_devlog/` отдельный файл и НЕ ЧИНИТЬ. Передать на отдельную итерацию (не в эту сессию).
-7. **Если есть сомнения** — пропустить символ. Лучше оставить мёртвый код чем сломать живое.
-8. **Списки символов брать ТОЛЬКО через `grep` из реальных файлов** (`/tmp/dc/all_dead_per_file.txt`, build log, llvm-nm output). **НЕ из памяти/контекста модели** — был кейс когда галлюцинированный список привёл к удалению живых функций (откатили). Каждый символ перед удалением — проверить grep'ом что он реально есть в файле и реально нет внешних callers.
-9. **НЕ использовать subagent'ов для удаления.** Риск передать им неправильный/галлюцинированный список выше чем риск сделать всё самому. Работать только в основном контексте, последовательно файл за файлом.
-10. **Между батчами регенерировать dead-list** если предыдущая регенерация старее одной сессии — после удалений linker discarded set меняется, старый список устаревает.
-11. **Discarded символ ≠ можно удалить определение**, если у него есть source-level callers — пусть даже сами callers тоже dead (тоже в discarded list). Non-gc-sections debug build сломается, потому что компилятор обрабатывает вызывающую функцию целиком. Единственное исключение: callers закомментированы в `/* */` или `#if 0` — тогда компилятор их не видит и удаление безопасно.
-12. **Перед удалением целого .cpp/.h файла** — проверять не только функции, но и **типы** (structs, typedefs, enums) из .h. Если какой-то тип из .h используется в живом коде другого файла — файл нельзя удалять, даже если все функции в discarded list. Пример: `IC_pack`/`IC_unpack` discarded, но `IC_Packet` (тип из того же .h) используется в `compression.cpp` → файл нельзя удалять.
+1. **ONLY removing dead symbols.** No refactorings, no "defensive fix"-es, no changes to live code.
+2. **The linker `--gc-sections` is the only authority** on what's dead. The symbol must be in the discarded list.
+3. **Verify every symbol with grep over `new_game/src/`** — make sure there are no real callers outside the dead-set.
+4. **Do NOT remove function calls** — even if the call looks like a no-op. That's a **code change**, not dead-code removal.
+5. **Do NOT add early-return / nullptr-check / "defensive" checks** to live functions — that's a code change.
+6. **If you find a bug during cleanup** — record it in a separate file under `new_game_devlog/` and DO NOT FIX IT. Hand it off to a separate iteration (not this session).
+7. **If in doubt** — skip the symbol. Better to leave dead code than break something live.
+8. **Take symbol lists ONLY via `grep` from real files** (`/tmp/dc/all_dead_per_file.txt`, build log, llvm-nm output). **NOT from the model's memory/context** — there was a case where a hallucinated list led to deleting live functions (reverted). Every symbol before deletion — verify with grep that it really exists in the file and really has no external callers.
+9. **Do NOT use subagents for deletion.** The risk of handing them a wrong/hallucinated list is higher than the risk of doing everything yourself. Work only in the main context, sequentially, file by file.
+10. **Regenerate the dead-list between batches** if the previous regeneration is older than one session — after deletions the linker discarded set changes, and the old list goes stale.
+11. **A discarded symbol ≠ you can delete its definition**, if it has source-level callers — even if those callers are themselves dead (also in the discarded list). The non-gc-sections debug build will break, because the compiler processes the calling function as a whole. The only exception: callers are commented out in `/* */` or `#if 0` — then the compiler doesn't see them and deletion is safe.
+12. **Before deleting a whole .cpp/.h file** — check not only functions, but also **types** (structs, typedefs, enums) from the .h. If some type from the .h is used in live code in another file — the file cannot be deleted, even if all functions are in the discarded list. Example: `IC_pack`/`IC_unpack` discarded, but `IC_Packet` (a type from the same .h) is used in `compression.cpp` → the file cannot be deleted.
 
-**Почему так строго:** опыт прошлых неудач показал что любое "пока трогаем" приводит к скрытым регрессиям. Цель — детерминированная безопасная чистка.
+**Why so strict:** experience from past failures showed that any "while we're in here" leads to hidden regressions. The goal is a deterministic, safe cleanup.
 
-## ⚠️ НЕ КОМБИНИРОВАТЬ DEAD_CODE_REPORT с ASan
+## ⚠️ DO NOT COMBINE DEAD_CODE_REPORT WITH ASan
 
-`DEAD_CODE_REPORT=ON` + `ENABLE_ASAN=ON` одновременно даёт **crash при старте игры** в `FileSetBasePath` (MSVC-специфичный конфликт между `-ffunction-sections -fdata-sections` и ASan-аннотацией merged string literals). Не воспроизводится по отдельности.
+`DEAD_CODE_REPORT=ON` + `ENABLE_ASAN=ON` at the same time gives a **crash at game startup** in `FileSetBasePath` (an MSVC-specific conflict between `-ffunction-sections -fdata-sections` and the ASan annotation of merged string literals). Does not reproduce separately.
 
 **Workflow:**
-- Анализ dead-кода: `CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON" make configure` (ASan OFF)
-- Verify сборки/runtime: `make configure` или `make configure-asan` (DEAD_CODE_REPORT OFF — `make/configure.mk` сбрасывает дефолтом)
-- НЕ включать оба флага одновременно
+- Dead-code analysis: `CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON" make configure` (ASan OFF)
+- Verify build/runtime: `make configure` or `make configure-asan` (DEAD_CODE_REPORT OFF — `make/configure.mk` resets it by default)
+- Do NOT enable both flags at once
 
-`make/configure.mk` уже защищает от случайного наследования `DEAD_CODE_REPORT=ON` при переключении на ASan через дефолты, но сам по себе пропускает явное `-DDEAD_CODE_REPORT=ON` в `CMAKE_EXTRA_ARGS`. Так что **не делай** `CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=ON" make configure`.
+`make/configure.mk` already protects against accidentally inheriting `DEAD_CODE_REPORT=ON` when switching to ASan via defaults, but on its own it lets an explicit `-DDEAD_CODE_REPORT=ON` in `CMAKE_EXTRA_ARGS` through. So **don't do** `CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=ON" make configure`.
 
-**Цель:** пройтись по всему проекту и удалить весь реально мёртвый
-код (функции без caller'ов, #if 0 блоки, закомментированные ветки,
-неиспользуемые константы/глобалы, dead API), который накопился после
-переноса 1:1 с pre-release оригинала + через итеративный рефакторинг.
+**Goal:** go through the whole project and remove all truly dead
+code (functions with no callers, #if 0 blocks, commented-out branches,
+unused constants/globals, dead API) that accumulated after the 1:1
+port from the pre-release original + through iterative refactoring.
 
-**Почему после 1.0, а не сейчас:** блокер 1.0 — это hang, стабильность,
-визуальные регрессии. Чистка мёртвого кода — cosmetic + maintenance, не
-влияет на игрока. Если трогать сейчас — риск случайно сломать что-то
-нестандартно подключённое (через callback'и, fn-pointers) ради чистоты
-диффа. Лучше отдельной волной с полноценным тестированием.
+**Why after 1.0, not now:** the 1.0 blocker is hangs, stability,
+visual regressions. Dead-code cleanup is cosmetic + maintenance, it
+doesn't affect the player. Touching it now risks accidentally breaking
+something wired up non-standardly (via callbacks, fn-pointers) for the
+sake of a clean diff. Better as a separate wave with full testing.
 
-**Почему важно:** кода много мёртвого осталось — Этап 2 срезал первую
-волну, но часть "условно мёртвого" (доступно только из #ifdef-веток,
-debug-путей, legacy API без caller'ов) прошла. Этап 4 перенёс это в
-новую структуру, усугубив. Накопившийся мусор:
-- Мешает читать код (не очевидно что используется что нет).
-- Даёт false positives в автоматических проверках (статический анализ,
+**Why it matters:** a lot of dead code remains — Stage 2 cut the first
+wave, but some "conditionally dead" code (reachable only from #ifdef
+branches, debug paths, legacy API without callers) slipped through.
+Stage 4 moved it into the new structure, making it worse. The
+accumulated junk:
+- Makes the code harder to read (it's not obvious what's used and what isn't).
+- Produces false positives in automated checks (static analysis,
   coverage).
-- Увеличивает объём при сборке, хоть линкер и выкидывает неиспользуемое
-  (влияет на debug build + compile time).
-- При ревью неясно «это оригинал оставил или надо тоже чистить».
+- Increases build size, even though the linker drops unused code
+  (affects debug build + compile time).
+- During review it's unclear "did the original leave this, or do we need to clean it too".
 
-## Обзор инструментов для C++
+## Overview of C++ tools
 
-### Автоматические
+### Automatic
 
 **1. `cppcheck --enable=unusedFunction`**
-- **+:** Лёгкий, быстрый, не требует build system, кроссплатформенный, ставится одной командой (`apt/brew/choco install cppcheck`).
-- **−:** Много false positives — не понимает virtual calls, function pointers, callback'и (`GEPreFlipCallback` и т.п. покажет как неиспользуемую), template-инстансы.
-- **Где хорош:** первый обзор объёма проблемы, группы очевидно dead-функций.
+- **+:** Lightweight, fast, doesn't require a build system, cross-platform, installs with one command (`apt/brew/choco install cppcheck`).
+- **−:** Many false positives — doesn't understand virtual calls, function pointers, callbacks (`GEPreFlipCallback` etc. will show as unused), template instances.
+- **Where it's good:** a first survey of the problem's scope, groups of obviously dead functions.
 
 **2. Linker `--gc-sections` + `--print-gc-sections`**
-- **+:** Самое точное определение "реально не достижимо от entry point". Требует minimal изменений build system (`-ffunction-sections -fdata-sections` + `-Wl,--gc-sections,--print-gc-sections`).
-- **−:** Не видит "условно мёртвое" (функции в `#ifdef DEBUG` которые сейчас не включены, но могут). На MSVC синтаксис другой (`/OPT:REF`), но у нас clang+lld. Функции зарегистрированные через callback setter как адрес могут ложно показаться мёртвыми.
-- **Где хорош:** финальный список для удаления — линкер гарантирует что эти символы в бинарь не попали.
+- **+:** The most precise determination of "truly unreachable from the entry point". Requires minimal build-system changes (`-ffunction-sections -fdata-sections` + `-Wl,--gc-sections,--print-gc-sections`).
+- **−:** Doesn't see "conditionally dead" code (functions in `#ifdef DEBUG` that aren't enabled now, but could be). On MSVC the syntax is different (`/OPT:REF`), but we use clang+lld. Functions registered via a callback setter as an address may falsely appear dead.
+- **Where it's good:** the final deletion list — the linker guarantees these symbols didn't make it into the binary.
 
 **3. Coverage (`llvm-cov` / `gcov`)**
-- **+:** Находит **реально недостижимое в gameplay** — не просто syntactically unreachable, а никогда не выполнялось. Даёт точные % покрытия.
-- **−:** Покрытие одного прохода никогда не полное. Редкие ветки (`if (rare_condition)`) покажутся мёртвыми без реального триггера. Требует instrumented build + runtime запуски по playthrough.
-- **Где хорош:** дополнительная верификация после проходов 1-2 — найти ветки которые чисто теоретически достижимы но игроки не заходят.
+- **+:** Finds **what's truly unreachable in gameplay** — not just syntactically unreachable, but never executed. Gives exact coverage %.
+- **−:** A single pass is never fully covering. Rare branches (`if (rare_condition)`) will appear dead without a real trigger. Requires an instrumented build + runtime playthroughs.
+- **Where it's good:** additional verification after passes 1-2 — to find branches that are theoretically reachable but players don't hit.
 
 **4. `clang-tidy`**
-- **+:** Интегрирован в clang, работает с `compile_commands.json`, имеет набор readability/misc checks.
-- **−:** Для целых функций работает слабо — заточен на локальные проблемы (unused variables, redundant declarations). `misc-unused-using-decls` полезен для include cleanup, но не для dead functions.
-- **Где хорош:** точечный инструмент для locals / using-deкларации / параметров.
+- **+:** Integrated into clang, works with `compile_commands.json`, has a set of readability/misc checks.
+- **−:** Weak for whole functions — tailored for local issues (unused variables, redundant declarations). `misc-unused-using-decls` is useful for include cleanup, but not for dead functions.
+- **Where it's good:** a targeted tool for locals / using-declarations / parameters.
 
 **5. `include-what-you-use` (IWYU)**
-- **+:** Отдельная задача — чистка неиспользуемых `#include`. Побочно ловит неиспользуемые типы.
-- **−:** Не про dead functions напрямую. Запускается долго на больших проектах.
-- **Где хорош:** параллельная задача headers cleanup — можно делать отдельной итерацией от function cleanup.
+- **+:** A separate task — cleaning up unused `#include`s. As a side effect catches unused types.
+- **−:** Not directly about dead functions. Runs slowly on large projects.
+- **Where it's good:** a parallel headers-cleanup task — can be done as a separate iteration from function cleanup.
 
 **6. LTO + dead-code elimination reports**
-- **+:** Встроено в компилятор, даёт оптимизации заодно.
-- **−:** Мало прямых репортов о dropped functions — это внутренняя оптимизация.
-- **Где хорош:** не как инструмент для чистки, а как side-effect оптимизированного билда.
+- **+:** Built into the compiler, gives optimizations as a bonus.
+- **−:** Few direct reports about dropped functions — it's an internal optimization.
+- **Where it's good:** not as a cleanup tool, but as a side-effect of an optimized build.
 
-### Полуручные
+### Semi-manual
 
 **7. `ctags` + `grep`**
-- **+:** Работает везде, просто и прозрачно.
-- **−:** Для 1000+ символов долго без скриптинга. Не понимает overloads, namespace'ов на уровне грепа.
-- **Где хорош:** точечная проверка конкретной функции ("кто её зовёт?").
+- **+:** Works everywhere, simple and transparent.
+- **−:** For 1000+ symbols it's slow without scripting. Doesn't understand overloads or namespaces at the grep level.
+- **Where it's good:** targeted checking of a specific function ("who calls it?").
 
 **8. IDE — clangd / VSCode / CLion "Find All References"**
-- **+:** Интерактивно, точно (на основе семантического индекса). Мгновенно видно все референсы.
-- **−:** Неавтоматизируется массово — один символ за раз.
-- **Где хорош:** ревью кандидатов из проходов 1-2 — быстро проверить каждый кандидат руками.
+- **+:** Interactive, precise (based on the semantic index). All references visible instantly.
+- **−:** Not mass-automatable — one symbol at a time.
+- **Where it's good:** reviewing candidates from passes 1-2 — quickly check each candidate by hand.
 
-### Чего нет в C++ по сравнению с другими языками
+### What C++ lacks compared to other languages
 
-- Нет прямого аналога Go `deadcode` / Rust `cargo-machete` — которые понимают семантику языка и дают точный ответ. В C++ мешают: ODR, templates (инстансы живут только после использования), макросы, preprocessor-условия, указатели на функции.
-- Инструменты типа `Infer` (Facebook) есть, но они в основном про bugs, не про dead code.
+- No direct analog of Go's `deadcode` / Rust's `cargo-machete` — which understand the language semantics and give a precise answer. In C++ these get in the way: ODR, templates (instances exist only after use), macros, preprocessor conditions, function pointers.
+- Tools like `Infer` (Facebook) exist, but they're mostly about bugs, not dead code.
 
-## Стратегия — три прохода
+## Strategy — three passes
 
-### Проход 1: автоматический первый срез (cppcheck)
+### Pass 1: automatic first cut (cppcheck)
 
 `cppcheck --enable=unusedFunction --project=compile_commands.json -j 8`
 
-Лёгкий, быстрый, находит функции без вызывающих. Много false positives
-— не понимает virtual calls, function pointers, callback'и
-(`GEPreFlipCallback`, `GEModeChangeCallback`, etc.), template-инстансы.
+Lightweight, fast, finds functions with no callers. Many false positives
+— doesn't understand virtual calls, function pointers, callbacks
+(`GEPreFlipCallback`, `GEModeChangeCallback`, etc.), template instances.
 
-**Выхлоп:** список функций-кандидатов (скорее всего сотни). **Не
-удалять автоматически** — glaзами смотреть каждую: действительно ли
-не используется? Есть ли вызов через указатель?
+**Output:** a list of candidate functions (likely hundreds). **Don't
+delete automatically** — eyeball each one: is it really
+unused? Is there a call through a pointer?
 
-Хорош для **ориентации** — понять объём, найти очевидные группы
-(например все `AENG_lock/unlock/flush` разом).
+Good for **orientation** — to understand the scope, find obvious groups
+(for example all `AENG_lock/unlock/flush` at once).
 
-### Проход 2: точный анализ через linker (`--gc-sections`)
+### Pass 2: precise analysis via linker (`--gc-sections`)
 
-Добавить в CMake target `check-dead-code`:
+Add a `check-dead-code` target to CMake:
 ```cmake
 -ffunction-sections -fdata-sections
 -Wl,--gc-sections,--print-gc-sections
 ```
 
-Линкер собирает бинарь с **только реально достижимым** от entry point.
-Вывод `--print-gc-sections` — список всего выкинутого. Это **строгий**
-dead code — никто не ссылается из финального .exe.
+The linker builds the binary with **only what's truly reachable** from the entry point.
+The `--print-gc-sections` output is a list of everything dropped. This is **strict**
+dead code — nothing references it from the final .exe.
 
-**Минусы / caveats:**
-- Не видит «условно мёртвое» (функции в #ifdef DEBUG ветках,
-  которые сейчас не включены но могут включиться).
-- На Windows (MSVC linker) синтаксис другой (`/OPT:REF`). У нас clang
-  + lld, так что `--gc-sections` работает.
-- Функции зарегистрированные через callback setter (`ge_set_*_callback`)
-  могут показаться мёртвыми если setter никогда не вызывается, но
-  сама функция зарегистрирована как адрес в коде — проверить вручную.
+**Cons / caveats:**
+- Doesn't see "conditionally dead" code (functions in #ifdef DEBUG
+  branches that aren't enabled now but could be).
+- On Windows (MSVC linker) the syntax is different (`/OPT:REF`). We use clang
+  + lld, so `--gc-sections` works.
+- Functions registered via a callback setter (`ge_set_*_callback`)
+  may appear dead if the setter is never called, but the
+  function itself is registered as an address in code — check by hand.
 
-### Проход 3: глаза
+### Pass 3: eyes
 
-Для каждого кандидата из проходов 1-2 подтвердить руками:
-- Grep по имени символа в `new_game/src/`.
-- Проверить `original_game/` — может быть есть контекст почему функция
-  нужна (например API для модификаций, плагинов, или её дальше будут
-  дорабатывать).
-- Проверить сигнатуры на предмет function pointer регистрации.
-- Если dead на 100% — удалить.
-- Если dead но публичный API (в `.h` без caller'ов в new_game) — **не
-  трогать без обсуждения**: возможно часть внешнего контракта.
+For each candidate from passes 1-2, confirm by hand:
+- Grep for the symbol name in `new_game/src/`.
+- Check `original_game/` — there may be context for why the function
+  is needed (for example an API for modifications, plugins, or it'll be
+  developed further later).
+- Check signatures for function-pointer registration.
+- If 100% dead — delete.
+- If dead but a public API (in `.h` with no callers in new_game) — **don't
+  touch without discussion**: it may be part of an external contract.
 
-## Очевидные кандидаты уже известные
+## Obvious candidates already known
 
-Засекли по ходу работы над другими этапами, можно удалять первыми:
+Spotted during work on other stages, can be deleted first:
 
-- `AENG_lock()` / `AENG_unlock()` / `AENG_flush()` — wrapper'ы над
-  `ge_lock_screen` / `ge_unlock_screen`, нет caller'ов в `new_game/src/`.
-  После Stage 4 cleanup hang-фикса будут удалены сами lock/unlock.
+- `AENG_lock()` / `AENG_unlock()` / `AENG_flush()` — wrappers over
+  `ge_lock_screen` / `ge_unlock_screen`, no callers in `new_game/src/`.
+  After the Stage 4 cleanup hang-fix the lock/unlock themselves will be deleted.
 - `AENG_draw_FPS()` — [aeng.cpp](../new_game/src/engine/graphics/pipeline/aeng.cpp)
-  определена, объявлена в header, но **никто не вызывает**. Сейчас
-  перезатёрта `AENG_draw_messages` и Shift+F12 оверлей через
-  `overlay.cpp` который использует `cheat==2` путь.
+  defined, declared in the header, but **nobody calls it**. Currently it's
+  superseded by `AENG_draw_messages` and the Shift+F12 overlay via
+  `overlay.cpp`, which uses the `cheat==2` path.
 - `ge_plot_pixel` / `ge_plot_formatted_pixel` / `ge_get_pixel` /
-  `ge_get_formatted_pixel` — после Stage 2 фикса hang'а остались без
-  caller'ов. Грохнуть вместе с `s_dummy_screen`, `ensure_screen_buffer`,
+  `ge_get_formatted_pixel` — after the Stage 2 hang fix they're left without
+  callers. Kill them along with `s_dummy_screen`, `ensure_screen_buffer`,
   `s_screen_locked` / `s_screen_w` / `s_screen_h` / `s_screen_pitch`.
-- `game_tick.cpp:428` `ge_get_pixel` — одинокий debug call, надо либо
-  переделать либо выпилить.
+- `game_tick.cpp:428` `ge_get_pixel` — a lone debug call, needs to be either
+  reworked or removed.
 
-(Это те что сейчас на слуху — при реальной чистке всплывёт в разы больше.)
+(These are the ones currently on our minds — during the real cleanup many more will surface.)
 
-## Инструменты и команды
+## Tools and commands
 
 ### cppcheck
 ```bash
@@ -189,62 +190,62 @@ cppcheck --enable=unusedFunction \
 
 ### clang + lld GC sections
 ```cmake
-# В new_game/CMakeLists.txt — отдельный target или флаг
+# In new_game/CMakeLists.txt — a separate target or flag
 target_compile_options(OpenChaos PRIVATE -ffunction-sections -fdata-sections)
 target_link_options(OpenChaos PRIVATE -Wl,--gc-sections,--print-gc-sections)
 ```
 
-### Coverage (дополнительно, опционально)
+### Coverage (additional, optional)
 ```bash
-# Собрать с coverage флагами
+# Build with coverage flags
 clang++ -fprofile-instr-generate -fcoverage-mapping ...
-# Поиграть, выйти
+# Play, exit
 # LLVM_PROFILE_FILE=coverage.profraw ./OpenChaos.exe
 llvm-profdata merge -sparse coverage.profraw -o coverage.profdata
 llvm-cov report OpenChaos.exe -instr-profile=coverage.profdata
 ```
 
-Показывает не просто "достижимое", а **реально выполнившееся** в
-одном-нескольких прохождениях. Полезно для финального прохода — если
-после 1-2 playthrough'ов функция ни разу не стрельнула, кандидат на
-удаление (с оговоркой что редкие пути могли не зайти).
+Shows not just "reachable", but **actually executed** in
+one or a few playthroughs. Useful for the final pass — if
+after 1-2 playthroughs a function never fired, it's a candidate for
+deletion (with the caveat that rare paths may not have been hit).
 
-## Что конкретно удалять, а что не трогать
+## What exactly to delete, and what not to touch
 
-**Удалять:**
-- Функции/классы/глобалы без caller'ов и без регистрации через
+**Delete:**
+- Functions/classes/globals with no callers and no registration via a
   function pointer.
-- Закомментированные блоки кода старше N месяцев (тогда прошёл ревью).
-- `#if 0 / #if false` ветки.
-- Dead enum members, unused `#define`'ы.
-- Дубликаты — одна и та же функция в двух местах, одна неиспользуется.
+- Commented-out code blocks older than N months (review has passed by then).
+- `#if 0 / #if false` branches.
+- Dead enum members, unused `#define`s.
+- Duplicates — the same function in two places, one unused.
 
-**Не трогать:**
-- Публичные API (в header'ах) даже если нет caller'ов — может быть
-  зарезервировано под плагины/моды/редактор уровней.
-- Функции-заглушки с комментарием "TODO" или "not implemented yet"
-  — это осознанный future-slot.
-- Стандартные коллбеки SDK/библиотек (`WinMain`, `dllmain`, etc.).
-- Assertion helpers и крэш-хендлеры (могут не иметь обычных caller'ов
-  но вызываются системой через signal/exception).
+**Don't touch:**
+- Public APIs (in headers) even if there are no callers — may be
+  reserved for plugins/mods/level editor.
+- Stub functions with a "TODO" or "not implemented yet" comment
+  — that's a deliberate future-slot.
+- Standard SDK/library callbacks (`WinMain`, `dllmain`, etc.).
+- Assertion helpers and crash handlers (may have no ordinary callers
+  but are invoked by the system via signal/exception).
 
-## Финальный проход — удаление пустых файлов (1 раз, в конце)
+## Final pass — deleting empty files (once, at the end)
 
-После того как все символы вычищены — пройтись по всем файлам проекта
-и удалить те, что стали фактически пустыми в результате чистки.
+After all symbols are cleaned up — go through all project files
+and delete those that became effectively empty as a result of the cleanup.
 
-**Критерий пустого файла:**
-- `.h`: только include-guard (`#ifndef / #define / #endif`) и возможно один `#include` — без объявлений
-- `.cpp`: только один `#include` самого себя (или вообще ничего) — без определений
+**Criterion for an empty file:**
+- `.h`: only the include guard (`#ifndef / #define / #endif`) and possibly one `#include` — no declarations
+- `.cpp`: only one `#include` of itself (or nothing at all) — no definitions
 
-**Что делать с пустым файлом:**
-1. Найти все `#include "файл"` в проекте → удалить эти строки
-2. Удалить файл из `CMakeLists.txt` (если `.cpp`)
-3. Удалить сам файл (`rm` или `git rm`)
+**What to do with an empty file:**
+1. Find all `#include "file"` across the project → remove those lines
+2. Remove the file from `CMakeLists.txt` (if `.cpp`)
+3. Delete the file itself (`rm` or `git rm`)
 
-**Команда для поиска кандидатов:**
+**Command to find candidates:**
 ```bash
-# Файлы с ≤1 значимой строкой (не пустые, не комменты, не include/guard)
+# Files with ≤1 meaningful line (not blank, not comments, not include/guard)
 for f in $(find new_game/src -name "*.cpp" -o -name "*.h"); do
   meaningful=$(grep -v "^[[:space:]]*$\|^[[:space:]]*//" "$f" | \
                grep -v "^#ifndef\|^#define [A-Z_]*_H\|^#endif\|^#pragma once\|^#include" | wc -l)
@@ -252,94 +253,94 @@ for f in $(find new_game/src -name "*.cpp" -o -name "*.h"); do
 done
 ```
 
-Это делается **один раз в конце** всей чистки, не на каждую итерацию.
-Пример из практики: `thug_globals.h/.cpp` — после удаления `thug_states[]`
-файлы стали пустыми и были удалены вместе с их `#include` в `thug.cpp`
-и строкой в `CMakeLists.txt`.
+This is done **once at the end** of the whole cleanup, not on every iteration.
+Example from practice: `thug_globals.h/.cpp` — after deleting `thug_states[]`
+the files became empty and were deleted along with their `#include` in `thug.cpp`
+and the line in `CMakeLists.txt`.
 
-## Финальный проход — чистка лишних #include (1 раз, в конце)
+## Final pass — cleaning up unneeded #includes (once, at the end)
 
-После удаления мёртвого кода многие `#include` в проекте становятся лишними —
-clangd помечает их как unused. Это нормально и ожидаемо: include-граф
-опирался на удалённые символы.
+After removing dead code, many `#include`s in the project become unneeded —
+clangd flags them as unused. This is normal and expected: the include graph
+relied on the deleted symbols.
 
-**Когда делать:** только после завершения всей dead-code чистки. Не делать
-в процессе итераций — слишком много движущихся частей, легко промахнуться.
+**When to do it:** only after the entire dead-code cleanup is finished. Don't do it
+during iterations — too many moving parts, easy to miss.
 
-**Как делать:**
-- Использовать clangd/clang-tidy `--checks=misc-include-cleaner` или
-  `iwyu` (include-what-you-use) как ориентир.
-- Либо пройтись по файлам вручную: clangd в IDE показывает unused includes.
-- Удалять только `#include`, помеченные как неиспользуемые clangd —
-  не угадывать «на глаз».
-- После удаления группы include-ов из файла — **сразу билдить** (инклюды
-  часто тянут транзитивные зависимости, и удаление «ненужного» может
-  скрыто убрать нужный транзитивный include).
+**How to do it:**
+- Use clangd/clang-tidy `--checks=misc-include-cleaner` or
+  `iwyu` (include-what-you-use) as a guide.
+- Or go through the files by hand: clangd in the IDE shows unused includes.
+- Delete only `#include`s flagged as unused by clangd —
+  don't guess "by eye".
+- After deleting a group of includes from a file — **build immediately** (includes
+  often pull in transitive dependencies, and removing an "unneeded" one may
+  silently remove a needed transitive include).
 
-**Объём:** по наблюдениям (2026-04-27) — почти каждый файл имеет хотя бы
-один лишний `#include`. Это будет полноценная отдельная итерация.
+**Scope:** by observation (2026-04-27) — almost every file has at least
+one unneeded `#include`. This will be a full separate iteration.
 
-## Критерий готовности Stage 13 dead-code
+## Stage 13 dead-code readiness criteria
 
-- cppcheck `unusedFunction` выхлоп < N (какое-то небольшое число
-  false positives) — остальное разобрано.
-- `--gc-sections` не выкидывает ничего существенного — бинарь
-  помещает только реально используемое.
-- Code coverage после 2-3 прохождений ≥ некоторого разумного порога
-  (90%? — определится по факту).
-- Ревью PR'ами с конкретными группами (сразу 500 файлов не
-  ревьюируется, лучше по подсистемам: graphics dead, audio dead, AI
+- cppcheck `unusedFunction` output < N (some small number of
+  false positives) — the rest dealt with.
+- `--gc-sections` drops nothing substantial — the binary
+  contains only what's actually used.
+- Code coverage after 2-3 playthroughs ≥ some reasonable threshold
+  (90%? — to be determined in practice).
+- Review via PRs with specific groups (500 files aren't
+  reviewed at once, better by subsystem: graphics dead, audio dead, AI
   dead, etc.).
-- **Финальный проход:** все фактически пустые файлы удалены (см. секцию выше).
+- **Final pass:** all effectively empty files deleted (see section above).
 
-## Примерный объём
+## Approximate scope
 
-Сложно оценить до первого прохода cppcheck, но навскидку по ощущениям
-от Stage 4 — сотни функций, десятки глобалов, десятки dead включений.
-Основные «hot zones»:
-- `engine/graphics/` — много legacy API (`AENG_*`, `POLY_*` слои).
-- `things/characters/person.cpp` — гигантский файл с кучей debug-веток.
-- `missions/eway.cpp` — EWAY scripting, много пре-релизных feature стабов.
-- `outro/` — часто дублирует engine API, может быть с устаревшими сигнатурами.
+Hard to estimate before the first cppcheck pass, but at a glance based on the feel
+from Stage 4 — hundreds of functions, dozens of globals, dozens of dead includes.
+Main "hot zones":
+- `engine/graphics/` — lots of legacy API (`AENG_*`, `POLY_*` layers).
+- `things/characters/person.cpp` — a giant file with a pile of debug branches.
+- `missions/eway.cpp` — EWAY scripting, lots of pre-release feature stubs.
+- `outro/` — often duplicates the engine API, may have outdated signatures.
 
-## Батч 39 (2026-04-27, сессия 23) — cppcheck unusedFunction pass
+## Batch 39 (2026-04-27, session 23) — cppcheck unusedFunction pass
 
-Проход cppcheck `--enable=unusedFunction` завершён. Удалены все реально dead статические функции.
+The cppcheck `--enable=unusedFunction` pass is complete. All truly dead static functions removed.
 
-**Ложные срабатывания (оставлены):**
-- `WAND_*`, `get_person_radius`, `which_side` — `extern`-объявления внутри тел функций, cppcheck не видит
-- `ds_set_haptic_volume`, `ds_set_lightbar_setup` — намеренные API-стабы (комментарий в bridge)
-- `GEFont`/`Font` typedef — используется в core.cpp для font_list инфраструктуры
+**False positives (left in place):**
+- `WAND_*`, `get_person_radius`, `which_side` — `extern` declarations inside function bodies, cppcheck doesn't see them
+- `ds_set_haptic_volume`, `ds_set_lightbar_setup` — intentional API stubs (comment in the bridge)
+- `GEFont`/`Font` typedef — used in core.cpp for the font_list infrastructure
 
-**Восстановлены после ошибочного удаления в этом же батче:**
-- `PUDDLE_create_do` — cppcheck ошибся, функция вызывается из `PUDDLE_precalculate`
+**Restored after erroneous deletion in this same batch:**
+- `PUDDLE_create_do` — cppcheck was wrong, the function is called from `PUDDLE_precalculate`
 - `COLLIDE_debug_fastnav`, `COLLIDE_find_seethrough_fences`, `COLLIDE_calc_fastnav_bits`,  
-  `collide_box_with_line`, `create_shockwave` — удалены в предыдущих батчах, есть внешние callers
+  `collide_box_with_line`, `create_shockwave` — deleted in previous batches, have external callers
 
-**Удалено в батче 39:**
+**Deleted in batch 39:**
 - `polypoint.h`: `SetUV(float&, float&)` declaration + out-of-line definition
 - `thing.h`: `set_thing_pos` inline
 - `outro_always.h`: `qdist3`
 - `outro_imp.cpp`: 5 write-path static functions
-- `save.cpp`: 6 static dead functions + их forward declarations
-- `eng_map.cpp`: 7 MAP_* static draw functions (~600 строк)
-- `core.cpp` (GE backend): `destroy_shaders`, `gl_blit_fullscreen_texture`, 11 стабов GE API
-- `game_graphics_engine.h`: соответствующие объявления
-- `anim_types.h`: `SetCMatrix`, 18 Set*/Get* аксессоров Anim, GetCharName/SetCharName/GetMultiObject/SetMultiObject Character
-- `collide.cpp`: `slide_around_box_lowstack` (~593 строк)
-- `collide.h`: соответствующее объявление
+- `save.cpp`: 6 static dead functions + their forward declarations
+- `eng_map.cpp`: 7 MAP_* static draw functions (~600 lines)
+- `core.cpp` (GE backend): `destroy_shaders`, `gl_blit_fullscreen_texture`, 11 GE API stubs
+- `game_graphics_engine.h`: the corresponding declarations
+- `anim_types.h`: `SetCMatrix`, 18 Set*/Get* Anim accessors, GetCharName/SetCharName/GetMultiObject/SetMultiObject Character
+- `collide.cpp`: `slide_around_box_lowstack` (~593 lines)
+- `collide.h`: the corresponding declaration
 - `input_debug.cpp`: `page_name`
 - `hook.cpp`: `HOOK_make_loop`
-- `inside2.cpp`: `find_stair_in` (~68 строк)
-- `puddle.cpp`: `PUDDLE_create` (и `PUDDLE_create_do` ошибочно — восстановлена)
+- `inside2.cpp`: `find_stair_in` (~68 lines)
+- `puddle.cpp`: `PUDDLE_create` (and `PUDDLE_create_do` erroneously — restored)
 - `puddle.h`: `PUDDLE_create` declaration
 - `font2d.cpp`: `FONT2D_DrawString_NoTrueType`
-- `env.cpp`: `ini_read_int_mem`, `ini_write_string` (~115 строк)
+- `env.cpp`: `ini_read_int_mem`, `ini_write_string` (~115 lines)
 - `sdl3_bridge.cpp/h`: `sdl3_set_mouse_grab`
 - `frontend.cpp`: `DriverEnumState` struct + `driver_enum_callback`
 - `pyro.cpp/h`: `IHaveToHaveSomePyroSprites`
-- `light.h`: `LIGHT_get_colour` inline (~38 строк)
-- `night.h`: `NIGHT_get_colour_and_fade` inline (~36 строк)
-- `pow.h`: `POW_create` inline + убраны ставшие ненужными includes
+- `light.h`: `LIGHT_get_colour` inline (~38 lines)
+- `night.h`: `NIGHT_get_colour_and_fade` inline (~36 lines)
+- `pow.h`: `POW_create` inline + removed includes that became unneeded
 
 **Build:** OK (make build-release, exit 0)

@@ -1,43 +1,43 @@
-# AI-система создания миссий (часть Этапа 13)
+# AI mission-creation system (part of Stage 13)
 
-Крупная фича. Суть: **ИИ (Claude Code) создаёт кастомные уровни и миссии**, пользователь выступает в роли креативного директора. ИИ делает ~95% работы — проектирует, строит, детализирует. Пользователь направляет на высоком уровне и принимает решения.
+A major feature. The idea: **the AI (Claude Code) creates custom levels and missions**, while the user acts as a creative director. The AI does ~95% of the work — it designs, builds, and adds detail. The user provides high-level direction and makes decisions.
 
-Это НЕ ручное создание миссий в редакторе — это принципиально другой воркфлоу, построенный вокруг ИИ.
+This is NOT manual mission creation in an editor — it is a fundamentally different workflow, built around the AI.
 
 ---
 
-## Подготовка
+## Preparation
 
-- **Восстановить редактор игры.** Код редактора вырезан из new_game, придётся тащить из оригинала (`original_game/`). Собрать отдельно, сделать рабочую версию. Не обязательно 1:1 оригинальный редактор — возможно другой, более удобный.
+- **Restore the game editor.** The editor code was cut out of new_game, so it will have to be pulled from the original (`original_game/`). Build it separately, make a working version. Not necessarily a 1:1 copy of the original editor — possibly a different, more convenient one.
 
-## MCP-сервер для редактора
+## MCP server for the editor
 
-- Весь функционал редактора обернуть в MCP-сервер. Claude Code через MCP взаимодействует с редактором: размещает объекты, задаёт параметры, управляет геометрией карты и т.д.
-- Специальный режим работы Claude Code: подключение к MCP редактора, скиллы и документация для level design.
-- ИИ работает с редактором программно — ни одно действие не требует ручного клика в UI.
+- Wrap all of the editor's functionality in an MCP server. Claude Code interacts with the editor through MCP: it places objects, sets parameters, controls the map geometry, and so on.
+- A special Claude Code working mode: connecting to the editor's MCP, with skills and documentation for level design.
+- The AI works with the editor programmatically — not a single action requires a manual click in the UI.
 
-## База знаний для level design
+## Knowledge base for level design
 
-Перед созданием миссий — сформировать полную базу знаний чтобы ИИ понимал что и как строить:
-- Анализ всех существующих уровней: структура, объекты, эффекты, скрипты
-- Каталог ассетов: как выглядят здания, объекты, персонажи, транспорт (визуальное понимание)
-- Визуальный справочник: маленькие превью-картинки каждого объекта/ассета (низкое разрешение — для быстрого и дешёвого восприятия через ИИ)
-- Типы объектов, доступные эффекты, возможности размещения
-- Паттерны геймдизайна: как устроены миссии, какие механики комбинируются, как строится сложность
-- Документация и скиллы для Claude Code по всему вышеперечисленному
+Before creating missions — build up a complete knowledge base so that the AI understands what to build and how:
+- Analysis of all existing levels: structure, objects, effects, scripts
+- Asset catalog: what the buildings, objects, characters, and vehicles look like (visual understanding)
+- Visual reference: small preview images of each object/asset (low resolution — for fast and cheap perception by the AI)
+- Object types, available effects, placement options
+- Game design patterns: how missions are built, which mechanics combine, how difficulty is structured
+- Documentation and skills for Claude Code covering all of the above
 
-## Workflow создания миссии
+## Mission-creation workflow
 
-Итеративный процесс. ИИ делает всю работу, пользователь направляет:
-1. **Сюжет и концепция** — ИИ предлагает варианты сюжета/сценария миссии, пользователь выбирает направление
-2. **Планировка уровня** — ИИ проектирует layout, предлагает варианты ("поставить здание сюда — будет красиво?"), пользователь одобряет/корректирует
-3. **Детализация** — ИИ прорабатывает детали: расстановка врагов, скрипты событий, эффекты, освещение
-4. **Показ результата** — ИИ показывает промежуточный результат пользователю (скриншоты, описание)
-5. **Итерация** — пользователь даёт фидбек общими мазками, ИИ дорабатывает
+An iterative process. The AI does all the work, the user provides direction:
+1. **Story and concept** — the AI proposes story/scenario options for the mission, the user picks a direction
+2. **Level layout** — the AI designs the layout, proposes options ("put a building here — will it look nice?"), the user approves/corrects
+3. **Detailing** — the AI works through the details: enemy placement, event scripts, effects, lighting
+4. **Showing the result** — the AI shows the intermediate result to the user (screenshots, description)
+5. **Iteration** — the user gives feedback in broad strokes, the AI refines
 
-Принцип: все сомнительные решения обсуждаются с пользователем. Высокоуровневое направление выбирает пользователь, детали и реализация — ИИ.
+Principle: all questionable decisions are discussed with the user. The user picks the high-level direction, the AI handles the details and implementation.
 
-## Референсы
+## References
 
-- **PieroZ** — рабочая версия оригинального редактора (записывал видео). Глянуть для понимания workflow.
-- **Darci's Shield** — [`github.com/SirSwish/Darcis-Shield`](https://github.com/SirSwish/Darcis-Shield) — отдельный редактор уровней для Urban Chaos.
+- **PieroZ** — a working version of the original editor (recorded videos). Worth a look to understand the workflow.
+- **Darci's Shield** — [`github.com/SirSwish/Darcis-Shield`](https://github.com/SirSwish/Darcis-Shield) — a separate level editor for Urban Chaos.

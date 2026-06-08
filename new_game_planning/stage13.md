@@ -1,187 +1,187 @@
-# Этап 13 — Доработки функционала
+# Stage 13 — Functionality improvements
 
-**Цель:** функциональные и визуальные улучшения поверх стабильной базы (после релиза 1.0).
+**Goal:** functional and visual improvements on top of a stable base (after the 1.0 release).
 
-Бывшие Этапы 6, 9, 10.
-
----
-
-## Возможные улучшения
-
-1. Увеличение размера карты: убрать хардкод на маленький размер, возможно стриминг карты
-2. Геймплейные улучшения: улучшенное управление авто, улучшенный захват цели, etc
-3. Визуальные улучшения (без замены ассетов): динамическое освещение и тени, постпроцессинг (bloom, color grading, SSAO), сглаживание, улучшенная фильтрация текстур, улучшенные частицы и эффекты, улучшенный туман/атмосфера
-4. [Тестовая инфраструктура](stage13_testing_infrastructure.md)
-5. [Архитектурный рефакторинг](stage13_architecture_refactoring.md)
-6. [Полная чистка мёртвого кода](stage13_dead_code_cleanup.md) — cppcheck + линкерный `--gc-sections`, вычистить всё что осталось от оригинала и итеративного рефакторинга
-7. [Геймпад](stage13_gamepad.md) (generic + общее)
-8. [DualSense](stage13_dualsense.md) (DualSense-специфика)
-9. [Дополнительный контент](stage13_custom_content.md) (новые карты/миссии, редактор)
-10. [AI-система создания миссий](stage13_ai_level_design.md) (MCP + ИИ-воркфлоу)
-11. [Глобальные идеи](stage13_future_ideas.md) — радикальные изменения, требуют решения "а надо ли"
-12. Любые другие улучшения и доработки, в том числе предложенные сообществом
+Former Stages 6, 9, 10.
 
 ---
 
-## Улучшения управления
+## Possible improvements
 
-Большая переработка управления (D-pad → стик, кувырок vs прыжок в сторону, WASD-дефолты, mouse camera control, Tank/Stick-like switch в опциях, функциональная валидация клавы↔геймпада) **сделана в 1.0** — см. `known_issues_and_bugs_resolved.md` запись «Переработка управления». Здесь — то что в 1.0 НЕ вошло:
+1. Increasing the map size: remove the hardcoded small size, possibly map streaming
+2. Gameplay improvements: improved car handling, improved target locking, etc.
+3. Visual improvements (without replacing assets): dynamic lighting and shadows, post-processing (bloom, color grading, SSAO), anti-aliasing, improved texture filtering, improved particles and effects, improved fog/atmosphere
+4. [Testing infrastructure](stage13_testing_infrastructure.md)
+5. [Architecture refactoring](stage13_architecture_refactoring.md)
+6. [Full dead-code cleanup](stage13_dead_code_cleanup.md) — cppcheck + linker `--gc-sections`, clean out everything left over from the original and the iterative refactoring
+7. [Gamepad](stage13_gamepad.md) (generic + common)
+8. [DualSense](stage13_dualsense.md) (DualSense-specific)
+9. [Additional content](stage13_custom_content.md) (new maps/missions, editor)
+10. [AI mission-creation system](stage13_ai_level_design.md) (MCP + AI workflow)
+11. [Global ideas](stage13_future_ideas.md) — radical changes, require a "do we even need this" decision
+12. Any other improvements and refinements, including ones suggested by the community
 
-- **Mouse shooting / aiming** — опциональный режим при игре с клавиатуры: помимо поворота камеры мышью (это в 1.0) — также прицеливание/стрельба мышью. Стандартный WASD+мышь как в современных 3rd person action. → дублируется в [known_issues_and_bugs.md "Управление"](../known_issues_and_bugs/known_issues_and_bugs.md).
-- **Steam Input API** — единый API для всех контроллеров через Steam. Даёт ремаппинг кнопок, глифы. Неизвестно, доступен ли для non-Steam games — требуется исследование. → дублируется в [known_issues_and_bugs.md "Управление"](../known_issues_and_bugs/known_issues_and_bugs.md).
+---
 
-## Подсказки управления и внутриигровая справка
+## Control improvements
 
-Игра неочевидна в управлении — многие действия (перекаты, удары назад, комбо, паркур-приёмы) сложно обнаружить самостоятельно.
+A major rework of the controls (D-pad → stick, roll vs. side jump, WASD defaults, mouse camera control, Tank/Stick-like switch in the options, functional keyboard↔gamepad validation) was **done in 1.0** — see the `known_issues_and_bugs_resolved.md` entry "Controls rework". Here is what did NOT make it into 1.0:
 
-- **Контекстные подсказки кнопок** — расширить идею PS1-подсказок (пунктиры прицела NPC, см. `GAMEPLAY_CHANGES.md`) на всю игру: показывать подсказки везде где уместно — в меню, в бою, при взаимодействии с объектами, при обучении. Иконки кнопок зависят от устройства: DualSense → PlayStation иконки (✕, △, ○, □), Xbox/generic → Xbox иконки (A, B, X, Y), клавиатура → названия клавиш. Определение типа устройства уже работает (`InputDeviceType`: клавиатура / Xbox / DualSense — переключается автоматически по последнему активному вводу).
-- **Визуальная схема раскладки в опциях** — пункт в настройках показывающий полную раскладку управления: какая кнопка что делает, с визуальным изображением контроллера/клавиатуры.
-- **Внутриигровая вики/справочник** — доступная из паузы или меню база знаний по возможностям игры: боевые приёмы (на бегу + влево + прыжок = перекат, в бою удар + назад = удар ногой назад, и т.д.), паркур-приёмы, взаимодействия. Формат: краткие карточки с описанием и раскладкой кнопок.
+- **Mouse shooting / aiming** — an optional mode when playing with the keyboard: in addition to rotating the camera with the mouse (that's in 1.0) — also aiming/shooting with the mouse. Standard WASD+mouse as in modern 3rd person action games. → duplicated in [known_issues_and_bugs.md "Controls"](../known_issues_and_bugs/known_issues_and_bugs.md).
+- **Steam Input API** — a unified API for all controllers via Steam. Provides button remapping, glyphs. Unclear whether it's available for non-Steam games — needs research. → duplicated in [known_issues_and_bugs.md "Controls"](../known_issues_and_bugs/known_issues_and_bugs.md).
 
-## Моды и сторонний контент
+## Control hints and in-game help
 
-**Принцип:** всё стороннее и модифицированное по умолчанию выключено, включается явно пользователем. По умолчанию пользователь играет в стандартную версию, близкую к оригиналу.
+The game is non-obvious in its controls — many actions (rolls, back strikes, combos, parkour moves) are hard to discover on your own.
 
-- **Поддержка сторонних модов** — сделать систему загрузки модов (совместимость с оригиналом сделать не получится).
-- **Встраивание функционала модов сообщества** — некоторые фичи из существующих модов (Maddi Edition и др.) реализовать прямо в исходниках основной игры: first person camera, отключение auto-aim/радара и т.д. Моды сделаны через бинарные хаки оригинального exe, несовместимы с ремейком напрямую — берём только идеи. Ссылки на моды: `new_game_devlog/community_links.md`
+- **Contextual button hints** — extend the idea of the PS1 hints (the dotted NPC aiming lines, see `GAMEPLAY_CHANGES.md`) to the whole game: show hints everywhere it makes sense — in menus, in combat, when interacting with objects, during the tutorial. Button icons depend on the device: DualSense → PlayStation icons (✕, △, ○, □), Xbox/generic → Xbox icons (A, B, X, Y), keyboard → key names. Device-type detection already works (`InputDeviceType`: keyboard / Xbox / DualSense — switches automatically based on the last active input).
+- **Visual layout diagram in the options** — an item in the settings that shows the full control layout: which button does what, with a visual image of the controller/keyboard.
+- **In-game wiki/reference** — a knowledge base of the game's capabilities, accessible from the pause or main menu: combat moves (running + left + jump = roll, in combat strike + back = back kick, etc.), parkour moves, interactions. Format: short cards with a description and a button layout.
 
-## Внутриигровой ланчер (In-game launcher)
+## Mods and third-party content
 
-Решение: **отдельного оконного ланчера не будет**. Вместо него — внутриигровой экран, который запускается самым первым перед любой заставкой. Одно окно на всё, удобно на Steam Deck.
+**Principle:** everything third-party and modified is disabled by default and enabled explicitly by the user. By default the user plays the standard version, close to the original.
 
-**Концепция:**
-- Запускается **первым** при старте exe, до любых игровых сплешей/заставок.
-- Свой мини-рендер экрана: надпись "OpenChaos" + какая-то анимация (возможно осенние листья как в миссиях — как тематический референс).
-- Короткий disclaimer про IP Urban Chaos — что это opensource-версия, не претендует на права, и т.д. Лаконично, без стен текста.
-- Предвыделен пункт **"Запустить игру"** — игрок нажимает крестик (DualSense) / Enter (клавиатура) и ланчер уходит, стартует игра.
-- В ланчере есть **Exit** — закрывает программу.
-- **Настройки** — UI для опций (детали позже). Сюда могут переехать некоторые вещи из старого PC-меню (выбор папки ресурсов, настройки управления, experimental features и т.д.).
-  - **Подсказка про конфиг (предварительная идея, возможно не будем делать):** на экране настроек показывать юзеру короткую напоминашку что эти же настройки можно менять вручную в `.json` конфиге (с указанием примерного пути). На случай если что-то кривое поставил и хочет откатить, или разрешение выставил такое что игра не стартует — чтобы знал куда лезть для ручного сброса/правки.
-- **Info** — пункт меню с информацией про проект:
-  - **Основной автор реворка:** UltimaBeaR.
-  - Короткое описание что это за реворк: open-source модернизация оригинальной Urban Chaos (1999, MuckyFoot), современный стек (OpenGL, SDL3, x64), новый рендерер, поддержка DualSense и Xbox, и т.д.
-  - Ссылка на GitHub репозиторий проекта.
-  - Возможно ссылка/реверанс форкам от которых мы отпочковались (PieroZ и предыдущие — см. [CONTRIBUTORS.md](../CONTRIBUTORS.md)).
-  - Короткая благодарность MuckyFoot за оригинал.
-- Из реального игрового меню (Exit игры) возврат **обратно на ланчер**, а не в OS. Ланчер — центральный хаб.
+- **Third-party mod support** — build a mod-loading system (compatibility with the original won't be achievable).
+- **Integrating community mod functionality** — implement some features from existing mods (Maddi Edition and others) directly in the main game's source: first person camera, disabling auto-aim/radar, etc. The mods are made via binary hacks of the original exe and aren't directly compatible with the remake — we only take the ideas. Links to the mods: `new_game_devlog/community_links.md`
 
-**Архитектура:**
-- **Отдельная папка** типа `new_game/src/openchaos_launcher_screen/` (или похоже) — весь код ланчера живёт там. **Не использует код игры** — только абстракцию рендер-движка (чтобы не дублировать GL/Vulkan слой).
-- Свой "мини-движок" отрисовки/лайаута внутри ланчера.
-- Формат ресурсов для ланчера — пока открыт: либо свой (для гибкости), либо переиспользуем форматы оригинальной игры (для простоты). Решим при реализации.
+## In-game launcher
 
-**Кастомные ресурсы — папка `open_chaos/`:**
-- Рядом с exe лежит папка `open_chaos/` — туда идут **все** кастомные игровые ресурсы, не принадлежащие оригинальному Urban Chaos:
-  - Ресурсы ланчера (анимации, шрифты, логотипы)
-  - В будущем — ресурсы модов, сторонний контент (см. раздел "Моды и сторонний контент")
-- Оригинальные ресурсы Urban Chaos остаются в стандартной игровой папке (откуда их игра и читает сейчас).
-- Это чистое разделение: "оригинальное" vs "наше и моддерское".
+Decision: **there will be no separate windowed launcher**. Instead — an in-game screen that launches first, before any intro splash. One window for everything, convenient on the Steam Deck.
 
-**Вне scope 1.0** — [stage12.md](stage12.md#L65) фиксирует что ланчер не в 1.0.
+**Concept:**
+- Launches **first** when the exe starts, before any game splashes/intros.
+- Its own mini-renderer for the screen: an "OpenChaos" title + some animation (possibly autumn leaves like in the missions — as a thematic reference).
+- A short disclaimer about the Urban Chaos IP — that this is an opensource version, makes no claim to the rights, and so on. Concise, no walls of text.
+- The **"Launch game"** item is pre-selected — the player presses the cross (DualSense) / Enter (keyboard) and the launcher goes away, the game starts.
+- The launcher has an **Exit** — closes the program.
+- **Settings** — UI for the options (details later). Some things from the old PC menu may move here (resource folder selection, control settings, experimental features, etc.).
+  - **Config hint (preliminary idea, may not do it):** on the settings screen, show the user a short reminder that these same settings can also be changed by hand in the `.json` config (with an approximate path given). In case they set something wrong and want to roll it back, or set a resolution at which the game won't start — so they know where to look for a manual reset/edit.
+- **Info** — a menu item with information about the project:
+  - **Main author of the rework:** UltimaBeaR.
+  - A short description of what this rework is: an open-source modernization of the original Urban Chaos (1999, MuckyFoot), a modern stack (OpenGL, SDL3, x64), a new renderer, DualSense and Xbox support, etc.
+  - A link to the project's GitHub repository.
+  - Possibly a link/nod to the forks we branched off from (PieroZ and the earlier ones — see [CONTRIBUTORS.md](../CONTRIBUTORS.md)).
+  - A short thank-you to MuckyFoot for the original.
+- From the actual in-game menu (Exit game) the player returns **back to the launcher**, not to the OS. The launcher is the central hub.
 
-## Конфигурация и настройки
+**Architecture:**
+- **A separate folder** like `new_game/src/openchaos_launcher_screen/` (or similar) — all of the launcher's code lives there. **Does not use the game's code** — only the render-engine abstraction (so as not to duplicate the GL/Vulkan layer).
+- Its own "mini-engine" for rendering/layout inside the launcher.
+- The resource format for the launcher is still open: either our own (for flexibility), or we reuse the original game's formats (for simplicity). We'll decide during implementation.
 
-Основная часть настроек переедет в UI внутриигрового ланчера (см. выше).
+**Custom resources — the `open_chaos/` folder:**
+- Next to the exe there's an `open_chaos/` folder — **all** custom game resources that don't belong to the original Urban Chaos go there:
+  - Launcher resources (animations, fonts, logos)
+  - In the future — mod resources, third-party content (see the "Mods and third-party content" section)
+- The original Urban Chaos resources stay in the standard game folder (where the game already reads them from now).
+- This is a clean separation: "original" vs. "ours and the modders'".
 
-- **Выбор папки ресурсов** — сейчас юзер копирует ресурсы вручную. Нужен UI для указания пути к Steam-папке (путь сохраняется в конфиг, повторно не спрашивает).
-- **Настройки управления** — новый раздел в меню опций (вместо удалённого "Joystick" из 1.0). Детали → [stage13_gamepad.md](stage13_gamepad.md)
-- **UI для экспериментальных фич** — сейчас feature flags хардкодом в `feature_flags.cpp`. Сделать вкладку "Experimental" / "Extras" в настройках для включения без перекомпиляции. Сохранение в конфиг (`openchaos.cfg`). Сюда же входят вырезанные функции оригинала (cut features) — летучие мыши, мультиплеер и прочее что сейчас за флагами. Описание флагов → [`FEATURE_FLAGS.md`](../FEATURE_FLAGS.md).
+**Out of scope for 1.0** — [stage12.md](stage12.md#L65) records that the launcher is not in 1.0.
 
-## Оптимизации рендерера
+## Configuration and settings
 
-**Базовые оптимизации сделаны** (draw call batching, GPU-transform, texture array для персонажей, расширение дистанции отрисовки и тумана — см. [stage13_optimizations.md](stage13_optimizations.md) для исторического контекста и применённых техник). Текущее состояние перформанса считаем достаточным для целевого железа (Steam Deck / слабые ПК) с учётом текущей архитектуры.
+The main part of the settings will move into the in-game launcher's UI (see above).
 
-**Дальше двигаться смысла нет в рамках текущей кодовой базы.** Дальнейшие оптимизации потребовали бы **серьёзной переработки архитектуры игры и пайплайна рендеринга** (single-threaded → multi-threaded, переписывание спрайтового пайплайна, batching транспрозрачной геометрии без потери порядка, и т.п.) и **возможно перехода на Vulkan**. Это слишком большой undertaking, **в post-1.0 на эту тему ничего делать не планируется** — оставлено как "если когда-нибудь будет желание переписывать всё".
+- **Resource folder selection** — right now the user copies the resources by hand. We need a UI for specifying the path to the Steam folder (the path is saved in the config, not asked again).
+- **Control settings** — a new section in the options menu (replacing the removed "Joystick" from 1.0). Details → [stage13_gamepad.md](stage13_gamepad.md)
+- **UI for experimental features** — right now the feature flags are hardcoded in `feature_flags.cpp`. Make an "Experimental" / "Extras" tab in the settings to enable them without recompiling. Saved to the config (`openchaos.cfg`). This also includes the original's cut features — bats, multiplayer, and other things currently behind flags. Description of the flags → [`FEATURE_FLAGS.md`](../FEATURE_FLAGS.md).
 
-## Цвет тумана по уровню + skybox на светлых миссиях
+## Renderer optimizations
 
-**Цвет тумана.** Сейчас цвет тумана одинаковый (близко к чёрному) независимо
-от окружения уровня. На уровнях открытого пространства / дневных миссиях
-это смотрится чужеродно — например на **Target UC** вдали видны светлые
-горы, а туман за ними чёрный, получается «дыра в небо» вместо
-естественного атмосферного перехода. Идея: привязать цвет тумана к уровню
-(дневной / ночной / закрытое пространство / открытое / горы / город и т.п.).
-Примеры нужных тонов (подбирать на сцене):
-- Дневные открытые уровни со светлым фоном (Target UC, горные виды) →
-  светло-синий или бирюзовый туман.
-- Тёмные городские ночные уровни (как сейчас) → тёмно-синий / почти
-  чёрный (фактически текущий цвет).
-- Сумеречные / переходные — промежуточный оттенок.
+**The basic optimizations are done** (draw call batching, GPU transform, texture array for characters, extending the draw distance and fog — see [stage13_optimizations.md](stage13_optimizations.md) for historical context and the applied techniques). We consider the current performance state sufficient for the target hardware (Steam Deck / weak PCs) given the current architecture.
 
-**Вопрос механизма.** Хардкодить цвет-per-миссия — быстро, но
-неуниверсально. Хочется единого способа определить «какой туман для
-какого уровня». Варианты:
-- Поле в формате уровня (если есть место) — `fog_color` RGB.
-- Автовычисление от цвета неба / освещения — брать средний тон
-  `NIGHT_sky_colour` или чего-то подобного.
-- Таблица соответствия «тип уровня → цвет» + ручное оверрайд поле.
+**There's no point in going further within the current codebase.** Further optimizations would require a **serious rework of the game's architecture and the rendering pipeline** (single-threaded → multi-threaded, rewriting the sprite pipeline, batching transparent geometry without losing ordering, etc.) and **possibly a move to Vulkan**. That's too large an undertaking, **nothing is planned on this topic in post-1.0** — left as a "if there's ever a desire to rewrite everything".
 
-**Где менять в коде.** `NIGHT_sky_colour` / `AENG_clear_viewport` —
-отправные точки ([aeng.cpp:8422](../new_game/src/engine/graphics/pipeline/aeng.cpp#L8422)
-уже использует sky color для clear). Fog color задаётся где-то ещё —
-найти через `fog` / `u_fog_color` grep.
+## Fog color per level + skybox on bright missions
 
-**Skybox на светлых уровнях.** Сопутствующая проблема: если игрок на
-дневной миссии сильно задирает камеру вверх — небо рендерится **чёрным**
-вместо продолжения скайбокса с синим небом. Выглядит как дыра. Нужно
-разобраться:
-- Где в пайплайне рендера неба возникает черная зона при большом pitch.
-- Скайбокс на таких уровнях вообще инициализируется? (Возможно у него
-  ограниченное вертикальное покрытие.)
-- Либо расширить зону скайбокса, либо добавить градиентную заливку
-  верха как fallback.
+**Fog color.** Right now the fog color is the same (close to black) regardless
+of the level's environment. On open-space levels / daytime missions
+this looks out of place — for example on **Target UC** there are bright
+mountains visible in the distance, but the fog behind them is black, producing
+a "hole into the sky" instead of a natural atmospheric transition. The idea: tie
+the fog color to the level (day / night / enclosed space / open / mountains /
+city, etc.). Examples of the tones needed (to be picked on the scene):
+- Daytime open levels with a bright background (Target UC, mountain views) →
+  light-blue or turquoise fog.
+- Dark urban nighttime levels (as now) → dark blue / nearly
+  black (effectively the current color).
+- Twilight / transitional ones — an intermediate shade.
 
-Оба пункта — про визуальное восприятие открытого пространства,
-обсуждать вместе.
+**The question of the mechanism.** Hardcoding the color per mission is fast but
+not universal. We'd like a single way to determine "which fog for
+which level". Options:
+- A field in the level format (if there's room) — `fog_color` RGB.
+- Auto-computing from the sky color / lighting — taking the average tone of
+  `NIGHT_sky_colour` or something similar.
+- A "level type → color" lookup table + a manual override field.
 
-## Отладка и читы
+**Where to change it in the code.** `NIGHT_sky_colour` / `AENG_clear_viewport` —
+starting points ([aeng.cpp:8422](../new_game/src/engine/graphics/pipeline/aeng.cpp#L8422)
+already uses the sky color for clear). The fog color is set somewhere else —
+find it via a `fog` / `u_fog_color` grep.
 
-- **Чит-загрузка миссии по номеру** — чит или debug-режим: комбинация клавиш → ввод номера миссии → загрузка. Для отладки — чтобы не проходить игру заново ради доступа к поздним миссиям. Примечание: вроде все миссии доступны через обычную карту миссий (после ASan-фиксов), но не 100% уверены.
-- **Анти-чит пометка** — подумать: если юзер активировал чит, пометить это в сохранке (например "cheats used") и как-то обозначить что прохождение с читами (варианты: пометка в UI, визуальное изменение персонажа типа клоунской маски, или что-то другое — продумать). Цель — убрать мотивацию пользоваться читами при обычном прохождении. Нужно исследовать формат сохранок — как добавить флаг и не сломать совместимость со старым форматом.
+**Skybox on bright levels.** A related problem: if the player on a
+daytime mission tilts the camera far up — the sky is rendered **black**
+instead of continuing the skybox with a blue sky. It looks like a hole. Need to
+figure out:
+- Where in the sky-rendering pipeline the black zone appears at a large pitch.
+- Is the skybox even initialized on such levels? (It may have
+  limited vertical coverage.)
+- Either extend the skybox zone, or add a gradient fill for
+  the top as a fallback.
 
-## Быстрые сохранения внутри миссии
+Both items are about the visual perception of open space,
+discuss them together.
 
-Миссии длинные и сложные — при гибели игрок вынужден проходить всю миссию заново, что фрустрирует. Межмиссионные сохранения (существующая система) не трогаем.
+## Debugging and cheats
 
-**Идея:** ограниченные быстрые сохранения (чекпоинты) внутри одной миссии. Доступны только в рамках текущего прохождения миссии — при выходе из миссии или начале новой сбрасываются. Возможны ограничения (количество сохранений на миссию, кулдаун, и т.д.) чтобы не превратить игру в save-scum. Детали дизайна — продумать позже.
+- **Cheat to load a mission by number** — a cheat or debug mode: a key combination → enter the mission number → load. For debugging — so as not to replay the game just to reach late missions. Note: it seems all missions are accessible through the normal mission map (after the ASan fixes), but we're not 100% sure.
+- **Anti-cheat marking** — think about it: if the user activated a cheat, mark it in the save (e.g. "cheats used") and somehow indicate that the playthrough was done with cheats (options: a mark in the UI, a visual change to the character like a clown mask, or something else — to be thought through). The goal is to remove the motivation to use cheats during a normal playthrough. We need to investigate the save format — how to add a flag without breaking compatibility with the old format.
 
-**⚠️ В коде уже есть унаследованный из оригинала механизм in-mission save/load — проверить при реализации:** функции `MEMORY_quick_save` / `MEMORY_quick_load` (`missions/memory.cpp`, пишут полный снапшот состояния миссии в `data/quicksave.dat`) и обработчики `X_SAVE_GAME` / `X_LOAD_GAME` в `ui/menus/gamemenu.cpp`. **Сейчас это мёртвый код** — ни одно меню (таблица `GAMEMENU_menu` в `gamemenu_globals.cpp`) на эти пункты не ссылается, поэтому `quicksave.dat` никогда не пишется. Путь `data/quicksave.dat` теперь завёрнут в пользовательскую data-папку (см. систему data-папки, реализованную в 1.0). При реализации чекпоинтов: проверить работоспособность этих функций (не проверялись), при необходимости доработать и подключить к UI — возможно проще переиспользовать их, чем писать с нуля.
+## Quick saves within a mission
 
-## Инфраструктура и дистрибуция
+The missions are long and difficult — when killed, the player is forced to replay the whole mission, which is frustrating. The inter-mission saves (the existing system) we don't touch.
 
-**Единый дом темы «дистрибуция/установка/иконки».** Для 1.0 дистрибуция зафиксирована в текущем виде — per-platform zip-пакеты (`release/`) + вшитая в exe Windows-иконка (см. `stage12.md` Задача #8). **Все улучшения дистрибуции — здесь, post-1.0.**
+**Idea:** limited quick saves (checkpoints) within a single mission. Available only within the current mission playthrough — they reset on leaving the mission or starting a new one. There may be limits (number of saves per mission, cooldown, etc.) so as not to turn the game into save-scumming. Design details — to be thought through later.
 
-### Установщики на все платформы (auto-detect папки оригинала)
+**⚠️ There's already an in-mission save/load mechanism inherited from the original in the code — check it during implementation:** the functions `MEMORY_quick_save` / `MEMORY_quick_load` (`missions/memory.cpp`, write a full snapshot of the mission state to `data/quicksave.dat`) and the handlers `X_SAVE_GAME` / `X_LOAD_GAME` in `ui/menus/gamemenu.cpp`. **Right now this is dead code** — no menu (the `GAMEMENU_menu` table in `gamemenu_globals.cpp`) references these items, so `quicksave.dat` is never written. The `data/quicksave.dat` path is now wrapped into the user data folder (see the data-folder system implemented in 1.0). When implementing checkpoints: check that these functions work (they haven't been tested), refine and wire them up to the UI if needed — it may be easier to reuse them than to write from scratch.
 
-Цель: установка поверх существующей папки игры **без ручного копирования**, с авто-поиском копии Urban Chaos. Текущий `release/` — заготовки скриптов, нужна доработка.
+## Infrastructure and distribution
 
-- ▸ **Windows:** полноценный установщик (не zip) с авто-поиском папки оригинала — Steam (`steamapps/common/Urban Chaos`, приоритет если найдена и содержит ресурсы) и GOG Galaxy (`GOG Games/Urban Chaos` или аналог); если не нашёл — диалог выбора вручную; если нашёл — предлагает как дефолт; ставит exe+зависимости рядом с ресурсами оригинала. Инструменты: **NSIS** или **Inno Setup** (оба бесплатные, умеют поиск папок через реестр Steam/GOG).
-- ▸ **macOS:** `.dmg` с `.app` бандлом (дроп в `/Applications`). Бинарник в `.app/Contents/MacOS/`, ресурсы оригинала — рядом или указываются при первом запуске. Сборка через `hdiutil` или `create-dmg`. **Подписание и notarization исследовать** (без notarization Gatekeeper блокирует на современных macOS). **Открытый вопрос:** путь к ресурсам оригинала — диалог выбора при первом запуске или фиксированный рядом с `.app`?
-- ▸ **Steam Deck / Linux:** установка **без Desktop Mode** (Game Mode не даёт ставить файлы напрямую). Варианты: bash-скрипт `.sh` из Desktop Mode (находит steamapps Urban Chaos, копирует наш бинарник); Flatpak/AppImage. **Проверить:** доступен ли Urban Chaos в Steam для Steam Deck (Windows-игра через Proton — лицензия должна быть видна из SteamOS). Патч работает поверх Proton: наш Linux-native бинарник заменяет Windows exe (Proton тогда не нужен). Проверить: добавление non-Steam игры с Linux-бинарником как Launch option без Proton прямо из Game Mode.
+**A single home for the "distribution/installation/icons" topic.** For 1.0, distribution is fixed in its current form — per-platform zip packages (`release/`) + a Windows icon embedded in the exe (see `stage12.md` Task #8). **All distribution improvements go here, post-1.0.**
 
-### Дистрибуция через Steam (свой app / мод или beta-ветка)
+### Installers on all platforms (auto-detect the original's folder)
 
-**Главный мотив:** настоящая Steam-игра ставится на **Steam Deck прямо из Game Mode** как любая другая → закрывает основную боль с установкой на Деке. Два пути:
+Goal: installation on top of the existing game folder **without manual copying**, with auto-detection of a copy of Urban Chaos. The current `release/` has script stubs, needs work.
 
-- **Свой отдельный Steam-app** (свой appID, ~$100, ревью Valve), который **требует установленный Urban Chaos из Steam** — при запуске находит оригинал в библиотеке Steam и берёт ассеты оттуда (ассеты сами не бандлим — принадлежат My Little Planet). **Прецедент:** платный сторонний мод [Maddie Modder Mods for Urban Chaos](https://store.steampowered.com/app/3992700/) (app 3992700) уже так живёт на Steam — собран на этом же открытом коде. **Нюансы:** (1) жёсткое «требование оригинала» Steam обеспечивает только для DLC, а DLC выпускает лишь владелец базовой игры — поэтому проверку наличия Urban Chaos **делаем сами** в лаунчере (нет → «установите Urban Chaos», не запускаемся); (2) торговая марка «Urban Chaos» принадлежит **My Little Planet Ltd (Guy Simmons)** — упоминание в магазине трогает trademark, на практике Valve/Guy терпят (Maddie Modder прямо так назван и продаётся), но чище иметь его согласие.
-- **Официальная beta-ветка у правообладателя** — самый чистый UX (от нас ничего не требуется, ассеты уже на месте), но контент в бету (хоть с паролем-кодом, хоть без) заливает только владелец appID — упирается в согласие Guy Simmons. Сами beta-ветку/бета-код повесить не можем.
+- ▸ **Windows:** a full installer (not a zip) with auto-detection of the original's folder — Steam (`steamapps/common/Urban Chaos`, priority if found and it contains resources) and GOG Galaxy (`GOG Games/Urban Chaos` or similar); if not found — a manual selection dialog; if found — offers it as the default; installs the exe+dependencies next to the original's resources. Tools: **NSIS** or **Inno Setup** (both free, can search for folders via the Steam/GOG registry).
+- ▸ **macOS:** a `.dmg` with a `.app` bundle (drop into `/Applications`). The binary in `.app/Contents/MacOS/`, the original's resources — alongside or specified on first launch. Built via `hdiutil` or `create-dmg`. **Investigate signing and notarization** (without notarization, Gatekeeper blocks it on modern macOS). **Open question:** the path to the original's resources — a selection dialog on first launch, or fixed next to the `.app`?
+- ▸ **Steam Deck / Linux:** installation **without Desktop Mode** (Game Mode doesn't let you place files directly). Options: a bash `.sh` script from Desktop Mode (finds the Urban Chaos steamapps, copies our binary); Flatpak/AppImage. **Check:** is Urban Chaos available on Steam for the Steam Deck (a Windows game via Proton — the license should be visible from SteamOS). The patch works on top of Proton: our Linux-native binary replaces the Windows exe (Proton is then not needed). Check: adding a non-Steam game with a Linux binary as a Launch option without Proton directly from Game Mode.
 
-Контакт правообладателя — `legal/rights_history.md` ([@LittlePlanetGuy](https://x.com/littleplanetguy)).
+### Distribution via Steam (own app / mod or beta branch)
 
-### Иконка на остальных платформах
+**Main motive:** a real Steam game installs **on the Steam Deck directly from Game Mode** like any other → closes the main pain point with installing on the Deck. Two paths:
 
-- ✅ **Windows — сделано в 1.0.** Своя иконка (кленовый лист в чёрной скруглённой плашке) вшита в `.exe` и ставится как runtime-иконка окна.
-  - Мастера-исходники в корне репо: `openchaos_icon.png` (1024² лист — из него генерится иконка) и `openchaos_logo.png` (вордмарк OPEN CHAOS — отдельный лого-ассет, в иконке не используется).
-  - Сборочные ресурсы в `new_game/resources/icon/`: `OpenChaos.ico` (16/24/32/48/64/128/256, **везде лист** — вордмарк на мелких размерах нечитаем, Windows непредсказуемо подменял версии), `OpenChaos.rc` (вшивает `.ico` в exe), `window_icon.png` (встраивается в бинарник, ставится через `SDL_SetWindowIcon`).
-  - Подключено в сборку: `enable_language(RC)` + `WIN_RESOURCES` в `new_game/CMakeLists.txt`, `CMAKE_RC_COMPILER=llvm-rc` в тулчейне; PNG встраивается тем же CMake-механизмом что глифы.
-  - ⚠️ Лист — силуэт из системного эмодзи Windows (Segoe UI Emoji). Для чистого публичного релиза заменить на свой/CC0: положить новый `openchaos_icon.png` и перегенерить `.ico`/`window_icon.png`.
-- ⏸️ **macOS / Linux / Steam Deck — отложено.** macOS-иконка требует `.app`-бандла (`.icns` + `Info.plist`); Linux — через `.desktop`. На Steam Deck: `.sh`-лаунчер не несёт иконку, авто-подхват без ручной настройки возможен только если добавлять в Steam `.desktop` (не `.sh`) с абсолютными путями — требует проверки на железе и генерации путей при установке. Логично делать вместе с инсталляторами выше. Использовать то же лого что в анимированной версии в README проекта.
+- **Our own separate Steam app** (own appID, ~$100, Valve review) that **requires Urban Chaos installed from Steam** — on launch it finds the original in the Steam library and takes the assets from there (we don't bundle the assets ourselves — they belong to My Little Planet). **Precedent:** the paid third-party mod [Maddie Modder Mods for Urban Chaos](https://store.steampowered.com/app/3992700/) (app 3992700) already lives on Steam this way — built on this same open code. **Nuances:** (1) the hard "requires the original" requirement Steam only enforces for DLC, and DLC is only released by the owner of the base game — so we do the Urban Chaos presence check **ourselves** in the launcher (no → "install Urban Chaos", we don't start); (2) the "Urban Chaos" trademark belongs to **My Little Planet Ltd (Guy Simmons)** — mentioning it in the store touches the trademark, in practice Valve/Guy tolerate it (Maddie Modder is named exactly that way and is sold), but it's cleaner to have his consent.
+- **An official beta branch at the rights holder's** — the cleanest UX (nothing required from us, the assets are already in place), but content into the beta (whether with a password code or not) can only be uploaded by the owner of the appID — runs into Guy Simmons's consent. We can't put up the beta branch/beta code ourselves.
 
-### Прочее
+Rights holder contact — `legal/rights_history.md` ([@LittlePlanetGuy](https://x.com/littleplanetguy)).
 
-- **macOS Intel:** тулчейн `clang-x64-macos.cmake` + Universal Binary (`clang-universal-macos.cmake`) — пока только Apple Silicon. Macоси-Intel пользователей вероятно очень мало (Apple перешла на ARM ещё в 2020), не блокер.
-- **CI/CD:** GitHub Actions для автоматической сборки на всех платформах при пуше тега. Для 1.0 сборки делаются вручную; автоматизация — после релиза.
+### Icon on the other platforms
 
-## Референсы
+- ✅ **Windows — done in 1.0.** Our own icon (a maple leaf on a black rounded plate) is embedded in the `.exe` and set as the runtime window icon.
+  - Master sources in the repo root: `openchaos_icon.png` (the 1024² leaf — the icon is generated from it) and `openchaos_logo.png` (the OPEN CHAOS wordmark — a separate logo asset, not used in the icon).
+  - Build resources in `new_game/resources/icon/`: `OpenChaos.ico` (16/24/32/48/64/128/256, **the leaf everywhere** — the wordmark is unreadable at small sizes, and Windows unpredictably substituted versions), `OpenChaos.rc` (embeds the `.ico` into the exe), `window_icon.png` (embedded into the binary, set via `SDL_SetWindowIcon`).
+  - Wired into the build: `enable_language(RC)` + `WIN_RESOURCES` in `new_game/CMakeLists.txt`, `CMAKE_RC_COMPILER=llvm-rc` in the toolchain; the PNG is embedded by the same CMake mechanism as the glyphs.
+  - ⚠️ The leaf is a silhouette from a Windows system emoji (Segoe UI Emoji). For a clean public release, replace it with our own/CC0: drop in a new `openchaos_icon.png` and regenerate `.ico`/`window_icon.png`.
+- ⏸️ **macOS / Linux / Steam Deck — deferred.** The macOS icon requires an `.app` bundle (`.icns` + `Info.plist`); Linux — via `.desktop`. On the Steam Deck: the `.sh` launcher doesn't carry an icon, auto-pickup without manual setup is only possible if you add to Steam a `.desktop` (not a `.sh`) with absolute paths — requires testing on the hardware and generating paths at install time. Makes sense to do together with the installers above. Use the same logo as in the animated version in the project README.
 
-- `PieroZ/MuckyFoot-UrbanChaos` коммит `0f2e69d` — WIP по bat/bane боссу + взрывы (bangs). Глянуть при доработке боссов/эффектов.
+### Other
+
+- **macOS Intel:** the `clang-x64-macos.cmake` toolchain + a Universal Binary (`clang-universal-macos.cmake`) — so far Apple Silicon only. There are probably very few macOS Intel users (Apple moved to ARM back in 2020), not a blocker.
+- **CI/CD:** GitHub Actions for automatic builds on all platforms when a tag is pushed. For 1.0 the builds are done manually; automation — after the release.
+
+## References
+
+- `PieroZ/MuckyFoot-UrbanChaos` commit `0f2e69d` — WIP on the bat/bane boss + explosions (bangs). Worth a look when refining the bosses/effects.

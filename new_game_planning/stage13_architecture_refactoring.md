@@ -1,106 +1,106 @@
-# Архитектурный рефакторинг (часть Этапа 13)
+# Architecture refactoring (part of Stage 13)
 
-Бывший Этап 9. Делается ПОСЛЕ тестовой инфраструктуры.
+Formerly Stage 9. Done AFTER the test infrastructure.
 
-**Цель:** чистая финальная архитектура.
+**Goal:** clean final architecture.
 
-- Чёткое разделение движок / игра
-- Рефакторинг Thing системы
-- Улучшение тестового покрытия
-- Прочие архитектурные улучшения
+- Clear engine / game separation
+- Refactor the Thing system
+- Improve test coverage
+- Other architectural improvements
 
-## Известные задачи
+## Known tasks
 
-### Вырезать мёртвый мультиплеерный код
+### Cut out the dead multiplayer code
 
-`game/network_state_globals.*` — заглушка (CNET_network_game всегда FALSE, CNET_num_players всегда 1).
-~50 мест в коде проверяют эти переменные (`if (CNET_network_game)`, циклы по `CNET_num_players`).
-Все эти ветки — мёртвый код: мультиплеер удалён. Вырезать ветки, удалить globals, упростить код.
+`game/network_state_globals.*` — a stub (CNET_network_game is always FALSE, CNET_num_players is always 1).
+~50 places in the code check these variables (`if (CNET_network_game)`, loops over `CNET_num_players`).
+All these branches are dead code: multiplayer has been removed. Cut the branches, remove the globals, simplify the code.
 
-### Вычистить UC-специфику из `engine/physics/`
+### Clean UC-specific logic out of `engine/physics/`
 
-`collide.cpp` содержит collision response завязанный на UC-геймплей. Общий collision detection — engine, UC-специфичный response — game-слой.
+`collide.cpp` contains collision response tied to UC gameplay. Generic collision detection — engine, UC-specific response — the game layer.
 
-### Инвертировать зависимость engine → game в цепочке запуска
+### Invert the engine → game dependency in the startup chain
 
-Сейчас: `main.cpp → engine/platform/host.cpp → game/startup.cpp → game/game.cpp`
-Engine напрямую вызывает game (HOST_run → MF_main) — нарушение DAG.
+Currently: `main.cpp → engine/platform/host.cpp → game/startup.cpp → game/game.cpp`
+The engine directly calls the game (HOST_run → MF_main) — a DAG violation.
 
-Правильно: game регистрирует свой entry point (callback) в engine во время setup,
-engine вызывает его когда готов. Зависимость: game → engine, не наоборот.
+Correct: the game registers its entry point (callback) in the engine during setup,
+and the engine calls it when ready. Dependency: game → engine, not the other way around.
 
-### Переписать outro на основном движке
+### Rewrite the outro on top of the main engine
 
-`outro/core/` — самодостаточный мини-движок финальных титров (свой рендерер, матрицы, шрифт, TGA-лоадер, камера). Дубликаты движковых систем. Заменить на вызовы основного engine.
+`outro/core/` — a self-contained mini-engine for the end credits (its own renderer, matrices, font, TGA loader, camera). Duplicates of engine systems. Replace with calls into the main engine.
 
-### Унификация input pipeline для меню
+### Unify the input pipeline for menus
 
-**Проблема (обнаружена на Этапе 5.1):**
+**Problem (discovered in Stage 5.1):**
 
-Сейчас клавиатура и геймпад идут в меню двумя параллельными путями, склеенными через `||`:
+Currently the keyboard and gamepad reach menus via two parallel paths glued together with `||`:
 
 ```cpp
-// frontend.cpp, pause menu, gamemenu, widget — везде такой паттерн:
+// frontend.cpp, pause menu, gamemenu, widget — this pattern everywhere:
 if (Keys[KB_UP] || (input & INPUT_MASK_FORWARDS)) { ... }
 ```
 
-**Клавиатура:** `Keys[]` → заполняется напрямую Win32/DirectInput → меню читает без посредников.
-Нет debounce — зажатая клавиша срабатывает каждый кадр. Пришлось добавить отдельный `kb_dir_ticker`.
+**Keyboard:** `Keys[]` → filled directly by Win32/DirectInput → menus read it without intermediaries.
+No debounce — a held key fires every frame. Had to add a separate `kb_dir_ticker`.
 
-**Геймпад (стик):** `the_state.lX/lY` → каждое меню **само** вычисляет деадзону и гистерезис →
-ставит биты `INPUT_MASK_*` → проходит через свой `dir_ticker`. Деадзоны/гистерезис дублируются
-между frontend.cpp, gamemenu.cpp, pause.cpp.
+**Gamepad (stick):** `the_state.lX/lY` → each menu computes the deadzone and hysteresis **itself** →
+sets the `INPUT_MASK_*` bits → passes them through its own `dir_ticker`. Deadzones/hysteresis are duplicated
+between frontend.cpp, gamemenu.cpp, pause.cpp.
 
-**Геймпад (D-Pad):** оси `lX/lY` задаются в `gamepad.cpp` (0 или 65535), проходят тот же путь
-что и стик, но без проблем вобла (значения дискретные).
+**Gamepad (D-Pad):** the `lX/lY` axes are set in `gamepad.cpp` (0 or 65535), follow the same path
+as the stick, but without the wobble problem (the values are discrete).
 
-**Проблемы текущего подхода:**
-- Два раздельных ticker'а (keyboard + gamepad) с разными параметрами в каждом меню
-- Деадзона и гистерезис для стика дублируются в каждом файле меню (frontend, gamemenu, pause)
-- Кнопки геймпада частично через `INPUT_MASK_*` (через `get_hardware_input`), частично
-  через прямое чтение `the_state.rgbButtons[]` — нет единообразия
-- `gamemenu.cpp` инжектит `Keys[KB_ESC/UP/DOWN/ENTER] = 1` для совместимости с keyboard-only
-  кодом, что создаёт побочные эффекты (кик Дарси при выходе из паузы — пришлось добавлять
+**Problems with the current approach:**
+- Two separate tickers (keyboard + gamepad) with different parameters in each menu
+- Deadzone and hysteresis for the stick are duplicated in every menu file (frontend, gamemenu, pause)
+- Gamepad buttons are partly via `INPUT_MASK_*` (through `get_hardware_input`), partly
+  via direct reads of `the_state.rgbButtons[]` — there is no uniformity
+- `gamemenu.cpp` injects `Keys[KB_ESC/UP/DOWN/ENTER] = 1` for compatibility with keyboard-only
+  code, which creates side effects (kicking Darci when leaving pause — had to add
   `gamepad_consume_until_released()`)
-- Каждое новое меню требует копипасты всей input логики
+- Every new menu requires copy-pasting all the input logic
 
-**Целевая архитектура:**
+**Target architecture:**
 
 ```
-Все устройства → единая очередь menu actions → меню читает actions
+All devices → single queue of menu actions → menus read actions
 ```
 
-Один модуль `menu_input` (или расширение gamepad layer):
-- Принимает raw input от всех устройств (keyboard `Keys[]`, gamepad `the_state`, мышь в будущем)
-- Деадзона, гистерезис, dominant-axis — в одном месте
-- Выдаёт `MenuAction` enum: `MENU_UP`, `MENU_DOWN`, `MENU_LEFT`, `MENU_RIGHT`,
+A single `menu_input` module (or an extension of the gamepad layer):
+- Takes raw input from all devices (keyboard `Keys[]`, gamepad `the_state`, mouse in the future)
+- Deadzone, hysteresis, dominant-axis — in one place
+- Emits a `MenuAction` enum: `MENU_UP`, `MENU_DOWN`, `MENU_LEFT`, `MENU_RIGHT`,
   `MENU_CONFIRM`, `MENU_CANCEL`, `MENU_START`
-- Repeat/debounce — один раз, с одинаковыми параметрами для всех устройств
-- Consumption при закрытии меню — встроен в систему (не отдельный хак)
+- Repeat/debounce — once, with the same parameters for all devices
+- Consumption when a menu closes — built into the system (not a separate hack)
 
-Меню просто делает:
+A menu just does:
 ```cpp
 MenuAction action = menu_input_poll();
 if (action == MENU_UP) { ... }
 if (action == MENU_CONFIRM) { ... }
 ```
 
-**Файлы для рефакторинга:**
-- `ui/frontend/frontend.cpp` — `FRONTEND_input()` (~100 строк input логики)
-- `ui/menus/gamemenu.cpp` — `GAMEMENU_process()` (~60 строк gamepad injection)
-- `ui/menus/pause.cpp` — `PAUSE_handler()` (~40 строк)
-- `ui/menus/widget.cpp` — `FORM_Process()` (~20 строк)
-- `engine/input/gamepad.cpp` — `gamepad_consume_until_released()` (костыль, заменить на встроенный механизм)
+**Files to refactor:**
+- `ui/frontend/frontend.cpp` — `FRONTEND_input()` (~100 lines of input logic)
+- `ui/menus/gamemenu.cpp` — `GAMEMENU_process()` (~60 lines of gamepad injection)
+- `ui/menus/pause.cpp` — `PAUSE_handler()` (~40 lines)
+- `ui/menus/widget.cpp` — `FORM_Process()` (~20 lines)
+- `engine/input/gamepad.cpp` — `gamepad_consume_until_released()` (a crutch, replace with the built-in mechanism)
 
-### Перевести все за��оловки на `#pragma once`
+### Move all headers to `#pragma once`
 
-Часть заголовков (особенно старые из `src/`) используют классические include guards (`#ifndef`/`#define`/`#endif`). Новый код (libDualsense, etc.) уже на `#pragma once`. Унифицировать весь проект на `#pragma once` — поддерживается Clang, GCC, MSVC.
+Some headers (especially the old ones from `src/`) use classic include guards (`#ifndef`/`#define`/`#endif`). New code (libDualsense, etc.) is already on `#pragma once`. Unify the whole project on `#pragma once` — supported by Clang, GCC, MSVC.
 
 ### C++20 modules
 
-Конвертация .h/.cpp → C++20 modules. Планировалась как часть Этапа 4, но перенесена сюда —
-сначала нужна стабильная архитектура (после замены рендерера и чистки зависимостей).
-DAG зависимостей уже построен (`tools/st_4_2_dep_graph.py`), структура папок финализирована.
-Требует Clang 20+ и CMake 3.28+ (CXX_MODULE_STD). Стандарт modules один и тот же в C++20 и C++23.
+Conversion of .h/.cpp → C++20 modules. Was planned as part of Stage 4, but moved here —
+a stable architecture is needed first (after replacing the renderer and cleaning up dependencies).
+The dependency DAG is already built (`tools/st_4_2_dep_graph.py`), the folder structure is finalized.
+Requires Clang 20+ and CMake 3.28+ (CXX_MODULE_STD). The modules standard is the same in C++20 and C++23.
 
-> **Примечание:** задачи по разделению D3D и разбиению `uc_common.h` были перенесены в пре-стадию [этапа 7](stage7.md) и завершены. D3D6 бэкенд удалён (2026-04-08).
+> **Note:** the tasks for separating D3D and splitting up `uc_common.h` were moved into the pre-stage of [stage 7](stage7.md) and completed. The D3D6 backend was removed (2026-04-08).
