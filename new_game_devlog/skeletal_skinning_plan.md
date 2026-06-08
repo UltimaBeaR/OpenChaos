@@ -394,7 +394,7 @@ MuckyFoot; отдельный пункт в known_issues).
 склад ок. **Оригинальный баг «пропадание тени на ~1 кадр»** (был и в
 релизе MuckyFoot, не наша регрессия) — **ИСПРАВЛЕН 2026-05-19**,
 подтверждён пользователем; запись в
-[known_issues_and_bugs_resolved.md](../new_game_planning/known_issues_and_bugs_resolved.md)
+[known_issues_and_bugs_resolved.md](../known_issues_and_bugs/known_issues_and_bugs_resolved.md)
 (причина — реклейм `POLY_PAGE_SHADOW` до её отрисовки в `POLY_frame_draw`).
 
 ### 2026-05-19 — БАГ: GPU-путь молча не работал (фикс: рамка от scale)

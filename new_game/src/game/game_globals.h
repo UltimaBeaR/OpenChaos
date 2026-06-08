@@ -88,7 +88,7 @@ static constexpr SLONG RENDER_FPS_DEFAULT_CAP = 300;
 // don't expose the broken-and-poor sub-30 range.
 //
 // This clamp is a workaround, NOT a real fix. The sub-30 hitch is an unsolved
-// post-1.0 issue: see new_game_planning/known_issues_and_bugs_post_1_0.md →
+// post-1.0 issue: see known_issues_and_bugs/known_issues_and_bugs.md →
 // "Настройки и конфигурация" → "FPS-лимит ниже 30 даёт периодический рывок".
 // The goal there is to root-cause the OpenGL→compositor present stall and then
 // lower or remove this clamp. Don't treat 30 as a designed minimum.

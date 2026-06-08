@@ -8,5 +8,5 @@
 Связанные документы:
 
 - Исходная задача: [`../fps_unlock/fps_unlock_issues.md` #22](../fps_unlock/fps_unlock_issues.md#22-)
-- Баг ради которого это нужно: «Спорадические катастрофические просадки FPS» в [`../../new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md) (секция Геймплей)
+- Баг ради которого это нужно: «Спорадические катастрофические просадки FPS» в [`../../known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md) (секция Геймплей)
 - Скилл для глубоких разовых расследований (другое назначение): `.claude/skills/perf-diag/SKILL.md`

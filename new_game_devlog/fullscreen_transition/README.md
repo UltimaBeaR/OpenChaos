@@ -16,7 +16,7 @@ workstream):**
 - Some general-purpose render / composition issues that surfaced during
   this work but aren't fullscreen-specific have been **moved to the
   global issue list** at
-  [`../../new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md):
+  [`../../known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md):
   - **Wibble amplitude doesn't scale with resolution** — water ripple
     effect ослаблен на 1080p+.
   - **Composition AA** — упрощённый FXAA, заменить на canonical FXAA

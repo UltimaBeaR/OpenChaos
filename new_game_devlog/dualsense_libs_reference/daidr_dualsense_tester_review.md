@@ -7,7 +7,7 @@
 ## Зачем это всё
 
 1. **Диагностика бага** "non-Windows + DualSense USB: вибрация почти не
-   работает" (см. `new_game_planning/known_issues_and_bugs.md`).
+   работает" (см. `known_issues_and_bugs/known_issues_and_bugs.md`).
    На ds.daidr.me вибра работает на **всех** OS+USB, у нас — только Win.
    Значит есть объективная разница в wire-байтах.
 2. **Паритет фич.** Сайт daidr тестирует гироскоп, mute LED, calibration
@@ -179,7 +179,7 @@ wire dump с ds.daidr.me (Wireshark на HID USB).
 - **macOS/Deck BT** — не тестировалось, код BT-ветки не менялся.
 
 **Статус:** баг закрыт, запись перемещена в
-[`known_issues_and_bugs_resolved.md`](../../new_game_planning/known_issues_and_bugs_resolved.md).
+[`known_issues_and_bugs_resolved.md`](../../known_issues_and_bugs/known_issues_and_bugs_resolved.md).
 
 ### 1.5 Дополнительные отличия для справки
 
@@ -1401,7 +1401,7 @@ CRC. Гипотезы:
 (CRC/размер для BT неверен именно на send). Если и на USB n/a —
 баг в самой test-command state machine (0x81 polling пропускает
 нужные chunks). Записать в
-[`../../new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md).
+[`../../known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md).
 Когда починим — закрыть эту подсекцию и обновить README либы в
 "Factory data" секцию (убрать «may not work over BT» warning
 когда он добавится).

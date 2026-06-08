@@ -60,4 +60,4 @@ DualSense-специфика (adaptive triggers, LED, тачпад, гироск
 ## Stick drift в меню
 - В главном меню нет deadzone для стиков — бесконечный скролл на контроллерах с drift
 - В геймплее deadzone есть, в меню — нет
-- **Это баг для 1.0**, не для 13 этапа — записан в [known_issues](known_issues_and_bugs.md) — "Бесконечный скролл меню (stick drift)"
+- **Это баг для 1.0**, не для 13 этапа — записан в [known_issues](../known_issues_and_bugs/known_issues_and_bugs.md) — "Бесконечный скролл меню (stick drift)"

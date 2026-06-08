@@ -78,7 +78,7 @@ Boundng sphere центрирована в AABB центре, radius = `sqrt(2·
 
 ## Почему лужи не через эту систему
 
-Аналогичный баг для луж был решён [иначе](../new_game_planning/known_issues_and_bugs_resolved.md): цикл луж в `aeng.cpp` итерирует ВСЕ 128 z-строк карты с полным x-диапазоном (без гамута), а не-видимые лужи отсекаются на per-vertex `POLY_transform` внутри `PUDDLE_draw`.
+Аналогичный баг для луж был решён [иначе](../known_issues_and_bugs/known_issues_and_bugs_resolved.md): цикл луж в `aeng.cpp` итерирует ВСЕ 128 z-строк карты с полным x-диапазоном (без гамута), а не-видимые лужи отсекаются на per-vertex `POLY_transform` внутри `PUDDLE_draw`.
 
 Для **луж** этот brute-force подход дёшев потому что `PUDDLE_mapwho` маленький (~128 байт) и сам `PUDDLE_draw` дёшевый (пара polygon'ов, без per-vertex освещения). Per-frame cost ~1-2 нс.
 

@@ -8,7 +8,7 @@
 ---
 
 ## ~~Синхронизация adaptive trigger с выстрелом~~ ✅ Готово
-Реализовано через act-bit детект. См. [`known_issues_and_bugs_resolved.md`](known_issues_and_bugs_resolved.md) — "DualSense adaptive trigger: щелчок не совпадает с выстрелом".
+Реализовано через act-bit детект. См. [`known_issues_and_bugs_resolved.md`](../known_issues_and_bugs/known_issues_and_bugs_resolved.md) — "DualSense adaptive trigger: щелчок не совпадает с выстрелом".
 
 ## ~~Weapon-specific feedback (дробовик, автомат)~~ ✅ Готово (2026-04-19)
 

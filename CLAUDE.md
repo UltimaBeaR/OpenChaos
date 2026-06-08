@@ -30,14 +30,14 @@ new_game_planning/                  — планирование новой иг
   phases.md                         — фазы разработки и текущий статус
   stages.md                         — этапы Фазы 3 с критериями
   prerelease_fixes.md               — пре-релизные баги оригинала (выполненные фиксы)
-  known_issues_and_bugs_1_0.md      — АКТИВНЫЕ известные проблемы и баги ДЛЯ РЕЛИЗА 1.0 (только то что нужно успеть сделать к 1.0)
-  known_issues_and_bugs_post_1_0.md — БАГИ И ДОРАБОТКИ ПОСЛЕ 1.0 (сознательно отложено, не блокирует релиз)
-  known_issues_and_bugs_resolved.md — АРХИВ решённых/закрытых проблем (общий для 1.0 и post-1.0). ⚠️ Когда проблема решена/won't-do из ЛЮБОГО из двух активных файлов — ПЕРЕНОСИТЬ запись СЮДА (физически вырезать строку и вставить в соответствующую `## … (исправленные)` секцию), НЕ оставлять в активном файле и НЕ просто менять статус
   tech_and_architecture.md          — стек, архитектура, все принятые решения
   testing.md                        — стратегия тестирования, чеклисты, replay
   stage7_renderer_rules.md          — ⚠️ 3 ОБЯЗАТЕЛЬНЫХ правила переноса графического API (Этап 7)
   porting_notes.md                  — заметки по портированию подсистем
   entity_mapping.json               — соответствия старых/новых имён (создаётся на Этапе 4, управляется через tools/entity_map.py)
+known_issues_and_bugs/              — известные проблемы и баги (вынесено в корень проекта)
+  known_issues_and_bugs.md          — АКТИВНЫЕ известные проблемы и баги (доработки и баги, сознательно отложенные на потом)
+  known_issues_and_bugs_resolved.md — АРХИВ решённых/закрытых проблем. ⚠️ Когда проблема решена/won't-do из активного файла — ПЕРЕНОСИТЬ запись СЮДА (физически вырезать строку и вставить в соответствующую `## … (resolved)` секцию), НЕ оставлять в активном файле и НЕ просто менять статус
 new_game/                           — код новой версии игры (итеративный рефакторинг оригинала)
 libDualsense/                       — OpenChaos-owned standalone DualSense lib. Собственный минимальный модуль (SDL3 hidapi). Подключается к new_game через add_subdirectory из new_game/CMakeLists.txt. Потребители: `#include <libDualsense/ds_*.h>`. Доки либы: `libDualsense/README.md`, `libDualsense/API.md`.
 new_game_devlog/                    — рабочая документация по процессу разработки (находки, решения, технические детали)
@@ -77,9 +77,8 @@ CLAUDE.md                           — этот файл
 | ~~Работа на Этапе 4~~ (ЗАВЕРШЁН) | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` |
 | ~~Работа на Этапе 7 (рендерер)~~ (ЗАВЕРШЁН) | `new_game_planning/stage7_renderer_rules.md` + `new_game_planning/stage7.md` |
 | Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
-| Известные проблемы и баги (для 1.0) | `new_game_planning/known_issues_and_bugs_1_0.md` |
-| Баги/доработки после 1.0 | `new_game_planning/known_issues_and_bugs_post_1_0.md` |
-| Решённые/закрытые проблемы (архив, общий для 1.0 и post-1.0, + куда ПЕРЕНОСИТЬ закрытое) | `new_game_planning/known_issues_and_bugs_resolved.md` |
+| Известные проблемы и баги (активные) | `known_issues_and_bugs/known_issues_and_bugs.md` |
+| Решённые/закрытые проблемы (архив, + куда ПЕРЕНОСИТЬ закрытое) | `known_issues_and_bugs/known_issues_and_bugs_resolved.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
 | DualSense (протокол, либы, trigger effects, packing'и) | `new_game_devlog/dualsense_libs_reference/README.md` (навигация) — вся DualSense-специфичная документация собрана в этой подпапке |
@@ -187,9 +186,8 @@ CLAUDE.md                           — этот файл
   - Фазы разработки → `new_game_planning/phases.md`
   - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
   - Пре-релизные баги (фиксы) → `new_game_planning/prerelease_fixes.md`
-  - Известные проблемы и баги (для 1.0) → `new_game_planning/known_issues_and_bugs_1_0.md`
-  - Баги/доработки после 1.0 → `new_game_planning/known_issues_and_bugs_post_1_0.md`
-  - ⚠️ Решённое/won't-do из ЛЮБОГО из двух активных файлов → ПЕРЕНОСИТЬ (вырезать и вставить) в `new_game_planning/known_issues_and_bugs_resolved.md` в нужную `## … (исправленные)` секцию. Архив один общий. Не оставлять в активном файле, не ограничиваться сменой статуса. Проверять resolved при расследовании регрессий (баг мог уже быть решён)
+  - Известные проблемы и баги (активные) → `known_issues_and_bugs/known_issues_and_bugs.md`
+  - ⚠️ Решённое/won't-do из активного файла → ПЕРЕНОСИТЬ (вырезать и вставить) в `known_issues_and_bugs/known_issues_and_bugs_resolved.md` в нужную `## … (resolved)` секцию. Не оставлять в активном файле, не ограничиваться сменой статуса. Проверять resolved при расследовании регрессий (баг мог уже быть решён)
   - Всё про DualSense (протокол, либы, trigger effects, packing'и, PR notes) → `new_game_devlog/dualsense_libs_reference/`. Игровая weapon система которая использует DualSense — `new_game_devlog/weapon_haptic_and_adaptive_trigger.md`.
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
     - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON

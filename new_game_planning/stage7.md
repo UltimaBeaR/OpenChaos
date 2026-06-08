@@ -1,6 +1,6 @@
 # Этап 7 — Новый рендерер
 
-**Статус: ✅ ЗАВЕРШЁН.** Оставшиеся TODO перенесены в [known_issues](known_issues_and_bugs.md).
+**Статус: ✅ ЗАВЕРШЁН.** Оставшиеся TODO перенесены в [known_issues](../known_issues_and_bugs/known_issues_and_bugs.md).
 
 **Цель:** заменить DirectDraw/D3D6 рендерер на OpenGL через минимальную абстракцию.
 
@@ -375,7 +375,7 @@ No-op (правильно, не нужно реализовывать):
 - `ge_remove_all_loaded_textures` — нет driver tracking
 - `ge_draw_indexed_primitive_unlit` — 0 вызовов в кодовой базе
 
-Оставшиеся TODO перенесены в [known_issues_and_bugs.md](known_issues_and_bugs.md):
+Оставшиеся TODO перенесены в [known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md):
 - Outro bump mapping, resize окна, gamma коррекция
 - `ge_run_cutscene` — ✅ реализовано через FFmpeg
 

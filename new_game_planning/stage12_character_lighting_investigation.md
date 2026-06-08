@@ -1,12 +1,12 @@
 # Этап 12 — Расследование: плоское освещение персонажей
 
-**Статус:** ✅ **ИСПРАВЛЕНО (2026-04-12)**. Фикс сделан, протестирован, принят. Краткое описание — [`new_game_devlog/character_lighting_fix.md`](../new_game_devlog/character_lighting_fix.md). Запись перенесена в [`known_issues_and_bugs_resolved.md`](known_issues_and_bugs_resolved.md). Ниже — финальный результат секции 13, а также исторический отчёт расследования.
+**Статус:** ✅ **ИСПРАВЛЕНО (2026-04-12)**. Фикс сделан, протестирован, принят. Краткое описание — [`new_game_devlog/character_lighting_fix.md`](../new_game_devlog/character_lighting_fix.md). Запись перенесена в [`known_issues_and_bugs_resolved.md`](../known_issues_and_bugs/known_issues_and_bugs_resolved.md). Ниже — финальный результат секции 13, а также исторический отчёт расследования.
 
 Второй симптом ("слишком ярко ночью на Auto Destruct") — ожидает проверки на сцене, скорее всего исчез вместе с основным фиксом.
 
 **Дата:** 2026-04-12
 
-**Связанные баги в [known_issues_and_bugs.md](known_issues_and_bugs.md):**
+**Связанные баги в [known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md):**
 - "Освещение персонажей отличается от финального релиза" (более плоское освещение, помечено "Нужно в 1.0")
 - "Также 'слишком ярко ночью' на Auto Destruct" — упомянуто в том же баге, скорее всего тот же корневой баг (отсутствие directional lighting → персонаж принимает общий ambient одинаково со всех сторон, что ночью при низком ambient + сильных point lights даёт неверный результат)
 
@@ -607,7 +607,7 @@ pTLVert[i].specular = fog_specular;
 ## 12. После имплементации
 
 Когда фикс будет сделан:
-1. Обновить запись в [known_issues_and_bugs.md](known_issues_and_bugs.md) — переместить "Освещение персонажей отличается от финального релиза" в [known_issues_and_bugs_resolved.md](known_issues_and_bugs_resolved.md), указать ссылку на этот файл и коммит.
+1. Обновить запись в [known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md) — переместить "Освещение персонажей отличается от финального релиза" в [known_issues_and_bugs_resolved.md](../known_issues_and_bugs/known_issues_and_bugs_resolved.md), указать ссылку на этот файл и коммит.
 2. Перепроверить второй симптом — "слишком ярко ночью на Auto Destruct". Он скорее всего исчезнет вместе с основным фиксом, но если нет — отдельно расследовать.
 3. Записать решение коротко в `new_game_devlog/` для истории.
 4. Этот файл расследования можно либо оставить как есть (исторический документ), либо переместить в devlog.

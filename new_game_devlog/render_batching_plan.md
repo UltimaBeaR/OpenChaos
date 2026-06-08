@@ -150,7 +150,7 @@
 - [stage13_future_ideas.md](../new_game_planning/stage13_future_ideas.md)
   §«Скелетные анимации персонажей» и §«Перевод рендера на Vulkan»
   (нюансы bindless/текстурных массивов; god-shader — не главный рычаг).
-- [known_issues_and_bugs.md](../new_game_planning/known_issues_and_bugs.md) —
+- [known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md) —
   пометка про CPU-transform техдолг.
 
 ---

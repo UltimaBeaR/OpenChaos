@@ -767,9 +767,9 @@ call на персонажа вместо ~3-5 на материал).
 - [new_game/src/engine/graphics/pipeline/aeng.cpp](../new_game/src/engine/graphics/pipeline/aeng.cpp)
   — `WibbleAccum` union per reflection bbox; fallback-wibble; один
   `WIBBLE_simple` на reflection.
-- [new_game_planning/known_issues_and_bugs.md](../new_game_planning/known_issues_and_bugs.md)
+- [known_issues_and_bugs/known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md)
   — удалена запись «Wibble-отражения в лужах: поведение дёрганое...».
-- [new_game_planning/known_issues_and_bugs_resolved.md](../new_game_planning/known_issues_and_bugs_resolved.md)
+- [known_issues_and_bugs/known_issues_and_bugs_resolved.md](../known_issues_and_bugs/known_issues_and_bugs_resolved.md)
   — добавлена запись в секцию «Визуальные проблемы».
 
 **Что НЕ исправлено этой работой:**
@@ -876,9 +876,9 @@ Reflection теперь рисуется через тот же bind-space VBO +
 - `new_game/src/engine/graphics/geometry/figure_globals.{cpp,h}` —
   удалены `FIGURE_rpoint[]`, `FIGURE_rpoint_upto`, `FIGURE_Rpoint`,
   `FIGURE_MAX_RPOINTS`, `FIGURE_reflect_height`.
-- `new_game_planning/known_issues_and_bugs.md` — удалена запись про
+- `known_issues_and_bugs/known_issues_and_bugs.md` — удалена запись про
   отражения и освещение.
-- `new_game_planning/known_issues_and_bugs_resolved.md` — добавлена
+- `known_issues_and_bugs/known_issues_and_bugs_resolved.md` — добавлена
   запись в секцию «Визуальные проблемы».
 
 **Что осталось от Фазы 2:**
@@ -1380,7 +1380,7 @@ OLD path. После этого invariant §2.1 = «один soft путь на 
   новый хелпер `figure_anim_obj_get_consolidated`.
 - `new_game/src/engine/graphics/geometry/figure_globals.{h,cpp}` —
   `D3DAnimObj[]` + `D3DAnimObjKeys[]` cache, `TPO_MAX_NUMBER_PRIMS` 16→20.
-- `new_game_planning/known_issues_and_bugs.md` — 2 пользовательских
+- `known_issues_and_bugs/known_issues_and_bugs.md` — 2 пользовательских
   баг-репорта добавлены (тень полицейской машины с квадратом на
   Headline Hostage, MIB death-light поверх столбов).
 
@@ -1481,7 +1481,7 @@ SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT] = {
 - `new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp` — удалена `ge_skin_mesh_draw_range`.
 - `new_game/src/engine/graphics/graphics_engine/game_graphics_engine.h` — удалена декларация `ge_skin_mesh_draw_range`.
 - `new_game/src/game/game_tick.cpp` — удалены 3 кнопки + весь F-тюнер + manipulator + overlay-вызов.
-- `new_game_planning/known_issues_and_bugs.md` — записаны 2 post-1.0 issue (skinning seams + N cycler missing female civ).
+- `known_issues_and_bugs/known_issues_and_bugs.md` — записаны 2 post-1.0 issue (skinning seams + N cycler missing female civ).
 
 ---
 

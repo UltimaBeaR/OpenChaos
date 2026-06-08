@@ -33,7 +33,7 @@ Render scale + scene FBO + composition pass are implemented (see
   confirmed clean post-Stage 12.)
 - **Replace the simplified FXAA with a proper shader AA.** Moved to
   global issue list (not fullscreen-transition specific) →
-  [`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+  [`known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md)
   "Composition AA — заменить упрощённый FXAA…". Doesn't gate 1.0.
 
 ---
@@ -353,7 +353,7 @@ factor to every emit.
 Not specifically a fullscreen-transition issue (puddle ripple amplitude
 is wrong at every render scale ≠ 1×, including stock 4:3 if the FBO
 size differs from 640×480). Moved to global issue list →
-[`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+[`known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md)
 "Wibble amplitude не скейлится с разрешением". Full root-cause / fix
 plan kept there.
 
@@ -658,7 +658,7 @@ The perspective-projection uses of `POLY_screen_mul_x` (lines in
 
 Not fullscreen-transition specific (post-process composition feature).
 Moved to global issue list →
-[`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+[`known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md)
 "CRT / scanline shader как post-process".
 
 ---

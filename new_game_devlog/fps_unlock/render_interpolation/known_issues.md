@@ -7,7 +7,7 @@
 
 Нет активных багов. Все открытые issues перенесены.
 
-→ Jitter камеры (#5) перенесён в [`known_issues_and_bugs.md`](../../../new_game_planning/known_issues_and_bugs.md) как пост-1.0.
+→ Jitter камеры (#5) перенесён в [`known_issues_and_bugs.md`](../../../known_issues_and_bugs/known_issues_and_bugs.md) как пост-1.0.
 
 ## Известные ограничения (не баги — отсутствие покрытия)
 

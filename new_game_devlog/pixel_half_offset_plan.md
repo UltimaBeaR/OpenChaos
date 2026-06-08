@@ -3,7 +3,7 @@
 **Статус:** РАССЛЕДОВАНИЕ. Делать отдельной задачей, спокойно. До этого момента
 **не трогать** ничего связанного с этими `0.5` без явного согласования с
 пользователем — слишком легко всё сломать. См. также запись в
-[`new_game_planning/known_issues_and_bugs.md`](../new_game_planning/known_issues_and_bugs.md)
+[`known_issues_and_bugs/known_issues_and_bugs.md`](../known_issues_and_bugs/known_issues_and_bugs.md)
 секция "Визуальные проблемы".
 
 ## Суть проблемы
@@ -197,7 +197,7 @@
 - [`fullscreen_transition/concepts.md`](fullscreen_transition/concepts.md) — пайплайн
   vertex-преобразования; здесь же объяснено почему `s_XScale = ScreenHeight/480`
   и т.п.
-- [`new_game_planning/known_issues_and_bugs.md`](../new_game_planning/known_issues_and_bugs.md) —
+- [`known_issues_and_bugs/known_issues_and_bugs.md`](../known_issues_and_bugs/known_issues_and_bugs.md) —
   parent issue.
 
 ## История

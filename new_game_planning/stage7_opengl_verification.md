@@ -28,4 +28,4 @@
 | Legacy шрифт FONT_draw | Попиксельный текст (FPS, сообщения) | Debug: `bangunsnotgames` → FPS; outro/credits | `ge_plot_pixel` (через `ge_lock_screen`) |
 | Outro dual-texture | Bump mapping эффект (OS_DRAW_TEX_MUL) | Outro — если есть bump-текстуры | `oge_draw_indexed` с двумя texcoord |
 
-Известные баги OpenGL → [known_issues_and_bugs.md](known_issues_and_bugs.md)
+Известные баги OpenGL → [known_issues_and_bugs.md](../known_issues_and_bugs/known_issues_and_bugs.md)

@@ -32,7 +32,7 @@ The rule: **every 100% English, non-resource string → alt font.**
   localised / resource text.
 
 Tracked as a post-1.0 task in
-`new_game_planning/known_issues_and_bugs_post_1_0.md` (section "UI и опции").
+`known_issues_and_bugs/known_issues_and_bugs.md` (section "UI и опции").
 
 ## The problem
 

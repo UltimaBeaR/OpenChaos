@@ -14,7 +14,7 @@
 
 ## Что это за задача
 
-Третья попытка переделать поведение камеры при контакте со стенами/окружением (трекалось в [`known_issues_and_bugs.md` секция «Камера»](../../new_game_planning/known_issues_and_bugs.md)). Первые две попытки провалились — Claude не понимал систему достаточно глубоко, правил наобум, ломал работающую логику.
+Третья попытка переделать поведение камеры при контакте со стенами/окружением (трекалось в [`known_issues_and_bugs.md` секция «Камера»](../../known_issues_and_bugs/known_issues_and_bugs.md)). Первые две попытки провалились — Claude не понимал систему достаточно глубоко, правил наобум, ломал работающую логику.
 
 **Новая стратегия (нерушимая):** старая физическая логика камеры (`FC_process` в [`fc.cpp`](../../new_game/src/camera/fc.cpp)) **НЕ трогается**. Вся новая логика живёт в отдельном модуле [`vis_cam.h`/`.cpp`](../../new_game/src/camera/) поверх результата FC_process. FC_process пишет в `FC_cam[*]` как раньше; `VC_process` после него читает FC_cam и пишет в `VC_state[*]`; render-interp снэпшотит и lerp'ает VC_state.
 
@@ -149,7 +149,7 @@ Render frame:  RenderInterpFrame ctor (substitute fc->x/y/z = lerp моих snap
 
 ### Что хотим сделать
 
-В Urban Chaos есть задача улучшения поведения камеры (трекается в [`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md), секция «Камера»):
+В Urban Chaos есть задача улучшения поведения камеры (трекается в [`known_issues_and_bugs/known_issues_and_bugs.md`](../../known_issues_and_bugs/known_issues_and_bugs.md), секция «Камера»):
 
 - Камера должна всегда вращаться вокруг персонажа, даже если мешают стены.
 - При коллизии со стеной — приближаться к персонажу (вплоть до позиции внутри модели).

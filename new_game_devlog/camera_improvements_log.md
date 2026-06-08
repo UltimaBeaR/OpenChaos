@@ -1,9 +1,9 @@
 # Camera improvements — log
 
 Devlog по работам над камерой. Все находки и решения по проблемам камеры из
-[`new_game_planning/known_issues_and_bugs.md`](../new_game_planning/known_issues_and_bugs.md)
+[`known_issues_and_bugs/known_issues_and_bugs.md`](../known_issues_and_bugs/known_issues_and_bugs.md)
 (секция «Камера») фиксируются здесь. Уже закрытые задачи мигрируют в
-[`known_issues_and_bugs_resolved.md`](../new_game_planning/known_issues_and_bugs_resolved.md).
+[`known_issues_and_bugs_resolved.md`](../known_issues_and_bugs/known_issues_and_bugs_resolved.md).
 
 Связанные проблемы (решаются по очереди):
 
@@ -260,12 +260,12 @@ if (fc->platform_thing) {
 
 > **Статус:** план зафиксирован, реализация впереди.
 > **Источник проблемы:**
-> [`known_issues_and_bugs.md` секция «Камера»](../new_game_planning/known_issues_and_bugs.md)
+> [`known_issues_and_bugs.md` секция «Камера»](../known_issues_and_bugs/known_issues_and_bugs.md)
 > (строки 65-71). Эта работа закрывает сразу 2 issue: «Улучшенная
 > камера (wall collision)» и «Камера заходит за объекты / не крутится
 > из-за объектов» — это две стороны одной проблемы.
 > **Связанная нерешённая задача:** «кишки» при near-plane clip
-> ([`known_issues:71`](../new_game_planning/known_issues_and_bugs.md#L71)) —
+> ([`known_issues:71`](../known_issues_and_bugs/known_issues_and_bugs.md#L71)) —
 > отдельный визуальный фикс, делается после.
 
 ### Симптом (что сейчас раздражает игрока)
@@ -413,7 +413,7 @@ Souls). Маппинг наших терминов на стандартные:
 - Камера будет чаще проникать в **мелкие объекты** (бочки, столбы,
   фонари, заборы, перила) — будет видно «кишки» (внутренности
   геометрии, бэкфейсы).
-- Это **отдельная задача** [`known_issues:71`](../new_game_planning/known_issues_and_bugs.md#L71) —
+- Это **отдельная задача** [`known_issues:71`](../known_issues_and_bugs/known_issues_and_bugs.md#L71) —
   решается визуально (player fade / occluder dither / object cull /
   backface override). Берётся следующей.
 - Без визуального фикса этой части — улучшение поведения камеры
@@ -445,6 +445,6 @@ Souls). Маппинг наших терминов на стандартные:
 ### Возврат к плану при потере контекста
 
 Если разговор затянулся и план потерялся: читаем эту секцию целиком,
-плюс summary в [`known_issues:65-71`](../new_game_planning/known_issues_and_bugs.md#L65-L71)
+плюс summary в [`known_issues:65-71`](../known_issues_and_bugs/known_issues_and_bugs.md#L65-L71)
 (симптомы и приоритет). Намерение и target behavior — выше; мелкие
 эмпирические числа — там же, можно подкрутить без изменения сути.
