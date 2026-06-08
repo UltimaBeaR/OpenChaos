@@ -1,49 +1,49 @@
-# Feature flags — вырезанные и экспериментальные фичи
+# Feature flags — cut and experimental features
 
-Рантайм-флаги для функционала который отличается от оригинального релиза.
+Runtime flags for functionality that differs from the original release.
 
-**Все флаги по умолчанию OFF** = поведение идентично оригинальному релизу (ванильная версия).
+**All flags are OFF by default** = behavior identical to the original release (vanilla version).
 
-## Категории флагов
+## Flag categories
 
-- **`cut_*`** — вырезанный функционал: код есть в пре-релизных исходниках, но выключен (закомментирован, под `#ifdef UNUSED`, или иначе деактивирован). Отсутствует в финальном релизе PC.
-- **`ext_*`** — расширенный функционал: добавлен OpenChaos, не существовал в оригинале. Новые фичи поверх оригинальной игры.
+- **`cut_*`** — cut content: the code exists in the pre-release sources but is disabled (commented out, under `#ifdef UNUSED`, or otherwise deactivated). Absent from the final PC release.
+- **`ext_*`** — extended content: added by OpenChaos, did not exist in the original. New features on top of the original game.
 
-## Как включить
+## How to enable
 
-Изменить значение в `new_game/src/feature_flags.cpp` и пересобрать.
-В будущем (этап 13) — UI настроек для включения экспериментальных фич без перекомпиляции.
+Change the value in `new_game/src/feature_flags.cpp` and rebuild.
+In the future (stage 13) — a settings UI for enabling experimental features without recompiling.
 
-## Файлы
+## Files
 
-- `new_game/src/feature_flags.h` — объявления флагов (struct FeatureFlags)
-- `new_game/src/feature_flags.cpp` — значения по умолчанию (все OFF)
-
----
-
-## Cut-флаги (вырезанный функционал)
-
-### `cut_bats` — Летучие мыши
-
-Летучие мыши — вырезанные враги. Код создания выключен MuckyFoot в пре-релизных исходниках (`#ifdef UNUSED`). В финальном релизе PC отсутствуют.
-
-**Где встречаются:** миссия Stern Revenge (за Roper с дробовиком, кладбище) — 23 мыши, 5 стай по всей карте, в т.ч. на кладбище в самом начале. Возможно есть и на других миссиях.
-
-**Поведение при включении:** мыши летают по уровню стаями, кусаются (без анимации укуса), атакуют игрока. Их можно стрелять и убивать, анимации смерти работают.
-
-**Проблемы:** текстуры — болванки (placeholder). Модель условно сойдёт, но нужны как минимум кастомные текстуры. Возможно и модель потребует доработки.
-
-**Где в коде:** `new_game/src/missions/eway.cpp` — `EWAY_create_animal`, case `EWAY_SUBTYPE_ANIMAL_BAT`. Логика AI/отрисовки в `bat.cpp`.
-
-**Что нужно для полноценного включения:**
-- Кастомные текстуры для модели летучей мыши (текущие — placeholder)
-- Тестирование на всех миссиях где мыши расставлены в данных
-- Балансировка (если нужна)
-
-**Обнаружено:** 2026-04-11, ASan-прогон на Stern Revenge. ASSERT(0) крашил при загрузке миссии.
+- `new_game/src/feature_flags.h` — flag declarations (struct FeatureFlags)
+- `new_game/src/feature_flags.cpp` — default values (all OFF)
 
 ---
 
-## Ext-флаги (расширенный функционал)
+## Cut flags (cut content)
 
-(пока нет)
+### `cut_bats` — Bats
+
+Bats are cut enemies. Their spawn code was disabled by MuckyFoot in the pre-release sources (`#ifdef UNUSED`). Absent from the final PC release.
+
+**Where they appear:** the Stern Revenge mission (playing as Roper with a shotgun, the graveyard) — 23 bats, 5 flocks across the whole map, including the graveyard right at the start. They may also appear in other missions.
+
+**Behavior when enabled:** bats fly around the level in flocks, bite (without a bite animation), and attack the player. They can be shot and killed, and the death animations work.
+
+**Problems:** the textures are placeholders. The model is passable, but at the very least custom textures are needed. The model may also need work.
+
+**Where in the code:** `new_game/src/missions/eway.cpp` — `EWAY_create_animal`, case `EWAY_SUBTYPE_ANIMAL_BAT`. AI/rendering logic is in `bat.cpp`.
+
+**What's needed for a full enable:**
+- Custom textures for the bat model (the current ones are placeholders)
+- Testing on all missions where bats are placed in the data
+- Balancing (if needed)
+
+**Discovered:** 2026-04-11, during an ASan run on Stern Revenge. ASSERT(0) was crashing on mission load.
+
+---
+
+## Ext flags (extended content)
+
+(none yet)
