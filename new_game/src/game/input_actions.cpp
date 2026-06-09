@@ -2825,6 +2825,9 @@ void player_apply_move(Thing* p_thing, ULONG input)
 // Sets the person to fight mode.
 void person_enter_fight_mode(Thing* p_person)
 {
+    // Entering fight stance drops a held can — can't square up with a can in hand.
+    person_drop_held_can(p_person);
+
     p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
 }
 

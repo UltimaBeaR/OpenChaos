@@ -130,6 +130,10 @@ void set_person_dead(Thing* p_thing, Thing* p_aggressor, SLONG death_type, SLONG
 // uc_orig: knock_person_down (fallen/Source/Person.cpp)
 void knock_person_down(Thing* p_person, SLONG hitpoints, SLONG origin_x, SLONG origin_z, Thing* p_aggressor);
 
+// Drops any held coke can / head at the person's feet (no-op if not holding
+// one). Project addition — called on weapon draw, fight-stance entry, and hits.
+void person_drop_held_can(Thing* p_person);
+
 // Moves person forward by dist units along their facing angle (for punch-push effects).
 // uc_orig: person_bodge_forward (fallen/Source/Person.cpp)
 void person_bodge_forward(Thing* p_person, SLONG dist);

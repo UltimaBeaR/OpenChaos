@@ -1279,6 +1279,12 @@ void AENG_draw_dirt()
             continue;
         }
 
+        // VIRTUAL leaf — a hole held by the DIRT field on a cell that can't
+        // show a leaf (building/water/off-map). Not drawn (see DIRT_FLAG_VIRTUAL).
+        if (dd->flag & DIRT_FLAG_VIRTUAL) {
+            continue;
+        }
+
         dd->flag &= ~DIRT_FLAG_DELETE_OK;
 
         {
@@ -1301,6 +1307,40 @@ void AENG_draw_dirt()
             }
         }
 
+        // Edge fade-out: scale the dirt element down to nothing as it nears the
+        // cull radius (DIRT_focus_radius) so it doesn't pop in/out at the
+        // boundary — full size inside, shrinking to zero right at the edge. Pure
+        // geometry scale: works with the alpha-tested cutout leaves AND with
+        // solid-mesh cans/brass/heads (via g_mesh_extra_scale below). The fade
+        // band is a FRACTION of the radius, so it stays a consistent on-screen
+        // proportion at any radius, and it spans the spawn band so edge dirt
+        // grows in instead of popping. One QDIST2 per drawn element — negligible.
+        const SLONG DIRT_EDGE_FADE_DIV = 6; // fade band = radius / 6 (~17%)
+        float edge_fade;
+        {
+            SLONG ef_width = DIRT_focus_radius / DIRT_EDGE_FADE_DIV;
+            if (ef_width < 1)
+                ef_width = 1;
+            SLONG efdx = abs(SLONG(dd->x) - DIRT_focus_x);
+            SLONG efdz = abs(SLONG(dd->z) - DIRT_focus_z);
+            SLONG efdist = QDIST2(efdx, efdz);
+            SLONG ef_full = DIRT_focus_radius - ef_width;
+            if (efdist <= ef_full)
+                edge_fade = 1.0F;
+            else if (efdist >= DIRT_focus_radius)
+                edge_fade = 0.0F;
+            else
+                edge_fade = float(DIRT_focus_radius - efdist) / float(ef_width);
+        }
+        // Soften the ramp: a concave curve (exponent < 1) keeps elements near
+        // full size across most of the band and squeezes the actual shrink into
+        // the outer sliver — which is far away and small on screen, so the
+        // effect reads much less than a straight linear ramp. Tune the exponent
+        // (lower = stays full-size longer / sharper drop right at the edge).
+        const float DIRT_EDGE_FADE_EXP = 0.45F;
+        if (edge_fade > 0.0F && edge_fade < 1.0F)
+            edge_fade = powf(edge_fade, DIRT_EDGE_FADE_EXP);
+
         switch (dd->type) {
         case DIRT_TYPE_LEAF:
         case DIRT_TYPE_SNOW:
@@ -1316,13 +1356,14 @@ void AENG_draw_dirt()
 
                 MATRIX_calc(matrix, fyaw, fpitch, froll);
 
-                matrix[0] *= 24.0F;
-                matrix[1] *= 24.0F;
-                matrix[2] *= 24.0F;
+                const float rubbish_size = 24.0F * edge_fade;
+                matrix[0] *= rubbish_size;
+                matrix[1] *= rubbish_size;
+                matrix[2] *= rubbish_size;
 
-                matrix[6] *= 24.0F;
-                matrix[7] *= 24.0F;
-                matrix[8] *= 24.0F;
+                matrix[6] *= rubbish_size;
+                matrix[7] *= rubbish_size;
+                matrix[8] *= rubbish_size;
 
                 POLY_Point temp[4];
                 POLY_Point* quad[4];
@@ -1405,7 +1446,7 @@ void AENG_draw_dirt()
                 tri[1] = &leaf_pp[1];
                 tri[2] = &leaf_pp[2];
 
-                float leaf_size = LEAF_SIZE;
+                float leaf_size = LEAF_SIZE * edge_fade;
                 float wx[3], wy[3], wz[3];
 
                 if ((dd->pitch | dd->roll) == 0) {
@@ -1515,6 +1556,9 @@ void AENG_draw_dirt()
         case DIRT_TYPE_CAN:
         case DIRT_TYPE_THROWCAN:
 
+        {
+            extern float g_mesh_extra_scale;
+            g_mesh_extra_scale = edge_fade; // shrink toward the cull edge
             MESH_draw_poly(
                 PRIM_OBJ_CAN,
                 dd->x,
@@ -1524,14 +1568,18 @@ void AENG_draw_dirt()
                 dd->pitch,
                 dd->roll,
                 NULL, 0, 0);
+            g_mesh_extra_scale = 1.0F;
+        }
 
             break;
 
         case DIRT_TYPE_BRASS:
 
             extern UBYTE kludge_shrink;
+            extern float g_mesh_extra_scale;
 
             kludge_shrink = UC_TRUE;
+            g_mesh_extra_scale = edge_fade; // shrink toward the cull edge
 
             MESH_draw_poly(
                 PRIM_OBJ_ITEM_AMMO_SHOTGUN,
@@ -1543,6 +1591,7 @@ void AENG_draw_dirt()
                 dd->roll,
                 NULL, 0, 0);
 
+            g_mesh_extra_scale = 1.0F;
             kludge_shrink = UC_FALSE;
 
             break;

@@ -35,6 +35,11 @@ extern UBYTE* car_assign;
 // DRAWXTRA_MIB_destruct calls to shrink prim 253 and any other prims to small scale.
 extern UBYTE kludge_shrink;
 
+// Continuous uniform mesh-scale hook (1.0 = no shrink). Set by callers around a
+// MESH_draw_poly to scale the whole mesh — used by the DIRT edge-fade to shrink
+// cans/brass/heads toward the leaf-field cull radius. Default no-op.
+float g_mesh_extra_scale = 1.0F;
+
 // AENG_cam_yaw/pitch/roll are defined in aeng.cpp (not yet migrated).
 extern float AENG_cam_yaw;
 extern float AENG_cam_pitch;
@@ -176,6 +181,15 @@ static NIGHT_Colour* MESH_draw_guts(
         matrix[6] *= fstretch;
         matrix[7] *= fstretch;
         matrix[8] *= fstretch;
+    }
+
+    // Optional uniform shrink requested by the caller (1.0 = no-op). Applied on
+    // top of any rotation/stretch above. Used by the DIRT edge-fade to shrink
+    // cans/brass/heads to nothing toward the leaf-field cull radius, the same
+    // way leaf sprites shrink. Reset to 1.0 by the caller right after the draw.
+    if (g_mesh_extra_scale != 1.0F) {
+        for (int ms = 0; ms < 9; ms++)
+            matrix[ms] *= g_mesh_extra_scale;
     }
 
     POLY_set_local_rotation(

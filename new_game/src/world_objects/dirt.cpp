@@ -27,6 +27,21 @@
 // uc_orig: DIRT_LEAVES_PER_TREE (fallen/Source/dirt.cpp)
 #define DIRT_LEAVES_PER_TREE 200
 
+// Slots the recycle pass examines per DIRT_set_focus call — a FIXED count,
+// deliberately independent of the pool size, so the post-movement refill speed
+// does not change when the pool (density/radius) changes. DIRT_set_focus now
+// runs at physics rate; ~512/call refills the field in a fraction of a second.
+// (Original used DIRT_MAX_DIRT/8, tuned for the render-rate call cadence.)
+#define DIRT_RECYCLE_PER_CALL 512
+
+// On an abrupt focus jump (camera cut / cutscene scene change / teleport), the
+// field is re-filled across the WHOLE disc for this many calls (the same
+// whole-disc fill the level start uses via DIRT_focus_first) instead of only at
+// the edge ring — otherwise the disc centre stays empty after the jump (leaves
+// only trickle in at the edge). A few calls cover placements that fail on
+// invalid cells. The jump is detected against DIRT_focus_radius (runtime).
+#define DIRT_TELEPORT_REFILL_CALLS 3
+
 // Pigeon state IDs used by DIRT_pigeon_process and state init functions.
 // uc_orig: DIRT_PIGEON_WAIT (fallen/Source/dirt.cpp)
 #define DIRT_PIGEON_WAIT 0
@@ -222,7 +237,7 @@ DIRT_Dirt* DIRT_find_useless(void)
     DIRT_Dirt* dd;
 
     for (i = 0; i < 8; i++) {
-        dd = &DIRT_dirt[Random() & (DIRT_MAX_DIRT - 1)];
+        dd = &DIRT_dirt[Random() % DIRT_MAX_DIRT];
 
         if (dd->type == DIRT_TYPE_UNUSED || (dd->flag & DIRT_FLAG_DELETE_OK)) {
             return dd;
@@ -230,7 +245,7 @@ DIRT_Dirt* DIRT_find_useless(void)
     }
 
     for (i = 0; i < 8; i++) {
-        dd = &DIRT_dirt[Random() & (DIRT_MAX_DIRT - 1)];
+        dd = &DIRT_dirt[Random() % DIRT_MAX_DIRT];
 
         if (dd->type == DIRT_TYPE_LEAF) {
             return dd;
@@ -240,6 +255,12 @@ DIRT_Dirt* DIRT_find_useless(void)
     dd = &DIRT_dirt[Random() & (DIRT_MAX_DIRT - 1)];
 
     return dd;
+}
+
+// Request a whole-disc refill over the next few calls. See dirt.h.
+void DIRT_request_refill(void)
+{
+    DIRT_focus_first = DIRT_TELEPORT_REFILL_CALLS;
 }
 
 // Sets the camera focus position and radius, culling and spawning dirt as needed.
@@ -275,6 +296,30 @@ void DIRT_set_focus(
 
     if (GAME_FLAGS & GF_NO_FLOOR) {
         return;
+    }
+
+    // Abrupt focus jump (camera cut / cutscene scene change / teleport): the
+    // render-interp camera-teleport flag isn't raised on cutscene cuts, so
+    // detect the jump directly. On a jump bigger than the radius the old disc
+    // barely overlaps the new one, so re-fill the WHOLE disc for a few calls
+    // (DIRT_focus_first path) instead of only the edge ring — keeps the centre
+    // from being left empty after the jump.
+    {
+        static SLONG s_prev_focus_x = 0;
+        static SLONG s_prev_focus_z = 0;
+        static SLONG s_prev_focus_valid = UC_FALSE;
+
+        if (s_prev_focus_valid) {
+            SLONG jdx = abs(DIRT_focus_x - s_prev_focus_x);
+            SLONG jdz = abs(DIRT_focus_z - s_prev_focus_z);
+            if (QDIST2(jdx, jdz) > DIRT_focus_radius) {
+                DIRT_request_refill();
+            }
+        }
+
+        s_prev_focus_x = DIRT_focus_x;
+        s_prev_focus_z = DIRT_focus_z;
+        s_prev_focus_valid = UC_TRUE;
     }
 
     for (i = 0; i < DIRT_tree_upto; i++) {
@@ -363,18 +408,53 @@ void DIRT_set_focus(
         }
     }
 
+    // Active slot count for the CURRENT radius, derived from the original
+    // density (slots per area) so density stays constant when the radius
+    // changes. = DIRT_MAX_DIRT at the max (compile-time) radius. The recycle
+    // pass only manages slots [0, active_count); the rest stay UNUSED, so a
+    // smaller radius is not denser — it just uses fewer leaves.
+    SLONG active_count = (SLONG)((long long)DIRT_DENSITY_REF_POOL * DIRT_focus_radius * DIRT_focus_radius
+        / ((long long)DIRT_DENSITY_REF_RADIUS * DIRT_DENSITY_REF_RADIUS));
+    if (active_count < 1)
+        active_count = 1;
+    if (active_count > DIRT_MAX_DIRT)
+        active_count = DIRT_MAX_DIRT;
+
+    // If the radius shrank since last call, free ambient leaves now beyond the
+    // active set so they don't linger (the recycle pass won't visit them).
+    static SLONG s_prev_active = 0;
+    if (active_count < s_prev_active) {
+        for (SLONG k = active_count; k < s_prev_active; k++) {
+            if ((DIRT_dirt[k].type == DIRT_TYPE_LEAF || DIRT_dirt[k].type == DIRT_TYPE_SNOW)
+                && DIRT_dirt[k].owner == 255) {
+                DIRT_dirt[k].type = DIRT_TYPE_UNUSED;
+            }
+        }
+    }
+    s_prev_active = active_count;
+
     SLONG number_to_check;
 
     if (DIRT_focus_first) {
-        number_to_check = DIRT_MAX_DIRT;
+        number_to_check = active_count;
     } else {
-        number_to_check = DIRT_MAX_DIRT / 8;
+        // Fixed count (see DIRT_RECYCLE_PER_CALL), capped at the active set for
+        // small radii. Independent of pool size so refill speed is unaffected
+        // by density/radius changes.
+        number_to_check = (active_count < DIRT_RECYCLE_PER_CALL) ? active_count : DIRT_RECYCLE_PER_CALL;
     }
+
+    // Squared focus radius for the exact out-of-range test below (hoisted out
+    // of the per-slot loop). DIRT_focus_radius <= 0xc00, so radius^2 <= ~9.4M
+    // fits SLONG with room to spare.
+    const SLONG focus_radius_sq = DIRT_focus_radius * DIRT_focus_radius;
 
     for (i = 0; i < number_to_check; i++) {
         DIRT_check += 1;
 
-        if (DIRT_check >= DIRT_MAX_DIRT) {
+        // Wrap at active_count (not DIRT_MAX_DIRT) so only the active set is
+        // recycled — that's what keeps density constant across radii.
+        if (DIRT_check >= active_count) {
             DIRT_check = 0;
         }
 
@@ -391,18 +471,39 @@ void DIRT_set_focus(
         dx = abs(dd->x - DIRT_focus_x);
         dz = abs(dd->z - DIRT_focus_z);
 
-        dist = QDIST2(dx, dz);
+        // Exact (squared Euclidean) out-of-range test, NOT the QDIST2
+        // octagonal approximation the rest of DIRT uses. Ambient dirt is
+        // spawned (below) at a true SIN/COS Euclidean distance just inside
+        // DIRT_focus_radius; QDIST2 over-estimates that distance by up to ~6%
+        // on diagonals, so a just-spawned diagonal-edge leaf would read as
+        // already-outside and get immediately re-thrown — the boundary
+        // "flicker". Comparing the same metric spawn uses keeps a leaf placed
+        // inside from being culled on the next pass. No sqrt; the per-axis
+        // early-out skips the multiply (and avoids overflow) for far slots.
+        SLONG out_of_range;
+        if (dx > DIRT_focus_radius || dz > DIRT_focus_radius) {
+            out_of_range = UC_TRUE;
+        } else {
+            out_of_range = (dx * dx + dz * dz) > focus_radius_sq;
+        }
 
-        if (dist > DIRT_focus_radius || dd->type == DIRT_TYPE_UNUSED) {
+        if (out_of_range || dd->type == DIRT_TYPE_UNUSED) {
             angle = Random() & 2047;
 
             if (DIRT_focus_first) {
-                dist = Random() & 0xff;
-                dist += Random() & 0xff;
-                dist += Random() & 0xff;
-                dist += Random() & 0xff;
-
-                dist = (0x3af - dist) * DIRT_focus_radius >> 10;
+                // Whole-disc fill (level start / teleport refill). Area-uniform:
+                // constant leaves-per-area across the disc, out to the edge —
+                // the same even density the field naturally reaches after free
+                // roaming, so right after a spawn/teleport you can move any
+                // direction with no bald leading edge. max(u1,u2)/256 has a
+                // pdf proportional to radius, which is exactly uniform per area.
+                // (Original summed 4 randoms -> centre-concentrated, leaving the
+                // outer rim near-empty -> the bald edge for the first ~0.2R of
+                // travel after a spawn/teleport.)
+                SLONG u1 = Random() & 0xff;
+                SLONG u2 = Random() & 0xff;
+                SLONG umax = (u1 > u2) ? u1 : u2;
+                dist = umax * DIRT_focus_radius >> 8;
             } else {
                 dist = DIRT_focus_radius;
                 dist -= Random() & 0xff;
@@ -507,13 +608,24 @@ void DIRT_set_focus(
                 // teleports across the screen" jitter when the player runs
                 // and many slots recycle in the same tick. Tell render-interp
                 // to skip the lerp on the next capture. UNUSED outcome (slot
-                // freed) is detected automatically by capture; only mark the
-                // non-UNUSED relocation paths.
-                if (dd->type != DIRT_TYPE_UNUSED) {
+                // freed) is detected automatically by capture; virtual leaves
+                // aren't drawn, so only mark real, non-UNUSED relocations.
+                if (dd->type != DIRT_TYPE_UNUSED && !(dd->flag & DIRT_FLAG_VIRTUAL)) {
                     render_interp_mark_dirt_teleport(int(dd - DIRT_dirt));
                 }
             } else {
-                dd->type = DIRT_TYPE_UNUSED;
+                // Target can't hold a leaf (building / water / off-map). Make a
+                // VIRTUAL leaf (see DIRT_FLAG_VIRTUAL): keep the slot + position
+                // but never draw/process it, and DON'T re-roll to another spot.
+                // It is recycled by the out-of-range check like a real leaf, so
+                // the field's real+virtual count stays constant — uniform real
+                // density on valid ground, honest holes here, no rim pile-up,
+                // and no bald patch when moving.
+                dd->type = DIRT_TYPE_LEAF;
+                dd->owner = 255;
+                dd->flag = DIRT_FLAG_STILL | DIRT_FLAG_VIRTUAL;
+                dd->x = cx;
+                dd->z = cz;
             }
         }
     }
@@ -1065,6 +1177,12 @@ void DIRT_process(void)
             continue;
         }
 
+        // VIRTUAL leaf (hole on a building/water/off-map cell) — holds its
+        // slot/position for recycling but is never simulated or drawn.
+        if (dd->flag & DIRT_FLAG_VIRTUAL) {
+            continue;
+        }
+
         if (dd->flag & DIRT_FLAG_STILL) {
             if (dd->type == DIRT_TYPE_SNOW) {
                 if (dd->UU.Leaf.fade > 4)
@@ -1519,6 +1637,11 @@ void DIRT_gust(
         dd = &DIRT_dirt[i];
 
         if (dd->type == DIRT_TYPE_UNUSED) {
+            continue;
+        }
+
+        // Virtual leaves (holes) aren't real — don't gust them.
+        if (dd->flag & DIRT_FLAG_VIRTUAL) {
             continue;
         }
 

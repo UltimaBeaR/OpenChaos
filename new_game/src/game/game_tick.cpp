@@ -1696,7 +1696,11 @@ void process_controls(void)
 
     // this stuff shouldn't even _be_ in process_controls.
 
-    DIRT_set_focus(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 0xc00);
+    // DIRT_set_focus (leaf/dirt spawn, cull and recycle) is no longer called
+    // here — it moved into the physics tick (game.cpp, just before
+    // DIRT_process) so it runs at physics rate, matching the render-interp
+    // capture cadence (this is what fixed the leaf jitter). Its radius is the
+    // DIRT_FOCUS_RADIUS constant (dirt.h).
     MIST_process();
     //	WATER_process();
     //	BANG_process();

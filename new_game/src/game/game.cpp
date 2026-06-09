@@ -32,6 +32,7 @@
 #include "missions/memory.h" // MEMORY_quick_init, init_memory
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+#include "engine/core/math.h" // SIN/COS for the DIRT virtual-focus point
 #include "camera/vis_cam.h" // VC_process — post-physics camera layer
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
@@ -1159,6 +1160,86 @@ round_again:;
                     // are pure visual effects calibrated against the
                     // 30 Hz visual cadence, must be independent of
                     // physics rate. Same with DRIP_process / PUDDLE_process.
+
+                    // DIRT focus (leaf/dirt spawn, cull, recycle) — moved here
+                    // from process_controls (render rate) so it runs once per
+                    // physics tick, on the same clock as DIRT_process below and
+                    // the render-interp capture at the end of this tick. Focus
+                    // tracks Darci's post-process_things position this tick.
+                    // Focus = a VIRTUAL point on the ground in front of the
+                    // ACTIVE camera (gameplay FC, or the cutscene camera when
+                    // one is running) at a fixed forward distance. This ties the
+                    // leaf field to the VIEW rather than to Darci: in normal play
+                    // the point ~sits on Darci (distance ~= camera follow
+                    // distance), but on zoom / in cutscenes (camera away from
+                    // Darci) the field follows the camera, so leaves no longer
+                    // look glued to Darci/the car. Camera is one physics tick
+                    // stale here (FC/VC update below) — negligible, smoothed by
+                    // render-interp. Radius is the DIRT_FOCUS_RADIUS constant
+                    // (dirt.h); density held constant inside DIRT_set_focus.
+                    //
+                    // ⚠️ WHY this point (≈ the camera's look pivot ≈ Darci) and
+                    // NOT the camera's own position — DO NOT "simplify" this to
+                    // center on the camera:
+                    //   This is the leaf SPAWN center, not just a draw distance.
+                    //   The gameplay camera ORBITS its look-pivot (≈Darci) when
+                    //   you rotate it. If the spawn circle were centered on the
+                    //   camera POSITION, rotating the camera would swing the whole
+                    //   circle around Darci, dragging the edge across the ground
+                    //   and constantly culling+respawning leaves on every camera
+                    //   turn (visible churn). Centering on the pivot keeps the
+                    //   circle still while you orbit, so the leaves don't get
+                    //   recreated. The virtual point sits on (or within a hair of)
+                    //   that pivot, which is exactly why it's used.
+                    {
+                        SLONG cx, cy, cz, ay, ap, ar, lens, cam_yaw;
+                        if (EWAY_grab_camera(&cx, &cy, &cz, &ay, &ap, &ar, &lens)) {
+                            cam_yaw = ay; // cutscene camera active
+
+                            // Cutscene camera CUT detection. A scene cut moves
+                            // the camera abruptly; the focus then lands where the
+                            // edge-only top-up would leave a bald leading edge,
+                            // so force a whole-disc refill. DIRT's own focus-jump
+                            // check only catches big jumps (> radius) — this
+                            // catches small cuts too (camera jumps near Darci).
+                            // Same delta thresholds render-interp uses to suppress
+                            // camera lerp across cuts (capture_eway_camera). Gated
+                            // to cutscenes only: in normal play a fast camera whip
+                            // must NOT force a refill (would pop leaves into view).
+                            {
+                                static SLONG s_pcx = 0, s_pcy = 0, s_pcz = 0, s_pyaw = 0;
+                                static bool s_pvalid = false;
+                                if (s_pvalid) {
+                                    const SLONG POS_CUT = 50000; // ~5m in world sub-units
+                                    const SLONG YAW_CUT = 43690; // ~30deg of the 524288 angle range
+                                    SLONG dyaw = abs(ay - s_pyaw);
+                                    if (dyaw > 524288 / 2)
+                                        dyaw = 524288 - dyaw;
+                                    if (abs(cx - s_pcx) > POS_CUT || abs(cy - s_pcy) > POS_CUT
+                                        || abs(cz - s_pcz) > POS_CUT || dyaw > YAW_CUT) {
+                                        DIRT_request_refill();
+                                    }
+                                }
+                                s_pcx = cx;
+                                s_pcy = cy;
+                                s_pcz = cz;
+                                s_pyaw = ay;
+                                s_pvalid = true;
+                            }
+                        } else {
+                            cx = FC_cam[0].x;
+                            cz = FC_cam[0].z;
+                            cam_yaw = FC_cam[0].yaw;
+                        }
+                        // Camera yaw is <<8 fixed; >>8 -> 0..2047. (SIN, COS) of
+                        // it points BACKWARD (toward where the camera sits behind
+                        // the focus), so SUBTRACT to step forward into the scene.
+                        // Distance is in map units (same as >>8 camera/focus coords).
+                        SLONG yaw2047 = (cam_yaw >> 8) & 2047;
+                        SLONG fx = (cx >> 8) - (SIN(yaw2047) * DIRT_CAM_FOCUS_DIST >> 16);
+                        SLONG fz = (cz >> 8) - (COS(yaw2047) * DIRT_CAM_FOCUS_DIST >> 16);
+                        DIRT_set_focus(fx, fz, DIRT_FOCUS_RADIUS);
+                    }
                     DIRT_process();
                     ProcessGrenades();
                     WMOVE_draw();

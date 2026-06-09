@@ -1888,6 +1888,9 @@ void knock_person_down(
         behind = !behind;
     }
 
+    // A hard hit / gunshot that knocks the person down drops any held can.
+    person_drop_held_can(p_person);
+
     set_person_dead(
         p_person,
         p_aggressor,
@@ -4878,13 +4881,14 @@ void set_person_draw_special(Thing* p_person)
 }
 
 // Drops any held coke can / head onto the ground at the person's feet (zero
-// throw power → no toss, just falls where they stand). Called whenever a weapon
-// is drawn: you can't hold a can and a weapon at once, so switching to ANY
-// weapon — explicit (menu / R3 / digit select) or implicit (out-of-ammo
-// auto-switch) — drops the can, since every equip funnels through the
-// set_person_draw_gun / set_person_draw_item primitives below. No-op if not
-// currently holding a can.
-static void person_drop_held_can(Thing* p_person)
+// throw power → no toss, just falls where they stand). No-op if not currently
+// holding a can. Called whenever the person can no longer plausibly keep
+// cradling the can: drawing a weapon (set_person_draw_gun / set_person_draw_item
+// — explicit or out-of-ammo auto-switch), entering fight stance
+// (person_enter_fight_mode), or taking a hit (set_person_recoil /
+// knock_person_down — melee blow or gunfire). Idempotent — clears
+// FLAG_PERSON_CANNING, so repeat calls in one hit do nothing.
+void person_drop_held_can(Thing* p_person)
 {
     if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
         DIRT_release_can_or_head(p_person, 0);
@@ -10568,6 +10572,9 @@ void set_person_ko_recoil(Thing* p_person, SLONG anim, UBYTE flags)
 // uc_orig: set_person_recoil (fallen/Source/Person.cpp)
 void set_person_recoil(Thing* p_person, SLONG anim, UBYTE flags)
 {
+    // Taking a hit (melee blow or gunfire — both funnel here) drops a held can.
+    person_drop_held_can(p_person);
+
     if (p_person->SubState == SUB_STATE_DRAW_ITEM)
         return;
 
