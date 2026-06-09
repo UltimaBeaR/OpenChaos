@@ -10,11 +10,13 @@ How to run
 Urban Chaos is not officially available on macOS. You need to obtain the
 game files from a Windows installation.
 
-1. Purchase Urban Chaos on Steam (Windows)
-2. On your Windows machine, locate the game folder:
+1. Get a legal copy of Urban Chaos (the Windows version) in any form (Steam,
+   GOG, or a disc / disc image). Any localization/language version works.
+2. On your Windows machine, locate the game folder (example shown for the
+   Steam version):
    C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
-3. Copy the entire game folder to your Mac (use a clean, unmodified copy
-   without third-party mods or DLL wrappers - they may conflict with OpenChaos)
+3. Copy the entire game folder to your Mac (a modified game folder is fine —
+   see the note below)
 4. Copy the contents of this archive into the game folder
 5. Launch the game using OpenChaos.command (NOT the OpenChaos file directly!)
    Right-click OpenChaos.command and select Open.
@@ -26,6 +28,11 @@ On first launch, macOS may show a security warning because the app is
 not signed. If that happens, right-click (or Ctrl+click) OpenChaos.command
 and select Open — this gives you an Open button to bypass the warning.
 After the first launch, double-click works normally.
+
+Note: mods that change game data work as usual; mods that replace or patch the
+original .exe or .dll are simply not used by OpenChaos. It's best to remove any
+leftover mod .dll files from the folder, but most likely there won't be any
+problems even if you leave them.
 
 Controls
 --------

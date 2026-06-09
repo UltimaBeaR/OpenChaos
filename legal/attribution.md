@@ -1,30 +1,30 @@
-# Атрибуция и позиционирование проекта
+# Project Attribution and Positioning
 
-## Позиционирование
+## Positioning
 
-**OpenChaos** — **неофициальная фанатская модернизация** игры Urban Chaos (1999).
+**OpenChaos** is an **unofficial fan-made modernization** of the game Urban Chaos (1999).
 
-- Это **не** официальный ремейк и не связан с правообладателем
-- Основан на исходном коде, **легально опубликованном** под MIT лицензией
-  автором оригинала Mike Diskett
-- Не включает игровые ассеты — требуется легальная копия игры
-- Аналогичная модель: [OpenMW](https://openmw.org/), [OpenTomb](https://github.com/opentomb/opentomb)
+- It is **not** an official remake and is not affiliated with the rights holder
+- Based on source code **legally released** under the MIT license
+  by the author of the original, Mike Diskett
+- Does not include game assets — a legal copy of the game is required
+- Similar model: [OpenMW](https://openmw.org/), [OpenTomb](https://github.com/opentomb/opentomb)
 
-## Название проекта
+## Project Name
 
-**OpenChaos** — Open (открытый код) + Chaos (от Urban Chaos).
+**OpenChaos** — Open (open source) + Chaos (from Urban Chaos).
 
-## Текущее состояние атрибуции в проекте
+## Current State of Attribution in the Project
 
-- **LICENSE** (корень) — MIT лицензия проекта OpenChaos (Copyright UltimaBeaR + contributors + оригинальный dizzy2003)
-- **original_game/LICENSE** — оригинальная MIT лицензия dizzy2003 (для оригинального кода)
-- **THIRD_PARTY_LICENSES.md** — лицензии всех сторонних зависимостей (SDL3, OpenAL Soft, fmt, Dualsense-Multiplatform и др.)
-- **README.md** — секция Legal с указанием правообладателя, ссылкой на Steam и отказом от претензий на IP
-- **Ассеты** — не включены в репозиторий, загитигнорены
+- **LICENSE** (root) — MIT license of the OpenChaos project (Copyright UltimaBeaR + contributors + original dizzy2003)
+- **original_game/LICENSE** — original MIT license of dizzy2003 (for the original code)
+- **THIRD_PARTY_LICENSES.md** — licenses of all third-party dependencies (SDL3, OpenAL Soft, fmt, Dualsense-Multiplatform, etc.)
+- **README.md** — Legal section stating the rights holder, a link to Steam, and a disclaimer of any IP claims
+- **Assets** — not included in the repository, gitignored
 
-## Шаблон атрибуции
+## Attribution Template
 
-Для использования в окне About (когда появится), описании репозитория и т.д.:
+For use in the About window (once it exists), the repository description, etc.:
 
 ```
 Urban Chaos is a trademark of My Little Planet Ltd.

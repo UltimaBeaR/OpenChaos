@@ -9,26 +9,35 @@ How to run
 
 Linux:
 
-1. Purchase Urban Chaos on Steam (Windows)
-2. On your Windows machine, locate the game folder:
+1. Get a legal copy of Urban Chaos (the Windows version) in any form (Steam,
+   GOG, or a disc / disc image). Any localization/language version works.
+2. On your Windows machine, locate the game folder (example shown for the
+   Steam version):
    C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
-3. Copy the entire game folder to your Linux machine (use a clean, unmodified
-   copy without third-party mods or DLL wrappers - they may conflict with OpenChaos)
+3. Copy the entire game folder to your Linux machine (a modified game folder
+   is fine — see the note below)
 4. Copy the contents of this archive into the game folder
 5. Run OpenChaos.sh
 
 Steam Deck:
 
-1. Purchase Urban Chaos on Steam (Windows)
-2. On your Windows machine, locate the game folder:
+1. Get a legal copy of Urban Chaos (the Windows version) in any form (Steam,
+   GOG, or a disc / disc image). Any localization/language version works.
+2. On your Windows machine, locate the game folder (example shown for the
+   Steam version):
    C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
-3. Copy the entire game folder to your Steam Deck (use a clean, unmodified
-   copy without third-party mods or DLL wrappers - they may conflict with OpenChaos)
+3. Copy the entire game folder to your Steam Deck (a modified game folder
+   is fine — see the note below)
 4. Copy the contents of this archive into the game folder
 5. In Desktop Mode, open Steam → Library → "Add a Game" → "Add a Non-Steam Game"
 6. Click "Browse" and select OpenChaos.sh in the game folder
 7. Switch to Game Mode — OpenChaos will appear in your Library
 8. Launch from there
+
+Note: mods that change game data work as usual; mods that replace or patch the
+original .exe or .dll are simply not used by OpenChaos. It's best to remove any
+leftover mod .dll files from the folder, but most likely there won't be any
+problems even if you leave them.
 
 Controls
 --------

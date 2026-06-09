@@ -41,7 +41,7 @@ the **Desktop development with C++** workload during installation.
 
 #### vcpkg
 
-vcpkg is used for dependency management (SDL3, OpenAL, fmt).
+vcpkg is used for dependency management (SDL3, OpenAL, nlohmann-json, FFmpeg).
 Included with VS Build Tools / Visual Studio (C++ workload) — no extra setup needed.
 The build scripts auto-detect the installation via `vswhere`.
 
@@ -106,7 +106,7 @@ git clone https://github.com/microsoft/vcpkg.git "$(brew --prefix)/share/vcpkg"
 ```
 
 That's it — the Makefile auto-detects this location via `brew --prefix`.
-vcpkg packages (SDL3, OpenAL, fmt) are installed automatically during `make configure`.
+vcpkg packages (SDL3, OpenAL, nlohmann-json, FFmpeg) are installed automatically during `make configure`.
 
 ### Linux (Steam Deck / SteamOS)
 
@@ -196,7 +196,7 @@ git clone --depth=1 https://github.com/microsoft/vcpkg ~/vcpkg
 The Makefile auto-detects `~/vcpkg`. Alternatively, set `VCPKG_ROOT` env var
 to point to your vcpkg installation.
 
-vcpkg packages (SDL3, OpenAL, FFmpeg) are installed automatically during `make configure`.
+vcpkg packages (SDL3, OpenAL, nlohmann-json, FFmpeg) are installed automatically during `make configure`.
 On the first run this takes ~15-20 minutes (vcpkg builds everything from source for Linux).
 
 If `make configure` fails because vcpkg can't find the baseline commit, fetch it:
@@ -240,7 +240,7 @@ make configure
 
 This runs CMake with Ninja Multi-Config generator. vcpkg is auto-detected
 (via `vswhere` on Windows, `VCPKG_ROOT` env var on macOS/Linux).
-**vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
+**vcpkg packages (SDL3, OpenAL, nlohmann-json, FFmpeg) are installed automatically** into `new_game/vcpkg_installed/`
 — no separate vcpkg command needed. Re-run after `CMakeLists.txt` changes.
 
 ### Step 3 — Prepare build output (copy resources into build folders)

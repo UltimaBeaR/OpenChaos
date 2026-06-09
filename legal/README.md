@@ -1,11 +1,11 @@
 # legal
 
-Юридические аспекты проекта.
+Legal aspects of the project.
 
-## Файлы
+## Files
 
-| Файл | Описание |
+| File | Description |
 |------|----------|
-| [rights_history.md](rights_history.md) | Хронология владения правами на Urban Chaos, текущие правообладатели, источники |
-| [attribution.md](attribution.md) | Позиционирование проекта, название, текущее состояние атрибуции |
-| [custom_content.md](custom_content.md) | Планы по кастомному контенту, юридический статус, разделение прав |
+| [rights_history.md](rights_history.md) | Timeline of Urban Chaos rights ownership, current rights holders, sources |
+| [attribution.md](attribution.md) | Project positioning, name, current state of attribution |
+| [custom_content.md](custom_content.md) | Plans for custom content, legal status, separation of rights |

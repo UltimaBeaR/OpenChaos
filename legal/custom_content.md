@@ -1,36 +1,36 @@
-# Кастомный контент и планы по расширению
+# Custom Content and Expansion Plans
 
-## Планы
+## Plans
 
-Помимо переимплементации оригинального движка, проект планирует добавлять **оригинальный
-контент**, созданный с нуля контрибьюторами проекта:
+In addition to reimplementing the original engine, the project plans to add **original
+content** created from scratch by project contributors:
 
-- Новые карты и уровни
-- Новые миссии
-- HD-версии моделей и текстур
-- Поддержка модов (возможность загружать пользовательский контент)
-- Расширенные игровые механики
+- New maps and levels
+- New missions
+- HD versions of models and textures
+- Mod support (the ability to load user-created content)
+- Extended gameplay mechanics
 
-## Лицензия кастомного контента
+## License of Custom Content
 
-Весь контент в этом репозитории (код, кастомные ассеты, уровни, модели) подчиняется
-единой **MIT лицензии** проекта. Контрибьюторы, добавляющие что-либо в репозиторий,
-соглашаются с этим.
+All content in this repository (code, custom assets, levels, models) is subject to
+the project's single **MIT license**. Contributors who add anything to the repository
+agree to this.
 
-Внешние моды (за пределами этого репозитория) лицензируются их авторами самостоятельно,
-в том числе коммерчески.
+External mods (outside this repository) are licensed by their authors independently,
+including commercially.
 
-## Разделение контента
+## Content Separation
 
-| Тип | Источник | Лицензия | В репозитории |
+| Type | Source | License | In Repository |
 |-----|----------|----------|---------------|
-| Исходный код | MIT-релиз Mike Diskett + модификации контрибьюторов | MIT | Да |
-| Кастомный контент | Контрибьюторы проекта | MIT | Да |
-| Оригинальные ассеты игры | Urban Chaos (1999) | Собственность My Little Planet Ltd | Нет, пользователь подкладывает сам |
-| Внешние моды | Сторонние авторы | На усмотрение авторов | Нет |
+| Source code | MIT release by Mike Diskett + contributor modifications | MIT | Yes |
+| Custom content | Project contributors | MIT | Yes |
+| Original game assets | Urban Chaos (1999) | Property of My Little Planet Ltd | No, the user supplies them themselves |
+| External mods | Third-party authors | At the authors' discretion | No |
 
-## Поддержка модов
+## Mod Support
 
-Поддержка модов — это **функция движка** (software feature), а не контент.
-Она позволяет пользователям загружать собственные ресурсы и модификации.
-Сам механизм модов не использует и не распространяет никаких защищённых материалов.
+Mod support is an **engine feature** (software feature), not content.
+It lets users load their own resources and modifications.
+The mod mechanism itself does not use or distribute any protected materials.

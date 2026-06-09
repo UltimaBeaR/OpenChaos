@@ -7,17 +7,18 @@ https://github.com/UltimaBeaR/OpenChaos
 How to run
 ----------
 
-1. Purchase Urban Chaos on Steam
+1. Get a legal copy of Urban Chaos in any form (Steam, GOG, or a disc / disc
+   image). Any localization/language version works.
 2. Copy the contents of this archive into the Urban Chaos game folder
-   Default location: C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
+   Default location (Steam): C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
 3. Run OpenChaos.exe from the game folder
 
 The game uses original Urban Chaos assets - they are not included in this archive.
 
-Important: use a clean, unmodified game folder. Third-party mods, DLL
-wrappers (dgVoodoo, ReShade, etc.) or compatibility patches may conflict
-with OpenChaos. If you have mods installed, make a fresh copy of the
-game folder from Steam before adding OpenChaos.
+Note: a modified game folder is fine. Mods that change game data work as
+usual; mods that replace or patch the original .exe or .dll are simply not
+used by OpenChaos. It's best to remove any leftover mod .dll files from the
+folder, but most likely there won't be any problems even if you leave them.
 
 Controls
 --------

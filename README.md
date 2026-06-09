@@ -4,56 +4,38 @@
   <img src="./openchaos_logo_animated.gif" alt="OpenChaos - Urban Chaos Modernization">
 </div>
 
-Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions) — built with AI on top of the
+Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions) — developed using AI on top of the
 [original source code](https://github.com/dizzy2003/MuckyFoot-UrbanChaos).
 
 ## How to play
 
-1. Go to [Releases](https://github.com/UltimaBeaR/OpenChaos/releases) and download the archive for your platform
-2. Extract the archive and follow the instructions in `OpenChaos-readme.txt` inside
+1. Get a legal copy of Urban Chaos in any form (Steam, GOG, or a disc / disc image). OpenChaos needs the original game's files to run and will not work without an installed copy. Any localization/language version of the game works.
+2. Go to [Releases](https://github.com/UltimaBeaR/OpenChaos/releases), open the **Assets** section of the latest release, and download the archive for your platform (for Windows it's `OpenChaos-v<version>-windows-x64.zip`)
+3. Extract the archive. On Windows: copy `OpenChaos.exe` into your Urban Chaos game folder and run it. For other platforms and full details, see `OpenChaos-readme.txt` inside the downloaded archive
 
-## Current status
+## How OpenChaos differs from the Urban Chaos PC release
 
-Work in progress — alpha builds available. The game is playable through all missions on Windows, macOS (Apple Silicon) and Linux (Steam Deck). Preparing for release 1.0.
+OpenChaos is the same Urban Chaos — not a remake or a reimagining, but literally the same game. The changes here aren't meant to alter the experience; they're quality-of-life improvements that make it run and play well on modern systems: no slowdowns, glitches or crashes, proper screen resolutions, comfortable modern controls, and so on.
 
-- Runs on modern systems: Windows, macOS (Apple Silicon), Linux (Steam Deck)
-- Gamepad support: Xbox controllers (including Steam Deck) and DualSense (adaptive triggers, vibration, LED lightbar — functional but not yet polished)
-- Not yet stable — crashes and bugs are expected
+OpenChaos is fully playable from start to finish. It runs on three platforms — Windows, macOS (Apple Silicon) and Linux (Steam Deck) — with good performance, has no critical bugs, supports gamepads (Xbox and DualSense), and works at any screen resolution. The controls have been fully reworked and are now much more convenient.
 
-<details>
-<summary>Technical details (for developers)</summary>
+### Gameplay changes
 
-- Graphics: OpenGL 4.1 Core Profile (replacing original Direct3D 6)
-- Ported from 32-bit to 64-bit (x64 on Windows/Linux, arm64 on macOS)
-- Build system: CMake + Ninja + Clang++, vcpkg (replacing original MSVC project files)
-- Codebase restructured into modules (`engine/`, `game/`, `ui/`, `outro/`, etc.) — original architecture preserved, every moved entity traceable via `// uc_orig:` comments
-- Various bug fixes (original pre-release and new)
-- Removed unused platform code (PSX, Dreamcast, Glide), cut features, and the level editor; almost no preprocessor conditionals left
+The game stays faithful to the original while improving and adjusting a lot of things — reworked controls and camera, combat and vehicle tweaks, and more. Full list: [GAMEPLAY_CHANGES.md](GAMEPLAY_CHANGES.md).
 
-</details>
+### Technical changes
 
-## Roadmap
+The engine was heavily modernized under the hood — new OpenGL renderer, 64-bit, cross-platform support, unlocked frame rate, new audio and video backends, and much more. Full list: [TECHNICAL_CHANGES.md](TECHNICAL_CHANGES.md).
 
-### Release 1.0 — the original game, polished
+## Config file
 
-- Stability: all missions completable without crashes
-- Visuals matching the original retail PC release
-- Full gamepad support (Xbox, DualSense with adaptive triggers and vibration)
-- Resolution support (1080p–4K), fullscreen/windowed mode, proper aspect ratio on all devices
-- New config file format (replacing the original INI) for graphics, audio, controls
-- Fully tested and polished on all supported platforms
+OpenChaos uses its own JSON config file (replacing the original `config.ini`, except for the language option, which still stays in `config.ini`). Everything adjustable in the in-game options menu is saved there, and the file also exposes extra settings that aren't in the menu. See [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md) for the file location and a full list of keys.
 
-### Post-1.0 — improvements
+## Mods and localizations
 
-These are rough ideas, not commitments. Plans may change, and not everything listed here will necessarily be implemented.
+**Localizations.** Any localization of the game works, including unofficial fan translations. The current language is selected the same way as in the original — via the `language` key in the `[Game]` section of `config.ini`.
 
-- Gameplay tweaks and quality-of-life changes
-- Visual enhancements (better lighting, effects, post-processing)
-- Control scheme improvements (mouse aiming, remappable controls)
-- In-mission quicksaves
-- Architecture refactoring and test infrastructure
-- Custom maps/missions (AI-assisted level design)
-- Third-party mod support
+**Mods.** Mods for the original game that only change game resources (game data) should work. Mods that replace or patch the game's `.exe` or `.dll` files will not work — OpenChaos is its own executable and does not run the original exe or its DLLs. If you previously installed mods into the game folder, it's best to remove those mods' `.dll` files from the folder before running OpenChaos, although most likely there won't be any problems even if you leave them in place.
 
 ## Repository
 
@@ -65,7 +47,7 @@ This repository contains two versions of the game:
   Kept as a read-only reference — used to verify correct behavior when modernizing.
   Upstream source: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
 
-Both versions require a legal copy of the game for resource files (textures, levels, sounds).
+Game resource files (textures, levels, sounds, etc.) are **not included** in this repository — they are copyrighted by the publisher and not covered by the project's MIT license. Both versions require a legal copy of the game to provide them.
 
 ### Structure
 
@@ -77,23 +59,31 @@ new_game/                     — modernized game (work in progress)
 libDualsense/                 — OpenChaos-owned standalone DualSense support library (used by new_game)
 new_game_planning/            — planning and architecture docs (phases, stages, tech decisions)
 new_game_devlog/              — development log and technical notes
+known_issues_and_bugs/        — known issues and bugs (active list + resolved archive)
 release/                      — release packaging (scripts, per-platform assets)
 make/                         — Makefile modules (platform detection, configure)
 tools/                        — development utilities
 legal/                        — rights history, attribution, legal details
 ```
 
-## Setup
-
-Game resource files (textures, levels, sounds, etc.) are **not included** in this repository —
-they are copyrighted by the publisher and not covered by the MIT license of this project.
-
-- **New game** — prerequisites, build, run: [`new_game/SETUP.md`](new_game/SETUP.md)
-- **Original game** — prerequisites, build, run: [`original_game/SETUP.md`](original_game/SETUP.md)
-
 ## Development
 
 Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status.
+
+### Future plans
+
+Development continues after 1.0. Rough ideas and planned improvements are collected in [stage13.md](new_game_planning/stage13.md) — these are not commitments and may change.
+
+### Issues and bugs
+
+A large number of bugs have been fixed — both the original game's retail and pre-release bugs, and many new bugs introduced during the modernization itself. The current state is still not perfect and some bugs remain, but they are not critical.
+
+Known issues and bugs are tracked in a separate list: [active issues](known_issues_and_bugs/known_issues_and_bugs.md) and the [resolved archive](known_issues_and_bugs/known_issues_and_bugs_resolved.md). If you run into a bug, you can also report it on [GitHub Issues](https://github.com/UltimaBeaR/OpenChaos/issues).
+
+### Setup (for development)
+
+- **New game** — prerequisites, build, run: [`new_game/SETUP.md`](new_game/SETUP.md)
+- **Original game** — prerequisites, build, run: [`original_game/SETUP.md`](original_game/SETUP.md)
 
 ## Legal
 

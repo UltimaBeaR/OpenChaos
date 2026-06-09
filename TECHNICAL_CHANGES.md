@@ -25,7 +25,7 @@ Major technical and architectural changes made to the codebase, relative to the 
 - Resolution unlocked — no longer hardcoded to 640×480 4:3: windowed and fullscreen modes, with support for different screen aspect ratios. The UI is adaptive/responsive in places, adjusting to the resolution and aspect ratio.
 - Scene rendered into an offscreen FBO with a composition pass — the foundation for further post-processing (the CRT/scanline shader is one example built on top of it).
 - Puddle reflections / wibble reworked.
-- FPS unlocked: physics (fixed at 20 Hz) is fully decoupled from rendering (uncapped frame rate), backed by a substantial render-interpolation system that smoothly interpolates entity positions and skeletal poses between physics ticks and correctly handles teleports and other discontinuities.
+- FPS unlocked: physics (fixed at 20 Hz) is fully decoupled from rendering (uncapped frame rate), backed by a substantial render-interpolation system that smoothly interpolates entity positions and skeletal poses between physics ticks and correctly handles teleports and other discontinuities. Many visual effects were also moved off frame-tick timing onto real (wall-clock) time, so they run at a consistent speed regardless of frame rate.
 - Significant rendering-performance optimization work was done, getting the game up to stable high frame rates — 90+ FPS on the Steam Deck.
 
 ## Audio
@@ -43,7 +43,7 @@ Major technical and architectural changes made to the codebase, relative to the 
 
 ## Config & user data
 
-- New JSON config system (`OpenChaos.config.json`) replacing `config.ini` (the localization language is still read from `config.ini` for retail compatibility). All writable files (saves, config, logs, screenshots) are redirected to an OS per-user data folder (via `SDL_GetPrefPath`), with read-fallback to the game folder — which is now treated as read-only.
+- New JSON config system (`OpenChaos.config.json`) replacing `config.ini` (the localization language is still read from `config.ini` for retail compatibility). All writable files (saves, config, logs, screenshots) are redirected to an OS per-user data folder (via `SDL_GetPrefPath`), with read-fallback to the game folder — which is now treated as read-only. The per-user folder is `%APPDATA%\OpenChaos\` on Windows (e.g. `C:\Users\<you>\AppData\Roaming\OpenChaos\`), `~/Library/Application Support/OpenChaos/` on macOS, and `~/.local/share/OpenChaos/` on Linux.
 
 ## UI & fonts
 
