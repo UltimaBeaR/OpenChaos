@@ -1,3 +1,3 @@
 // OpenChaos version number.
 // UPDATE THIS on every release!
-#define OPENCHAOS_VERSION "0.2.1"
+#define OPENCHAOS_VERSION "1.0.0"
