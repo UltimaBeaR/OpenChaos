@@ -1303,7 +1303,7 @@ void AENG_draw_dirt()
             if (dprod < 64.0F) {
                 DIRT_MARK_AS_OFFSCREEN_QUICK(i);
 
-                goto do_next_dirt;
+                continue;
             }
         }
 
@@ -1650,8 +1650,6 @@ void AENG_draw_dirt()
             ASSERT(0);
             break;
         }
-
-    do_next_dirt:;
     }
 }
 
