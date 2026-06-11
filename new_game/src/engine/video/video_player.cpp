@@ -182,13 +182,23 @@ static void audio_destroy(AudioStream* a)
 
 bool video_play(const char* filename, bool allow_skip)
 {
-    // Videos aren't gameplay — suppress mouse capture for the
-    // playback's duration. set_suppressed releases any active capture
-    // AND blocks the engage path while it's set, so clicks landing in
-    // the window during a cutscene don't engage the camera path even
-    // though SDL events now go through the regular on_mouse_button
-    // dispatch.
-    mouse_capture_set_suppressed(true);
+    // Videos aren't gameplay — suppress mouse capture for the playback's
+    // duration. set_suppressed releases any active capture AND blocks the
+    // engage path while it's set, so clicks landing in the window during a
+    // cutscene don't engage the camera path even though SDL events now go
+    // through the regular on_mouse_button dispatch.
+    //
+    // RAII guard: the release MUST run on EVERY exit. Several early returns
+    // below bail out when a video can't be opened/decoded (missing or broken
+    // resource files) — without the guard the suppression would leak `true`
+    // for the rest of the session, permanently killing mouse capture in
+    // gameplay (camera won't rotate by mouse; buttons still work as they
+    // bypass capture). The destructor guarantees release on whichever path we
+    // return — including any added later.
+    struct CaptureSuppressGuard {
+        CaptureSuppressGuard() { mouse_capture_set_suppressed(true); }
+        ~CaptureSuppressGuard() { mouse_capture_set_suppressed(false); }
+    } capture_suppress_guard;
 
     // Open file
     AVFormatContext* fmt_ctx = nullptr;
@@ -426,12 +436,11 @@ bool video_play(const char* filename, bool allow_skip)
 
     ge_video_texture_destroy(tex);
 
-    // Release the engage-suppression we set at the top — the regular
-    // capture state machine takes over again on the next LibShellActive
-    // tick (auto-engages if conditions are met, since suppression also
-    // reset s_was_in_gameplay).
-    mouse_capture_set_suppressed(false);
-
+    // Mouse-capture suppression is released by capture_suppress_guard's
+    // destructor on the way out — here and on every early-return failure path
+    // above. The regular capture state machine then takes over on the next
+    // LibShellActive tick (auto-engages if conditions are met, since the
+    // suppression reset s_was_in_gameplay).
     return ok;
 }
 
