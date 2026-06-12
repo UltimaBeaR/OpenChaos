@@ -3120,13 +3120,24 @@ SBYTE FRONTEND_loop()
             }
         }
 
-        ASSERT(index_into_the_whattoload_array != -1);
+        // Custom / non-campaign maps are not in whattoload[] — it only lists the
+        // 36 original campaign missions, which hardcode per-mission quirks (the
+        // Balrog boss, Bane, the Semtex mission, the no-violence tutorials). An
+        // unrecognised map leaves index == -1; fall back to safe defaults instead
+        // of asserting, so custom .ucm maps load rather than crash. The "== N"
+        // checks below already yield the right defaults at -1 (no bane / semtex,
+        // violence on). NOTE: a custom map that wants the Balrog boss won't get
+        // it here — that would need detecting it some other way (TODO).
+        ASSERT(index_into_the_whattoload_array == -1
+            || WITHIN(index_into_the_whattoload_array, 0, 35));
 
-        ASSERT(WITHIN(index_into_the_whattoload_array, 0, 35));
-
-        this_level_has_the_balrog = whattoload[index_into_the_whattoload_array].has_balrog;
+        this_level_has_the_balrog = (index_into_the_whattoload_array != -1)
+            ? whattoload[index_into_the_whattoload_array].has_balrog
+            : UC_FALSE;
         this_level_has_bane = (index_into_the_whattoload_array == 27); // Just in the finale...
-        DONT_load = whattoload[index_into_the_whattoload_array].dontload;
+        DONT_load = (index_into_the_whattoload_array != -1)
+            ? whattoload[index_into_the_whattoload_array].dontload
+            : 0;
 
         // Override: load all people regardless of the per-mission mask.
         DONT_load = 0;

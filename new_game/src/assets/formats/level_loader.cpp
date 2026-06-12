@@ -345,7 +345,19 @@ void load_game_map(CBYTE* name)
 
             FileRead(handle, (UBYTE*)&texture_set, sizeof(texture_set));
 
-            ASSERT(WITHIN(texture_set, 0, 21));
+            // Custom maps can reference a texture set we don't ship, or one
+            // outside the valid 0..21 range (TEXTURE_choose_set maps it to
+            // server/textures/world<N>/). Clamp to a default instead of
+            // asserting so the map loads with a fallback theme rather than
+            // crashing. Warn with the actual value + save_type so a genuine
+            // custom theme can be told apart from a parse misalignment.
+            if (!WITHIN(texture_set, 0, 21)) {
+                fprintf(stderr,
+                    "WARNING: level_loader: texture_set %d out of range [0,21] "
+                    "(save_type %d) - falling back to set 1\n",
+                    (int)texture_set, (int)save_type);
+                texture_set = 1;
+            }
 
             TEXTURE_choose_set(texture_set);
             TEXTURE_SET = texture_set;

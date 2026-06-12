@@ -242,36 +242,48 @@ static void TEXTURE_load_page(SLONG page)
 }
 
 // uc_orig: TEXTURE_initialise_clumping (fallen/DDEngine/Source/texture.cpp)
-// Sets up the .txc texture bundle for fast level loading.
-// On PC, all textures for a level are pre-bundled into a single .txc file.
+// Sets up texture loading for a level: use the pre-bundled .txc clump when it
+// exists (fast), otherwise fall back to loading individual .tga files (custom
+// maps that ship loose textures without a clump).
 void TEXTURE_initialise_clumping(CBYTE* fname_level)
 {
-    int clumping = 1;
-
     extern void SetLastClumpfile(char* file, size_t size);
 
-    if (!clumping) {
-        IndividualTextures = true;
-        SetLastClumpfile("", 0);
-    } else {
-        char filename[256];
-        char* leafname;
+    // Build the per-level clump path "./clumps/<leaf>.txc".
+    char filename[256];
+    char* leafname;
 
-        do {
-            leafname = fname_level;
-            while (*fname_level && (*fname_level != '\\') && (*fname_level != '/'))
-                fname_level++;
-        } while ((*fname_level == '\\' || *fname_level == '/') && (fname_level++, 1));
+    do {
+        leafname = fname_level;
+        while (*fname_level && (*fname_level != '\\') && (*fname_level != '/'))
+            fname_level++;
+    } while ((*fname_level == '\\' || *fname_level == '/') && (fname_level++, 1));
 
-        sprintf(filename, "./clumps/");
-        char* fptr = filename + strlen(filename);
-        while (*leafname != '.')
-            *fptr++ = *leafname++;
-        strcpy(fptr, ".txc");
+    sprintf(filename, "./clumps/");
+    char* fptr = filename + strlen(filename);
+    while (*leafname != '.')
+        *fptr++ = *leafname++;
+    strcpy(fptr, ".txc");
 
+    // Prefer the pre-bundled clump: one fast sequential read, and every shipped
+    // campaign mission has one. Custom maps usually ship loose textures and no
+    // .txc — for those, fall back to loading individual .tga files directly
+    // (the original's IndividualTextures path; the mode PieroZ runs in
+    // permanently, which is why its level loads are slower). Without this,
+    // OpenTGAClump would open a missing clump read-only and every texture read
+    // — including the shared font — would fail and assert. TEXTURE_create_clump
+    // (the dev bundling mode) always takes the clump branch so it can write the
+    // .txc out.
+    if (TEXTURE_create_clump || FileExists(filename)) {
         OpenTGAClump(filename, TEXTURE_MAX_TEXTURES + 64 * 8, !TEXTURE_create_clump);
         IndividualTextures = false;
         SetLastClumpfile(filename, TEXTURE_MAX_TEXTURES + 64 * 8);
+    } else {
+        // No clump present: clear any stale one so TGA_load takes its
+        // direct-file branch (tclump == NULL) and reads loose .tga files.
+        CloseTGAClump();
+        IndividualTextures = true;
+        SetLastClumpfile("", 0);
     }
 }
 
