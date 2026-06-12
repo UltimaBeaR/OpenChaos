@@ -110,6 +110,9 @@ void TEXTURE_choose_set(SLONG number)
 // uc_orig: TEXTURE_load_page (fallen/DDEngine/Source/texture.cpp)
 // Loads one texture page from disk into TEXTURE_texture[page].
 // Searches for highest-res TGA available (128 > 64 > 32 pixels).
+// Load priority: a loose .tga on disk always wins over the bundled .txc clump,
+// so custom maps that ship loose textures (e.g. a custom character's clothing
+// not present in a campaign clump) override/supplement the clump.
 // Sets TEXTURE_dontexist[page] if no file found.
 // Also loads crinkle bump data (.sex file) for world/shared pages.
 // If the page is masked-self-illuminating (2PASS), auto-loads page+1 as the mask.
@@ -191,32 +194,48 @@ static void TEXTURE_load_page(SLONG page)
         ASSERT(0);
     }
 
-    if (IndividualTextures || TEXTURE_create_clump) {
-        exists128 = MF_Fopen(name_res128, "rb");
-        if (exists128) {
-            MF_Fclose(exists128);
-            ge_texture_load_tga(page, name_res128);
+    // Step 1: prefer a loose .tga on disk (highest res first). This is the
+    // original IndividualTextures / TEXTURE_create_clump path, now tried for
+    // every page regardless of mode so loose files take priority over the clump.
+    bool loaded = false;
+
+    exists128 = MF_Fopen(name_res128, "rb");
+    if (exists128) {
+        MF_Fclose(exists128);
+        ge_texture_load_tga(page, name_res128);
+        loaded = true;
+    } else {
+        exists64 = MF_Fopen(name_res64, "rb");
+        if (exists64) {
+            MF_Fclose(exists64);
+            ge_texture_load_tga(page, name_res64);
+            loaded = true;
         } else {
-            exists64 = MF_Fopen(name_res64, "rb");
-            if (exists64) {
-                MF_Fclose(exists64);
-                ge_texture_load_tga(page, name_res64);
-            } else {
-                exists32 = MF_Fopen(name_res32, "rb");
-                if (exists32) {
-                    MF_Fclose(exists32);
-                    ge_texture_load_tga(page, name_res32);
-                } else {
-                    TEXTURE_dontexist[page] = UC_TRUE;
-                }
+            exists32 = MF_Fopen(name_res32, "rb");
+            if (exists32) {
+                MF_Fclose(exists32);
+                ge_texture_load_tga(page, name_res32);
+                loaded = true;
             }
         }
-    } else {
-        if (DoesTGAExist(name_res64, page)) {
-            ge_texture_load_tga(page, name_res64);
-        } else if (DoesTGAExist(name_res32, page)) {
-            ge_texture_load_tga(page, name_res32);
-        } else {
+    }
+
+    // Step 2: no loose file - fall back to the bundled clump, but only when one
+    // is actually open for reading. TEXTURE_create_clump (dev bundling, writing
+    // the clump) and IndividualTextures (no clump present) both have no readable
+    // clump here, so for them an absent loose file just means the page is missing.
+    if (!loaded) {
+        if (!IndividualTextures && !TEXTURE_create_clump) {
+            if (DoesTGAExist(name_res64, page)) {
+                ge_texture_load_tga(page, name_res64);
+                loaded = true;
+            } else if (DoesTGAExist(name_res32, page)) {
+                ge_texture_load_tga(page, name_res32);
+                loaded = true;
+            }
+        }
+
+        if (!loaded) {
             TEXTURE_dontexist[page] = UC_TRUE;
         }
     }

@@ -81,6 +81,26 @@ TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixe
         return ti;
     }
 
+    // Texture priority: a loose .tga on disk wins over the bundled clump. The
+    // clump is keyed by page id and ignores the path, so without this a custom
+    // map's loose texture (not present in a campaign clump) would never be read
+    // and the page would render white. Probe the loose file; if it exists, read
+    // it directly. The clump is the fallback in BOTH cases: the loose file is
+    // absent, or it is present but fails to decode (corrupt / unsupported). World
+    // pages have no loose files in a normal install, so the probe fails fast and
+    // they still come from the clump (the fast path). The extra per-page file
+    // probe only costs at level load, not per frame.
+    if (file && file[0]) {
+        FILE* fd = MF_Fopen(file, "rb");
+        if (fd) {
+            MF_Fclose(fd);
+            TGA_Info ti = TGA_load_from_file(file, max_width, max_height, data, bCanShrink);
+            if (ti.valid)
+                return ti;
+            // Loose file present but failed to load — fall through to the clump.
+        }
+    }
+
     // read compressed
     return TGA_read_compressed(data, id, max_width, max_height);
 }
