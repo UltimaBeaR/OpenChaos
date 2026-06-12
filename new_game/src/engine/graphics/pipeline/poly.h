@@ -321,8 +321,12 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 }
 
 // uc_orig: POLY_NUM_PAGES (fallen/DDEngine/Headers/poly.h)
-// Total number of texture page slots: 22 sets * 64 textures + 111 special pages = 1508.
-#define POLY_NUM_PAGES (22 * 64 + 111)
+// Total page slots: 22 sets * 64 textures + special pages. The special-page
+// reserve was bumped from the original 111 to 112 by OpenChaos to add
+// POLY_PAGE_ENVMAP_SORTED (see below). Texture pages stay at indices 0..22*64-1;
+// the special pages occupy the top of the range and are referenced symbolically,
+// so growing the reserve only shifts their absolute indices (safe).
+#define POLY_NUM_PAGES (22 * 64 + 112)
 
 // Special texture page indices (relative to POLY_NUM_PAGES).
 // uc_orig: POLY_PAGE_FADE_MF (fallen/DDEngine/Headers/poly.h)
@@ -507,6 +511,16 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 #define POLY_PAGE_MASKED (POLY_NUM_PAGES - 18)
 // uc_orig: POLY_PAGE_ENVMAP (fallen/DDEngine/Headers/poly.h)
 #define POLY_PAGE_ENVMAP (POLY_NUM_PAGES - 17)
+// OpenChaos: a second env-map page that participates in the depth sort instead
+// of the batch_safe pass. POLY_PAGE_ENVMAP is drawn batched (before the alpha
+// sort) — correct only when the reflective face has an OPAQUE base that wrote
+// depth (car bodies/glass backed by solid). Env-map on a TRANSLUCENT or empty
+// base (e.g. the phone-booth glass dome) writes no depth, so distant sorted
+// transparents (trees) behind it would paint over the batched reflection. Such
+// faces are routed here instead, so the reflection sorts back-to-front with the
+// rest of the transparent geometry. Same render state as POLY_PAGE_ENVMAP; the
+// two are kept from ghost-merging in POLY_init_render_states.
+#define POLY_PAGE_ENVMAP_SORTED (POLY_NUM_PAGES - 112)
 // uc_orig: POLY_PAGE_WATER (fallen/DDEngine/Headers/poly.h)
 #define POLY_PAGE_WATER (POLY_NUM_PAGES - 16)
 // uc_orig: POLY_PAGE_DRIP (fallen/DDEngine/Headers/poly.h)

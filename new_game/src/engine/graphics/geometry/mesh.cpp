@@ -12,9 +12,35 @@
 #include "game/game_types.h"
 #include "engine/graphics/geometry/shape_globals.h"
 #include "map/level_pools.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_get_type, GE_TEXTURE_TYPE_UNUSED
+#include "assets/texture_globals.h" // TEXTURE_MAX_TEXTURES
 
 #include <math.h>
 #include <stdlib.h> // realloc, fabs
+
+// Chooses the env-map page for a reflective prim face by its BASE texture.
+// A face whose base is a genuine OPAQUE, loaded texture wrote depth in the
+// opaque pass, so its reflection can be drawn batched (POLY_PAGE_ENVMAP) — the
+// depth buffer hides transparents behind it. A face whose base is translucent,
+// empty, or unloaded wrote NO depth, so its reflection must take part in the
+// back-to-front alpha sort (POLY_PAGE_ENVMAP_SORTED), otherwise distant sorted
+// transparents (e.g. trees) behind it paint over the reflection. The base-page
+// formula matches envmap_specials (ob.cpp). Empty/invalid bases fall through to
+// the sorted page (the safe default).
+static SLONG mesh_env_page_for_base(SLONG uv00, SLONG texture_page)
+{
+    SLONG page = uv00 & 0xc0;
+    page <<= 2;
+    page |= texture_page;
+    page += FACE_PAGE_OFFSET;
+
+    const bool base_opaque =
+        WITHIN(page, 0, POLY_NUM_PAGES - 1)
+        && ge_texture_get_type(page) != GE_TEXTURE_TYPE_UNUSED
+        && !(POLY_page_flag[page] & (POLY_PAGE_FLAG_ALPHA | POLY_PAGE_FLAG_TRANSPARENT));
+
+    return base_opaque ? POLY_PAGE_ENVMAP : POLY_PAGE_ENVMAP_SORTED;
+}
 
 // uc_orig: frand (fallen/DDEngine/Source/mesh.cpp)
 // Returns a random float in [0.0, 1.0].
@@ -483,7 +509,8 @@ static NIGHT_Colour* MESH_draw_guts(
                 quad[3] = &POLY_buffer[p3];
 
                 if (POLY_valid_quad(quad)) {
-                    POLY_add_quad(quad, POLY_PAGE_ENVMAP, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+                    SLONG env_page = mesh_env_page_for_base(p_f4->UV[0][0], p_f4->TexturePage);
+                    POLY_add_quad(quad, env_page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
                 }
             }
         }
@@ -506,7 +533,8 @@ static NIGHT_Colour* MESH_draw_guts(
                 tri[2] = &POLY_buffer[p2];
 
                 if (POLY_valid_triangle(tri)) {
-                    POLY_add_triangle(tri, POLY_PAGE_ENVMAP, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
+                    SLONG env_page = mesh_env_page_for_base(p_f3->UV[0][0], p_f3->TexturePage);
+                    POLY_add_triangle(tri, env_page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
                 }
             }
         }

@@ -507,6 +507,10 @@ void POLY_init_render_states()
 
                 break;
 
+            // ENVMAP_SORTED shares ENVMAP's render state exactly — the only
+            // difference is the pipeline stage it draws in (depth-sorted vs
+            // batched). See poly.h and the ghost-merge guard below.
+            case POLY_PAGE_ENVMAP_SORTED:
             case POLY_PAGE_ENVMAP:
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                 pa->RS.SetDepthWrite(false);
@@ -1411,7 +1415,14 @@ void POLY_init_render_states()
                 if (POLY_Page[ii].RS.GetTexture() == tex) {
                     // If this page has the same texture AND same render states, make it a
                     // "ghost" page (all polys sent to it go to the real page instead).
-                    if (POLY_Page[ii].RS.IsSameRenderState(&(pPolyPage->RS))) {
+                    //
+                    // EXCEPTION: the two env-map pages share the env-map texture
+                    // AND render state but MUST stay separate — ENVMAP draws
+                    // batched (before the alpha sort), ENVMAP_SORTED inside the
+                    // sort. Ghost-merging them would collapse both into one
+                    // pipeline stage and reintroduce the trees-over-glass bug.
+                    if (POLY_Page[ii].RS.IsSameRenderState(&(pPolyPage->RS))
+                        && ii != POLY_PAGE_ENVMAP && ii != POLY_PAGE_ENVMAP_SORTED) {
                         POLY_Page[ii].pTheRealPolyPage = pPolyPage;
                     } else {
                         POLY_Page[ii].pTheRealPolyPage = &(POLY_Page[ii]);
