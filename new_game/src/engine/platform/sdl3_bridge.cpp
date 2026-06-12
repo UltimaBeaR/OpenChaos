@@ -1042,12 +1042,23 @@ bool sdl3_poll_events()
 // Audio
 // ---------------------------------------------------------------------------
 
+// Forward-declared (not via engine/io/file.h) to avoid pulling engine/core/
+// types.h in ahead of <windows.h> here, which clashes on Win typedefs.
+void FILE_resolve_ci(const char* path, char* out, size_t out_size);
+
 bool sdl3_load_wav(const char* path, SDL3_WavData* out)
 {
+    // SDL_LoadWAV opens the path itself (bypasses our fopen_ci layer), so
+    // resolve case-insensitively first — no-op on Windows / on an exact match,
+    // but lets a differently-cased game audio path open on Linux like every
+    // other resource loaded through MF_Fopen.
+    char ci_path[512];
+    FILE_resolve_ci(path, ci_path, sizeof(ci_path));
+
     SDL_AudioSpec spec;
     Uint8* buf;
     Uint32 len;
-    if (!SDL_LoadWAV(path, &spec, &buf, &len)) {
+    if (!SDL_LoadWAV(ci_path, &spec, &buf, &len)) {
         return false;
     }
     out->buffer = buf;

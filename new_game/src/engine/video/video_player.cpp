@@ -14,6 +14,7 @@
 #include "engine/platform/ds_bridge.h"
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
 #include "engine/input/mouse_capture.h" // mouse_capture_set_suppressed
+#include "engine/io/file.h" // FILE_resolve_ci (case-insensitive path for FFmpeg)
 #include "game/action_map/act_cinematic.h" // ACT_CINE_VIDEO_SKIP_*
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
@@ -200,9 +201,15 @@ bool video_play(const char* filename, bool allow_skip)
         ~CaptureSuppressGuard() { mouse_capture_set_suppressed(false); }
     } capture_suppress_guard;
 
-    // Open file
+    // Open file. FFmpeg opens the path itself, bypassing our fopen_ci layer, so
+    // resolve case-insensitively first (no-op on Windows / when the exact path
+    // exists) — otherwise a differently-cased bink/ folder or file fails to open
+    // on Linux while every other resource (which goes through MF_Fopen) works.
+    char ci_path[512];
+    FILE_resolve_ci(filename, ci_path, sizeof(ci_path));
+
     AVFormatContext* fmt_ctx = nullptr;
-    if (avformat_open_input(&fmt_ctx, filename, nullptr, nullptr) < 0) {
+    if (avformat_open_input(&fmt_ctx, ci_path, nullptr, nullptr) < 0) {
         fprintf(stderr, "[video] cannot open: %s\n", filename);
         return false;
     }

@@ -102,9 +102,38 @@ FILE* fopen_ci(const char* path, const char* mode)
     }
     return NULL;
 }
+
+// Public path-only resolver for APIs that open the path themselves (FFmpeg etc.).
+void FILE_resolve_ci(const char* path, char* out, size_t out_size)
+{
+    // Normalize Windows-style separators first — game data paths may use '\',
+    // which resolve_path_ci (splitting on '/') would otherwise treat as part of
+    // a single component.
+    char norm[512];
+    size_t i = 0;
+    for (; path[i] && i + 1 < sizeof(norm); i++)
+        norm[i] = (path[i] == '\\') ? '/' : path[i];
+    norm[i] = '\0';
+
+    // Fast path: exact (normalized) path exists.
+    if (FILE* f = fopen(norm, "rb")) {
+        fclose(f);
+        snprintf(out, out_size, "%s", norm);
+        return;
+    }
+    char resolved[512];
+    if (resolve_path_ci(norm, resolved, sizeof(resolved))) {
+        snprintf(out, out_size, "%s", resolved);
+        return;
+    }
+    // No case-insensitive match: hand back the normalized path so the caller
+    // fails naturally and reports the path the user expected.
+    snprintf(out, out_size, "%s", norm);
+}
 #else
 // On Windows the filesystem is case-insensitive, plain fopen is fine.
 FILE* fopen_ci(const char* path, const char* mode) { return fopen(path, mode); }
+void FILE_resolve_ci(const char* path, char* out, size_t out_size) { snprintf(out, out_size, "%s", path); }
 #endif
 
 // Prepend cBasePath to filename. Returns pointer to static buffer.

@@ -79,4 +79,10 @@ int MF_Fclose(FILE* stream);
 // case-insensitively. On Windows just calls fopen (FS is CI already).
 FILE* fopen_ci(const char* path, const char* mode);
 
+// Resolve a path case-insensitively (Linux/macOS), writing the result to `out`.
+// On Windows, or when no case-insensitive match exists, copies `path` unchanged.
+// For file APIs that open the path string themselves (e.g. FFmpeg's
+// avformat_open_input) and therefore bypass fopen_ci.
+void FILE_resolve_ci(const char* path, char* out, size_t out_size);
+
 #endif // ENGINE_IO_FILE_H
