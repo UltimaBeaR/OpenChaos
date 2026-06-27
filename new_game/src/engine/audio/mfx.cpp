@@ -1070,7 +1070,13 @@ SLONG MFX_voice_still_playing(UWORD channel_id, ULONG wave)
 // uc_orig: MFX_QUICK_wait (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_QUICK_wait()
 {
+    // Block until the current QUICK (voice) sample finishes. Usually returns at
+    // once (the previous line has already ended), but if a line is still playing
+    // this can wait a while. Sleep 1 ms per iteration instead of a tight spin so
+    // it doesn't peg a CPU core at 100% (matters on Steam Deck — heat/battery).
+    // OpenAL plays on its own mixer, so AL_SOURCE_STATE still advances while we
+    // sleep and the loop terminates normally.
     while (MFX_QUICK_still_playing())
-        ;
+        sdl3_delay_ms(1);
     MFX_QUICK_stop();
 }
