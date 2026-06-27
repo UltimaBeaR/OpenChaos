@@ -2539,8 +2539,10 @@ void EWAY_create_camera(SLONG waypoint)
     EWAY_cam_lock = !!(ew->ed.subtype & EWAY_SUBTYPE_CAMERA_LOCK_DIRECTION);
     EWAY_cam_cant_interrupt = !!(ew->ed.subtype & EWAY_SUBTYPE_CAMERA_CANT_INTERRUPT);
 
-    // This is benign
-    ASSERT(EWAY_cam_cant_interrupt == 0);
+    // The original had ASSERT(EWAY_cam_cant_interrupt == 0) here, marked "benign"
+    // by the devs. A non-interruptible cut-scene camera is a valid map feature
+    // (used on "the fallen"; handled below — see EWAY_cam_cant_interrupt in
+    // EWAY_process_camera), so the assert is removed rather than left to fire.
     EWAY_cam_last_yaw = ew->yaw << 11;
     EWAY_cam_last_x = ew->x << 8;
     EWAY_cam_last_y = ew->y << 8;

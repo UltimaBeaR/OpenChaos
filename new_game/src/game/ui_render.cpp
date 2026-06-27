@@ -12,6 +12,7 @@
 #include "ui/hud/panel.h"
 #include "ui/menus/gamemenu.h"
 #include "engine/console/console.h"
+#include "engine/platform/uc_common.h" // uc_assert_take_pending (non-fatal assert notice)
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/debug/debug_help/debug_help.h"
 #include "engine/debug/dbglog/dbglog.h" // DBGLOG_draw (generic debug log)
@@ -232,6 +233,19 @@ void ui_render_post_composition(void)
     if (GAME_STATE & GS_PLAY_GAME) {
         debug_help_render();
     }
+    // Surface a non-fatal ASSERT (release builds) as a transient on-screen notice
+    // through the existing English console-message path. One-shot per queued
+    // failure; drawn wherever the standard message system renders (gameplay /
+    // pause). The stderr.log line is the reliable record in every context.
+    {
+        // How long the assert notice lingers on screen (ms).
+        static const SLONG ASSERT_NOTICE_DELAY_MS = 8000;
+        char assert_msg[256];
+        if (uc_assert_take_pending(assert_msg, sizeof(assert_msg))) {
+            CONSOLE_text_en(assert_msg, ASSERT_NOTICE_DELAY_MS);
+        }
+    }
+
     if (!(GAME_FLAGS & GF_PAUSED)) {
         CONSOLE_draw();
     }

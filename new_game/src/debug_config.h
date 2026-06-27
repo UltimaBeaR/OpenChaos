@@ -96,3 +96,18 @@
 // combat; off by default so unrelated debugging sessions aren't flooded
 // with combat lines. (Combat work is done — leave false until needed.)
 #define OC_DEBUG_LOG_COMBAT false
+
+// --- ASSERT behaviour ---------------------------------------------------
+// Whether a failed ASSERT is FATAL (writes crash_log + abort, so it's caught
+// in the debugger), or non-fatal (logged once per site to stderr.log + a
+// transient on-screen "ASSERTION FAILURE" notice, then execution continues).
+// Tied to the build type, NOT a manual toggle: debug builds abort so we catch
+// asserts while developing; release builds stay up so a benign assert doesn't
+// crash a player's game — it just leaves a log line to chase later. (Genuinely
+// fatal states may still crash shortly after, but the assert site is logged
+// first.) CMake defines NDEBUG for Release, _DEBUG for Debug (CMakeLists.txt).
+#ifdef NDEBUG
+#define OC_ASSERT_FATAL false
+#else
+#define OC_ASSERT_FATAL true
+#endif

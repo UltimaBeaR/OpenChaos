@@ -13,10 +13,14 @@
 #include "engine/input/input_frame.h"
 
 #include <stdio.h>
+#include <string.h> // strncpy (assert message)
 #include <signal.h>
 #ifndef _WIN32
 #include <execinfo.h>
 #endif
+
+#include "debug_config.h" // OC_ASSERT_FATAL
+#include "engine/io/user_data.h" // USERDATA_resolve_write (assert log path)
 
 #include "game/game_types.h"
 #include "game/game_globals.h" // g_render_fps_cap, RENDER_FPS_DEFAULT_CAP
@@ -440,23 +444,110 @@ static void crash_signal_handler(int sig)
 }
 #endif
 
-// ASSERT() failure handler: writes details to OC_CRASH_LOG_FILE and stderr, then aborts.
+// ASSERT() failure handler. Debug builds write details to OC_CRASH_LOG_FILE +
+// stderr and abort(); release builds are non-fatal — see below and uc_assert_fail.
+// --- Non-fatal ASSERT support (release builds) ------------------------------
+// In a release build (OC_ASSERT_FATAL false) a failed ASSERT does not abort: it
+// is logged ONCE per unique call site to stderr.log, and a one-shot on-screen
+// notice is queued for the UI layer to surface (uc_assert_take_pending ->
+// CONSOLE_text_en). Per-site dedup keeps an assert in a per-frame path from
+// flooding the log and the screen. Debug builds keep the old fatal behaviour.
+
+// Largest number of distinct assert sites we remember for dedup. Far more than
+// any real session hits; once full we stop deduping and just keep logging.
+#define ASSERT_MAX_SITES 256
+static struct {
+    const char* file; // __FILE__ literal pointer — stable per site
+    int line;
+} g_assert_seen[ASSERT_MAX_SITES];
+static int g_assert_seen_count = 0;
+
+// Pending on-screen notice (one-shot, drained by uc_assert_take_pending).
+static bool g_assert_pending = false;
+static char g_assert_pending_msg[256];
+
+// Returns true the first time a given (file,line) site fires, false afterwards.
+static bool assert_site_first_time(const char* file, int line)
+{
+    for (int i = 0; i < g_assert_seen_count; i++) {
+        if (g_assert_seen[i].line == line && g_assert_seen[i].file == file)
+            return false;
+    }
+    if (g_assert_seen_count < ASSERT_MAX_SITES) {
+        g_assert_seen[g_assert_seen_count].file = file;
+        g_assert_seen[g_assert_seen_count].line = line;
+        g_assert_seen_count++;
+    }
+    return true;
+}
+
+// Hand the most recent pending assert notice to the UI layer, once. Returns
+// false when there is nothing to show.
+bool uc_assert_take_pending(char* out, size_t out_size)
+{
+    if (!g_assert_pending)
+        return false;
+    g_assert_pending = false;
+    if (out && out_size) {
+        strncpy(out, g_assert_pending_msg, out_size - 1);
+        out[out_size - 1] = '\0';
+    }
+    return true;
+}
+
 void uc_assert_fail(const char* expr, const char* file, int line)
 {
-    g_exit_log_written = true;
+    if (OC_ASSERT_FATAL) {
+        g_exit_log_written = true;
 
-    FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
-    if (f) {
-        write_exit_timestamp(f, "Crash (ASSERT)");
-        fprintf(f, "Assertion failed: %s\n", expr);
-        fprintf(f, "File: %s\n", file);
-        fprintf(f, "Line: %d\n", line);
-        fflush(f);
-        fclose(f);
+        FILE* f = fopen(OC_CRASH_LOG_FILE, "w");
+        if (f) {
+            write_exit_timestamp(f, "Crash (ASSERT)");
+            fprintf(f, "Assertion failed: %s\n", expr);
+            fprintf(f, "File: %s\n", file);
+            fprintf(f, "Line: %d\n", line);
+            fflush(f);
+            fclose(f);
+        }
+
+        fprintf(stderr, "ASSERT failed: %s (%s:%d)\n", expr, file, line);
+        abort();
     }
 
-    fprintf(stderr, "ASSERT failed: %s (%s:%d)\n", expr, file, line);
-    abort();
+    // Non-fatal: log + queue one on-screen notice the first time each site
+    // fires, then return so the game keeps running.
+    if (assert_site_first_time(file, line)) {
+        // Log the full path (for chasing the source); show only the file name on
+        // screen (the full path would run off the edge of the unwrapped notice).
+        fprintf(stderr, "ASSERTION FAILURE: %s (%s:%d)\n", expr, file, line);
+        fflush(stderr);
+
+        // Persist to a dedicated assert log in the per-user data folder so a
+        // player (who never redirects stderr) has a file to send. Append, so
+        // multiple asserts accumulate. Deliberately NOT the crash log: crash/exit
+        // handlers overwrite that file ("w"), which would clobber the assert
+        // record (or, if guarded, suppress the real crash record).
+        char apath[512];
+        FILE* af = fopen(USERDATA_resolve_write("OpenChaos.asserts.log", apath, sizeof(apath)), "a");
+        if (af) {
+            time_t raw = time(nullptr);
+            struct tm* lt = localtime(&raw);
+            fprintf(af, "%04d-%02d-%02d %02d:%02d:%02d  ASSERTION FAILURE: %s (%s:%d)\n",
+                lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+                lt->tm_hour, lt->tm_min, lt->tm_sec,
+                expr, file, line);
+            fclose(af);
+        }
+
+        const char* base = file;
+        for (const char* p = file; *p; p++) {
+            if (*p == '/' || *p == '\\')
+                base = p + 1;
+        }
+        snprintf(g_assert_pending_msg, sizeof(g_assert_pending_msg),
+            "ASSERTION FAILURE: %s (%s:%d)", expr, base, line);
+        g_assert_pending = true;
+    }
 }
 
 // Controlled fatal-error logger for init failures that exit() cleanly (e.g. the

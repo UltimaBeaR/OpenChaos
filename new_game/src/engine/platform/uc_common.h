@@ -65,8 +65,13 @@ BOOL SetupHost(ULONG flags);
 void ResetHost(void);
 BOOL LibShellActive(void);
 
-// Assert: logs condition, file, line to OpenChaos.crash_log.txt and stderr, then aborts.
+// Assert (debug builds): logs condition, file, line to OpenChaos.crash_log.txt and stderr, then aborts.
 // Writes OpenChaos.crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.
+// In release builds a failed ASSERT is non-fatal: it queues a one-shot on-screen
+// notice that the UI layer drains via uc_assert_take_pending (returns true and
+// copies the message once per queued failure). See uc_assert_fail in host.cpp.
+bool uc_assert_take_pending(char* out, size_t out_size);
+
 #ifndef ASSERT
 void uc_assert_fail(const char* expr, const char* file, int line);
 #define ASSERT(e)                                   \

@@ -696,7 +696,17 @@ set_source_files_properties(
     PROPERTIES LANGUAGE CXX
 )
 
+# Strip the absolute build-path prefix from __FILE__ so assert / crash-log paths
+# read repo-relative (e.g. "OpenChaos/new_game/src/...") instead of leaking where
+# the source tree lives on the build machine — and so the absolute path is never
+# even embedded in the shipped binary. __FILE__ is used only by ASSERT (->
+# uc_assert_fail), so this affects only those log paths. CMAKE_SOURCE_DIR is
+# .../OpenChaos/new_game, so its grandparent is the directory above the repo.
+get_filename_component(OC_REPO_PARENT "${CMAKE_SOURCE_DIR}/../.." ABSOLUTE)
+
 target_compile_options(OpenChaos PRIVATE
+    # Repo-relative __FILE__ (see OC_REPO_PARENT above).
+    -fmacro-prefix-map=${OC_REPO_PARENT}/=
     # Release: optimizations matching original vcxproj settings.
     # -fno-inline-functions: without this, Clang -O2 breaks body part rendering
     #   (FIGURE_draw_prim_tween_person_only_just_set_matrix inlining issue, TODO Этап 7+).

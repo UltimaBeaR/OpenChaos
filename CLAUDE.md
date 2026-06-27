@@ -150,7 +150,7 @@ CLAUDE.md                           — этот файл
   - **Выбирать инструмент по ситуации** — цель: минимум действий от пользователя. Краш → OpenChaos.crash_log.txt. Freeze → debugger attach. Нужно видеть что на экране → screenshot. Нужны значения переменных по тикам → debug-log. Комбинировать по необходимости.
   - **Приоритет отладочного вывода:** если нужно показать значения/состояние **пользователю в динамике** — использовать **экранную печать в первую очередь** (скилл `text-rendering`). Если нужно просто проверить что-то самостоятельно без участия пользователя — `debug-log` (файл) или `fprintf(stderr, ...)`. Экранная печать нагляднее и не требует от пользователя лезть в логи.
   - **Exit/crash logging:** `OpenChaos.crash_log.txt` пишется рядом с exe при **любом** завершении программы:
-    - ASSERT() fail → `uc_assert_fail()` в `host.cpp` → "Crash (ASSERT)" + условие + файл + строка, затем abort()
+    - ASSERT() fail (**только debug-сборка**) → `uc_assert_fail()` в `host.cpp` → "Crash (ASSERT)" + условие + файл + строка, затем abort(). В release ASSERT **не фатален** (см. ниже) и crash_log не пишет.
     - Нормальный выход (return/exit) → `atexit` handler в `host.cpp` → "Clean exit"
     - abort() → `SIGABRT` handler в `host.cpp` → "Crash (abort)"
     - Access violation, div-by-zero → exception filter в `crash_handler_win.cpp` → "Crash (exception)" + регистры + стектрейс
@@ -159,7 +159,10 @@ CLAUDE.md                           — этот файл
     - Единственное что НЕ ловится: `TerminateProcess()` / `kill -9` (ОС убивает мгновенно)
     - `stderr.log` (перенаправляется Makefile'ом) начинается с таймстампа `=== Session started: ... ===`
     - Флаг `g_exit_log_written` предотвращает перезапись между хендлерами
-  - **ASSERT()** — рабочий макрос (не пустышка). Определён в `uc_common.h` и `outro_always.h`, реализация `uc_assert_fail()` в `host.cpp`. При срабатывании: пишет OpenChaos.crash_log.txt (условие, файл, строка) + stderr, затем abort(). При появлении окна ассерта — жать Abort, детали будут в OpenChaos.crash_log.txt автоматически.
+  - **ASSERT()** — рабочий макрос (не пустышка). Определён в `uc_common.h` и `outro_always.h`, реализация `uc_assert_fail()` в `host.cpp`. **Поведение зависит от сборки** (флаг `OC_ASSERT_FATAL` в `debug_config.h`, привязан к `NDEBUG`):
+    - **Debug — фатально:** пишет OpenChaos.crash_log.txt (условие, файл, строка) + stderr, затем abort(). При появлении окна ассерта — жать Abort, детали в crash_log автоматически.
+    - **Release — НЕ фатально:** игра не падает. Запись `ASSERTION FAILURE: <условие> (<файл>:<строка>)` идёт **один раз на каждое место** (дедуп по file:line, чтобы покадровый ассерт не залил лог) в ДВА места: (1) в постоянный файл `OpenChaos.asserts.log` в пользовательской папке (`%APPDATA%\OpenChaos\` и т.п., append) — это то, что просим скинуть у игрока, т.к. stderr у игрока никуда не пишется; (2) в `stderr` (→ `stderr.log` только при запуске через make). На экране через `CONSOLE_text_en` всплывает временное "ASSERTION FAILURE" (рисует стандартный message-path — геймплей/пауза/катсцена-letterbox; в чистом меню только лог). Затем выполнение продолжается. Логика слива на экран: `uc_assert_take_pending()` (host.cpp) → drain в `ui_render.cpp`. **crash_log НЕ используется** для не-фатальных ассертов (его перезаписывают crash/exit-хендлеры).
+    - Для отладки конкретного ассерта — собирать debug, тогда он падает в отладчике.
   - **Символизация:** `llvm-symbolizer -e build/Debug/OpenChaos.exe --relative-address <RVA>` (флаг `--relative-address` обязателен!)
 - **Типичные 64-бит баги и паттерны фиксов** → `new_game_devlog/x64_porting_notes.md`
 - **Скиллы — живые документы:** если в процессе работы обнаружена новая полезная информация, приём или ноу-хау которые стоит записать в скилл (новый или существующий) — предложить пользователю обновить скилл.

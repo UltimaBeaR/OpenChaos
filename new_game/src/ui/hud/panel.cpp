@@ -767,6 +767,14 @@ void PANEL_new_help_message(CBYTE* fmt, ...)
     PANEL_help_timer = 160 * 20 * 5; // 5 seconds
 }
 
+// Tracks whether the message currently shown in PANEL_wide_text is fixed-English /
+// dev text (alt_font), so the letterbox draws it with the license-clean alt FONT2D
+// atlas instead of the localised game font — same rule PANEL_draw_buffered uses for
+// the normal radio-message stack. Without this, an alt message that arrives during
+// a cut-scene (e.g. a cheat toggle) would be drawn with the game font and garble
+// under a localisation. (OpenChaos addition.)
+static int PANEL_wide_text_alt = 0;
+
 // Draws the widescreen letterbox bars and conversation text during cut-scene dialogue.
 // Scans the text queue for new messages and assigns them to top/bottom speaker slots.
 // uc_orig: PANEL_new_widescreen (fallen/DDEngine/Source/panel.cpp)
@@ -794,6 +802,9 @@ void PANEL_new_widescreen(void)
         pt = &PANEL_text[i];
 
         if (pt->delay && pt->turns <= 1) {
+            // Carry the alt-font flag so the letterbox draws dev/English text with
+            // the alt atlas (see PANEL_wide_text_alt).
+            PANEL_wide_text_alt = pt->alt_font;
             if (pt->who == NULL) {
                 strcpy(PANEL_wide_text, pt->text);
                 PANEL_wide_top_is_talking = UC_FALSE;
@@ -812,6 +823,9 @@ void PANEL_new_widescreen(void)
             }
         }
     }
+
+    // License-clean alt atlas for dev/English text, game font otherwise.
+    const SLONG wide_page = PANEL_wide_text_alt ? POLY_PAGE_FONT2D_ALT : POLY_PAGE_FONT2D;
 
     // Top-speaker content pinned to the FBO top edge (bar backdrop + content
     // both framed so the orange block keeps its original size). 3D viewport
@@ -842,7 +856,7 @@ void PANEL_new_widescreen(void)
                 0,
                 0xff0ffff,
                 256,
-                POLY_PAGE_FONT2D,
+                wide_page,
                 0,
                 UC_TRUE);
             iYpos = 75 - iYpos;
@@ -852,7 +866,7 @@ void PANEL_new_widescreen(void)
                 iYpos,
                 0xff0ffff,
                 256,
-                POLY_PAGE_FONT2D,
+                wide_page,
                 0,
                 UC_FALSE);
         }
@@ -882,7 +896,9 @@ void PANEL_new_widescreen(void)
                     PANEL_wide_text,
                     80,
                     DisplayHeight - 80 + 5,
-                    0xffffff);
+                    0xffffff,
+                    256,
+                    wide_page);
             }
         }
     }
@@ -1447,6 +1463,7 @@ void PANEL_last(void)
         PANEL_wide_bot_person = NULL;
         PANEL_wide_top_is_talking = UC_FALSE;
         PANEL_wide_text[0] = '\000';
+        PANEL_wide_text_alt = 0;
     }
 
     // HUD main panel block: radar / health / weapon / ammo / crime-rate
