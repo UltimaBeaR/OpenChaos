@@ -775,6 +775,17 @@ void MFX_play_thing(UWORD channel_id, ULONG wave, ULONG flags, Thing* p)
 void MFX_play_ambient(UWORD channel_id, ULONG wave, ULONG flags)
 {
     if (wave < NumSamples) {
+        // NOTE: this PERMANENTLY marks the sample (shared across all plays) as
+        // non-3D and, if it was an effect, moves it to the ambient volume group.
+        // It never reverts. So a sound id used here can no longer be played as a
+        // positioned 3D effect for the rest of the session, and its volume now
+        // follows the ambient slider. The base game never reuses a sound id both
+        // ways, so this is harmless — but a custom mod that reuses one id for an
+        // ambient layer AND a positioned effect would find the effect goes flat
+        // (non-3D) and changes volume group. This matches the original behaviour
+        // (fallen/DDLibrary/Source/MFX.cpp does the same); kept as-is so vanilla
+        // audio is identical. If mod support ever needs both, the 3D flag / type
+        // would have to move from the sample onto the per-play voice.
         Samples[wave].is3D = false;
         if (Samples[wave].type == SMP_Effect) {
             Samples[wave].type = SMP_Ambient;
