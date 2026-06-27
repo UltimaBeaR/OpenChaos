@@ -32,7 +32,20 @@ When the user asks to create or prepare a release, walk them through these steps
 > LGPL version numbers before releasing. This is a legal requirement, not
 > cosmetic.
 
-1. **Commit and tag.** Make sure all changes are committed and the release tag `v<X.Y.Z>` is created.
+> ⚠️ **Bump the version constant FIRST (MANDATORY, do not skip).** Update
+> `OPENCHAOS_VERSION` in `new_game/src/version.h` to the new `X.Y.Z` **before**
+> tagging. This constant is baked into the binary — window title, credits, and
+> the HUD version label all read it. It is **separate** from the
+> `make release-package VERSION=<X.Y.Z>` argument (that only names the zip): if
+> you forget the constant, the binary reports the OLD version while the package
+> name says the new one — a silent mismatch. The version bump is a code change,
+> so it must be its own commit, and the release tag goes **on that commit**
+> (not on the previous HEAD). Tell the user to bump it (you may make the edit
+> yourself if asked — it is a one-line change in `new_game/src/`).
+
+1. **Bump version + commit + tag.** Edit `OPENCHAOS_VERSION` in
+   `new_game/src/version.h` → `X.Y.Z`, commit it, then create the tag `v<X.Y.Z>`
+   on that commit. Make sure everything else is committed too.
 
 2. **Build on each platform.** On every supported platform (currently Windows x64, macOS ARM64, Linux x64):
    ```
@@ -55,11 +68,24 @@ When the user asks to create or prepare a release, walk them through these steps
    - If version is below 1.0.0 — check **"Set as a pre-release"**
    - Publish
 
-6. **Tell the user:** "When you're ready to write the release description, ask me — I know the format and will generate it."
+6. **Release notes come LAST — only after all platform builds are verified.**
+   Do NOT generate release notes during steps 1–5. Notes are written only once
+   the user confirms the build compiles, runs, and is playable on **every**
+   platform (a build may fail or reveal a bug that forces more commits — which
+   would change the commit range the notes are built from). When the builds are
+   verified, tell the user: "Builds verified on all platforms? Then I'll
+   generate the release description." Wait for them to ask — see Part 2.
 
 ---
 
 ## Part 2: Writing release notes
+
+**⚠️ Do not start this before the build is verified on all platforms.** Writing
+notes is the FINAL step (see Part 1 step 6). If the user has not yet confirmed
+that the build compiles and runs on every platform, do not generate notes —
+ask whether the builds are done first. Generating notes early is wrong: a
+failed build or a bug found in testing can add commits that change what the
+notes should say.
 
 When the user asks to write or generate release notes:
 
