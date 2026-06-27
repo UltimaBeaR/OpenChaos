@@ -72,7 +72,16 @@ static void build_defaults_and_migrate(const char* ini_path)
         // menu = menu-navigation virtual-direction threshold (was raw 4096;
         // raised to 0.25 so controller drift doesn't auto-scroll menus).
         // camera_orbit_*: same camera-rotation knobs as [mouse], for the stick.
-        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 }, { "camera_orbit_sensitivity", 0.4 }, { "camera_orbit_invert_y", false } } }
+        { "gamepad", { { "gameplay_stick_deadzone", 0.25 }, { "menu_stick_deadzone", 0.25 }, { "camera_orbit_sensitivity", 0.4 }, { "camera_orbit_invert_y", false } } },
+        // Texture source priority: when a level's bundled .txc clump is open, may
+        // a loose .tga of the same page on disk override it?
+        // for_levels: level content (world / characters / props) — what custom
+        //   maps replace; default true so loose textures win (the custom-map case).
+        // for_engine_assets: engine textures (fonts, effects, fog, …) — default
+        //   false so the clump stays authoritative. Enabling this resurrects stale
+        //   loose copies and can break e.g. a localisation whose font lives in the
+        //   clump (loose English olyfont2.tga overriding the Russian clump font).
+        { "textures", { { "tga_overrides_clump_for_levels", true }, { "tga_overrides_clump_for_engine_assets", false } } }
     };
 
     // --- config.ini auto-import: TEMPORARILY DISABLED ---------------------
@@ -187,6 +196,8 @@ void OC_CONFIG_load(const char* ini_path)
                     { "movie", "play_movie" },
                     { "mouse", "camera_orbit_invert_y" },
                     { "gamepad", "camera_orbit_invert_y" },
+                    { "textures", "tga_overrides_clump_for_levels" },
+                    { "textures", "tga_overrides_clump_for_engine_assets" },
                 };
                 bool upgraded = false;
                 for (auto& bf : bool_fields) {

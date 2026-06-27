@@ -62,4 +62,13 @@ void CloseTGAClump();
 // uc_orig: GetTGAClump (fallen/DDLibrary/Headers/Tga.h)
 FileClump* GetTGAClump();
 
+// Configure whether a loose .tga on disk overrides the bundled clump for a page,
+// decided separately for level content and engine assets by the page id:
+//   id <  engine_first_page  -> for_levels        (world / characters / props)
+//   id >= engine_first_page  -> for_engine_assets (fonts, effects, fog, …)
+// The texture layer injects the policy (config flags + the page boundary) so this
+// low-level loader stays free of config / page-numbering knowledge. Until set,
+// the default is "everything overrides" (matches the pre-policy behaviour).
+void TGA_set_override_policy(bool for_levels, bool for_engine_assets, ULONG engine_first_page);
+
 #endif // ASSETS_FORMATS_TGA_H

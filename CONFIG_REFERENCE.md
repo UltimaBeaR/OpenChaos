@@ -114,6 +114,15 @@ Gamepad stick settings.
 | `camera_orbit_sensitivity` | float (0–1) | `0.4` | Gamepad camera-rotation speed. |
 | `camera_orbit_invert_y` | bool | `false` | Invert vertical gamepad-look. |
 
+## textures
+
+Controls texture source priority. Levels normally ship a bundled `.txc` texture *clump*; these flags decide whether a loose `.tga` file of the same page sitting on disk is allowed to **override** what's in the clump. They only matter while a clump is open — if a level has no clump, loose files are used regardless.
+
+| Key | Type | Default | What it does |
+|-----|------|---------|--------------|
+| `tga_overrides_clump_for_levels` | bool | `true` | Let loose `.tga` files override the clump for **level content** (world / character / prop textures). |
+| `tga_overrides_clump_for_engine_assets` | bool | `false` | Let loose `.tga` files override the clump for **engine assets** (fonts, effects, fog, etc.). |
+
 ---
 
 ## Language

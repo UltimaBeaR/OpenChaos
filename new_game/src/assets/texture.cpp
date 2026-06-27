@@ -15,6 +15,7 @@
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/menufont.h" // MENUFONT_build_alt_atlas (alt menu font)
 #include "engine/io/env.h"
+#include "engine/io/oc_config.h" // texture override policy flags
 #include "assets/formats/tga.h"
 #include "map/level_pools.h"
 #include "assets/formats/level_loader.h"
@@ -46,6 +47,24 @@ static void TEXTURE_DC_pack_init(void)
     TEXTURE_DC_pack_page_upto = 0;
     TEXTURE_DC_pack_page_pos = 0;
     TEXTURE_DC_pack_normal_upto = TEXTURE_DC_NORMAL_START;
+}
+
+// Loose-.tga-overrides-clump policy (config section "textures"), cached at level
+// load. for_levels gates the per-page loose probe in TEXTURE_load_page (level
+// content); both flags + the page boundary are pushed down to the TGA loader via
+// TGA_set_override_policy so it decides level-vs-engine by page id. See
+// CONFIG_REFERENCE.md and oc_config.cpp for the defaults.
+static bool TEXTURE_override_clump_for_levels = true;
+
+static void TEXTURE_refresh_override_policy()
+{
+    TEXTURE_override_clump_for_levels =
+        OC_CONFIG_get_int("textures", "tga_overrides_clump_for_levels", 1, 0, 1) != 0;
+    bool for_engine =
+        OC_CONFIG_get_int("textures", "tga_overrides_clump_for_engine_assets", 0, 0, 1) != 0;
+    // Pages below TEXTURE_NUM_STANDARD are level content; at/above it are the
+    // engine extras (fonts, effects, fog, …).
+    TGA_set_override_policy(TEXTURE_override_clump_for_levels, for_engine, TEXTURE_NUM_STANDARD);
 }
 
 // uc_orig: TEXTURE_choose_set (fallen/DDEngine/Source/texture.cpp)
@@ -195,27 +214,34 @@ static void TEXTURE_load_page(SLONG page)
     }
 
     // Step 1: prefer a loose .tga on disk (highest res first). This is the
-    // original IndividualTextures / TEXTURE_create_clump path, now tried for
-    // every page regardless of mode so loose files take priority over the clump.
+    // original IndividualTextures / TEXTURE_create_clump path. With a clump open
+    // it only runs when the override-for-levels policy allows it (so loose files
+    // take priority over the clump); when there is no readable clump it must run
+    // regardless, as loose files are then the only source.
     bool loaded = false;
 
-    exists128 = MF_Fopen(name_res128, "rb");
-    if (exists128) {
-        MF_Fclose(exists128);
-        ge_texture_load_tga(page, name_res128);
-        loaded = true;
-    } else {
-        exists64 = MF_Fopen(name_res64, "rb");
-        if (exists64) {
-            MF_Fclose(exists64);
-            ge_texture_load_tga(page, name_res64);
+    bool clump_available = (!IndividualTextures && !TEXTURE_create_clump);
+    bool try_loose_first = TEXTURE_override_clump_for_levels || !clump_available;
+
+    if (try_loose_first) {
+        exists128 = MF_Fopen(name_res128, "rb");
+        if (exists128) {
+            MF_Fclose(exists128);
+            ge_texture_load_tga(page, name_res128);
             loaded = true;
         } else {
-            exists32 = MF_Fopen(name_res32, "rb");
-            if (exists32) {
-                MF_Fclose(exists32);
-                ge_texture_load_tga(page, name_res32);
+            exists64 = MF_Fopen(name_res64, "rb");
+            if (exists64) {
+                MF_Fclose(exists64);
+                ge_texture_load_tga(page, name_res64);
                 loaded = true;
+            } else {
+                exists32 = MF_Fopen(name_res32, "rb");
+                if (exists32) {
+                    MF_Fclose(exists32);
+                    ge_texture_load_tga(page, name_res32);
+                    loaded = true;
+                }
             }
         }
     }
@@ -348,6 +374,10 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     ge_texture_loading_begin();
 
     TEXTURE_initialise_clumping(fname_level);
+
+    // Refresh the loose-override policy from config before loading any page (so
+    // both TEXTURE_load_page below and the TGA loader honour it this level).
+    TEXTURE_refresh_override_policy();
 
     TEXTURE_load_page(1);
 

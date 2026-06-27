@@ -48,7 +48,7 @@ Major technical and architectural changes made to the codebase, relative to the 
 ## Mods & custom content
 
 - Support for custom (non-campaign) maps, including maps that ship loose `.tga` textures instead of a packed texture bundle.
-- Loose `.tga` textures take priority over the bundle, so custom maps can add or replace textures (such as custom character skins).
+- Loose `.tga` textures take priority over the bundle for level content, so custom maps can add or replace textures (such as custom character skins). Engine assets (fonts, effects) keep the bundle authoritative by default. Both behaviours are configurable — see `textures` in [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
 
 ## UI & fonts
 

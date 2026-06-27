@@ -49,6 +49,28 @@ FileClump* GetTGAClump()
     return tclump;
 }
 
+// Loose-.tga-overrides-clump policy, injected by the texture layer (see
+// TGA_set_override_policy in the header). Defaults reproduce the pre-policy
+// behaviour: everything overrides (engine_first_page so high that every real
+// page id counts as "level"), so any path that loads before the texture layer
+// sets the policy keeps the old behaviour rather than silently disabling reads.
+static bool s_override_for_levels = true;
+static bool s_override_for_engine = true;
+static ULONG s_engine_first_page = 0xFFFFFFFFu;
+
+void TGA_set_override_policy(bool for_levels, bool for_engine_assets, ULONG engine_first_page)
+{
+    s_override_for_levels = for_levels;
+    s_override_for_engine = for_engine_assets;
+    s_engine_first_page = engine_first_page;
+}
+
+// Whether a loose file is allowed to override the clump for this page id.
+static bool tga_loose_overrides_clump(ULONG id)
+{
+    return (id < s_engine_first_page) ? s_override_for_levels : s_override_for_engine;
+}
+
 // Check whether a TGA exists. In write mode checks the filesystem; in read mode checks the clump.
 // uc_orig: DoesTGAExist (fallen/DDLibrary/Source/Tga.cpp)
 bool DoesTGAExist(const char* filename, ULONG id)
@@ -81,7 +103,7 @@ TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixe
         return ti;
     }
 
-    // Texture priority: a loose .tga on disk wins over the bundled clump. The
+    // Texture priority: a loose .tga on disk may win over the bundled clump. The
     // clump is keyed by page id and ignores the path, so without this a custom
     // map's loose texture (not present in a campaign clump) would never be read
     // and the page would render white. Probe the loose file; if it exists, read
@@ -90,7 +112,11 @@ TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixe
     // pages have no loose files in a normal install, so the probe fails fast and
     // they still come from the clump (the fast path). The extra per-page file
     // probe only costs at level load, not per frame.
-    if (file && file[0]) {
+    //
+    // Gated by policy (TGA_set_override_policy): on by default for level content,
+    // off by default for engine assets (fonts/effects) so a stale loose copy
+    // can't shadow the clump — e.g. a localisation whose font lives in the clump.
+    if (file && file[0] && tga_loose_overrides_clump(id)) {
         FILE* fd = MF_Fopen(file, "rb");
         if (fd) {
             MF_Fclose(fd);
