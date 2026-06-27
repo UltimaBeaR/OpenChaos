@@ -179,6 +179,18 @@ static void new_outdoors_effects()
 // uc_orig: process_ambient_effects (fallen/Source/Sound.cpp)
 void process_ambient_effects(void)
 {
+    // Run at the fixed 30 Hz visual cadence, not once per render frame. The event
+    // timers (siren/thunder), the per-call random rolls (birds/animals/foghorn)
+    // and the indoor<->outdoor crossfade below all advance by a fixed step per
+    // call — at uncapped FPS they'd fire / fade several times too fast. VISUAL_TURN
+    // is a wall-clock 30 Hz counter (matches the retail ~30 fps cadence these were
+    // tuned for). process_weather already keys its events off VISUAL_TURN, so it
+    // stays per-frame (its continuous height-based gain wants frame smoothness).
+    static SLONG last_vturn = -1;
+    if (VISUAL_TURN == last_vturn)
+        return;
+    last_vturn = VISUAL_TURN;
+
     if (GAME_FLAGS & GF_INDOORS) {
         if (indoors_vol < 255)
             indoors_vol++;
