@@ -52,6 +52,15 @@ void MFX_init()
     alContext = alcCreateContext(alDevice, nullptr);
     alcMakeContextCurrent(alContext);
 
+    // 3D sources attenuate with the clamped inverse-distance curve — the OpenAL
+    // equivalent of the original's DirectSound roll-off: loud near the source and
+    // dropping off fast, rather than the even, drawn-out fade of the linear model
+    // (which left sounds audible streets away). Distance model is a context-global
+    // setting in core OpenAL, so set it once here rather than per-source (per-source
+    // needs AL_EXT_source_distance_model and is otherwise ignored — see
+    // FinishLoading). Non-spatialised (2D) sources are unaffected.
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+
     // Debug mute: keep OpenAL fully functional (skipping init caused busy
     // AL_INVALID_OPERATION spin in update paths), just silence the listener.
     if (OC_DEBUG_SOUND_DISABLED) {
@@ -463,7 +472,11 @@ static void FinishLoading(MFX_Voice* vptr)
         alSourcef(vptr->handle, AL_GAIN, Volumes[sptr->type]);
 
         if (vptr->is3D) {
-            alSourcei(vptr->handle, AL_DISTANCE_MODEL, AL_LINEAR_DISTANCE_CLAMPED);
+            // Distance MODEL is set globally once in MFX_init (alDistanceModel) —
+            // it's a context property in core OpenAL; setting it per-source via
+            // alSourcei only works with AL_EXT_source_distance_model and is
+            // silently ignored without it. Reference/max distance ARE per-source,
+            // so they stay here.
             alSourcef(vptr->handle, AL_REFERENCE_DISTANCE, MinDist * COORDINATE_UNITS * sptr->linscale);
             alSourcef(vptr->handle, AL_MAX_DISTANCE, MaxDist * COORDINATE_UNITS * sptr->linscale);
         } else {
