@@ -549,6 +549,11 @@ static void SetVoiceGain(MFX_Voice* vptr, float gain)
     vptr->gain = gain;
 }
 
+// Tail (in PCM bytes) before the true end at which an MFX_EARLY_OUT voice is
+// treated as "done", so a queued wave can start seamlessly. 880 bytes = 440
+// samples of 16-bit mono — matches the original's byte-position logic.
+#define MFX_EARLY_OUT_TAIL_BYTES (440 * 2)
+
 // uc_orig: IsVoiceDone (fallen/DDLibrary/Source/MFX.cpp)
 static bool IsVoiceDone(MFX_Voice* vptr)
 {
@@ -557,11 +562,15 @@ static bool IsVoiceDone(MFX_Voice* vptr)
     }
 
     ALint state;
-    ALint posn;
+    ALint byte_posn;
 
     if (vptr->handle) {
         alGetSourcei(vptr->handle, AL_SOURCE_STATE, &state);
-        alGetSourcei(vptr->handle, AL_SAMPLE_OFFSET, &posn);
+        // Byte offset, NOT AL_SAMPLE_OFFSET: smp->size is the PCM buffer size in
+        // bytes, so the EARLY_OUT comparison below must also be in bytes. (Using
+        // sample offset made size - posn never reach the tail for 16-bit/stereo,
+        // so EARLY_OUT never fired — music never advanced to its next queued track.)
+        alGetSourcei(vptr->handle, AL_BYTE_OFFSET, &byte_posn);
     } else if (vptr->smp && vptr->smp->loading) {
         return false;
     } else {
@@ -569,7 +578,11 @@ static bool IsVoiceDone(MFX_Voice* vptr)
     }
 
     if (vptr->flags & MFX_EARLY_OUT) {
-        return (vptr->smp->size - posn < 440 * 2);
+        // Done a short tail before the real end (seamless queue handoff), OR if the
+        // source already stopped — e.g. a frame hitch skipped past the early-out
+        // window, which would otherwise leave the voice stuck "playing" forever.
+        return (state != AL_PLAYING)
+            || (vptr->smp->size - byte_posn < MFX_EARLY_OUT_TAIL_BYTES);
     }
 
     return (state != AL_PLAYING);

@@ -4,6 +4,7 @@
 #include "assets/sound_id.h"
 
 #include "game/game_types.h"
+#include "game/game_globals.h" // g_frame_dt_ms (wall-clock fade)
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "engine/audio/sound.h"
@@ -116,13 +117,23 @@ void MUSIC_mode(UBYTE mode)
 // uc_orig: MUSIC_mode_process (fallen/Source/music.cpp)
 void MUSIC_mode_process()
 {
+    // This runs once per render frame. The fade steps below are tuned per design
+    // tick (20 Hz); scale them by the real frame time so the fade lasts the same
+    // wall-clock duration at any frame rate. Without this the volume faded N×
+    // too fast at uncapped FPS (e.g. ~3× quicker at 90 fps than retail's ~30).
+    // Clamp so one long frame (a load hitch) can't slam the volume in a step.
+    constexpr float DESIGN_TICK_MS = 1000.0f / float(UC_PHYSICS_DESIGN_HZ);
+    float dt_scale = g_frame_dt_ms / DESIGN_TICK_MS;
+    if (dt_scale > 4.0f)
+        dt_scale = 4.0f;
+
     if (music_current_mode != music_request_mode) {
         if (!music_current_mode) {
             music_current_mode = music_request_mode;
             MUSIC_set_the_volume(0);
         } else {
             if (music_current_level)
-                MUSIC_set_the_volume(music_current_level - (2 * REAL_TICK_RATIO));
+                MUSIC_set_the_volume(music_current_level - (SLONG)(2 * REAL_TICK_RATIO * dt_scale));
             else {
                 MUSIC_stop_the_mode();
                 music_current_mode = 0;
@@ -153,7 +164,7 @@ void MUSIC_mode_process()
 
     if (music_current_mode == music_request_mode) {
         if (music_current_level < music_max_gain)
-            MUSIC_set_the_volume(music_current_level + (3 * REAL_TICK_RATIO));
+            MUSIC_set_the_volume(music_current_level + (SLONG)(3 * REAL_TICK_RATIO * dt_scale));
     }
 }
 
