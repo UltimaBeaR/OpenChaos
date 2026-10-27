@@ -173,8 +173,8 @@ static PaletteCache s_cache[MAX_PALETTE_CACHE] = {};
 // neck seam on most character meshes. HANDS and FEET stay at zero
 // because mesh layouts vary too much across characters for a single
 // universal tune (one model puts the neck in TORSO, another in HEAD;
-// same story for wrists/ankles). Tracked as a Post-1.0 issue in
-// known_issues_and_bugs.md (the rig is missing a dedicated upper-
+// same story for wrists/ankles). Tracked as tracker task #44
+// (the rig is missing a dedicated upper-
 // body / neck bone which would let this be solved properly).
 SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT] = {
     /* HEAD  */ { /*parent_band*/ 20.0f, /*parent_wmax*/ 1.0f, /*child_band*/ 0.0f, /*child_wmax*/ 0.0f },

@@ -161,7 +161,7 @@ void SKY_init(CBYTE* star_file)
 // Legacy plot-path wrote each star pixel (center + up to 4 spread neighbors)
 // directly into the locked backbuffer via ge_plot_pixel. That relies on the
 // CPU-readback pattern that triggers the WDDM throttle — see
-// new_game_devlog/startup_hang_investigation. We now emit each pixel as a
+// archive/new_game_devlog/startup_hang_investigation. We now emit each pixel as a
 // 1×1 textureless quad and batch them into one (or a few) draw calls.
 //
 // 4096 MAX_STARS × 5 pixels × 4 verts = 81920 verts, which overflows the

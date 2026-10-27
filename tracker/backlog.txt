@@ -1,0 +1,16 @@
+99 crash 🔴 Crash in The Fallen police dialogue (GitHub #10)
+
+
+
+
+100 input 🟢 Keyboard key rebinding (GitHub #9)
+
+
+
+
+101 audio 🔵🟢 Environmental reverb (GitHub #9) (deferred)
+
+
+
+
+102 platform 🔴 Linux: cannot open text/guilty.txt (GitHub #8 log)

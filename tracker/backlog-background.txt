@@ -1,0 +1,237 @@
+106 architecture 🔵🔴 Release builds need -fno-inline-functions — find the real cause
+107 architecture 🟢 The renderer must not change game state (deferred)
+
+
+
+
+108 gameplay 🔵 Rebuild NPC navigation after a wall is blown up? (deferred)
+
+
+
+
+109 architecture 🟢 Small refactoring ideas from the porting notes (deferred)
+
+
+
+
+110 render 🔵🟢 Renderer performance: verify what is really done, list what is left
+111 render 🟢 Retune effect distances to the wider draw distance
+112 render 🟢 Non-building objects pop in at the draw distance
+
+
+
+
+113 architecture 🟢 Code cleanup leftovers (deferred)
+
+
+
+
+114 render 🔵 Look at PieroZ WIP commit 0f2e69d (bat/Bane boss, explosions) (deferred)
+
+
+
+
+115 ui 🔴 HUD framing leftovers on wide / portrait screens
+116 ui 🟢 HUD scale option and pillarbox bar colour (deferred)
+
+
+
+
+117 render 🟢🔴 Render interpolation gaps at high FPS
+
+
+
+
+118 devtools 🟢🔴 Debug tools leftovers (deferred)
+
+
+
+
+119 render 🔴 OB_remove() does not invalidate the extended-objects cache
+120 render 🔵🔴 Shadow corruption from 2D draws: root cause still unconfirmed
+121 render 🟢 Character skinning leftovers (deferred)
+
+
+
+
+122 ui 🟢 Help screens follow-ups
+
+
+
+
+123 input 🟢 Mouse input API extensions (drag, double-click, scroll) (deferred)
+124 input 🟢 DualSense Edge support (paddles, Fn keys, profiles) (deferred)
+125 input 🟢 Vibrations from the original that were not ported (deferred)
+
+
+
+
+126 camera 🟢 Moving-platform inheritance beyond vehicles (deferred)
+
+
+
+
+127 gameplay 🔵 Parity leftovers to double-check (deferred)
+
+
+
+
+128 release 🟢 Smaller package: FFmpeg with only the Bink decoder (deferred)
+
+
+
+
+103 devtools 🟢 Debug hotkeys to cycle visual parameters
+
+
+
+
+104 input 🔴 DualSense on Steam Deck / macOS BT check
+105 input 🟢 libDualsense convenience API (deferred)
+
+
+
+
+2 project 🟢 Translate the living docs to English
+
+
+
+
+90 release 🟢 Release 1.0.3 (fixes already in main)
+91 release 🟢 Installers on all platforms (auto-detect the original's folder)
+92 release 🔵 Distribution via Steam (own app or official beta branch)
+93 release 🟢 App icon on macOS / Linux / Steam Deck + own leaf artwork
+94 release 🟢 CI/CD: GitHub Actions builds on tag push
+95 release 🟢 macOS Intel / Universal Binary (deferred)
+
+
+
+
+5 crash 🔴 ASSERT when pulling up onto a crate
+6 crash 🔵🔴 Random crashes during gameplay
+7 crash 🔴 Crash in debug mode on [ / ] (camera-2 cycle)
+8 crash 🟢 All ASSERTs stay silent in any scenario (full hardening)
+
+
+
+
+9 gameplay 🔴 Slowdowns during NPC automatic fire
+10 gameplay 🔴 The "peeing" NPC keeps the animation when fleeing
+11 gameplay 🔴 "Green button" cutscene restarts several times (Day of Reckoning)
+12 gameplay 🔴 Sometimes a specific enemy can't be targeted
+13 gameplay 🔴 "Wrong way" signs aren't shown in car missions
+14 gameplay 🔴 Civilian with an automatic/shotgun: empty hands + effects at a fixed point
+15 gameplay 🔵🔴 Audit all timers/counters for FPS dependency
+16 gameplay 🔴 Resurrection of civilians (pre-release stub)
+17 gameplay 🔴 Ladders: mount_ladder() commented out (pre-release)
+18 gameplay 🟢 MAV INSIDE2: NPC pathfinding inside buildings
+19 gameplay 🟢 Improved target locking
+20 gameplay 🟢 Quick saves (checkpoints) within a mission
+21 gameplay 🟢 Mark saves made with cheats (deferred)
+22 gameplay 🔴 NPCs on the club dance floor can't find the exit (Gatecrasher) (deferred)
+23 gameplay 🔴 Teleport onto the roof when jumping by a building wall (deferred)
+24 gameplay 🔴 Teleport when jumping at the end of the stairs (Gatecrasher) (deferred)
+
+
+
+
+25 render 🔴 Z-fighting of leaves and newspapers on the ground / in puddles
+26 render 🔴 Z-fighting of puddles and ground
+27 render 🔴 Puddles spawn above ground level
+28 render 🔴 Farfacet: a chunk of a distant building's facade is missing
+29 render 🔴 MIB death effect is drawn over lamp posts
+30 render 🔴 Light from mines shines through walls (Target UC)
+31 render 🔴 Puddle drop ripples appear only near the player (modal)
+32 render 🔴 OpenGL: lamp light looks different vs D3D
+33 render 🔴 A wall disappears at the edge of the camera frustum (RTA)
+34 render 🔴 Distant light sprites flicker at the distance-cull boundary (RTA)
+35 render 🔴 Police car shadow with a see-through square
+36 render 🔴 Lens flare from car headlights doesn't trigger at all angles
+37 render 🔴 Jitter of objects close to the camera (render interpolation)
+38 render 🔴 Crinkle (bump-map meshes) disabled in pre-release
+39 render 🔴 Water wibble commented out in pre-release
+40 render 🟢 Smooth LOD switch of character shadows
+41 render 🟢 Composition AA: canonical FXAA 3.11 or SMAA 1x
+42 render 🟢 Clean up the +0.5 / -0.5 pixel compensations (TL-vertex paths)
+43 render 🟢 Missing "fire pillar" above a burning character (retail improvement)
+44 render 🟢 Soft skinning: seams at limb rotations
+45 render 🟢🔴 Fog color per level + black sky at high pitch on bright missions
+46 render 🟢 Visual improvements without new assets (umbrella) (deferred)
+47 render 🔴 Lounge chair shadow drawn over the chair (Estate of Emergency) (deferred)
+48 render 🔴 Darkened floor chunk renders bright purple + strange dark areas (deferred)
+49 render 🔴 Fire/smoke order flickers from near-batching (left for performance) (deferred)
+50 render 🟢 Skeletal character animations (idea) (deferred)
+51 render 🔵 Port the renderer to Vulkan? (idea) (deferred)
+
+
+
+
+52 camera 🔴 Hanging on a wall — the near plane clips geometry (deferred)
+53 camera 🔴 Small mouse rotation gives a shift, not a turn (deferred)
+
+
+
+
+54 input 🔴 DualSense LED-panel glitches
+55 input 🔴 Stick drift in menus
+56 input 🟢 Car handling on the gamepad + driving physics
+57 input 🟢 Balance the adaptive-trigger brake on the car (auto mode)
+58 input 🟢 Mouse aiming / shooting (3rd-person action style)
+59 input 🟢 Gamepad settings in the UI (bindings, sensitivity, deadzones)
+60 input 🟢 Steam Deck detection → Deck button glyphs
+61 input 🟢 Quick weapon select on the D-pad
+62 input 🟢 DualSense extras: touchpad, gyro, audio-to-haptic, vibration in cutscenes/menus
+63 input 🔵 Steam Input API
+64 input 🔴 non-Windows + Xbox over USB: controller not detected (deferred)
+
+
+
+
+65 ui 🔴 Mission messages in the bottom panel vanish too fast at mission completion
+66 ui 🔴 Intermittent: briefing screen stuck over the save screen
+67 ui 🔴 FONT_buffer_add / FONT_draw ignore window scale
+68 ui 🔴 Our custom text breaks under unofficial localizations (fonts)
+69 ui 🟢 Resolution / fullscreen toggle in the options menu
+70 ui 🟢 Gamma correction — make it work and return the setting
+71 ui 🟢 Full localization support (multiple languages)
+72 ui 🟢 Gamepad button hints in the menu (from PS1)
+73 ui 🟢 Contextual control hints, layout diagram, in-game moves reference
+74 ui 🟢 In-game launcher screen (start hub: play / settings / info / exit)
+75 ui 🟢 UI to pick the original game's resource folder
+76 ui 🟢 UI for experimental features (feature flags)
+77 ui 🟢 Custom options menu (own mini-engine styled like the game) (deferred)
+
+
+
+
+78 platform 🔵🔴 FPS cap below 30 gives a periodic stutter (cap clamped to 30)
+79 platform 🔴 macOS fullscreen: render area too narrow at startup
+80 platform 🔵 Full multi-platform testing
+81 platform 🔵🔴 Sporadic catastrophic FPS drops (GPU-side) (deferred)
+82 platform 🔴 Sort stability differs across platforms (qsort / std::sort) (deferred)
+83 platform 🔴 Floating-point determinism across platforms (deferred)
+
+
+
+
+84 audio 🔴 OpenAL log spam "Invalid source ID 0"
+
+
+
+
+85 devtools 🔴 The invulnerability cheat doesn't protect against burning
+86 devtools 🟢 N (model cycler) doesn't show all character variants
+87 devtools 🟢 Cheat: load a mission by number
+
+
+
+
+88 architecture 🟢 Testing infrastructure (behavior snapshots before refactoring)
+89 architecture 🟢 Remove the dead multiplayer code (CNET)
+
+
+
+
+96 content 🟢 Game editor + custom content (incl. AI-driven level design) (deferred)
+97 content 🟢 Mod support + features from community mods (deferred)
+98 content 🟢 Bigger maps (remove the hardcoded small size, streaming) (deferred)

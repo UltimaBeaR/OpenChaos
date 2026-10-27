@@ -115,7 +115,7 @@ damage or brick the controller:
 - Invasive self-tests (`SOLOMON_SELF_TEST`, `CYPRESS_SELF_TEST`,
   `AGING_*`).
 
-See `new_game_devlog/dualsense_libs_reference/daidr_dualsense_tester_review.md`
+See `archive/new_game_devlog/dualsense_libs_reference/daidr_dualsense_tester_review.md`
 §2.4 "Deferred dangerous operations" for the action-ID lookup table
 and notes if these are ever revisited.
 
@@ -251,8 +251,8 @@ physical output. Only meaningful when `audio_volumes_enabled = true`.
 ⚠️ Hardware quirk: the two outputs **cross-leak** acoustically
 (especially on BT — you'll hear the speaker faintly even with
 headphone routing). If your UI cares, zero out the inactive output's
-volume at app level; the library has no workaround. See §14.1 in
-`own_dualsense_lib_plan.md`.
+volume at app level; the library has no workaround. See
+`docs/topics/dualsense/dualsense_hardware_quirks.md`.
 
 **Adaptive trigger slot layout.** Each trigger gets a 10-byte slot
 (`OutputState::trigger_left[10]` / `trigger_right[10]`). Format:
@@ -394,7 +394,7 @@ doesn't exist on the host side.
   does best-effort disable but sometimes the tone keeps playing until
   the controller is unplugged or re-paired.
 
-Full details + more quirks: `own_dualsense_lib_plan.md` §14.
+Full details + more quirks: `docs/topics/dualsense/dualsense_hardware_quirks.md`.
 
 ## Licensing
 

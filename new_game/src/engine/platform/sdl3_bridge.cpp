@@ -167,7 +167,7 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         // so FBO sizing/aspect (OpenDisplay), the composition dst-rect + clear,
         // and mouse→FBO mapping all see the true display size (w, h). See the
         // FBO-as-virtual-screen model in
-        // new_game_devlog/fullscreen_transition/concepts.md.
+        // archive/new_game_devlog/fullscreen_transition/concepts.md.
         //
         // SDL_GetDesktopDisplayMode returns logical-point dimensions, which is
         // what SDL_CreateWindow expects; HIGH_PIXEL_DENSITY then makes the

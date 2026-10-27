@@ -8,7 +8,7 @@
 // NOTE: This is the ONLY vertex shader used. All geometry — including world-space
 // lit vertices (leaves, particles via ge_draw_indexed_primitive_lit) — is transformed
 // on the CPU to screen-space TL format before drawing. There is no GPU-transform
-// lit vertex shader. See known_issues_and_bugs.md for tech debt on GPU-transform path.
+// lit vertex shader. See archive/known_issues_and_bugs/ for tech debt on GPU-transform path.
 
 layout(location = 0) in vec3  a_position;  // screen x, y, z
 layout(location = 1) in float a_rhw;       // reciprocal homogeneous W

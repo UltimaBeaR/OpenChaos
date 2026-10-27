@@ -9425,7 +9425,7 @@ void fn_person_dangling(Thing* p_person)
         end = person_normal_animate(p_person);
         if (end == 1) {
             set_person_idle(p_person);
-            // plant_feet only here — this is the unique landing call site noted in KB.
+            // plant_feet only here — this is the unique landing call site.
             if (p_person->SubState != SUB_STATE_RUNNING)
                 plant_feet(p_person);
         }
@@ -9475,8 +9475,8 @@ void fn_person_dangling(Thing* p_person)
                 // find_face_for_this_pos misses the landing face on these
                 // boxes — probably geometry corner case where post-pull-up
                 // WorldPos doesn't vertically hit any face polygon.
-                // See known_issues_and_bugs.md — "ASSERT при подтягивании
-                // на ящик". Graceful fallback:
+                // See tracker task #5 — "ASSERT when pulling up onto
+                // a crate". Graceful fallback:
                 //   * GRAB_FLOOR: keep the assignment pair (OnFace=0 + Y
                 //     from new_y) — same as what the post-ASSERT code did.
                 //   * face==0: leave WorldPos.Y alone (do NOT teleport to

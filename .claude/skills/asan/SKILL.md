@@ -116,7 +116,7 @@ ASan aborts on the first error it finds. When hunting a specific bug (like "cras
 2. Fix the reported bug (even if it's not the one you're looking for)
 3. **Document the fix** (mandatory, every time):
    - Add a comment at the fix site in code explaining what was wrong and why (e.g. `// ASan fix: missing null terminator, original bug`)
-   - Update `known_issues_and_bugs.md` — add the bug to the "Рандомные краши" entry or create a new entry
+   - Update the tracker (skill `work-tracking`) — add the bug to task #6 "Random crashes during gameplay" or create a new task
    - Add the bug to the "Bugs found with ASan" section at the bottom of this skill file
 4. **Ask user to verify** — tell the user the simplest way to reproduce the situation that triggered the bug (e.g. "step on a mine", "restart a failed mission"). The user rebuilds and checks that ASan no longer aborts on the same action. Keep it short — one sentence with exact steps.
 5. Rebuild, re-run

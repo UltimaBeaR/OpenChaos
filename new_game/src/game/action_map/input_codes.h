@@ -5,7 +5,7 @@
 // Device-level input codes — values for action constants in act_*.h files.
 //
 // Naming rules, structure of action constants, suffix table → see
-//   new_game_devlog/input_system/action_map/rules.md
+//   archive/new_game_devlog/input_system/action_map/rules.md
 //
 // This file holds ONLY device codes (KKEY_*, MBTN_*, MAXIS_*, GBTN_*, DBTN_*,
 // GTRIG_*, GAXIS_*, GDIR_*). Action constants (ACT_<context>_<purpose>_<TYPE>)

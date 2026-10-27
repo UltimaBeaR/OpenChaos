@@ -7,7 +7,7 @@
 //
 // Original code rendered a 5×9 glyph by reading/modifying the backbuffer pixel
 // by pixel through ge_plot_pixel. On modern WDDM/DWM that per-frame readback
-// pattern triggers a driver throttle (see new_game_devlog/startup_hang_investigation).
+// pattern triggers a driver throttle (see archive/new_game_devlog/startup_hang_investigation).
 // This module keeps the same glyph bitmaps but uploads them once to a GPU
 // texture atlas and draws each glyph as a small textured quad through the
 // regular TL pipeline — no CPU readback of the framebuffer.

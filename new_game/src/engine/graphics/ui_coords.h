@@ -29,7 +29,7 @@
 // pass virtual 640x480 pixels to a draw call switch over with a one-line
 // change; native [0..1] adoption is per-element follow-up work.
 //
-// See new_game_devlog/fullscreen_transition/ui_coords_plan.md.
+// See archive/new_game_devlog/fullscreen_transition/ui_coords_plan.md.
 
 namespace ui_coords {
 

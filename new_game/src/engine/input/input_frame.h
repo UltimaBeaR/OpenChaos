@@ -26,7 +26,7 @@
 // event-driven) so fast presses between two polls are invisible regardless;
 // for gamepad use just_pressed.
 //
-// Plan & migration list → new_game_devlog/input_system/current_plan.md.
+// Plan & migration list → archive/new_game_devlog/input_system/current_plan.md.
 // =============================================================================
 
 void input_frame_init();

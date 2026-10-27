@@ -1,0 +1,12 @@
+# 37 — Jitter of objects close to the camera (render interpolation)
+
+- Status: 🔵 open
+- Area: render
+- Tags: bug
+- Created: 2026-10-27
+- Related: migrated from the old list `archive/known_issues_and_bugs/known_issues_and_bugs.md`
+
+## Description
+Objects at a distance of 1-2 meters from the camera **jitter back and forth** — a small back-and-forth movement. Distant objects — not visible (possibly it's there too, but the pixel shift is too small). Clearly visible at low physics (debug key 1, ~5 Hz). Manifests in gameplay and cutscenes. The symptom — as if the **camera angle** is interpolated incorrectly, slightly swaying between values. Noticed 2026-05-02. **Possible directions:** (1) integer truncation in `lerp_i32`/`lerp_angle_cam` — rounding errors on long intervals between physics ticks; (2) double→float conversion of `g_render_alpha` loses precision; (3) something overwrites `FC_cam[0]` or the EWAY_cam fields between ctor and render; (4) angle wrap-around in `lerp_angle_cam` on the edge-case prev/curr. Not critical for gameplay. **Added 2026-05-25:** while investigating the camera-orbit jitter, **2 specific cases** were discovered that are actually manifestations of this same general bug (not camera-specific): **(a) rotating the camera with L1 (gun-out)** — the camera approaches Darci (FC_DIST_MAX 96000 instead of 122880), at close range a shaking of the model is visible on Darci; **(b) rotating the camera near a wall** — VC collision pulls the camera very close to the focus (dxz_vc ~12-15k instead of 122k), Darci's model is again close to the camera → the shaking is visible. According to the `cam_jitter_phys.log` log (2026-05-25): physics `fc->x/z` are stable (dxz_fc range ~6 units when rotating), `vc.y` and `vc.dist` are also stable to the level of units after settle. So **the camera doesn't jitter**, what jitters is **the render of the model of close objects**. At normal distance this same effect is present, but the pixel shift is too small to notice. Tested by adding VC_SMOOTH_ALPHA at 2/10 — the camera becomes sluggish/"jelly-like" (uncomfortable), but the jitter still remains → confirms the source is in the render, not in the camera physics. **Related:** see **BUG-CAM-SMALL-ROT-SHIFT** (Camera section) — small mouse rotation is perceived as a shift, not a turn; probably the same class (precision loss on small deltas).
+
+Old-list status: *Investigate*.

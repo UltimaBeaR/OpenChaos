@@ -326,4 +326,4 @@ do NOT cause shadow corruption — they queue text for rendering in the correct 
 
 ## Details and investigation history
 
-Full investigation log: `new_game_devlog/debug_text_rendering_test.md`
+Full investigation log: `archive/new_game_devlog/debug_text_rendering_test.md`

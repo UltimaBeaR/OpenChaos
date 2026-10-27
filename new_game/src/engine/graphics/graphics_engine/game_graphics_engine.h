@@ -770,7 +770,7 @@ GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8
 // and redraws it with a per-row horizontal shift driven by sin+cos phases.
 // Replaces the former glReadPixels + CPU per-row memcpy + writeback path,
 // which triggered the WDDM throttle hang on affected hardware (see
-// new_game_devlog/startup_hang_investigation/).
+// archive/new_game_devlog/startup_hang_investigation/).
 
 struct GEWibbleParams {
     uint8_t wibble_y1; // per-row angle multiplier 1 (UBYTE, 0..255)

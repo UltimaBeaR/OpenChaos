@@ -403,7 +403,7 @@ trigger_simple_weapon(out, start_raw, end_raw, strength_raw);
 ```
 Raw-byte single-click variant. Does not report trigger-feedback status
 (the state nybble + act-bit are reported only by full-name effects —
-see `new_game_devlog/dualsense_libs_reference/dualsense_adaptive_trigger_facts.md`).
+see `docs/topics/dualsense/dualsense_adaptive_trigger_facts.md`).
 
 #### Simple_Vibration (mode 0x06)
 ```cpp

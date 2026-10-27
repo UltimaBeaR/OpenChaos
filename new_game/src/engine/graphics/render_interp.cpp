@@ -249,7 +249,7 @@ GrenadeSnap g_grenade_snaps[MAX_GRENADES] = {};
 
 // Per-bone snapshot (Phase 2 of world-pose-snapshot work). Stored format
 // matches the architecture decision in
-// new_game_devlog/fps_unlock/render_interpolation/world_pose_snapshot_plan.md:
+// archive/new_game_devlog/fps_unlock/render_interpolation/world_pose_snapshot_plan.md:
 //   bone[0] (PELVIS)  — VISIBLE pelvis in WORLD coords (= the smooth anchor
 //                       confirmed by Phase 0 ladder/jump testing).
 //   bones[1..14]      — local-to-parent (offset + rotation in parent's local

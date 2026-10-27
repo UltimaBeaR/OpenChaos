@@ -2,13 +2,13 @@
 name: review
 description: >
   General self-review for OpenChaos — runs after ANY code changes, not just
-  before commits. Use this skill whenever work is done: after a migration
-  iteration, after fixes, after any edits. The user commits manually and may
+  before commits. Use this skill whenever work is done: after fixes,
+  after any edits. The user commits manually and may
   not commit at all — review is still mandatory every time code is touched.
   Also use when the user explicitly asks for review.
   Trigger on: "проверяй", "ревью", "готово", "самопроверка", "review", "check",
   "проверь", "посмотри что поменял", or automatically after completing any
-  batch of code changes. For Stage 4 migration, also trigger stage4-review.
+  batch of code changes.
 ---
 
 # Self-Review — mandatory after any code changes
@@ -102,8 +102,3 @@ After confirming all checks pass:
 "Самопроверка пройдена: [N] файлов проверено, всё ок."
 
 If any issue is found — fix it first. Never suggest committing with known issues.
-
-## Stage-specific extensions
-
-On **Stage 4 (migration)**: also run `stage4-review` which adds checks A-H
-(uc_orig, globals, entity mapping, include guards, comments, CMake, empty files, DAG order).

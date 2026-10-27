@@ -78,7 +78,7 @@ void bind_palette_invalidate_all(void);
 // Values are eyeballed once and live in bind_palette.cpp — only
 // HEAD parent is non-zero (band=20, w_max=1.0); HANDS and FEET stay
 // zero (collapses to hard binding) because no universal tune works
-// across all character meshes (see known_issues_and_bugs.md). Removed
+// across all character meshes (see tracker task #44). Removed
 // at P2-J: when soft becomes the only path, these get inlined as
 // constants in figure_build_consolidated_skin_world.
 struct SkinTuneGroup {

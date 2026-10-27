@@ -561,7 +561,7 @@ int s_prev_l2 = 0;
 void weapon_feel_init()
 {
     // Built-in profiles — user-tuned, see
-    // new_game_devlog/weapon_haptic_and_adaptive_trigger.md. Thresholds and
+    // archive/new_game_devlog/weapon_haptic_and_adaptive_trigger.md. Thresholds and
     // Weapon25 params are currently identical across weapons but live in the
     // profile so per-weapon tuning is a one-line change.
 

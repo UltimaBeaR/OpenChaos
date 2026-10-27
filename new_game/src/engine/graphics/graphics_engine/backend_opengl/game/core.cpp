@@ -478,7 +478,7 @@ static bool gl_load_tga(GLTexture& tex)
 
 static GLuint s_program_tl = 0; // TL vertex shader program
 // Lit vertex shader removed — all geometry uses CPU-transform → TL path.
-// See tl_vert.glsl header and known_issues_and_bugs.md for details.
+// See tl_vert.glsl header and archive/known_issues_and_bugs/ for details.
 
 // Uniform locations for TL program.
 static GLint s_tl_u_viewport = -1;
@@ -2070,7 +2070,7 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
     // matrices use different clip space conventions than OpenGL (Z [0,1] vs [-1,1],
     // viewport Y). All other geometry already uses CPU-transform → TL path,
     // so this is consistent. Performance is fine for ~200 leaf/dirt vertices
-    // per frame. See known_issues_and_bugs.md.
+    // per frame. See archive/known_issues_and_bugs/.
 
     // Compute combined WVP matrix (row-major, D3D convention: v' = v * WVP).
     // View is identity in this engine, so WVP = World * Projection.

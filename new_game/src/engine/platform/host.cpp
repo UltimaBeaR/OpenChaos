@@ -311,7 +311,7 @@ BOOL LibShellActive(void)
     // After pumping events, apply any debounced window resize. Running this
     // here — at the top of the frame, before game logic / rendering begins —
     // guarantees the scene FBO is not destroyed mid-frame (see Risk #2 in
-    // new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
+    // archive/new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
     host_process_pending_resize();
 
     // Per-frame input aggregator: snapshot keyboard + gamepad after SDL events

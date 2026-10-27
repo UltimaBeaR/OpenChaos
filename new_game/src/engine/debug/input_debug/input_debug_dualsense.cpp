@@ -323,7 +323,7 @@ int render_misc_outputs(SLONG x, SLONG y, int local_cursor)
 //
 // The test tone is a tester-only diagnostic: libDualsense deliberately
 // does NOT ship a `play_test_tone()` helper (see
-// `new_game_devlog/dualsense_libs_reference/lib_scope.md`). Instead we
+// `docs/topics/dualsense/lib_scope.md`). Instead we
 // compose it here from the public `test_command()` primitive.
 //
 // Wire recipe per daidr's controlWaveOut() reference:

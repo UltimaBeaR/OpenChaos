@@ -54,12 +54,11 @@ Game resource files (textures, levels, sounds, etc.) are **not included** in thi
 ```
 original_game/                — original source code (read-only reference)
 original_game_resources/      — game resource files (not committed, see Setup below)
-original_game_knowledge_base/ — detailed documentation on the original game
 new_game/                     — modernized game (work in progress)
 libDualsense/                 — OpenChaos-owned standalone DualSense support library (used by new_game)
-new_game_planning/            — planning and architecture docs (phases, stages, tech decisions)
-new_game_devlog/              — development log and technical notes
-known_issues_and_bugs/        — known issues and bugs (active list + resolved archive)
+tracker/                      — task tracker: plans, backlogs, open and closed tasks
+docs/topics/                  — reference notes (debug keys, DualSense, resource formats, …)
+archive/                      — history of the 1.0 development (stage plans, devlogs, old issue lists)
 release/                      — release packaging (scripts, per-platform assets)
 make/                         — Makefile modules (platform detection, configure)
 tools/                        — development utilities
@@ -68,17 +67,15 @@ legal/                        — rights history, attribution, legal details
 
 ## Development
 
-Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status.
+Work is tracked in [`tracker/`](tracker/): open plans are listed in [`tracker/plans.md`](tracker/plans.md), all open tasks (bugs, features, ideas) in [`tracker/active/tasks/_index.md`](tracker/active/tasks/_index.md). Planned improvements and ideas there are not commitments and may change.
 
-### Future plans
-
-Development continues after 1.0. Rough ideas and planned improvements are collected in [stage13.md](new_game_planning/stage13.md) — these are not commitments and may change.
+The history of the development up to 1.0 (stage plans, devlogs, the old issue lists) is kept in [`archive/`](archive/).
 
 ### Issues and bugs
 
 A large number of bugs have been fixed — both the original game's retail and pre-release bugs, and many new bugs introduced during the modernization itself. The current state is still not perfect and some bugs remain, but they are not critical.
 
-Known issues and bugs are tracked in a separate list: [active issues](known_issues_and_bugs/known_issues_and_bugs.md) and the [resolved archive](known_issues_and_bugs/known_issues_and_bugs_resolved.md). If you run into a bug, you can also report it on [GitHub Issues](https://github.com/UltimaBeaR/OpenChaos/issues).
+Known bugs are tasks in the [tracker](tracker/active/tasks/_index.md). If you run into a bug, please report it on [GitHub Issues](https://github.com/UltimaBeaR/OpenChaos/issues).
 
 ### Setup (for development)
 

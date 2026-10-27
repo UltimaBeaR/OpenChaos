@@ -57,7 +57,7 @@ Without `PANEL_finish`:
 1. Geometry is **not drawn this frame** — it sits in the page buffer unflushed.
 2. **Next frame's POLY_frame_init clears the page**, but the VB slots are reused by the shadow pass. Your rect ends up rendered as a ghostly white artifact on the ground — the classic "shadow corruption" bug.
 
-Root cause and full forensic write-up: `new_game_devlog/shadow_corruption_investigation.md`. The devlog describes this for `AENG_world_line`, but the same mechanism affects `AENG_draw_rect`, `POLY_add_rect`, `POLY_add_quad`, `FONT2D_DrawString` — anything that feeds POLY pages.
+Root cause and full forensic write-up: `archive/new_game_devlog/shadow_corruption_investigation.md`. The devlog describes this for `AENG_world_line`, but the same mechanism affects `AENG_draw_rect`, `POLY_add_rect`, `POLY_add_quad`, `FONT2D_DrawString` — anything that feeds POLY pages.
 
 **You don't need a wrapper** if you're calling from inside `OVERLAY_handle`, `PANEL_draw_health_bar`, `PANEL_draw_buffered`, or similar — those already live inside a start/finish pair opened by their caller. But if you're writing a new module that draws on its own, open your own batch.
 
@@ -275,7 +275,7 @@ artifacts after wrapping, recheck the insertion point — it might be after
 `GAMEMENU_draw` or another place where a later `POLY_frame_init` clears
 your work.
 
-Full investigation: `new_game_devlog/shadow_corruption_investigation.md`.
+Full investigation: `archive/new_game_devlog/shadow_corruption_investigation.md`.
 
 ## Details
 

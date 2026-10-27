@@ -91,7 +91,7 @@ option(ENABLE_ASAN "Enable AddressSanitizer (heap overflow detection)" OFF)
 # Optional: dead-code report. Enables function-level linking + verbose linker
 # output so the linker prints which functions/sections were discarded as
 # unreferenced. Used for Stage 13 dead-code cleanup (see
-# new_game_planning/stage13_dead_code_cleanup.md).
+# archive/new_game_planning/stage13_dead_code_cleanup.md).
 # Usage: CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON" make configure && make build-release
 # Then check build/Release/.ninja_log or capture build output to a file.
 # ---------------------------------------------------------------------------

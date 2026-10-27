@@ -1,269 +1,241 @@
 # CLAUDE.md — OpenChaos (Urban Chaos Modernization)
 
-## Что это за проект
+## What this project is
 
-Модернизация игры **Urban Chaos (1999, MuckyFoot Productions)**.
-Оригинальный исходный код находится в `original_game/` — он не изменяется, только читается.
-Цель: написать новую версию игры на современном стеке, сохранив оригинальный геймплей 1:1.
+A modernization of **Urban Chaos (1999, MuckyFoot Productions)**.
+The original source code is in `original_game/` — it is never changed, only read.
+Goal: a new version of the game on a modern stack, keeping the original gameplay 1:1.
 
-Стратегия: итеративный рефакторинг оригинального кода (скопирован в `new_game/`) — по этапам
-заменяются рендерер, платформенный код, архитектура. Физика и игровая логика портируются 1:1.
-Оригинал в `original_game/` — эталон поведения, не трогается.
-Оригинальные ресурсы из `original_game/fallen/Debug/` переиспользуются как есть.
+The original code was copied to `new_game/` and refactored iteratively (renderer, platform code, structure).
+Physics and game logic are ported 1:1. `original_game/` is the behavior reference. The original resources are reused
+as is. Release 1.0 has shipped (patches 1.0.x); work continues post-1.0 via the tracker.
 
-## Структура репозитория
+## Repository layout
 
 ```
-original_game/                      — оригинальный исходный код (READ ONLY, не трогать)
-original_game_knowledge_base/       — детальная документация по оригинальной игре
-  KB_INDEX.md                       — индекс KB: что читать и когда, карта подсистем
-  subsystems/                       — документация по каждой подсистеме
-  resource_formats/                 — форматы файлов ресурсов
-  preprocessor_flags.md             — все #ifdef флаги: что нужно для PC, что удалять
-  overview.md                       — архитектурный обзор оригинала
-  cut_features.md                   — фичи не вошедшие в финальную игру
-  analysis_scope.md                 — scope анализа кодовой базы
-original_game_knowledge_base_dense/ — компактная версия всей KB
-  DENSE_SUMMARY.md                  — все подсистемы компактно (числа, формулы, зависимости)
-  DENSE_SUMMARY_BUILD_GUIDE.md      — инструкция по пересборке summary
-new_game_planning/                  — планирование новой игры (параллельный процесс)
-  phases.md                         — фазы разработки и текущий статус
-  stages.md                         — этапы Фазы 3 с критериями
-  prerelease_fixes.md               — пре-релизные баги оригинала (выполненные фиксы)
-  tech_and_architecture.md          — стек, архитектура, все принятые решения
-  testing.md                        — стратегия тестирования, чеклисты, replay
-  stage7_renderer_rules.md          — ⚠️ 3 ОБЯЗАТЕЛЬНЫХ правила переноса графического API (Этап 7)
-  porting_notes.md                  — заметки по портированию подсистем
-  entity_mapping.json               — соответствия старых/новых имён (создаётся на Этапе 4, управляется через tools/entity_map.py)
-known_issues_and_bugs/              — известные проблемы и баги (вынесено в корень проекта)
-  known_issues_and_bugs.md          — АКТИВНЫЕ известные проблемы и баги (доработки и баги, сознательно отложенные на потом)
-  known_issues_and_bugs_resolved.md — АРХИВ решённых/закрытых проблем. ⚠️ Когда проблема решена/won't-do из активного файла — ПЕРЕНОСИТЬ запись СЮДА (физически вырезать строку и вставить в соответствующую `## … (resolved)` секцию), НЕ оставлять в активном файле и НЕ просто менять статус
-new_game/                           — код новой версии игры (итеративный рефакторинг оригинала)
-libDualsense/                       — OpenChaos-owned standalone DualSense lib. Собственный минимальный модуль (SDL3 hidapi). Подключается к new_game через add_subdirectory из new_game/CMakeLists.txt. Потребители: `#include <libDualsense/ds_*.h>`. Доки либы: `libDualsense/README.md`, `libDualsense/API.md`.
-new_game_devlog/                    — рабочая документация по процессу разработки (находки, решения, технические детали)
-  dualsense_libs_reference/         — всё по DualSense протоколу/либам в одном месте (справочник, план своей либы, PR notes)
-    README.md                       — навигация по папке
-    libs_contents.md                — инструкции по скачиванию референсных либ в libs/
-    own_dualsense_lib_plan.md       — план переписывания на свою DualSense либу
-    dualsense_protocol_reference.md — справка по DualSense протоколу
-    dualsense_adaptive_trigger_facts.md — эмпирические факты про железо
-    dualsense_lib_pr_notes.md       — АРХИВ: PR notes для бывшей vendored либы (больше не актуально)
-    libs/                           — [GITIGNORED] клоны референсных либ (duaLib, DS5W, nondebug)
-release/                            — упаковка релизов (скрипты, ассеты по платформам, dist/)
-make/                               — модули Makefile (platform.mk, configure.mk)
-tools/                              — вспомогательные инструменты
-legal/                              — юридические аспекты: история прав, атрибуция, позиционирование
-CONTRIBUTORS.md                     — контрибьюторы: цепочка форков, авторство, референсы
-CLAUDE.md                           — этот файл
-.claude/skills/                     — скиллы Claude Code (триггерятся автоматически)
-  review/SKILL.md                   — общая самопроверка перед коммитом (dangling if/else, diff, корректность)
-  stage4-migrate/SKILL.md           — workflow и правила итерации миграции Этапа 4
-  stage4-review/SKILL.md            — расширение review для Этапа 4 (uc_orig, globals, A–H чеклист)
-  kb-lookup/SKILL.md                — навигатор по базе знаний оригинальной игры
+original_game/      — original source code (READ ONLY)
+new_game/           — the modernized game (C++, OpenGL, SDL3, x64; Windows / macOS / Linux)
+libDualsense/       — OpenChaos-owned standalone DualSense lib (SDL3 hidapi), add_subdirectory from new_game/CMakeLists.txt.
+                      Consumers: `#include <libDualsense/ds_*.h>`. Docs: libDualsense/README.md, libDualsense/API.md
+tracker/            — task tracker (skill `work-tracking`), see "Task system" below
+docs/topics/        — reusable knowledge: how things work, references (debug keys, DualSense protocol, resource
+                      formats, original cut features, x64 porting patterns, …)
+archive/            — history of the work up to 1.0, READ ONLY reference: old stage plans (new_game_planning/),
+                      devlogs and investigations (new_game_devlog/), the old issue lists (known_issues_and_bugs/,
+                      incl. the resolved archive), finished stage-4 skills and tools. Not translated, not maintained.
+release/            — release packaging (scripts, per-platform assets, dist/)
+make/               — Makefile modules (platform.mk, configure.mk)
+tools/              — helper tools
+legal/              — rights history, attribution, positioning
+.claude/skills/     — Claude Code skills (trigger automatically)
 ```
 
-## Мои инструкции
+## Task system
 
-### При начале нового разговора:
-1. Прочитать этот файл (CLAUDE.md)
-2. Дальше — зависит от задачи:
+The work is organized by the **`work-tracking` skill** — read it before writing to the tracker, opening/closing a
+task, creating/changing a plan or touching the backlogs. The full methodology lives only there; here — only where
+things are in this repo:
 
-| Задача | Что читать |
-|--------|------------|
-| Вопросы про игру, анализ, планирование | `original_game_knowledge_base_dense/DENSE_SUMMARY.md` — **читать вместо** subsystem файлов |
-| Глубокий вопрос про одну конкретную подсистему | `subsystems/X.md` или `resource_formats/X.md` напрямую |
-| Фазы разработки, текущий статус | `new_game_planning/phases.md` |
-| Этапы Фазы 3, текущий этап | `new_game_planning/stages.md` (индекс) |
-| ~~Работа на Этапе 4~~ (ЗАВЕРШЁН) | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` |
-| ~~Работа на Этапе 7 (рендерер)~~ (ЗАВЕРШЁН) | `new_game_planning/stage7_renderer_rules.md` + `new_game_planning/stage7.md` |
-| Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
-| Известные проблемы и баги (активные) | `known_issues_and_bugs/known_issues_and_bugs.md` |
-| Решённые/закрытые проблемы (архив, + куда ПЕРЕНОСИТЬ закрытое) | `known_issues_and_bugs/known_issues_and_bugs_resolved.md` |
-| Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
-| Тестирование | `new_game_planning/testing.md` |
-| DualSense (протокол, либы, trigger effects, packing'и) | `new_game_devlog/dualsense_libs_reference/README.md` (навигация) — вся DualSense-специфичная документация собрана в этой подпапке |
-| Отладочные клавиши в игре (`bangunsnotgames` режим, F1 legend) | `new_game_devlog/debug_keys.md` — список клавиш, как включить режим, куда добавлять новые debug-клавиши |
+- `tracker/plans.md` — open plans ("Current" = the plan we follow); `tracker/backlog.txt` — main backlog (the user's
+  focus); `tracker/backlog-background.txt` — background backlog (everything else open); `tracker/areas.md` — area
+  registry; `tracker/active/` and `tracker/closed/` — `tasks/` (`_index.md`, `_tags.md`, `N-slug.md`), `tasklog/`,
+  `original-prompts/`.
+- `docs/topics/` — the "topics" of the skill.
 
-**НЕ читать** subsystem файлы по умолчанию — DENSE_SUMMARY покрывает большинство вопросов.
-**Не читать DENSE_SUMMARY проактивно** — только когда есть конкретный вопрос про игру.
+Project-specific additions to the skill:
+- **GitHub issues:** a task created from a GitHub issue gets the tag `gh-issue` and a link to the issue in its
+  `- Related:` line. The task is the source of truth; the issue is only the input.
+- **Pre-defined task-file section `## How to verify`** (the skill's exception for task files): a short, exact
+  in-game check scenario — which mission/save, where to go, what to look at, what is expected. Write it for every
+  bug/feature that needs an in-game check by the user, before handing the work over. Goal: the user's check takes
+  a minute or two, never "play around and see".
+- Bug-fixing approach: reproduce ourselves first; ask the issue author for help when unsure; prefer cheap, locally
+  verifiable fixes.
 
-## Целевое железо и перформанс
+How to restore context in a new session — see the skill. Don't read `archive/` proactively — only when a task needs
+the history of a specific subsystem or decision.
 
-**НЕ ориентироваться на современный мощный десктоп.** Целевое железо:
-- **Портативки** — Steam Deck в первую очередь, возможно в будущем портирование на телефон (Android).
-- **Слабые/старые ПК** — не супер-современные игровые, но и не 1999 года. Условно: интегрированная графика, старые ноуты, бюджетные сборки.
+## Target hardware and performance
 
-**Практические следствия:**
-- При обсуждении перфа "на моём десктопе это незаметно" — **не аргумент**. Всегда думать "а как это будет на Steam Deck или интегрированной графике?".
-- Любой CPU/GPU оверхед суммируется и вылезает именно на слабом железе. Даже "пренебрежимые" 1-2% от нескольких мелких оптимизаций складываются.
-- Экономить на лишней работе: culling, early-outs, не делать CPU-transform на GPU-способных вещах, избегать per-draw state changes, батчить где можно.
-- Когда предлагаешь значение тюн-параметра (margin, threshold, range, etc.) — **явно выбирать в сторону перфа**, если визуальное качество при этом не деградирует заметно.
-- Перед "расширить радиус/дистанцию/диапазон" — подумать про кост и сказать о нём пользователю, не прятать.
+**Don't optimize for a modern powerful desktop.** Target hardware:
+- **Handhelds** — Steam Deck first of all, possibly a phone (Android) port in the future.
+- **Weak/old PCs** — integrated graphics, old laptops, budget builds.
 
-Это НЕ значит что на сложных фичах надо экономить копейки — но "дешёвое и достаточное" всегда предпочтительнее "дорогого и с запасом".
+**Practical consequences:**
+- "It's unnoticeable on my desktop" is **not an argument**. Always think "how will this be on a Steam Deck or
+  integrated graphics?".
+- Any CPU/GPU overhead adds up and shows exactly on weak hardware. Even "negligible" 1-2% from several small
+  optimizations add up.
+- Avoid unnecessary work: culling, early-outs, no CPU-transform for GPU-capable things, avoid per-draw state
+  changes, batch where possible.
+- When proposing a tuning value (margin, threshold, range, …) — **explicitly lean toward performance** if the
+  visual quality doesn't noticeably degrade.
+- Before "extend the radius/distance/range" — think about the cost and tell the user, don't hide it.
 
-## Стиль общения
+This does NOT mean pinching pennies on complex features — but "cheap and sufficient" always beats "expensive with
+a margin".
 
-- **Вопрос ≠ побуждение к действию.** Если пользователь спрашивает "а почему X?" или "а можно ли Y?" — это вопрос для понимания, а не просьба что-то менять. Ответь на вопрос. Не начинай редактировать код, пока пользователь явно не попросит. Если не уверен — переспроси: "Хочешь чтобы я это сделал, или пока просто обсуждаем?"
-- **Никаких правок кода без явного одобрения.** Даже если кажется "очевидный фикс" или "одну строку". Сначала опиши что предлагаешь, дождись "ок"/"делай"/"патч"/etc., только потом редактируй. Это касается любых файлов проекта, не только кода.
-- **При работе по списку (ревью, баги, чеклист) — не лети вперёд.** Завершив один пункт (фикс / обсуждение / решение), **остановись и жди явного "ок" / "дальше"**, прежде чем переходить к следующему. Не начинай "пока ты тестишь, обсудим следующий" — тоже нельзя, без явного разрешения. Пользователь сам определит темп.
-- **Объяснять просто, на бытовом уровне.** Не упарываться в техническую реализацию при общении. Пользователь — разработчик, программерские моменты понимает, но **код не смотрит** и в детали реализации (имена переменных/функций, структура файлов, как именно устроен механизм внутри) **углубляться не хочет**. Нужна суть: что делаем, как это меняет поведение игры, какие есть варианты и тз-последствия — на уровне геймплея и логики, а не кода. Чем короче и лаконичнее — тем лучше, при условии что не упущены важные детали. Не писать лишнюю воду и технические выкладки, когда не просят. Если пользователь явно просит детали реализации — тогда можно углубиться.
+## Communication style
 
-## Ключевые правила
+- **Language:** talk to the user in **Russian**. Everything written into the repo (docs, tracker, skills, code
+  comments, README) is in **English**.
+- **A question ≠ a call to action.** If the user asks "why X?" or "can we Y?" — it's a question for understanding,
+  not a request to change something. Answer it. Don't start editing until the user explicitly asks. If unsure —
+  ask: "Do you want me to do it, or are we just discussing?"
+- **No code edits without explicit approval.** Even an "obvious one-line fix". First describe what you propose,
+  wait for "ok"/"do it"/"patch"/etc., only then edit. This applies to any project files, not only code.
+- **When working through a list (review, bugs, checklist) — don't rush ahead.** After finishing one item (fix /
+  discussion / decision), **stop and wait for an explicit "ok" / "next"** before moving on. No "while you test,
+  let's discuss the next one" without explicit permission. The user sets the pace.
+- **Explain simply, at an everyday level.** The user is a developer and understands programming, but **doesn't
+  read the code** and **doesn't want to dig into implementation details** (variable/function names, file
+  structure, how a mechanism works inside). Give the essence: what we do, how it changes the game's behavior, what
+  the options and trade-offs are — at the level of gameplay and logic, not code. Shorter is better, as long as no
+  important details are lost. If the user explicitly asks for implementation details — then go deep.
 
-- **⚠️ Магические числа — ВСЕГДА через именованные константы.** Любое
-  числовое значение в коде которое несёт смысл (порог, задержка, множитель,
-  количество, смещение и т.п.) должно быть определено как именованная
-  константа с комментарием откуда взялось и почему именно это значение.
-  Если значение выводится из другого (например порог = декремент × 2) —
-  писать формулу, а не результат вычисления. Исключения: очевидные
-  литералы без смысла (0, 1, индексы коротких массивов).
-  - *Почему:* хардкоженые цифры в теле кода невозможно адаптировать к
-    изменению параметров (новое оружие, другой tick rate, другая задержка)
-    без ручного поиска и правки во многих местах. Константа ломается
-    явно — компилятор найдёт, а не пользователь на тестировании.
-  - *Применяется сразу при написании кода, не откладывать на "потом
-    почищу".*
+## Key rules
 
-- **Любое утверждение об оригинальной игре — только после проверки по KB. Никаких предположений.**
-  - Перед тем как что-то утверждать про оригинал — открыть DENSE_SUMMARY.md или нужный subsystem файл и убедиться что там это написано.
-  - Это касается всего: как работает механика, есть ли фича, как устроен код, какие флаги используются, что мёртво, что живо.
-  - "Скорее всего так", "типично для игр того времени", "обычно в таких случаях" — недопустимо. Либо факт есть в KB — либо надо сказать "не знаю, нужно проверить".
-  - Не знаешь в каком файле KB искать — смотри `KB_INDEX.md`.
+- **⚠️ Magic numbers — ALWAYS as named constants.** Any numeric value that carries meaning (threshold, delay,
+  multiplier, count, offset, …) must be a named constant with a comment on where it came from and why this value.
+  If a value derives from another (e.g. threshold = decrement × 2) — write the formula, not the computed result.
+  Exceptions: obvious meaningless literals (0, 1, indices of short arrays).
+  - *Why:* hardcoded numbers can't be adapted to parameter changes (new weapon, different tick rate, different
+    delay) without manual hunting in many places. A constant breaks explicitly — the compiler finds it, not the
+    user during testing.
+  - *Applied right when writing code, not "I'll clean it up later".*
+- **Any claim about the original game — only after checking. No assumptions.**
+  - Sources of truth: the code in `original_game/` (read it), and the behavior of the retail releases (the user can
+    check them — see "Available game versions").
+  - "Most likely", "typical for games of that time", "usually in such cases" — not acceptable. Either it's verified
+    in the code / by the user — or say "I don't know, need to check".
+- `original_game/` — read only. **The only exception:** analytical comments with the prefix `// claude-ai:` may be
+  added to ease navigation.
+- Existing `// uc_orig:` comments in `new_game/` map code to its original entity — keep them when moving code.
+- **⚠️ Mandatory self-review after any code changes** → skill `review`. Always, not only before a commit.
+- Commits are made by the user manually — never commit yourself.
+- **⚠️ Git — READ ONLY.** No mutating commands: `git checkout`, `git reset`, `git restore`, `git commit`,
+  `git stash`, `git revert`, `git clean`, `git mv` — FORBIDDEN. Only reading: `git status`, `git diff`, `git log`,
+  `git show`.
+- **⚠️⚠️⚠️ IMPORTANT: Building — rules:**
+  - The user **ALWAYS** builds themself. **DON'T build after every edit** — it's unnecessary.
+  - If the user says they already built — **DON'T run the build again, EVER**.
+  - If the user says it **didn't build** — build yourself and look at the errors.
+  - If compile errors are likely (complex edits, new symbols, struct changes) — build yourself proactively.
+  - Commands: `make build-release` / `make build-debug`, `make r` = build + run Release, `make d` = build + run Debug.
+  - **⚠️ Checking the build result (clang + ninja):** DON'T use `| grep "error:"` — it misses linker errors and
+    other problems. **Always** check: (1) the exit code (`echo $?` or `&& echo OK`), (2) the last lines of the
+    output (`| tail -5`) — there must be a `Linking CXX executable` line. If `ninja: build stopped: subcommand
+    failed` — the build failed even if the word `error` isn't found.
+- **Debugging:** skills `debugger` (attach to the process, stacks, variables), `debug-log` (temporary logging to a
+  file), `text-rendering` (text on screen), `screenshot` (screenshot of the game window), `debugger-install`
+  (install cdb.exe), `asan` (memory errors), `perf-diag` (rendering performance).
+  - **Pick the tool by situation** — the goal is the minimum of actions from the user. Crash →
+    OpenChaos.crash_log.txt. Freeze → debugger attach. Need to see the screen → screenshot. Need values per tick →
+    debug-log. Combine as needed.
+  - **Debug output priority:** to show values/state **to the user live** — **on-screen text first** (skill
+    `text-rendering`). To check something yourself without the user — `debug-log` (file) or `fprintf(stderr, ...)`.
+  - **Debug keys** (`bangunsnotgames` mode, F1 legend) → `docs/topics/debug_keys.md` (list, how to enable, where to
+    add new ones).
+  - **Exit/crash logging:** `OpenChaos.crash_log.txt` is written next to the exe on **any** program exit:
+    - ASSERT() fail (**debug build only**) → `uc_assert_fail()` in `host.cpp` → "Crash (ASSERT)" + condition + file +
+      line, then abort(). In release ASSERT is **not fatal** (see below) and doesn't write the crash_log.
+    - Normal exit (return/exit) → `atexit` handler in `host.cpp` → "Clean exit"
+    - abort() → `SIGABRT` handler in `host.cpp` → "Crash (abort)"
+    - Access violation, div-by-zero → exception filter in `crash_handler_win.cpp` → "Crash (exception)" + registers
+      + stack trace
+    - Ctrl+C, console close → `SetConsoleCtrlHandler` in `crash_handler_win.cpp` → "Terminated (console event)"
+    - SIGSEGV/SIGFPE (Linux/Mac) → signal handler in `host.cpp` → "Crash (signal)"
+    - The only thing NOT caught: `TerminateProcess()` / `kill -9` (the OS kills instantly)
+    - `stderr.log` (redirected by the Makefile) starts with a timestamp `=== Session started: ... ===`
+    - The `g_exit_log_written` flag prevents overwriting between handlers
+  - **ASSERT()** — a working macro (not a stub). Defined in `uc_common.h` and `outro_always.h`, implementation
+    `uc_assert_fail()` in `host.cpp`. **Behavior depends on the build** (flag `OC_ASSERT_FATAL` in `debug_config.h`,
+    tied to `NDEBUG`):
+    - **Debug — fatal:** writes OpenChaos.crash_log.txt (condition, file, line) + stderr, then abort(). When the
+      assert window appears — press Abort, the details are in crash_log automatically.
+    - **Release — NOT fatal:** the game doesn't crash. The record `ASSERTION FAILURE: <condition> (<file>:<line>)`
+      is written **once per site** (dedup by file:line so a per-frame assert doesn't flood the log) to TWO places:
+      (1) the persistent file `OpenChaos.asserts.log` in the user folder (`%APPDATA%\OpenChaos\` etc., append) —
+      this is what we ask a player to send, since a player's stderr goes nowhere; (2) `stderr` (→ `stderr.log` only
+      when run via make). A temporary "ASSERTION FAILURE" pops up on screen via `CONSOLE_text_en` (drawn by the
+      standard message path — gameplay/pause/cutscene letterbox; in the pure menu only the log). Then execution
+      continues. Draining to the screen: `uc_assert_take_pending()` (host.cpp) → drain in `ui_render.cpp`.
+      **crash_log is NOT used** for non-fatal asserts (crash/exit handlers overwrite it).
+    - To debug a specific assert — build debug, then it stops in the debugger.
+  - **Symbolization:** `llvm-symbolizer -e build/Debug/OpenChaos.exe --relative-address <RVA>` (the
+    `--relative-address` flag is required!)
+- **Typical 64-bit bugs and fix patterns** → `docs/topics/x64_porting_notes.md`
+- **Skills are living documents:** if useful new information, a technique or know-how worth recording in a skill
+  (new or existing) comes up — offer the user to update the skill.
+- **Creating and improving skills:** always use the `skill-creator` plugin (via the Skill tool).
+- Before analyzing any code, check whether there is already documentation on that part (`docs/topics/`, the task's
+  files, and if needed `archive/`).
+- **Installing software:** never install anything without the user's **explicit, unambiguous** permission. Always
+  ask and wait for confirmation.
+- **Everything about this project is written inside the project** — **NEVER write to Claude's memory files**.
+  Memory files aren't committed. The context must be restorable exclusively from the repository.
+- **README.md → "Modernization status"** — when a significant feature or change is finished (new subsystem, bug
+  fix, technology switch), update the "Modernization status" section of `README.md` right away. It's the public face
+  of the project.
 
-- `original_game/` — только читать. **Единственное исключение:** можно добавлять аналитические комментарии с префиксом `// claude-ai:` для облегчения навигации.
-- `new_game/src/new/` — все комментарии пишутся заново (оригинальные удаляются). Без префиксов типа `// claude-ai:` — все комментарии в `new/` и так написаны Claude.
-- **⚠️ Отслеживание перемещений и переименований — КРИТИЧНО:**
-  - Каждая перенесённая сущность → `// uc_orig:` комментарий + запись в `entity_mapping.json`
-  - Подробные правила, примеры, формат → скилл `.claude/skills/stage4-migrate/SKILL.md`
-- **⚠️ Обязательная самопроверка после любых изменений кода** → скиллы `.claude/skills/review/` (общий) + `.claude/skills/stage4-review/` (для Этапа 4). На Этапе 4 ревью запускается после завершения итерации и после любых доработок — всегда, не только перед коммитом.
-- Коммиты делает пользователь вручную — я никогда не коммичу сам
-- **⚠️ Git — ТОЛЬКО чтение.** Никаких мутирующих команд: `git checkout`, `git reset`, `git restore`, `git commit`, `git stash`, `git revert`, `git clean` — ЗАПРЕЩЕНЫ. Только читающие: `git status`, `git diff`, `git log`, `git show`.
-- **⚠️⚠️⚠️ ВАЖНО: Компиляция — правила:**
-  - Пользователь **ВСЕГДА** билдит сам. **НЕ билдить после каждой правки** — это излишне.
-  - Если пользователь говорит что уже сбилдил — **НЕ запускать билд повторно, НИКОГДА**.
-  - Если пользователь говорит что **не сбилдилось** — билдить самому и смотреть ошибки.
-  - Если есть вероятность ошибок компиляции (сложные правки, новые символы, изменение структур) — билдить самому проактивно.
-  - Команды: `make build-release` / `make build-debug`, `make r` = build + run Release, `make d` = build + run Debug.
-  - **⚠️ Проверка результата сборки (clang + ninja, текущий билд):** НЕ использовать `| grep "error:"` — это пропускает ошибки линковки и другие проблемы. Вместо этого **всегда** проверять: (1) exit code команды (`echo $?` или `&& echo OK`), (2) последние строки вывода (`| tail -5`) — должна быть строка `Linking CXX executable`. Если `ninja: build stopped: subcommand failed` — сборка провалена даже если слово `error` не найдено. (Для оригинальной сборки MSVC формат ошибок другой.)
-- **Отладка:** скиллы `debugger` (attach к процессу, стеки, переменные), `debug-log` (временное логирование в файл), `text-rendering` (вывод текста на экран), `screenshot` (скриншот окна игры), `debugger-install` (установка cdb.exe)
-  - **Выбирать инструмент по ситуации** — цель: минимум действий от пользователя. Краш → OpenChaos.crash_log.txt. Freeze → debugger attach. Нужно видеть что на экране → screenshot. Нужны значения переменных по тикам → debug-log. Комбинировать по необходимости.
-  - **Приоритет отладочного вывода:** если нужно показать значения/состояние **пользователю в динамике** — использовать **экранную печать в первую очередь** (скилл `text-rendering`). Если нужно просто проверить что-то самостоятельно без участия пользователя — `debug-log` (файл) или `fprintf(stderr, ...)`. Экранная печать нагляднее и не требует от пользователя лезть в логи.
-  - **Exit/crash logging:** `OpenChaos.crash_log.txt` пишется рядом с exe при **любом** завершении программы:
-    - ASSERT() fail (**только debug-сборка**) → `uc_assert_fail()` в `host.cpp` → "Crash (ASSERT)" + условие + файл + строка, затем abort(). В release ASSERT **не фатален** (см. ниже) и crash_log не пишет.
-    - Нормальный выход (return/exit) → `atexit` handler в `host.cpp` → "Clean exit"
-    - abort() → `SIGABRT` handler в `host.cpp` → "Crash (abort)"
-    - Access violation, div-by-zero → exception filter в `crash_handler_win.cpp` → "Crash (exception)" + регистры + стектрейс
-    - Ctrl+C, закрытие консоли → `SetConsoleCtrlHandler` в `crash_handler_win.cpp` → "Terminated (console event)"
-    - SIGSEGV/SIGFPE (Linux/Mac) → signal handler в `host.cpp` → "Crash (signal)"
-    - Единственное что НЕ ловится: `TerminateProcess()` / `kill -9` (ОС убивает мгновенно)
-    - `stderr.log` (перенаправляется Makefile'ом) начинается с таймстампа `=== Session started: ... ===`
-    - Флаг `g_exit_log_written` предотвращает перезапись между хендлерами
-  - **ASSERT()** — рабочий макрос (не пустышка). Определён в `uc_common.h` и `outro_always.h`, реализация `uc_assert_fail()` в `host.cpp`. **Поведение зависит от сборки** (флаг `OC_ASSERT_FATAL` в `debug_config.h`, привязан к `NDEBUG`):
-    - **Debug — фатально:** пишет OpenChaos.crash_log.txt (условие, файл, строка) + stderr, затем abort(). При появлении окна ассерта — жать Abort, детали в crash_log автоматически.
-    - **Release — НЕ фатально:** игра не падает. Запись `ASSERTION FAILURE: <условие> (<файл>:<строка>)` идёт **один раз на каждое место** (дедуп по file:line, чтобы покадровый ассерт не залил лог) в ДВА места: (1) в постоянный файл `OpenChaos.asserts.log` в пользовательской папке (`%APPDATA%\OpenChaos\` и т.п., append) — это то, что просим скинуть у игрока, т.к. stderr у игрока никуда не пишется; (2) в `stderr` (→ `stderr.log` только при запуске через make). На экране через `CONSOLE_text_en` всплывает временное "ASSERTION FAILURE" (рисует стандартный message-path — геймплей/пауза/катсцена-letterbox; в чистом меню только лог). Затем выполнение продолжается. Логика слива на экран: `uc_assert_take_pending()` (host.cpp) → drain в `ui_render.cpp`. **crash_log НЕ используется** для не-фатальных ассертов (его перезаписывают crash/exit-хендлеры).
-    - Для отладки конкретного ассерта — собирать debug, тогда он падает в отладчике.
-  - **Символизация:** `llvm-symbolizer -e build/Debug/OpenChaos.exe --relative-address <RVA>` (флаг `--relative-address` обязателен!)
-- **Типичные 64-бит баги и паттерны фиксов** → `new_game_devlog/x64_porting_notes.md`
-- **Скиллы — живые документы:** если в процессе работы обнаружена новая полезная информация, приём или ноу-хау которые стоит записать в скилл (новый или существующий) — предложить пользователю обновить скилл.
-- **Создание и улучшение скиллов:** всегда использовать плагин `skill-creator` (через Skill tool). Он лучше знает формат, структуру и best practices для скиллов. Не создавать скиллы вручную через Write.
-- Все важные решения и инфу записывать в документацию — контекст разговора теряется между сессиями
-- Перед любым анализом кода сначала проверить есть ли уже документация по этой части
-- Если задача требует сложного архитектурного reasoning или анализа запутанных взаимосвязей — попросить пользователя переключить на Opus
-- **Установка ПО:** никогда не устанавливать ничего без **явного однозначного** разрешения пользователя. Всегда спрашивать и ждать подтверждения.
-- **Всё про этот проект писать внутри проекта** — **НИКОГДА не писать в memory файлы Claude**. Memory файлы не коммитятся. Контекст должен восстанавливаться исключительно из репозитория.
+## Documentation rules
 
-## Правила оформления документации
+- Where things go — skill `work-tracking` (tracker, tasklog, original-prompts, topics) + this file (behavior rules).
+- **File size:** one file = one topic, target ~100-350 lines. If a file grows past 400 lines — split it.
+- **No duplication:** if a topic is described in one file, another file only links to it.
+- **File names** — no numbering (not `00_overview.md` — just `overview.md`).
+- Record important decisions right away in the right place — the conversation context is lost between sessions.
 
-- **Размер файлов:** один файл = одна тема, цель ~100-350 строк. Если файл вырос за 400 строк — разбить.
-- **README файлы** = только индекс со ссылками, без содержимого.
-- **Имена файлов** — без нумерации (не `00_overview.md` — просто `overview.md`).
-- **Дублирование** — не допускать: если тема описана в одном файле, другой файл только ссылается на него.
-- **Куда что писать:**
-  - Решения о переносе фич → `cut_features.md`
-  - Архитектура оригинала → `overview.md`
-  - Форматы ресурсов → `resource_formats/` (отдельный файл на каждый формат)
-  - Подсистемы → `subsystems/` (отдельный файл на каждую подсистему)
-  - Компактная версия всей KB → `original_game_knowledge_base_dense/DENSE_SUMMARY.md`
-  - Технологии и архитектура новой игры → `new_game_planning/tech_and_architecture.md`
-  - Фазы разработки → `new_game_planning/phases.md`
-  - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
-  - Пре-релизные баги (фиксы) → `new_game_planning/prerelease_fixes.md`
-  - Известные проблемы и баги (активные) → `known_issues_and_bugs/known_issues_and_bugs.md`
-  - ⚠️ Решённое/won't-do из активного файла → ПЕРЕНОСИТЬ (вырезать и вставить) в `known_issues_and_bugs/known_issues_and_bugs_resolved.md` в нужную `## … (resolved)` секцию. Не оставлять в активном файле, не ограничиваться сменой статуса. Проверять resolved при расследовании регрессий (баг мог уже быть решён)
-  - Всё про DualSense (протокол, либы, trigger effects, packing'и, PR notes) → `new_game_devlog/dualsense_libs_reference/`. Игровая weapon система которая использует DualSense — `new_game_devlog/weapon_haptic_and_adaptive_trigger.md`.
-  - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
-    - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON
-  - Правила работы → этот файл (CLAUDE.md)
-- **После каждого важного решения** — сразу записывать в нужный файл. Не откладывать.
-- **README.md → "Modernization status"** — при завершении значимой фичи или изменения (новая подсистема, фикс бага, смена технологии) сразу обновить секцию "Modernization status" в `README.md`. Это публичное лицо проекта — должно отражать актуальное состояние.
+## IMPORTANT: the codebase is a pre-release version!
 
-## ВАЖНО: Кодовая база — пре-релизная версия!
+`original_game/` is **NOT the final release** but an earlier pre-release version of the code.
+- The final PS1/PC game was finished after this codebase was frozen
+- Some features are commented out or unfinished here, but **work** in the final release
+- Some bugs of this version are fixed in the final
+- **Don't assume "commented-out code = cut feature"** (see `docs/topics/original_cut_features.md`)
+- Reference: **both release versions: Steam PC AND PS1**
+- When in doubt — ask the user (played the final on PS1, can check PC via longplays)
 
-`original_game/` — это **НЕ финальный релиз**, а более ранняя пре-релизная версия кода.
-- Финальная PS1/PC игра была доделана после заморозки этой кодовой базы
-- Некоторые фичи закомментированы или недоделаны, но в финальном релизе они **работают**
-- Некоторые баги в этой версии в финале исправлены
-- **Нельзя считать "закомментированный код = вырезанная фича"**
-- Эталон: **обе релизные версии: Steam PC И PS1**
-- При сомнениях — спрашивать пользователя (играл в финал на PS1, может проверить PC по лонгплеям)
+## Available game versions (for comparison and debugging)
 
-## Язык
+**Resources** (textures, models, levels) — the same for ALL versions, from the retail PC game. Fully compatible with
+all builds.
 
-- **Общение с пользователем:** русский
-- **Документация проекта** (`original_game_knowledge_base/`, `new_game_planning/`, CLAUDE.md): русский (английские термины и цитаты из кода — ок)
-- **Публичная документация** (README.md): английский (репозиторий открытый)
-- **Комментарии в коде** (`new_game/`): английский
-
-## Доступные версии игры (для сравнения и отладки)
-
-**Ресурсы** (текстуры, модели, уровни) — одни и те же для ВСЕХ версий, из релизной PC игры. Полностью совместимы со всеми билдами.
-
-### Релизная PC (финальный диск, Steam)
-- **Исходники:** нет
-- **Бинарники:** да, у пользователя есть
-- **Назначение:** эталон визуала и поведения. Финальная версия, большинство багов пре-релиза исправлены MuckyFoot. Пользователь может запустить и проверить любой момент.
+### Retail PC (final disc, Steam)
+- **Sources:** no. **Binaries:** yes, the user has them.
+- **Purpose:** the reference for visuals and behavior. The final version, most pre-release bugs fixed by MuckyFoot.
+  The user can run it and check any moment.
 
 ### PieroZ v0.2.0
-- **Исходники:** да, локально `C:\WORK\MuckyFoot-UrbanChaos_piero` (стоит на теге `v0.2.0`). **Не билдятся** у нас — только для чтения кода.
-- **Бинарники:** да, скачаны со страницы релизов GitHub. Версия бинарников соответствует тегу `v0.2.0` в репо.
+- **Sources:** yes, locally `C:\WORK\MuckyFoot-UrbanChaos_piero` (at tag `v0.2.0`). **Don't build** here — read only.
+- **Binaries:** yes, downloaded from the GitHub releases page; match tag `v0.2.0`.
 - **GitHub:** `github.com/PieroZ/MuckyFoot-UrbanChaos`
-- **База:** те же пре-релизные исходники что у нас в `original_game/` (коммиты до `74749db` идентичны), плюс доработки PieroZ поверх (D3D6, x86, MSVC).
-- **Назначение:** референс фиксов. PieroZ починил ряд багов пре-релиза (z-order, листья, персонажи). Можно смотреть его коммиты для понимания как чинить баги.
+- **Base:** the same pre-release sources as our `original_game/` (commits up to `74749db` are identical), plus
+  PieroZ's work on top (D3D6, x86, MSVC).
+- **Purpose:** a reference of fixes. PieroZ fixed a number of pre-release bugs (z-order, leaves, characters).
 
-### original_game/ (пре-релизные исходники MuckyFoot)
-- **Исходники:** да, `original_game/` в репо (READ ONLY)
-- **Бинарники:** теоретически билдятся, но не рекомендуется — геморно, плюс при запуске могут крашнуться (нет фикса `GetTickCount` overflow, который у нас исправлен).
-- **Назначение:** только для сравнения кода. Это пре-релизная версия — некоторые фичи недоделаны, некоторые баги не исправлены (см. раздел "ВАЖНО: Кодовая база — пре-релизная версия!").
+### original_game/ (MuckyFoot pre-release sources)
+- **Sources:** yes, `original_game/` (READ ONLY).
+- **Binaries:** theoretically buildable, but not recommended — painful, and may crash at startup (no
+  `GetTickCount` overflow fix, which we have).
+- **Purpose:** code comparison only.
 
-### Ветка `initial_working_d3d_build`
-- **Исходники:** да. **Бинарники:** да, билдится и запускается.
-- **Что внутри:** практически неизменённый оригинал — только переход на Clang и удаление мёртвого кода. D3D6, x86.
-- **Назначение:** baseline для проверки багов. Если баг воспроизводится здесь → баг из пре-релизных исходников MuckyFoot, не внесён нами.
+### Branch `initial_working_d3d_build`
+- **Sources and binaries:** yes, builds and runs.
+- **Inside:** a practically unchanged original — only the switch to Clang and dead-code removal. D3D6, x86.
+- **Purpose:** baseline for bugs. If a bug reproduces here → it comes from MuckyFoot's pre-release sources.
 
-### Ветка `last_working_d3d_build`
-- **Исходники:** да. **Бинарники:** да, билдится и запускается.
-- **Что внутри:** D3D6, x86. Включает: абстракцию рендер-движка, реструктуризацию исходников (Stage 4), фиксы багов. **НЕ включает:** переход на x64 и все правки после него.
-- **Назначение:** последний D3D6 билд. Для проверки регрессий от перехода на OpenGL/x64 — если баг есть здесь но не в `initial_working_d3d_build`, внесён при рефакторинге (Stages 3-7).
+### Branch `last_working_d3d_build`
+- **Sources and binaries:** yes, builds and runs.
+- **Inside:** D3D6, x86. Includes: the render-engine abstraction, the source restructuring (stage 4), bug fixes.
+  **Does NOT include:** the x64 switch and everything after it.
+- **Purpose:** the last D3D6 build. To check regressions from the OpenGL/x64 switch — if a bug is here but not in
+  `initial_working_d3d_build`, it was introduced by the refactoring (stages 3-7).
 
-### Ветка `main` (текущая)
-- **Исходники:** да. **Бинарники:** да, `make build-release` / `make build-debug`.
-- **Что внутри:** OpenGL, x64, Windows + macOS. Все доработки проекта.
+### Branch `main` (current)
+- **Sources and binaries:** yes, `make build-release` / `make build-debug`.
+- **Inside:** OpenGL, x64, Windows + macOS + Linux. All of the project's work.
 
-**Когда использовать:** при расследовании багов — сравнить поведение между версиями. Если баг есть в `initial_working_d3d_build` → баг из пре-релизных исходников. Если только в `main` → внесён при рефакторинге. Предлагать пользователю проверить на нужной версии когда это может ускорить отладку.
-
-## Порядок работы (текущий статус)
-
-Подробно — `new_game_planning/phases.md`.
-
-1. **Фаза 1 (ЗАВЕРШЕНА):** Анализ оригинального кода → `original_game_knowledge_base/` + `original_game_knowledge_base_dense/`
-2. **Фаза 2 (ПАРАЛЛЕЛЬНАЯ):** Планирование и архитектура → `new_game_planning/` (идёт параллельно, началась ещё до Фазы 1)
-3. **Фаза 3 (ТЕКУЩАЯ):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`. **Релиз 1.0 выпущен** (Этап 12 завершён); текущая работа — Этап 13 (post-1.0)
-
-## Workflow (экономия контекста)
-
-- **Читать минимум файлов:** CLAUDE.md + нужный файл по задаче покрывают большинство задач
-- **Для архитектурных задач:** DENSE_SUMMARY.md содержит всю KB компактно. **Файл может быть разбит на несколько частей** (DENSE_SUMMARY.md, DENSE_SUMMARY_2.md, ...) — читать все части сразу, не останавливаясь на первой.
-- **⚠️ KB не помещается в контекст целиком!** Суммарно ~40+ файлов. При чтении 5+ файлов KB контекст забивается. Если нужно много подсистем — использовать DENSE_SUMMARY.md.
-- **Пересборка DENSE_SUMMARY — только через subagent'ов!** Инструкция: `DENSE_SUMMARY_BUILD_GUIDE.md`. Никогда не читать всю KB в основном контексте для пересборки.
-- **Все решения записывать сразу** в нужный файл — контекст разговора теряется между сессиями.
+**When to use:** when investigating bugs — compare behavior between versions. If a bug is in
+`initial_working_d3d_build` → it's from the pre-release sources. If only in `main` → introduced by the refactoring.
+Suggest the user check a specific version when it can speed up debugging.

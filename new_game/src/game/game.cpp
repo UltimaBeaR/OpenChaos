@@ -1262,7 +1262,7 @@ round_again:;
                     // (paused on pause, decoupled from render). Visual effects
                     // that used GAME_TURN as a "render cadence" counter are
                     // migrated to VISUAL_TURN (separate 30/sec wall-clock
-                    // counter) — see new_game_devlog/fps_unlock/original_tick_rates/.
+                    // counter) — see archive/new_game_devlog/fps_unlock/original_tick_rates/.
                     //
                     // Bench-health re-enable: 1024 GAME_TURN cycle = ~51 sec at
                     // 20 Hz (was ~34 sec at 30 Hz on PS1). 314 magic constant is

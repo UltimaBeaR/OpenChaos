@@ -8,7 +8,7 @@
 // binary when the corresponding `#if OC_DEBUG_PERF` / `#if OC_DEBUG_PHYSICS_TIMING`
 // compile flag is set. Regular release builds don't include this code.
 //
-// Naming rules → see new_game_devlog/input_system/action_map/rules.md
+// Naming rules → see archive/new_game_devlog/input_system/action_map/rules.md
 //
 // Device codes (KKEY_*, DBTN_*) live in
 //   new_game/src/game/action_map/input_codes.h

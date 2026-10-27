@@ -303,7 +303,7 @@ SLONG continue_blocking(Thing* p_person);
 // keyboard F9-console commands (game_tick.cpp::parse_console). Each function
 // performs the same gameplay effect AND prints the corresponding on-screen
 // message — see GAMEPLAY_CHANGES.md "Геймпад-читы" for the message text and
-// new_game_devlog/input_system/keyboard_mouse_layout.md for the keyboard
+// archive/new_game_devlog/input_system/keyboard_mouse_layout.md for the keyboard
 // command names (bloodofkings / shieldofsteel / weneedguns / losttrack).
 void cheat_apply_immortal_toggle();
 void cheat_apply_full_health();

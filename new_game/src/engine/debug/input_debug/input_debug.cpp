@@ -244,7 +244,7 @@ const InputDebugNav& input_debug_nav()
 // One PANEL_start / PANEL_finish pair frames the backdrop AND all page
 // widgets. Every 2D primitive queued between those calls flushes together
 // this frame — avoids the shadow-page VB reuse bug documented in
-// new_game_devlog/shadow_corruption_investigation.md (see the
+// archive/new_game_devlog/shadow_corruption_investigation.md (see the
 // hud-rendering skill for the full rule).
 
 static void draw_backdrop()

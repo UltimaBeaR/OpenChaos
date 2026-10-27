@@ -437,7 +437,7 @@ void FARFACET_draw(
     // enabled on PC. Removing the gate matches retail behaviour and fixes
     // the far-edge building pop-in by rendering distant buildings as black
     // silhouettes beyond the fog distance.
-    // See new_game_devlog/stage12_farfacets.md.
+    // See archive/new_game_devlog/stage12_farfacets.md.
 
     float width;
     float height;

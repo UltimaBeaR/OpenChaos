@@ -79,7 +79,7 @@ RawMenuData raw_menu_data[] = {
     // переназначением клавиш (OT_KEYPRESS items + OT_RESET). Снесено в
     // action_map шаге 1b: переназначение в UI отключено в 1.0, биндинги
     // хардкодятся через ACT_* константы. История — git log.
-    // См. new_game_devlog/input_system/action_map/plan.md.
+    // См. archive/new_game_devlog/input_system/action_map/plan.md.
     { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
     { FE_CONFIG_AUDIO, OT_SLIDER, X_VOLUME, 0, 128 },
     { 0, OT_SLIDER, X_AMBIENT, 0, 128 },

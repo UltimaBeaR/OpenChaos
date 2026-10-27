@@ -20,9 +20,9 @@
 // trigger is read via input_trigger_raw(ACT_FOOT_TACTICAL_MODE_GTRIG).
 //
 // Naming rules, prefix table, suffix table → see
-//   new_game_devlog/input_system/action_map/rules.md
+//   archive/new_game_devlog/input_system/action_map/rules.md
 // Step plan (this header is populated in step 3c.5) → see
-//   new_game_devlog/input_system/action_map/plan.md
+//   archive/new_game_devlog/input_system/action_map/plan.md
 //
 // Device codes used as values (KKEY_*, GBTN_*, GTRIG_*, MAXIS_*, ...) live in
 //   new_game/src/game/action_map/input_codes.h
@@ -35,7 +35,7 @@
 // deflection in one cardinal direction, two keys together (e.g. W+D) clamp
 // to unit-circle magnitude (45° diagonals). Actual analog-emulation path is
 // implemented in get_hardware_input — see TODO step 7 in
-// new_game_devlog/input_system/keyboard_mouse_layout.md.
+// archive/new_game_devlog/input_system/keyboard_mouse_layout.md.
 //
 // Old "tanky" arrow-key controls (↑↓ = fwd/back digital, ←→ = tank turn) are
 // preserved as commented-out aliases below — if anyone ever wants to bring
@@ -164,7 +164,7 @@ constexpr int ACT_FOOT_WEAPON_MELEE_CYCLE_GBTN = GBTN_DPAD_DOWN;
 // equivalents were removed when the new WASD + mouse layout took over —
 // mouse handles look, so keyboard camera rotation / snap-behind bindings
 // (F5/F6/F7/End/Del/PgDn) are gone. See
-// new_game_devlog/input_system/keyboard_mouse_layout.md.
+// archive/new_game_devlog/input_system/keyboard_mouse_layout.md.
 
 constexpr int ACT_FOOT_CAM_TOGGLE_GBTN = GBTN_L1; // DS: L1, Xbox: LB
 

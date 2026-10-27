@@ -300,9 +300,9 @@ extern UBYTE VIOLENCE;
 
 // Original Urban Chaos used THREE distinct rates simultaneously, depending
 // on the subsystem. Full research with code citations:
-//   new_game_devlog/fps_unlock/original_tick_rates/findings.md
+//   archive/new_game_devlog/fps_unlock/original_tick_rates/findings.md
 // Compact summary with per-effect mapping:
-//   new_game_devlog/fps_unlock/original_tick_rates/summary.md
+//   archive/new_game_devlog/fps_unlock/original_tick_rates/summary.md
 //
 // 1) UC_PHYSICS_DESIGN_HZ = 20 Hz — design rate of physics and gameplay.
 //    Hardcoded into Vehicle.cpp GRAVITY (TICKS_PER_SECOND = 20*4 = 80),

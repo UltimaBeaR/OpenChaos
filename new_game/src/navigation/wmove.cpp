@@ -158,7 +158,7 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
             // at the wrong vertices on the police body prim, so the walkable
             // ridge ends up nowhere near the roof. Symptom in the original:
             // can't climb on the standard police car (a known pre-1.0 quirk —
-            // recorded in known_issues_and_bugs_resolved.md and in the retail
+            // recorded in archive/known_issues_and_bugs/known_issues_and_bugs_resolved.md and in the retail
             // PC version it behaves the same way). Once vis_cam started using
             // the same WMOVE faces as the ceiling of the camera-vs-vehicle
             // collision hull, the broken ridge also meant camera collisions

@@ -245,7 +245,7 @@ skeleton (15 joints × 18 sphere lines + 14 bone lines) costs about
      so when off it costs exactly one branch per call site, zero
      POLY_transform / AENG_world_* / matrix work.
   4. Row added to `debug_help.cpp` `s_rows[]` (F1 legend in
-     bangunsnotgames mode) AND to `new_game_devlog/debug_keys.md`.
+     bangunsnotgames mode) AND to `docs/topics/debug_keys.md`.
      Both are mandatory — the F1 legend is the in-game discovery
      surface, the markdown is the documentation source of truth.
 

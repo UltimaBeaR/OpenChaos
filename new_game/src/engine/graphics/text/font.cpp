@@ -415,7 +415,7 @@ static void font_flush_queue(FontQueue& q)
     // FONT_draw_coloured_char now emits textured quads through the regular TL
     // pipeline — no lock/unlock of the backbuffer. The per-frame readback
     // pattern the legacy path relied on is exactly what triggers the WDDM
-    // throttle investigated in new_game_devlog/startup_hang_investigation.
+    // throttle investigated in archive/new_game_devlog/startup_hang_investigation.
     FONT_atlas_begin_batch();
     for (i = 0; i < count; i++) {
         fm = &q.msgs[i];

@@ -18,9 +18,9 @@
 // allow_debug_keys, and live elsewhere.
 //
 // Naming rules, prefix table, suffix table → see
-//   new_game_devlog/input_system/action_map/rules.md
+//   archive/new_game_devlog/input_system/action_map/rules.md
 // Step plan (this header is populated in step 3c.3) → see
-//   new_game_devlog/input_system/action_map/plan.md
+//   archive/new_game_devlog/input_system/action_map/plan.md
 //
 // Device codes used as values (KKEY_*) live in
 //   new_game/src/game/action_map/input_codes.h

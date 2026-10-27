@@ -7,7 +7,7 @@
 //
 //   1. Vibration envelope computed from the weapon's WAV sample (slow rumble
 //      motor, DualSense voice-coil follows it; see
-//      new_game_devlog/weapon_haptic_and_adaptive_trigger.md for background).
+//      archive/new_game_devlog/weapon_haptic_and_adaptive_trigger.md for background).
 //   2. DualSense adaptive-trigger (Weapon25) parameters — click point and
 //      resistance amplitude. The trigger state machine in gamepad.cpp asks
 //      this module what to send when AIM_GUN mode is active.

@@ -962,7 +962,7 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // because mode=AIM_GUN → game refuses the shot because of Timer1 →
     // result: "click without shot"). This is known and accepted as
     // per requirement R4 in
-    // new_game_devlog/weapon_haptic_and_adaptive_trigger.md.
+    // archive/new_game_devlog/weapon_haptic_and_adaptive_trigger.md.
     //
     // Any future attempt to gate mode on fire-side state (armed, consumed,
     // custom cooldown) must NOT reduce the fire rate below the game's

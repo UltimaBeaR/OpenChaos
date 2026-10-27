@@ -17,7 +17,7 @@
 // is true. When it is false EVERY entry point below is a preprocessor
 // no-op — arguments are not evaluated, no symbols emitted, zero cost;
 // safe to leave PERF_* calls in shipping code. Dev-only build flag, kept
-// false in shipping builds. Design: new_game_devlog/perf_diag/design.md.
+// false in shipping builds. Design: archive/new_game_devlog/perf_diag/design.md.
 //
 // Adding a metric is one line anywhere — the name auto-registers a slot
 // on first execution (string path, dotted for grouping):

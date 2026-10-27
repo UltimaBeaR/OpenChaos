@@ -3667,7 +3667,7 @@ void AENG_draw_city()
         // identical — verified by full review + direct D3D call substitution), but the
         // clear only takes effect after the main render scene's EndScene.
         // Re-clear here (color only, preserve depth) before the additive sky/moon pass.
-        // Details: new_game_devlog/stage7_c5_investigation.md
+        // Details: archive/new_game_devlog/stage7_c5_investigation.md
         {
             static bool s_first_frame = true;
             if (s_first_frame) {

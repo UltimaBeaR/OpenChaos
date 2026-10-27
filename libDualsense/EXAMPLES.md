@@ -438,7 +438,7 @@ test_command(&dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
 ```
 
 Factory diagnostic — NOT a production audio path. Cross-leaks, doesn't
-always stop on HID close (§14 in `own_dualsense_lib_plan.md`).
+always stop on HID close (see `docs/topics/dualsense/dualsense_hardware_quirks.md`).
 `device_shutdown` makes a best-effort disable on exit.
 
 ---

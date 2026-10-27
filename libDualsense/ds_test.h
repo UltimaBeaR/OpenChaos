@@ -132,8 +132,8 @@ bool test_command_set(Device *dev, TestDevice device_id, std::uint8_t action_id,
 //
 // Stopping the tone needs only the ctrl write with enable=0.
 //
-// Disclaimer: the tone generator is Sony's factory diagnostic; see §14
-// in `own_dualsense_lib_plan.md` for known hardware quirks (cross-leak,
+// Disclaimer: the tone generator is Sony's factory diagnostic; see
+// `docs/topics/dualsense/dualsense_hardware_quirks.md` for known hardware quirks (cross-leak,
 // doesn't stop on HID close, etc.).
 enum class WaveOutRoute : std::uint8_t {
   Speaker = 0,   // built-in speaker (controller grille)

@@ -16,7 +16,7 @@
 // adding one would be a dead constant. What each modifier DOES is enumerated
 // in its comment below so this file alone tells you why the key matters.
 //
-// Naming rules → see new_game_devlog/input_system/action_map/rules.md
+// Naming rules → see archive/new_game_devlog/input_system/action_map/rules.md
 //
 // Device codes (KKEY_*) live in
 //   new_game/src/game/action_map/input_codes.h
