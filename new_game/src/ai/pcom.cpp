@@ -4597,8 +4597,26 @@ SLONG PCOM_do_regen(Thing* p_person)
             p_person->Genus.Person->pcom_move_arg = 0;
             p_person->Genus.Person->InsideRoom = Random() & 15;
 
-            p_person->Draw.Tweened->PersonID = 0;
-            p_person->Draw.Tweened->MeshID = (Random() & 1) + 8;
+            // Recycled pedestrian look. The original gave every one PersonID 0 with
+            // MeshID 8 or 9 (its variation `6 + Random() % 4` is commented out, because
+            // body variants 7..9 index parts up to 42 and only exist on the 43-part
+            // "civ variety" mesh 7; meshes 8 and 9 have 15 and 16 parts). So pick one of
+            // three looks: mesh 8, mesh 9, or mesh 7 with one of its body variants.
+            {
+                static const SLONG REGEN_CIV_LOOKS = 3;          // mesh 8, mesh 9, mesh 7
+                static const UBYTE REGEN_CIV_MESH_FIRST = 8;     // newciv.all slot
+                static const UBYTE REGEN_CIV_MESH_VARIETY = 7;   // rthug.all "civ variety" slot
+                static const UBYTE REGEN_CIV_BODY_FIRST = 6;     // first BodyDef made for mesh 7
+                static const SLONG REGEN_CIV_BODY_COUNT = 4;     // BodyDefs 6..9
+                const SLONG look = Random() % REGEN_CIV_LOOKS;
+                if (look < REGEN_CIV_LOOKS - 1) {
+                    p_person->Draw.Tweened->PersonID = 0;
+                    p_person->Draw.Tweened->MeshID = REGEN_CIV_MESH_FIRST + look;
+                } else {
+                    p_person->Draw.Tweened->PersonID = REGEN_CIV_BODY_FIRST + Random() % REGEN_CIV_BODY_COUNT;
+                    p_person->Draw.Tweened->MeshID = REGEN_CIV_MESH_VARIETY;
+                }
+            }
             p_person->Genus.Person->pcom_colour = Random() & 3;
             p_person->Genus.Person->PersonType = PERSON_CIV;
             p_person->Genus.Person->Health = 130;
