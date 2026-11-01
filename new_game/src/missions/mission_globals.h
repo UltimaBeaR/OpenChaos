@@ -3,6 +3,7 @@
 
 #include "missions/mission.h"
 
+// Verified dead, candidate for removal, not removed as part of the in-mission saves feature: none of the declarations below is defined or referenced outside this header and the TO_MISSION/TO_MAP macros of missions/mission.h.
 // Flat pool of all mission slots. Indexed by mission number.
 // uc_orig: mission_pool (fallen/Headers/Mission.h)
 extern Mission mission_pool[MAX_MISSIONS];

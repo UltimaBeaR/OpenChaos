@@ -31,6 +31,7 @@
 #include "effects/combat/pow.h"
 #include "ui/menus/widget.h"
 #include "missions/memory.h" // MEMORY_quick_init, init_memory
+#include "missions/quicksave.h" // QUICKSAVE_apply_pending, QUICKSAVE_clear_pending
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/core/math.h" // SIN/COS for the DIRT virtual-focus point
@@ -878,6 +879,7 @@ round_again:;
         _level_init_ok = game_init();
     }
     if (_level_init_ok) {
+        QUICKSAVE_apply_pending();
 
         already_warned_about_leaving_map = sdl3_get_ticks();
         draw_map_screen = UC_FALSE;
@@ -977,6 +979,11 @@ round_again:;
                     break;
 
                 case GAMEMENU_DO_RESTART:
+                    QUICKSAVE_clear_pending();
+                    GAME_STATE = GS_REPLAY;
+                    break;
+
+                case GAMEMENU_DO_QUICK_LOAD:
                     GAME_STATE = GS_REPLAY;
                     break;
 
@@ -1739,6 +1746,7 @@ round_again:;
         case GS_REPLAY:
             GAME_STATE = GS_PLAY_GAME | GS_REPLAY;
 
+            stop_all_fx_and_music();
             goto round_again;
         case GS_LEVEL_WON:
             break;

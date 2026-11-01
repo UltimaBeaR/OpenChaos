@@ -14,7 +14,7 @@ struct FeatureFlags {
     bool cut_bats; // Flying bats on missions (placeholder models)
 
     // --- Extended features (added by OpenChaos) ---
-    // (none yet)
+    bool ext_in_mission_saves; // In-mission quick save/load (see docs/topics/in_mission_saves.md)
 };
 
 extern FeatureFlags g_feature_flags;

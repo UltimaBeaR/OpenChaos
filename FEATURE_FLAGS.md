@@ -46,4 +46,16 @@ Bats are cut enemies. Their spawn code was disabled by MuckyFoot in the pre-rele
 
 ## Ext flags (extended content)
 
-(none yet)
+### `ext_in_mission_saves` — In-mission quick save / quick load
+
+The original game saves only campaign progress between missions; its in-mission save code never worked. This flag adds a quick save inside a mission.
+
+**Behavior when enabled:** the pause menu gets **Save game** and, when this level has a quick save, **Load game**; the level-failed screen offers **Load game** when the quick save matches your current campaign progress. One quick save per level, written to the user folder next to the campaign slots (`saves/quicksave_<level>.sav`). Saving is allowed on foot, outside a fight, when no enemy is engaged with the player and outside cutscenes; otherwise the pause menu shows one line saying why. Loading reloads the level and puts every gameplay system back where it was. The menu items use the game's translated strings; the messages are always English. No key or button is bound, and the Help screens are unchanged.
+
+**What a load does not restore** (by design): sound and music (they restart), purely visual effects (particles, sparks, debris, decals, screen fades, on-screen text), the random-number stream, and the short melee/arrest cooldowns.
+
+**With the flag off** (the default) the feature is inert: no menu item, no file, no key. One related change is not behind the flag: a mission restart now stops sound and music before the reload, because a playing voice holds a raw `Thing*` that the reload invalidates.
+
+**How to enable:** set `.ext_in_mission_saves = true` in `new_game/src/feature_flags.cpp` and rebuild. There is no config key.
+
+**Where in the code:** `new_game/src/missions/quicksave.h`, `quicksave.cpp`, `quicksave_format.h`. Design and limits: [docs/topics/in_mission_saves.md](docs/topics/in_mission_saves.md).

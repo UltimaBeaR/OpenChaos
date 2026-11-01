@@ -18,6 +18,8 @@ Pure graphics/rendering changes (renderer, effects) are not listed here.
 
 - Save games are no longer stored in the `saves` folder inside the game directory — they are now written to your user folder (on Windows: `%APPDATA%\OpenChaos\saves`). When loading, the game reads saves from both your user folder and the game's own folder.
 
+- Optional, off by default (see [FEATURE_FLAGS.md](FEATURE_FLAGS.md)): a quick save inside a mission. When enabled, the pause menu has "Save game" and "Load game", and the mission-failed screen offers "Load game" when the save matches your current campaign progress. There is one quick save per level, kept in the same user folder as the campaign saves; saving on one level never overwrites another level's save, and a save stays until you overwrite it. Saving works on foot, outside a fight and outside cutscenes. No new key or button is bound, and the save/load messages are always in English, like the Help screens. A load does not restore sound and music, purely visual effects, the random-number stream or the short melee/arrest cooldowns. It does restore the campaign progress stored with the save; if that differs from your current progress, loading from the pause menu asks for confirmation first.
+
 ## Controls
 
 - Keyboard controls have been changed to keyboard + mouse. Moving the mouse only rotates the camera around your character; the mouse buttons are also used in-game. The keyboard control scheme has been completely changed and rethought. For now you can't rebind the keys or mouse buttons.
