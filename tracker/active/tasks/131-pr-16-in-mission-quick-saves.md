@@ -6,7 +6,7 @@
 - Created: 2026-11-04
 - Original: [original-prompts/131-pr-16-in-mission-quick-saves.md](../original-prompts/131-pr-16-in-mission-quick-saves.md)
 - Related: PR [UltimaBeaR/OpenChaos#16](https://github.com/UltimaBeaR/OpenChaos/pull/16) (Allexin), issues
-  [#12](https://github.com/UltimaBeaR/OpenChaos/issues/12), [#14](https://github.com/UltimaBeaR/OpenChaos/issues/14), [#17](https://github.com/UltimaBeaR/OpenChaos/issues/17);
+  [#14](https://github.com/UltimaBeaR/OpenChaos/issues/14), [#17](https://github.com/UltimaBeaR/OpenChaos/issues/17);
   task "Quick saves (checkpoints) within a mission" (#20)
 
 ## Description

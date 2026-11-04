@@ -45,8 +45,9 @@ extern struct MemTable save_table[];
 #define SAVE_TABLE_DMESH 41
 #endif
 // uc_orig: SAVE_TABLE_WMOVE (fallen/Headers/Game.h)
+// The original's value is 46: it counted a "bike" entry of save_table[] that is compiled out.
 #ifndef SAVE_TABLE_WMOVE
-#define SAVE_TABLE_WMOVE 46
+#define SAVE_TABLE_WMOVE 45
 #endif
 // uc_orig: SAVE_TABLE_POINTS (fallen/Headers/Game.h)
 #ifndef SAVE_TABLE_POINTS
@@ -57,8 +58,9 @@ extern struct MemTable save_table[];
 #define SAVE_TABLE_FACE4 16
 #endif
 // uc_orig: SAVE_TABLE_PLATS (fallen/Headers/Game.h)
+// The original's value is 45: it counted a "bike" entry of save_table[] that is compiled out.
 #ifndef SAVE_TABLE_PLATS
-#define SAVE_TABLE_PLATS 45
+#define SAVE_TABLE_PLATS 44
 #endif
 
 // In-game save/load system: serializes all living things, their genus data, and EWAY timer
