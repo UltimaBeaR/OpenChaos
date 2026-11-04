@@ -2445,14 +2445,17 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             if (who_says && who_says->State == STATE_DEAD) {
                 // Dead people can't talk.
             } else {
+                // Wait until the current voice line ends. The original stopped
+                // the line when MUSIC_is_playing() was true, meaning "music,
+                // not speech, holds the voice slot". But MUSIC_is_playing()
+                // only reports that the voice slot is busy, so every voice
+                // line was cut off. The cut also came before the checks below,
+                // so a conversation that could not start yet (its speakers out
+                // of sight of each other, say) cut off every new voice line,
+                // each tick, for as long as it waited. Music plays on its own
+                // channel here, so there is nothing to stop.
                 if (MFX_QUICK_still_playing()) {
-                    if (MUSIC_is_playing()) {
-                        // Just stop the music...
-                        MFX_QUICK_stop();
-                        MFX_QUICK_wait();
-                    } else {
-                        ans = UC_FALSE;
-                    }
+                    ans = UC_FALSE;
                 }
             }
         }
