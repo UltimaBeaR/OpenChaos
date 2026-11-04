@@ -160,9 +160,11 @@ constexpr uint32_t QS_GENERIC_PERSON_STATE_FNS = STATE_FLOAT + 2;
 // (effects/combat/pyro_globals.cpp); PYRO_functions[PYRO_NONE] is NULL.
 constexpr uint32_t QS_PYRO_STATE_FNS = STATE_NORMAL + 1;
 
-// player_functions[] (things/core/player_globals.cpp): PLAYER_NONE..PLAYER_ROPER. The
-// header declares it without a bound.
-constexpr uint32_t QS_PLAYER_TYPES = PLAYER_ROPER + 1;
+// Player.PlayerType values a level can hold: EWAY_create_player (missions/eway.cpp) creates
+// PLAYER_DARCI..PLAYER_THUG (bankbomb1 starts the player as PLAYER_THUG), and a
+// free slot is PLAYER_NONE. The load never indexes player_functions[] with it: a player
+// Thing's handler is always process_hardware_level_input_for_player (qs_derive_statefn).
+constexpr uint32_t QS_PLAYER_TYPES = PLAYER_THUG + 1;
 
 // Ribbon handles of a PYRO_IMMOLATE: radii[0..1] always, radii[2..4] once it burns out
 // (free_pyro, PYRO_fn_init and PYRO_fn_normal, effects/combat/pyro.cpp).
