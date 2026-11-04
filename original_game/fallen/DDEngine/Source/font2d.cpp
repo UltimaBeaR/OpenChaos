@@ -76,7 +76,7 @@ FONT2D_Letter FONT2D_letter[FONT2D_NUM_LETTERS];
 
 CBYTE FONT2D_punct[] =
 {
-	"!\"£$%^&*(){}[]<>\\/:;'@#_?-=+.,"
+	"!\"\xA3$%^&*(){}[]<>\\/:;'@#_?-=+.,"
 
 	//
 	// German characters in decimal and octal!
@@ -85,13 +85,13 @@ CBYTE FONT2D_punct[] =
 	// (a) We can type them in directly and this can be physically matched against the bitmap
 	// (b) We can type them *all* in, instead of missing a few
 
-	"ÄËÏÖØÜßïöø"
+	"\xC4\xCB\xCF\xD6\xD8\xDC\xDF\xEF\xF6\xF8"
 
 	//
 	// French characters
 	//
 
-	"ÆÇÔàâçèéêîïôøû"
+	"\xC6\xC7\xD4\xE0\xE2\xE7\xE8\xE9\xEA\xEE\xEF\xF4\xF8\xFB"
 
 	//
 	// Spanish
@@ -99,7 +99,7 @@ CBYTE FONT2D_punct[] =
 	// 161,191,216,225,228,233,237,241,243,248,250
 	//
 
-	"¡¿Øáäéíñóøú"
+	"\xA1\xBF\xD8\xE1\xE4\xE9\xED\xF1\xF3\xF8\xFA"
 
 	//
 	// Italian
@@ -108,7 +108,7 @@ CBYTE FONT2D_punct[] =
 	//
 	//
 
-	"ÀÈÌÒÙàìòùü©®"
+	"\xC0\xC8\xCC\xD2\xD9\xE0\xEC\xF2\xF9\xFC\xA9\xAE"
 };
 
 
@@ -270,7 +270,7 @@ SLONG FONT2D_GetIndex(CBYTE chr)
 	// Remap certain characters first
 	//
 
-	if (chr=='É') chr='E';
+	if (chr=='\xC9') chr='E';
 
 	//
 	// Find our letter index.
@@ -315,9 +315,9 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
 {
 	SLONG letter;
 
-	if ( ( chr == ' ' ) || ( chr == '¬' ) )
+	if ( ( chr == ' ' ) || ( chr == '\xAC' ) )
 	{
-		// ¬ is a non-wrapping space.
+		// Â¬ is a non-wrapping space.
 		return 8;
 	}
 
@@ -362,8 +362,8 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
 		chr = 39;
 	}
 
-	// ¬ is a non-wrapping space.
-	if (chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t' || chr=='¬' )
+	// Â¬ is a non-wrapping space.
+	if (chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t' || chr=='\xAC' )
 	{
 		return 8 * scale >> 8;
 	}

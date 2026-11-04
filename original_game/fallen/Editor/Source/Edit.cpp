@@ -3991,7 +3991,7 @@ void	process_map();
         - Added face edge visibility info.
         - Finally!! Those flags that mark when the texture is wrapping
           around inside a face. This happens when you apply spherical
-          or cylindrical coordinates, the faces along the 0ง axis don't
+          or cylindrical coordinates, the faces along the 0ยง axis don't
           get proper mapping coords. Someone describe how to fix this?
         - Added -quiet parm, only displays minimal chunk info.
         - Object parent number is stored in CHUNK_TRACKOBJNAME.
@@ -4375,7 +4375,7 @@ void TrackRotReader(FILE *f, int ind, long p) {
 			printf(" error pos\n");
 			return;
 		}
-        printf("%*s             Angle: %fง, X: %f, Y: %f, Z: %f\n",ind, "", pos[0], pos[1], pos[2], pos[3]);
+        printf("%*s             Angle: %f\xA7, X: %f, Y: %f, Z: %f\n",ind, "", pos[0], pos[1], pos[2], pos[3]);
     }
 }
 

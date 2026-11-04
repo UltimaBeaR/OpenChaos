@@ -269,7 +269,7 @@ void CHECK_Draw(Widget *widget) {
 	WidgetPoint pt,wp = WIDGET_Centre(widget);
 	CBYTE check[2] = {0,0};
 
-	MENUFONT_Dimensions("°",pt.x,pt.y);
+	MENUFONT_Dimensions("\xB0",pt.x,pt.y);
 
 	wp.x=widget->x+pt.x+6+widget->form->x;
 
@@ -278,9 +278,9 @@ void CHECK_Draw(Widget *widget) {
 	flags|=(widget->state&WIDGET_STATE_FOCUS) ? MENUFONT_GLIMMER : 0;
 	if (widget->state&WIDGET_STATE_DISABLED) rgb=((rgb>>1)&0xFF000000) | (rgb&0xFFFFFF);
 	if (widget->methods->Push==CHECK_Push)
-		check[0] = (widget->data[0] ? '÷' : '°');
+		check[0] = (widget->data[0] ? '\xF7' : '\xB0');
 	else
-		check[0] = (widget->data[0] ? '·' : '°');
+		check[0] = (widget->data[0] ? '\xB7' : '\xB0');
 	MENUFONT_Draw(widget->x+widget->form->x,wp.y,256,check,rgb,flags|MENUFONT_SUPER_YCTR);
 	MENUFONT_Draw(wp.x,wp.y,256,(CBYTE*)widget->caption,rgb,flags);
 }

@@ -71,9 +71,9 @@ static CBYTE *pause_menu[PAUSE_MENU_SIZE] =
 	"Abandonner la partie"
 };
 #define PAUSE_STR "PAUSE"
-#define SURE_STR "Etes-vous sûr(e) ?"
+#define SURE_STR "Etes-vous s\xFBr(e) ?"
 #define YORN_STR STR_CROSS" Oui / "STR_TRI" Non."
-#define CTRL_REMOVED "Manette retirée"
+#define CTRL_REMOVED "Manette retir\xE9""e"
 #define CTRL_NOTSUPP "Manette non compatible"
 #endif
 
@@ -92,7 +92,7 @@ static CBYTE *pause_menu[PAUSE_MENU_SIZE] =
 #define SURE_STR "Sind Sie sicher?"
 #define YORN_STR STR_CROSS" Ja / "STR_TRI" Nein"
 #define CTRL_REMOVED "Controller enfernt"
-#define CTRL_NOTSUPP "Controller nicht unterstützt"
+#define CTRL_NOTSUPP "Controller nicht unterst\xFCtzt"
 #endif
 #endif
 
@@ -103,9 +103,9 @@ static CBYTE *pause_menu[PAUSE_MENU_SIZE] =
 	"Reiniciar nivel",
 	"Abandonar partida"
 };
-#define PAUSE_STR "MENÚ DE PAUSA"
-#define SURE_STR "¿Estás seguro ?"
-#define YORN_STR STR_CROSS" Sì / "STR_TRI" No."
+#define PAUSE_STR "MEN\xDA DE PAUSA"
+#define SURE_STR "\xBF""Est\xE1s seguro ?"
+#define YORN_STR STR_CROSS" S\xEC / "STR_TRI" No."
 #define CTRL_REMOVED "El mando se ha quitado"
 #define CTRL_NOTSUPP "Mando no soportado"
 #endif
@@ -119,7 +119,7 @@ static CBYTE *pause_menu[PAUSE_MENU_SIZE] =
 };
 #define PAUSE_STR "MENU PAUSA"
 #define SURE_STR "Sei sicuro?"
-#define YORN_STR STR_CROSS" Sì / "STR_TRI" No"
+#define YORN_STR STR_CROSS" S\xEC / "STR_TRI" No"
 #define CTRL_REMOVED "Controller rimosso"
 #define CTRL_NOTSUPP "Controller non supportato"
 #endif

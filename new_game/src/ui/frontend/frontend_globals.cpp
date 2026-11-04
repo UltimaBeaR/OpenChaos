@@ -132,9 +132,10 @@ CBYTE* menu_config_names[] = { "config leaves.tga", "config rain.tga",
     "config snow.tga", "config blood.tga" };
 
 // uc_orig: frontend_fonttable (fallen/Source/frontend.cpp)
-// Note: the 10 special chars at the end were originally Windows-1252 accented
-// characters (shown as ? in the source), encoded as UTF-8 replacement chars.
-CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd";
+// One character per glyph box of olyfont2.tga, in atlas order. The last 10 are the
+// Windows-1252 accented capitals È À Ü Ö Ä Ù Ú Ó Á É, escaped so that the file encoding
+// can't break them: the game text (text/lang_*.txt) uses these single-byte codes.
+CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?\xC8\xC0\xDC\xD6\xC4\xD9\xDA\xD3\xC1\xC9";
 
 // uc_orig: FRONTEND_leaf_colours (fallen/Source/frontend.cpp)
 ULONG FRONTEND_leaf_colours[4] = {

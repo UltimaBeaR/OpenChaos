@@ -29,7 +29,7 @@ SBYTE f_width[104]={
 	12,12,12,12,11,11,11,11
 };
 
-//char text_table[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?^¬@_";
+//char text_table[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?^Â¬@_";
 
 void draw_text_at(SLONG x, SLONG y,CBYTE *message,SLONG font_id)
 {

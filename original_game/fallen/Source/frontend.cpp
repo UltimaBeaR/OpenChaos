@@ -455,7 +455,7 @@ CBYTE* menu_brief_names[]= { "briefing leaves darci.tga", "briefing rain darci.t
 CBYTE* menu_config_names[]= { "config leaves.tga", "config rain.tga", 
 						     "config snow.tga", "config blood.tga" };
 
-CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?����������";
+CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?\xC8\xC0\xDC\xD6\xC4\xD9\xDA\xD3\xC1\xC9";
 
 ULONG FRONTEND_leaf_colours[4] =
 	{

@@ -641,7 +641,7 @@ extern BOOL AreAnyDevicesConnected ( void );
 				if ( !IsEnglish )
 				{
 					pcString[0] = "Une manette vient";
-					pcString[1] = "d'etre retir�e ou";		// NOTE! The E in etre should be �, but the font doesn't have it, and it's all in caps anyway.
+					pcString[1] = "d'etre retir\xE9""e ou";		// NOTE! The E in etre should be ê, but the font doesn't have it, and it's all in caps anyway.
 					if ( bWriteVMInsteadOfVMU )
 					{
 						pcString[2] = "une VM est en";
@@ -650,7 +650,7 @@ extern BOOL AreAnyDevicesConnected ( void );
 					{
 						pcString[2] = "une VMU est en";
 					}
-					pcString[3] = "cours de d�tection";
+					pcString[3] = "cours de d\xE9tection";
 				}
 				else
 				{

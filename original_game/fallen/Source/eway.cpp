@@ -5432,7 +5432,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "D'arci arr�te de jouer !", 8000 );
+														CONSOLE_text ( "D'arci arr\xEAte de jouer !", 8000 );
 													}
 												}
 												break;
@@ -5450,7 +5450,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "La bo�te de vitesse D'arci !", 8000 );
+														CONSOLE_text ( "La bo\xEEte de vitesse D'arci !", 8000 );
 													}
 												}
 												TRACE ( "2: Car yaw: %i\n", yaw_car );
@@ -5475,7 +5475,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "Bien jou� D'arci. La bagnole est bonne pour la casse maintenant !", 8000 );
+														CONSOLE_text ( "Bien jou\xE9 D'arci. La bagnole est bonne pour la casse maintenant !", 8000 );
 													}
 												}
 												break;

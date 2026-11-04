@@ -2903,7 +2903,7 @@ static void FRONTEND_sound(void)
 }
 
 // uc_orig: FRONTEND_diddle_stats (fallen/Source/frontend.cpp)
-// No-op � originally planned to adjust player stats when cheating.
+// No-op — originally planned to adjust player stats when cheating.
 static void FRONTEND_diddle_stats(void)
 {
 }

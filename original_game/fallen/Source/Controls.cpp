@@ -211,7 +211,7 @@ UBYTE InkeyToAscii[]=
 
 UBYTE InkeyToAsciiShift[]=
 {
-	/*   0 - 9   */		0,		0,		'!',	'"',	'�',	'$',	'%',	'^',	'&',	'*',
+	/*   0 - 9   */		0,		0,		'!',	'"',	'\x9C',	'$',	'%',	'^',	'&',	'*',
 	/*  10 - 19  */		'(',	')',	'_',	'+',	'\b',	'\t',	'Q',	'W',	'E',	'R',
 	/*  20 - 29  */		'T',	'Y',	'U',	'I',	'O',	'P',	'{',	'}',	0,		0,
 	/*  30 - 39  */ 	'A', 	'S',	'D',	'F',	'G',	'H',	'J',	'K',	'L',	':',
@@ -2029,7 +2029,7 @@ void	process_controls(void)
 #endif //#ifndef TARGET_DC
 
 
-//	PANEL_new_text(NULL, 2000, "abcdefghijk lmnopqr stuvwxyz ABCDEFG HIJKLMNO PQRSTUVWXYZ 0123456789 !\"�$%^ &*(){} []<>\\/:;'@ #~?-=+.,");
+//	PANEL_new_text(NULL, 2000, "abcdefghijk lmnopqr stuvwxyz ABCDEFG HIJKLMNO PQRSTUVWXYZ 0123456789 !\"£$%^ &*(){} []<>\\/:;'@ #~?-=+.,");
 //	PANEL_new_text(NULL, 2000, "a-b-c-d-e-f-g  h-i-j-k-l-m-n");
 	
 	#if THIS_IS_A_LOS_TEST
@@ -2154,10 +2154,10 @@ void	process_controls(void)
 			"xyzABCDEFGHIJKLMNOPQRS "
 			"TUVWXYZ0123456789!\"#$ "
 			"%^&*(){}[]<>\\/:;'@#_?-=+., "
-			"�� ABC ����� Abc ���� "
-			"������ abc ��� abc ����� "
-			"��� abc ���� abc ���� "
- 			"�� ABC ����� abc ����");
+			"\xC4\xCB ABC \xCF\xD6\xD8\xDC\xDF Abc \xEF\xF6\xF8\xFC "
+			"\xC6\xC7\xF4\xE0\xE2\xE7 abc \xE8\xE9\xEA abc \xEE\xEF\xF4\xF8\xFB "
+			"\xA1\xBF\xD8 abc \xE1\xE4\xE9\xED abc \xF1\xF3\xF8\xFA "
+ 			"\xC0\xC8 ABC \xCC\xD2\xD9\xE0\xEC abc \xF2\xF9\xA9\xAE");
 	}
 #endif
 

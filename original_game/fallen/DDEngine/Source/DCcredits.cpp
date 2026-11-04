@@ -236,7 +236,7 @@ CBYTE *CREDITS_eidos_france[] =
 	NULL,
 
 	"~BResponsable localisation",
-	"\tStéphan Gonizzi",		// This has got an accent
+	"\tSt\xE9phan Gonizzi",		// This has got an accent
 	NULL,
 
 	"~BResponsable RP",
@@ -251,7 +251,7 @@ CBYTE *CREDITS_eidos_france[] =
 	"\tAround the Word, Paris",
 	NULL,
 
-	"~BEnregistrement des voix françaises",	// This has got an accent in it!
+	"~BEnregistrement des voix fran\xE7""aises",	// This has got an accent in it!
 	"\tLe Lotus Rose, Paris",
 	"!"
 };
@@ -268,7 +268,7 @@ CBYTE *CREDITS_eidos_france[] =
 	NULL,
 
 	"~BLocalisation Manager",
-	"\tStéphan Gonizzi",
+	"\tStÃ©phan Gonizzi",
 	NULL,
 
 	"~BPR Manager",
@@ -305,10 +305,10 @@ CBYTE *CREDITS_eidos_germany[] =
 	NULL,
 
 	"~BQA-Manager",
-	"Sören Winterfeldt", // Accent!
+	"S\xF6ren Winterfeldt", // Accent!
 	NULL,
 
-	"~BÜbersetzung",	// Accent!
+	"~B\xDC""bersetzung",	// Accent!
 	"\tViolet Media, Isabel Sterner",
 	NULL,
 

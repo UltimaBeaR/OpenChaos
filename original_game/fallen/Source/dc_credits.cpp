@@ -762,16 +762,16 @@ extern BOOL AreAnyDevicesConnected ( void );
 		char *pcString[3];
 		if ( !IsEnglish )
 		{
-			pcString[0] = "Une manette vient d'etre";		// NOTE! The E in etre should be ê, but the font doesn't have it, and it's all in caps anyway.
+			pcString[0] = "Une manette vient d'etre";		// NOTE! The E in etre should be Ãª, but the font doesn't have it, and it's all in caps anyway.
 			if ( bWriteVMInsteadOfVMU )
 			{
-				pcString[1] = "retirée ou une VM est";
+				pcString[1] = "retir\xE9""e ou une VM est";
 			}
 			else
 			{
-				pcString[1] = "retirée ou une VMU est";
+				pcString[1] = "retir\xE9""e ou une VMU est";
 			}
-			pcString[2] = "en cours de détection";
+			pcString[2] = "en cours de d\xE9tection";
 		}
 		else
 		{

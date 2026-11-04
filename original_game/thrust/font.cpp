@@ -65,7 +65,7 @@ FONT_Letter FONT_letter[FONT_NUM_LETTERS];
 
 CBYTE FONT_punct[] =
 {
-	"!\"£$%^&*(){}[]<>\\/:;'@#~?-=+.,"
+	"!\"\xA3$%^&*(){}[]<>\\/:;'@#~?-=+.,"
 };
 
 

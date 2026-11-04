@@ -391,7 +391,7 @@ void SaveAString(MFFileHandle &file, CBYTE *txt) {
 
 void LoadFont_CRT(void) 
 {
-//	MENUFONT_Load("font2.tga",POLY_PAGE_NEWFONT,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$%&()+-\"?,.;:/#0123456789���_|}{�");
+//	MENUFONT_Load("font2.tga",POLY_PAGE_NEWFONT,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$%&()+-\"?,.;:/#0123456789°·×_|}{÷");
 //	MENUFONT_Load("data\\textures\\extras\\olyfont2.tga",POLY_PAGE_NEWFONT_INVERSE,"abcdefghijklmnopqrstuvwxyz0123456789.,!\":;'#$*-()[]\\/?");
 #ifdef TARGET_DC
 	MENUFONT_Load("olyfont2dc.tga",POLY_PAGE_NEWFONT_INVERSE,"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?");
@@ -404,7 +404,7 @@ void MENUFONT_MergeLower(void);
 }
 
 void LoadFont_LCD(void) {
-//	MENUFONT_Load("data\\textures\\extras\\font3.tga",POLY_PAGE_NEWFONT_INVERSE,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$%&()+-\"?,.;:/#0123456789���_|}{�");
+//	MENUFONT_Load("data\\textures\\extras\\font3.tga",POLY_PAGE_NEWFONT_INVERSE,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$%&()+-\"?,.;:/#0123456789°·×_|}{÷");
 }
 
 SLONG MainWidgetLoop(void);

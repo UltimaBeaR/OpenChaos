@@ -34,7 +34,7 @@
 #endif
 #ifdef VERSION_GERMAN
 #define STR_CONT		STR_CROSS" Fortfahren"
-#define	STR_RETURN		STR_TRI" Zurück zum Menü"
+#define	STR_RETURN		STR_TRI" Zur\xFC""ck zum Men\xFC"
 #define STR_REPLAY		STR_CROSS" Level neu starten"
 #endif
 #ifdef VERSION_FRENCH
@@ -49,7 +49,7 @@
 #endif
 #ifdef VERSION_SPANISH
 #define STR_CONT		STR_CROSS" Seguir"
-#define	STR_RETURN		STR_TRI" Volver al menú"
+#define	STR_RETURN		STR_TRI" Volver al men\xFA"
 #define STR_REPLAY		STR_CROSS" Repetir nivel"
 #endif
 #ifdef VERSION_JAPAN
@@ -1808,13 +1808,13 @@ void PANEL_DrawSign(SLONG x,SLONG y,SLONG type)
 
 
 #ifdef VERSION_GERMAN
-#define STAT_STR "Stärke:\t\t\t%d\nKonstitution:\t%d\nReflexe:\t\t%d\nAusdauer:\t\t%d\n"
+#define STAT_STR "St\xE4rke:\t\t\t%d\nKonstitution:\t%d\nReflexe:\t\t%d\nAusdauer:\t\t%d\n"
 #endif
 #ifdef VERSION_FRENCH
-#define STAT_STR "Force:\t\t\t%d\nConstitution:\t%d\nRéflexes:\t\t%d\nRésistance:\t%d\n"
+#define STAT_STR "Force:\t\t\t%d\nConstitution:\t%d\nR\xE9""flexes:\t\t%d\nR\xE9sistance:\t%d\n"
 #endif
 #ifdef VERSION_SPANISH
-#define STAT_STR "Fuerza:\t\t\t%d\nConstitución:\t%d\nReflejos:\t\t%d\nResistencia:\t%d\n"
+#define STAT_STR "Fuerza:\t\t\t%d\nConstituci\xF3n:\t%d\nReflejos:\t\t%d\nResistencia:\t%d\n"
 #endif
 #ifdef VERSION_ITALIAN
 #define STAT_STR "Forza:\t\t\t%d\nTempra:\t\t%d\nRiflessi:\t\t%d\nResistenza:\t%d\n"

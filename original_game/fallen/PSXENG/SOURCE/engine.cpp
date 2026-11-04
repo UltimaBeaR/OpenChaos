@@ -1619,7 +1619,7 @@ SBYTE f_descend[]={
 };
 
 
-//char text_table[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?^¬@_";
+//char text_table[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?^Â¬@_";
 #ifdef VERSION_KANJI
 /*
 CBYTE *Kanji_message[8];

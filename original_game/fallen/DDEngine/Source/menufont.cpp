@@ -768,7 +768,7 @@ void MENUFONT_MergeLower() {
 	for (c='a';c<='z';c++) {
 	  FontInfo[c]=FontInfo[c-32];
 	}
-/*	for (c='à';c<='ý';c++) {
+/*	for (c='Ã ';c<='Ã½';c++) {
 	  FontInfo[c]=FontInfo[c-32];
 	}*/
 	for (c=224;c<=252;c++) {

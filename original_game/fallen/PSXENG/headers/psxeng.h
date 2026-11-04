@@ -75,9 +75,9 @@
 #ifndef VERSION_DEMO
 #define LEVEL_WON "Level abgeschlossen"
 #define LEVEL_LOST "Level verloren"
-#define SEARCHING "Suche läuft"
+#define SEARCHING "Suche l\xE4uft"
 #define COMPLETE ""
-#define CONFIG_CANCEL "Drücken Sie L1, R1, START und SELECT, um abzubrechen"
+#define CONFIG_CANCEL "Dr\xFC""cken Sie L1, R1, START und SELECT, um abzubrechen"
 #define NEW_LEVELS 1
 #endif
 #endif
@@ -93,7 +93,7 @@
 #define LANG_ROOT_NAME "french"
 #define LOADING_NAME "DATA\\LOADING%d.TIM"
 #define OVERLAY_NAME "FRONTEND.BIN"
-#define LEVEL_WON "Niveau terminé"
+#define LEVEL_WON "Niveau termin\xE9"
 #define LEVEL_LOST "Niveau perdu"
 #define SEARCHING "Recherche"
 #define COMPLETE ""

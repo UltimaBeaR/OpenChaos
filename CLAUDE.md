@@ -111,7 +111,7 @@ a margin".
   - "Most likely", "typical for games of that time", "usually in such cases" — not acceptable. Either it's verified
     in the code / by the user — or say "I don't know, need to check".
 - `original_game/` — read only. **The only exception:** analytical comments with the prefix `// claude-ai:` may be
-  added to ease navigation.
+  added to ease navigation. Its C/C++ sources are UTF-8, with non-ASCII bytes in code written as escapes.
 - Existing `// uc_orig:` comments in `new_game/` map code to its original entity — keep them when moving code.
 - **⚠️ Mandatory self-review after any code changes** → skill `review`. Always, not only before a commit.
 - Commits are made by the user manually — never commit yourself.
