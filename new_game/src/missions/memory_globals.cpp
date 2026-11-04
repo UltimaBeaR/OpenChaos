@@ -81,6 +81,7 @@ struct MemTable save_table[] = {
     { M_("EWAY_counter"), (void**)&EWAY_counter, MEM_STATIC, 0, 0, EWAY_MAX_COUNTERS, sizeof(UBYTE), 0 }, // 28
     { M_("vehicles"), (void**)&VEHICLES, MEM_STATIC, 0, 0, RMAX_VEHICLES, sizeof(Vehicle), 32 }, // 29
     { M_("people"), (void**)&PEOPLE, MEM_STATIC, 0, 0, RMAX_PEOPLE, sizeof(Person), 128 }, // 30
+    // Verified dead, candidate for removal, not removed as part of the in-mission saves feature: no CLASS_ANIMAL Thing can be created, so this pool is always empty (kept so the pool loops stay uniform).
     { M_("animals"), (void**)&ANIMALS, MEM_STATIC, 0, 0, MAX_ANIMALS, sizeof(Animal), 0 }, // 31
     { M_("choppers"), (void**)&CHOPPERS, MEM_STATIC, 0, 0, MAX_CHOPPERS, sizeof(Chopper), 0 }, // 32
     { M_("pyro"), (void**)&PYROS, MEM_STATIC, 0, 0, MAX_PYROS, sizeof(Pyro), 0 }, // 33

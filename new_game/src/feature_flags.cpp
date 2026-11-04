@@ -6,4 +6,5 @@
 
 FeatureFlags g_feature_flags = {
     .cut_bats = false,
+    .ext_in_mission_saves = false,
 };

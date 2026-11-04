@@ -17,6 +17,8 @@
 #define GAMEMENU_DO_CHOOSE_NEW_MISSION 2
 // uc_orig: GAMEMENU_DO_NEXT_LEVEL (fallen/Headers/gamemenu.h)
 #define GAMEMENU_DO_NEXT_LEVEL 3
+// Load the quick save of this level (missions/quicksave.h): restart through GS_REPLAY.
+#define GAMEMENU_DO_QUICK_LOAD 4
 
 // uc_orig: GAMEMENU_init (fallen/Headers/gamemenu.h)
 void GAMEMENU_init(void);

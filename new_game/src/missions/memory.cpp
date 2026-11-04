@@ -867,6 +867,7 @@ void MEMORY_quick_save()
 
     MemTable* mt;
 
+    // Verified dead, candidate for removal, not removed as part of the in-mission saves feature: MEMORY_quick_save has no caller (the pause-menu Save item now goes through missions/quicksave.cpp), and this loop writes mt->Point, the address of the pool-pointer variable, instead of the pool (*mt->Point).
     for (i = 0; save_table[i].Point; i++) {
         mt = &save_table[i];
 
@@ -1021,6 +1022,7 @@ SLONG MEMORY_quick_load()
 
     MemTable* mt;
 
+    // Verified dead, candidate for removal, not removed as part of the in-mission saves feature: MEMORY_quick_load has no caller (the pause-menu Load item now goes through missions/quicksave.cpp), and this loop reads into mt->Point, the pool-pointer variable, instead of the pool (*mt->Point).
     for (i = 0; save_table[i].Point; i++) {
         mt = &save_table[i];
 

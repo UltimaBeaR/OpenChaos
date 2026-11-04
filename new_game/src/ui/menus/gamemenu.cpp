@@ -15,6 +15,7 @@
 #include "assets/sound_id.h"
 #include "engine/audio/music.h"
 #include "missions/memory.h"
+#include "missions/quicksave.h"
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
@@ -154,6 +155,9 @@ void GAMEMENU_initialise(SLONG menu)
     }
 
     GAMEMENU_menu_type = menu;
+    if (menu == GAMEMENU_MENU_TYPE_PAUSE) QUICKSAVE_menu_hook(GAMEMENU_menu[menu].word, QS_MENU_PAUSE);
+    else if (menu == GAMEMENU_MENU_TYPE_LOST) QUICKSAVE_menu_hook(GAMEMENU_menu[menu].word, QS_MENU_LOST);
+    else QUICKSAVE_menu_hook(NULL, QS_MENU_OTHER);
 }
 
 // uc_orig: GAMEMENU_init (fallen/Source/gamemenu.cpp)
@@ -612,20 +616,28 @@ SLONG GAMEMENU_process()
                         break;
 
                     case X_OKAY:
-                        return GAMEMENU_DO_CHOOSE_NEW_MISSION;
+                        return QUICKSAVE_confirm_load() ? GAMEMENU_DO_QUICK_LOAD : GAMEMENU_DO_CHOOSE_NEW_MISSION;
 
                     case X_CANCEL:
                         GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
                         break;
 
                     case X_SAVE_GAME:
-                        MEMORY_quick_save();
-                        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
+                        if (QUICKSAVE_menu_save()) {
+                            GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
+                        }
                         break;
 
                     case X_LOAD_GAME:
-                        if (!MEMORY_quick_load()) {
-                            return GAMEMENU_DO_RESTART;
+                        switch (QUICKSAVE_menu_load()) {
+                        case QS_LOAD_NOW:
+                            return GAMEMENU_DO_QUICK_LOAD;
+                        case QS_LOAD_NEEDS_CONFIRM: // campaign mismatch: the SURE dialog
+                            GAMEMENU_initialise(GAMEMENU_MENU_TYPE_SURE);
+                            GAMEMENU_menu_selection = 2; // default Cancel: Okay discards progress
+                            break;
+                        default: // QS_LOAD_NONE: the module set the reason line
+                            break;
                         }
                         break;
 
@@ -1107,6 +1119,7 @@ void GAMEMENU_draw()
                 }
             }
         }
+        QUICKSAVE_draw_menu_body();
     }
 
     POLY_frame_draw(UC_FALSE, UC_FALSE);

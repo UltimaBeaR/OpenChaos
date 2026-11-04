@@ -579,6 +579,7 @@ set(SOURCES_NEW
     src/missions/memory_globals.cpp
     src/missions/save.cpp
     src/missions/save_globals.cpp
+    src/missions/quicksave.cpp
 
     # === Camera ===
     src/camera/camera_mode.cpp
