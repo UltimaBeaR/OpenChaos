@@ -4,6 +4,7 @@
 - Area: input
 - Tags: feature, gh-issue
 - Created: 2026-10-27
+- Original: [original-prompts/100-keyboard-key-rebinding.md](../original-prompts/100-keyboard-key-rebinding.md)
 - Related: GitHub issue [UltimaBeaR/OpenChaos#9](https://github.com/UltimaBeaR/OpenChaos/issues/9) (UserGit-2021,
   questions); gamepad side — "Gamepad settings in the UI" task; full controls UI idea — "Custom options menu" task
 
@@ -11,6 +12,10 @@
 A player asks how to rebind keyboard keys. Today it's impossible: custom key rebinding was removed in 1.0, the
 keyboard bindings are hardcoded in the action map (`act_*.h`), and the old `[Keyboard]` section of `config.ini` is
 deliberately not migrated (`oc_config.cpp`). Add rebinding — at least via `OpenChaos.config.json`, later in a UI.
+
+Possibly also an optional mode with the old "tanky" controls (forward/back + turn left/right, like the original). Today
+movement is directional only (`GAMEPLAY_CHANGES.md`, Controls); a commented-out tank-arrow reference implementation is
+kept in `game/input_actions.cpp` (~L4561).
 
 ## Important notes
 Issue #9 also asks where the settings are stored and whether EAX reverb works — answers need no code:

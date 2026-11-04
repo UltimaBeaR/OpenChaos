@@ -1,8 +1,3 @@
-99 crash 🔴 Crash in The Fallen police dialogue (GitHub #10)
-
-
-
-
 100 input 🟢 Keyboard key rebinding (GitHub #9)
 
 

@@ -16,10 +16,10 @@ The project is maintainable again after a long break: the work is organized in t
 3. ✅ Delete the original-game knowledge base; keep cut features + resource formats in `docs/topics/`
 4. ✅ Migrate the open items of the old known-issues list and the stage-13 roadmap into tasks and plans
 5. ✅ Update CLAUDE.md and README for the new structure
-6. ✅ Triage the GitHub issues → tasks [#99](99-crash-in-the-fallen-police-dialogue.md) (issue #10),
+6. ✅ Triage the GitHub issues → tasks [#99](../../closed/tasks/99-crash-in-the-fallen-police-dialogue.md) (issue #10),
    [#100](100-keyboard-key-rebinding.md) + #101 (issue #9), #102 + a note in #90 (issue #8, already closed)
    > access: read-only fine-grained token in `GH_TOKEN` (user-level Claude Code settings)
-7. ⬜ Reply on GitHub issues #8, #9, #10 (the user)
+7. ✅ Reply on GitHub issues #8, #9, #10 (the user)
 8. ⬜ [#2](2-translate-the-living-docs-to-english.md) — translate the living docs to English
 
 ## Notes

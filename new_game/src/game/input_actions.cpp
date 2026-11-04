@@ -5078,6 +5078,16 @@ SLONG continue_pressing_action(Thing* p_person)
     return (1);
 }
 
+// Returns true if the player is holding the SPRINT button.
+SLONG continue_pressing_sprint(Thing* p_person)
+{
+    if (p_person->Genus.Person->PlayerID) {
+        Thing* p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        return (p_player->Genus.Player->Input & INPUT_MASK_SPRINT) ? 1 : 0;
+    }
+    return (0);
+}
+
 // uc_orig: set_action_used (fallen/Source/interfac.cpp)
 // Marks the ACTION button as consumed for this press so it is not re-processed next frame.
 void set_action_used(Thing* p_person)

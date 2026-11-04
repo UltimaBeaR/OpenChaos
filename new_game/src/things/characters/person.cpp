@@ -92,6 +92,7 @@ extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 //   set_person_sidle, emergency_uncarry, set_anim_running, set_anim_idle, set_person_sneaking
 extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);
 extern SLONG continue_pressing_action(Thing* p_person);
+extern SLONG continue_pressing_sprint(Thing* p_person);
 extern void set_action_used(Thing* p_person);
 extern UBYTE stealth_debug;
 extern SLONG plant_feet(Thing* p_person);
@@ -2537,7 +2538,10 @@ void general_process_person(Thing* p_person)
         UWORD max_stamina = 128;
         if (p_person->Genus.Person->PlayerID) {
             max_stamina += NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Stamina;
-            if (!continue_pressing_action(p_person)) {
+            // Holding sprint stops recovery, which also keeps an exhausted player from re-entering
+            // sprint until release. The original checked ACTION here because sprint shared that
+            // button; ACTION no longer sprints, so it doesn't affect stamina.
+            if (!continue_pressing_sprint(p_person)) {
                 if (p_person->Genus.Person->Stamina < max_stamina) {
                     p_person->Genus.Person->Stamina++;
 

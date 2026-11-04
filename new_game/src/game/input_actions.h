@@ -286,6 +286,7 @@ SLONG can_darci_change_weapon(Thing* p_person);
 ULONG pre_process_input(SLONG mode, ULONG input);
 // uc_orig: continue_pressing_action (fallen/Source/interfac.cpp)
 SLONG continue_pressing_action(Thing* p_person);
+SLONG continue_pressing_sprint(Thing* p_person);
 // uc_orig: set_action_used (fallen/Source/interfac.cpp)
 void set_action_used(Thing* p_person);
 // uc_orig: continue_dir (fallen/Source/interfac.cpp)

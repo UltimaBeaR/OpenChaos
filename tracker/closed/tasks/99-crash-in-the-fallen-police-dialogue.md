@@ -1,6 +1,6 @@
 # 99 — Crash in The Fallen during the police dialogue (EWAY_cam_cant_interrupt ASSERT)
 
-- Status: 🔵 open
+- Status: closed 2026-11-04
 - Area: crash
 - Tags: bug, gh-issue
 - Created: 2026-10-27

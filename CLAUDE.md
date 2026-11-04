@@ -79,6 +79,8 @@ a margin".
 
 - **Language:** talk to the user in **Russian**. Everything written into the repo (docs, tracker, skills, code
   comments, README) is in **English**.
+- **No questionnaire UI.** Don't use `AskUserQuestion`, and don't put questions or answer buttons in the end-of-turn
+  next-step box. Ask in plain text in the message.
 - **A question ≠ a call to action.** If the user asks "why X?" or "can we Y?" — it's a question for understanding,
   not a request to change something. Answer it. Don't start editing until the user explicitly asks. If unsure —
   ask: "Do you want me to do it, or are we just discussing?"

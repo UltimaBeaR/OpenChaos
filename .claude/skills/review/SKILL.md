@@ -84,6 +84,8 @@ separate only when consolidating would genuinely obscure intent.
 
 If changes affect gameplay, controls, cheats, mechanics, or anything the player
 would notice while playing — update `GAMEPLAY_CHANGES.md` in the project root.
+Use reason: this is a short list for players, so record what a player would
+really notice and care about, and leave out trivia and small side effects of a fix.
 
 **What to write:** description from the player's perspective. What changed, how
 it works now, what buttons to press, what the player will see on screen.
