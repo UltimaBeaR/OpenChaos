@@ -49,6 +49,7 @@
 #include "world_objects/door.h"
 #include "missions/playcuts.h" // CPData, CPChannel, CPPacket
 #include "missions/memory_globals.h" // MAP_Beacon
+#include "missions/save.h" // SAVE_TABLE_PLATS, SAVE_TABLE_WMOVE
 #include "camera/fc.h" // FC_Cam
 #include "effects/environment/ribbon.h" // Ribbon, MAX_RIBBONS
 #include "things/items/grenade_globals.h" // Grenade, MAX_GRENADES
@@ -155,8 +156,8 @@ constexpr uint32_t QS_LIVE_CAMERA = 0;
 
 // ---------------------------------------------------------------------------
 // The pool list: literal save_table[] indices of the 46 pools that are written.
-// Never the SAVE_TABLE_PLATS / SAVE_TABLE_WMOVE macros: they are stale by one entry
-// (missions/save.h). plat is 44 and wmove is 45 here.
+// The ones missions/save.h names (SAVE_TABLE_PLATS, SAVE_TABLE_WMOVE) are checked
+// against that header below.
 // ---------------------------------------------------------------------------
 
 constexpr uint32_t QS_POOL_COUNT = 46;
@@ -183,7 +184,7 @@ constexpr uint32_t QS_POOL_THINGS = 39;
 constexpr uint32_t QS_POOL_DRAWTWEENS = 40;
 constexpr uint32_t QS_POOL_DRAWMESHES = 41;
 constexpr uint32_t QS_POOL_BARRELS = 43;
-constexpr uint32_t QS_POOL_PLATS = 44;
+constexpr uint32_t QS_POOL_PLATS = SAVE_TABLE_PLATS;
 constexpr uint32_t QS_POOL_TRACKS = 50;
 constexpr uint32_t QS_POOL_THING_HEADS = 62;
 constexpr uint32_t QS_POOL_MAP_BEACON = 64;
@@ -823,6 +824,8 @@ constexpr bool qs_pool_ids_ascending()
     return QS_POOL_IDS[QS_POOL_COUNT - 1] < QS_SAVE_TABLE_ENTRIES;
 }
 static_assert(qs_pool_ids_ascending());
+static_assert(qs_pool_slot(SAVE_TABLE_PLATS) != QS_POOL_COUNT && qs_pool_slot(SAVE_TABLE_WMOVE) != QS_POOL_COUNT,
+    "plat and wmove pools must be in QS_POOL_IDS");
 
 // The pool element types written as raw images (pointer-free): their size
 // is pinned above through QS_ELEMENT_BYTES; their alignment must not exceed 8 so a
