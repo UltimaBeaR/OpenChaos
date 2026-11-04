@@ -71,11 +71,21 @@ extern SLONG EWAY_cam_speed;
 extern SLONG EWAY_cam_freeze;
 extern SLONG EWAY_cam_cant_interrupt;
 
+// Alignment of each pool in the flat block. Pools hold structs with pointers, which need
+// 8 bytes on x64 (the original's 4 was enough for its 32-bit pointers).
+static constexpr SLONG MEM_POOL_ALIGN = 8;
+
+// Bytes one save_table[] pool takes in the flat block, padding included.
+static SLONG mem_pool_bytes(const MemTable* p_tab)
+{
+    return (p_tab->StructSize * p_tab->Maximum + MEM_POOL_ALIGN - 1) & ~(MEM_POOL_ALIGN - 1);
+}
+
 // uc_orig: init_memory (fallen/Source/memory.cpp)
 void init_memory(void)
 {
     SLONG c0 = 0;
-    SLONG mem_size, mem_cumlative = 0;
+    SLONG mem_cumlative = 0;
     struct MemTable* p_tab;
     UBYTE* p_all;
 
@@ -91,9 +101,7 @@ void init_memory(void)
 
     // Sum up total memory needed for all array slots.
     while (save_table[c0].Point) {
-        p_tab = &save_table[c0];
-        mem_size = p_tab->StructSize * p_tab->Maximum;
-        mem_cumlative += mem_size;
+        mem_cumlative += mem_pool_bytes(&save_table[c0]);
         c0++;
     }
 
@@ -111,15 +119,11 @@ void init_memory(void)
 
     p_all = (UBYTE*)mem_all;
 
-    // Partition the flat block among all entries, aligning each to 4 bytes.
+    // Partition the flat block among all entries.
     while (save_table[c0].Point) {
         p_tab = &save_table[c0];
-        mem_size = p_tab->StructSize * p_tab->Maximum;
-
-        mem_size += 3;
-        mem_size &= 0xfffffffc;
         *p_tab->Point = p_all;
-        p_all += mem_size;
+        p_all += mem_pool_bytes(p_tab);
         c0++;
     }
 
