@@ -2829,6 +2829,22 @@ bool qs_read_apply()
 // The save-allowed condition
 // ---------------------------------------------------------------------------
 
+// Ground distance within which an NPC engaged with the player blocks a save, in world
+// units (WorldPos carries 8 fraction bits; one map square is 256 units). It is the default
+// NPC sight range (can_a_see_b with range 0, things/characters/person.cpp), which also
+// covers the longest enemy attack, sniper fire at 0x600 (PCOM_process_snipe, ai/pcom.cpp).
+// Beyond it an NPC can neither see nor hit the player.
+constexpr SLONG QS_WORLDPOS_FRACTION_BITS = 8;
+constexpr SLONG QS_MAP_SQUARE = 1 << 8;
+constexpr SLONG QS_ENEMY_ENGAGE_RANGE = 8 * QS_MAP_SQUARE;
+
+static bool qs_within_engage_range(const Thing* npc, const Thing* me)
+{
+    const SLONG dx = abs((npc->WorldPos.X - me->WorldPos.X) >> QS_WORLDPOS_FRACTION_BITS);
+    const SLONG dz = abs((npc->WorldPos.Z - me->WorldPos.Z) >> QS_WORLDPOS_FRACTION_BITS);
+    return QDIST2(dx, dz) < QS_ENEMY_ENGAGE_RANGE;
+}
+
 QS_Refusal qs_allowed_now()
 {
     if (!qs_flag_on()) {
@@ -2863,7 +2879,9 @@ QS_Refusal qs_allowed_now()
     }
 
     // An NPC engaged with the player: pcom_ai_arg holds the player's Thing number in
-    // exactly these four states (the PCOM_set_person_ai_* setters, ai/pcom.cpp).
+    // exactly these four states (the PCOM_set_person_ai_* setters, ai/pcom.cpp). These
+    // states never time out, so an NPC that lost the player far away keeps them; only
+    // one within QS_ENEMY_ENGAGE_RANGE blocks the save.
     const UWORD me_index = THING_NUMBER(me);
     UWORD i = thing_class_head[CLASS_PERSON];
     for (SLONG guard = 0; i && guard < MAX_THINGS; guard++) {
@@ -2878,7 +2896,7 @@ QS_Refusal qs_allowed_now()
         }
         const bool engaging = q->pcom_ai_state == PCOM_AI_STATE_KILLING || q->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL
             || q->pcom_ai_state == PCOM_AI_STATE_ARREST || q->pcom_ai_state == PCOM_AI_STATE_SNIPE;
-        if (engaging && q->pcom_ai_arg == me_index) {
+        if (engaging && q->pcom_ai_arg == me_index && qs_within_engage_range(t, me)) {
             return QS_REFUSED_ENEMY;
         }
     }

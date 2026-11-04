@@ -38,7 +38,8 @@ timers, steering accumulators, camera smoothing. The reload resets them, or they
 ## Why saving is limited to on foot, out of combat, outside cutscenes
 
 The player must be alive and on foot, not fighting, grappling, carrying, being hit or arrested; no NPC may be
-killing, hunting, arresting or sniping the player; and no cutscene, tutorial message or modal dialog may be up. A
+killing, hunting, arresting or sniping the player within its sight range of 8 map squares (these AI states never time
+out, so one that lost the player far away is ignored); and no cutscene, tutorial message or modal dialog may be up. A
 refused save says why in the menu. This is a trade-off, not a technical limit:
 
 1. **Minimal invasion, to keep the feature easy to maintain.** Under these limits the player's transient combat,
