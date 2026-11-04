@@ -12,6 +12,8 @@ Pure graphics/rendering changes (renderer, effects) are not listed here.
 
 - Camera — rotating the camera is now a mandatory control element (mouse or stick). The camera can now be rotated freely and won't go inside walls and other objects.
 
+- Visual fix: pedestrians no longer all share one body. Each one keeps their own model instead of wearing whichever was drawn first, and a level restart no longer changes it.
+
 - The gamepad cheats are carried over from the PS1 version, but the button combinations used to trigger them have been changed, and one new cheat was added. These cheats are also available on keyboard through the F9 console.
 
 - The old `.ini` config file is now ignored, except for the one setting that selects the localization language — everything else in it is no longer read. OpenChaos keeps its own settings in a separate file in your user folder (on Windows: `%APPDATA%\OpenChaos\OpenChaos.config.json`). Some settings carry over from the old config, some were removed, and some were added. Some options were also removed from the in-game menu — graphics settings and control rebinding — though a few of them are still available, only through the new config file.

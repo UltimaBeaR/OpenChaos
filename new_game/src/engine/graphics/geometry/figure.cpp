@@ -2534,24 +2534,35 @@ static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk*
     SLONG start_object,
     SLONG ele_count);
 
+static_assert(PERSON_NUM_TYPES <= D3D_PEOPLE_TYPE_KEYS, "D3DPeopleObj[]: person types do not fit");
+
 // Compute the D3DPeopleObj[] index used to cache the consolidated mesh
-// for one person Thing. Same indexing as FIGURE_draw_hierarchical_prim_recurse:
-//   - PERSON_ROPER  : (PersonID >> 5) + PERSON_NUM_TYPES + 32
+// for one person Thing. This is the only place that computes the key, so the
+// body draw, shadow and reflection paths always agree on the cached body.
+// The key is a body key combined with MeshID, which selects the mesh a body is
+// built from, so people with different MeshIDs never share a cached body:
+//   - PERSON_ROPER  : (PersonID >> 5) + PERSON_NUM_TYPES + D3D_PEOPLE_CIV_KEYS
 //   - PERSON_CIV    : (PersonID & 0x1f) + PERSON_NUM_TYPES
 //   - everything else: PersonType
+// Computed from the live DrawTween on every call, so a person whose key inputs
+// changed gets the matching body on the next draw.
 static int figure_person_iIndex(Thing* p_person)
 {
     DrawTween* dt = p_person->Draw.Tweened;
     const BYTE person_type = (BYTE)p_person->Genus.Person->PersonType;
     const BYTE person_id = (BYTE)dt->PersonID;
     ASSERT(person_type < PERSON_NUM_TYPES);
-    if (person_type == PERSON_CIV)
-        return (int)(person_id & 0x1f) + PERSON_NUM_TYPES;
-    if (person_type == PERSON_ROPER) {
+    int body_key = (int)person_type;
+    if (person_type == PERSON_CIV) {
+        body_key = (int)(person_id & 0x1f) + PERSON_NUM_TYPES;
+    } else if (person_type == PERSON_ROPER) {
         ASSERT((person_id >> 5) < NUM_ROPERS_THINGIES);
-        return (int)(person_id >> 5) + PERSON_NUM_TYPES + 32;
+        body_key = (int)(person_id >> 5) + PERSON_NUM_TYPES + D3D_PEOPLE_CIV_KEYS;
     }
-    return (int)person_type;
+    ASSERT(dt->MeshID < D3D_PEOPLE_MESH_VARIANTS);
+    // ASSERT is not fatal in Release: stay inside D3DPeopleObj[] whatever MeshID holds.
+    const int mesh_slot = (dt->MeshID < D3D_PEOPLE_MESH_VARIANTS) ? (int)dt->MeshID : 0;
+    return body_key * D3D_PEOPLE_MESH_VARIANTS + mesh_slot;
 }
 
 // Lazy TPO build for one person rig. Walks the 15-bone body-part hierarchy
@@ -2691,18 +2702,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     ASSERT(p_person->Class == CLASS_PERSON);
     ASSERT(FIGURE_dhpr_rdata1[0].current_child_number == 0);
 
-    int iIndex = (int)(FIGURE_dhpr_data.bPersonType);
-    ASSERT(FIGURE_dhpr_data.bPersonType >= 0);
-    ASSERT(FIGURE_dhpr_data.bPersonType < PERSON_NUM_TYPES);
-    if (FIGURE_dhpr_data.bPersonType == PERSON_CIV) {
-        iIndex = (int)(FIGURE_dhpr_data.bPersonID & 0x1f) + PERSON_NUM_TYPES;
-    } else if (FIGURE_dhpr_data.bPersonType == PERSON_ROPER) {
-        ASSERT((FIGURE_dhpr_data.bPersonID >> 5) < NUM_ROPERS_THINGIES);
-        iIndex = (int)(FIGURE_dhpr_data.bPersonID >> 5) + PERSON_NUM_TYPES + 32;
-    }
-
+    const int iIndex = figure_person_iIndex(p_person);
     ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
-    ASSERT((PERSON_NUM_TYPES + 32 + NUM_ROPERS_THINGIES) <= MAX_NUMBER_D3D_PEOPLE);
     TomsPrimObject* pPrimObj = &(D3DPeopleObj[iIndex]);
     if (pPrimObj->wNumMaterials == 0) {
         figure_tpo_build_person(pPrimObj,
@@ -3068,9 +3069,6 @@ void FIGURE_draw(Thing* p_thing)
         FIGURE_dhpr_data.dz = dz;
         FIGURE_dhpr_data.colour = colour;
         FIGURE_dhpr_data.specular = specular;
-
-        FIGURE_dhpr_data.bPersonType = p_thing->Genus.Person->PersonType;
-        FIGURE_dhpr_data.bPersonID = dt->PersonID;
 
         FIGURE_draw_hierarchical_prim_recurse(p_thing);
     }

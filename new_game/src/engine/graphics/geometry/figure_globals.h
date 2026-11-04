@@ -41,8 +41,23 @@ extern float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 // uc_orig: NUM_ROPERS_THINGIES (fallen/DDEngine/Source/figure.cpp)
 #define NUM_ROPERS_THINGIES 8
 
+// Body-cache keys for PERSON_CIV: one per value of (PersonID & 0x1f).
+#define D3D_PEOPLE_CIV_KEYS 32
+
+// Body-cache keys for the plain person types: PERSON_NUM_TYPES, rounded up to a multiple of 8.
+#define D3D_PEOPLE_TYPE_KEYS 16
+
+// Body-cache keys before MeshID is applied.
+#define D3D_PEOPLE_BODY_KEYS (D3D_PEOPLE_CIV_KEYS + D3D_PEOPLE_TYPE_KEYS + NUM_ROPERS_THINGIES)
+
+// Meshes one body key can be built from: MeshID indexes GameKeyFrameChunk::MultiObject[].
+#define D3D_PEOPLE_MESH_VARIANTS ((int)(sizeof(GameKeyFrameChunk::MultiObject) / sizeof(GameKeyFrameChunk::MultiObject[0])))
+
 // uc_orig: MAX_NUMBER_D3D_PEOPLE (fallen/DDEngine/Source/figure.cpp)
-#define MAX_NUMBER_D3D_PEOPLE (32 + 16 + NUM_ROPERS_THINGIES)
+// One slot per (body key, MeshID), so a lookup is a plain index whatever the crowd size.
+// The table is sparse: an unused slot costs only its header, mesh data is allocated on
+// first draw and bounded by the LRU limits below.
+#define MAX_NUMBER_D3D_PEOPLE (D3D_PEOPLE_BODY_KEYS * D3D_PEOPLE_MESH_VARIANTS)
 
 // uc_orig: D3DPeopleObj (fallen/DDEngine/Source/figure.cpp)
 // Pre-compiled D3D representations of all character-specific prim meshes.
@@ -78,6 +93,8 @@ extern int m_iLRUQueueSize;
 
 // uc_orig: PRIM_LRU_QUEUE_SIZE (fallen/DDEngine/Source/figure.cpp)
 // Maximum combined vertex count across all cached prim meshes.
+// A person body in the shipped data takes 188..537 vertices, so even one body for every
+// key the game produces plus the largest Roper variant (about 5900) fits without eviction.
 #define PRIM_LRU_QUEUE_SIZE 6000
 
 // uc_orig: ptpoLRUQueue (fallen/DDEngine/Source/figure.cpp)
@@ -206,8 +223,6 @@ struct structFIGURE_dhpr_data {
     SLONG dz;
     ULONG colour;
     ULONG specular;
-    BYTE bPersonType;
-    BYTE bPersonID;
 };
 
 // uc_orig: structFIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
