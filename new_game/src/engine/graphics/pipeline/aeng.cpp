@@ -57,6 +57,7 @@ extern SLONG ScreenHeight;
 #include "effects/combat/spark.h"
 #include "effects/combat/glitter.h"
 #include "world_objects/dirt.h"
+#include "effects/environment/snowflake.h"
 #include "world_objects/dirt_globals.h"
 #include "effects/combat/pow.h"
 #include "things/items/hook.h"
@@ -1497,6 +1498,8 @@ void AENG_draw_dirt()
                     wy[2] = float(dd->y + LEAF_UP) - matrix[7] - matrix[1];
                     wz[2] = float(dd->z) - matrix[8] - matrix[2];
                 }
+
+                if (dd->type == DIRT_TYPE_SNOW) SNOWFLAKE_calc_corners(dd, leaf_size, float(LEAF_UP), wx, wy, wz);
 
                 SLONG leaf_page = (world_type == WORLD_TYPE_SNOW) ? POLY_PAGE_SNOWFLAKE : POLY_PAGE_LEAF;
 
