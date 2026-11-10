@@ -544,6 +544,7 @@ set(SOURCES_NEW
     src/effects/environment/fire_globals.cpp
     src/effects/environment/ribbon.cpp
     src/effects/environment/ribbon_globals.cpp
+    src/effects/environment/snowflake.cpp
     src/effects/environment/tracks.cpp
     src/effects/environment/tracks_globals.cpp
 
